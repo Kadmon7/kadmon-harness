@@ -1,0 +1,26 @@
+{
+  "name": "kadmon-harness",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Universal operative layer for Claude Code. Observe → Remember → Verify → Specialize → Evolve",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^22.0.0",
+    "@types/better-sqlite3": "^7.6.0",
+    "vitest": "^2.0.0",
+    "eslint": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

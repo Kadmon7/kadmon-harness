@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ObservabilityEvent",
+  "type": "object",
+  "required": ["timestamp", "session_id", "event_type", "tool_name"],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "session_id": { "type": "string" },
+    "event_type": { "type": "string", "enum": ["tool_pre", "tool_post", "tool_fail", "compaction", "hook"] },
+    "tool_name": { "type": "string" },
+    "file_path": { "type": ["string", "null"] },
+    "success": { "type": ["boolean", "null"] },
+    "duration_ms": { "type": ["number", "null"] },
+    "metadata": { "type": ["object", "null"] }
+  }
+}

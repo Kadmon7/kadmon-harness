@@ -1,0 +1,83 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/block-no-verify.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/git-push-reminder.js" }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/config-protection.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/no-context-guard.js" }
+        ]
+      },
+      {
+        "matcher": "mcp__",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/mcp-health-check.js" }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/observe-pre.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/suggest-compact.js" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/post-edit-format.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/post-edit-typecheck.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/quality-gate.js" }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/observe-post.js" }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "mcp__",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/mcp-health-failure.js" }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/pre-compact-save.js" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/session-start.js" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scripts/session-end-persist.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/evaluate-session.js" },
+          { "type": "command", "command": "node .claude/hooks/scripts/cost-tracker.js" }
+        ]
+      }
+    ]
+  }
+}

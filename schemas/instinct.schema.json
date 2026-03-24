@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Instinct",
+  "type": "object",
+  "required": ["id", "project_hash", "pattern", "action", "confidence", "occurrences", "contradictions", "status", "scope", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "project_hash": { "type": "string" },
+    "pattern": { "type": "string" },
+    "action": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "occurrences": { "type": "integer", "minimum": 0 },
+    "contradictions": { "type": "integer", "minimum": 0 },
+    "source_sessions": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["active", "promoted", "contradicted", "archived"] },
+    "scope": { "type": "string", "enum": ["project", "global"] },
+    "promoted_to": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -20,7 +20,22 @@
       "Bash(export PATH=\"$PATH:/c/Program Files/nodejs:/c/Program Files/GitHub CLI\")",
       "Bash(claude mcp:*)",
       "Bash(powershell.exe -NoProfile -Command \"[Environment]::SetEnvironmentVariable\\('GITHUB_TOKEN', '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', 'User'\\)\")",
-      "Bash(export GITHUB_TOKEN=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)"
+      "Bash(export GITHUB_TOKEN=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)",
+      "Bash(ls -1 /tmp/everything-claude-code/agents/*.md)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//tmp/everything-claude-code/rules/**)",
+      "Bash(done)",
+      "Bash(wc -l /tmp/everything-claude-code/commands/*.md)",
+      "Bash(ls /tmp/everything-claude-code/commands/*.md)",
+      "Bash(xargs -I {} sh -c 'echo \"\"\"\"FILE: {}\"\"\"\" && head -30 {}')",
+      "Bash(ls -1 /tmp/everything-claude-code/skills/*.md)",
+      "Bash(ls:*)",
+      "Bash(cygpath -w /tmp/everything-claude-code/CLAUDE.md)",
+      "Bash(for skill:*)",
+      "Read(//tmp/everything-claude-code/skills/**)",
+      "Read(//tmp/everything-claude-code/skills/$skill/**)",
+      "Bash(cd:*)"
     ]
   }
 }
