@@ -1,19 +1,36 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+description: Active development mode — all hooks enabled, TDD enforced, verify before commit
 ---
 
 # Development Context
 
-Active development mode. Code first, explain after. Prefer working over perfect. All hooks active, full verification.
+Code first, explain after. All safety and quality hooks active.
 
 ## Priorities
-- TODO: Get it working → Get it right → Get it clean
+1. Get it working — write test, make it pass
+2. Get it right — review, fix issues
+3. Get it clean — refactor without changing behavior
+
+## Workflow
+- MUST follow /tdd for new features (red → green → refactor)
+- MUST run /verify before /checkpoint
+- MUST read files before editing (no-context-guard active)
+- PREFER small commits with conventional messages
+
+## Hooks
+- All hooks active — no exceptions
+- no-context-guard: ENABLED (blocks Write/Edit without prior Read)
+- observe-pre/post: logging all tool calls
+- quality-gate + post-edit-format + post-edit-typecheck: auto-run on edits
 
 ## Tools to Favor
-- TODO: Edit, Write, Bash (tests/builds), Grep/Glob
+- Edit, Write — implementation
+- Bash — running tests, builds, git
+- Grep, Glob — searching code before writing
+- Read — always before Edit (enforced by hook)
 
-## TODO
-- Adapt from ECC dev context
-- Implementation in Prompt 4
+## Agents
+- tdd-guide for new features
+- build-error-resolver when builds fail
+- code-reviewer before commits
+- typescript-reviewer on .ts edits (auto-triggered)
