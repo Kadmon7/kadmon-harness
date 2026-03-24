@@ -4,28 +4,49 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/block-no-verify.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/git-push-reminder.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/block-no-verify.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/git-push-reminder.js"
+          }
         ]
       },
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/config-protection.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/no-context-guard.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/config-protection.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/no-context-guard.js"
+          }
         ]
       },
       {
         "matcher": "mcp__",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/mcp-health-check.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/mcp-health-check.js"
+          }
         ]
       },
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/observe-pre.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/suggest-compact.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-pre.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/suggest-compact.js"
+          }
         ]
       }
     ],
@@ -33,15 +54,27 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/post-edit-format.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/post-edit-typecheck.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/quality-gate.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/post-edit-format.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/post-edit-typecheck.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/quality-gate.js"
+          }
         ]
       },
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/observe-post.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-post.js"
+          }
         ]
       }
     ],
@@ -49,7 +82,10 @@
       {
         "matcher": "mcp__",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/mcp-health-failure.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/mcp-health-failure.js"
+          }
         ]
       }
     ],
@@ -57,7 +93,10 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/pre-compact-save.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/pre-compact-save.js"
+          }
         ]
       }
     ],
@@ -65,7 +104,10 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/session-start.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-start.js"
+          }
         ]
       }
     ],
@@ -73,9 +115,18 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scripts/session-end-persist.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/evaluate-session.js" },
-          { "type": "command", "command": "node .claude/hooks/scripts/cost-tracker.js" }
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-end-persist.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/evaluate-session.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/cost-tracker.js"
+          }
         ]
       }
     ]

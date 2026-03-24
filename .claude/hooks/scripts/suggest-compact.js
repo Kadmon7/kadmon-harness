@@ -4,8 +4,9 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { parseStdin } from './parse-stdin.js';
 try {
-  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const input = parseStdin();
   const sid = input.session_id ?? '';
   if (!sid) process.exit(0);
   const countFile = path.join(os.tmpdir(), 'kadmon', sid, 'tool_count.txt');

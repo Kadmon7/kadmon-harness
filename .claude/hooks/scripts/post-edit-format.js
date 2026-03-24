@@ -4,8 +4,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { parseStdin } from './parse-stdin.js';
 try {
-  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const input = parseStdin();
   const fp = input.tool_input?.file_path ?? '';
   if (!fp) process.exit(0);
   const ext = path.extname(fp);

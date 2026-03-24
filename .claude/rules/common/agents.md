@@ -5,7 +5,7 @@ alwaysApply: true
 # Agent Usage Rules
 
 ## Routing
-- MUST use opus model for: architect, planner (complex reasoning tasks)
+- MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
 - MUST use sonnet model for: all other agents (speed + quality balance)
 - NEVER use haiku for code review or security analysis
 

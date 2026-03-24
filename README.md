@@ -22,7 +22,7 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 
 | Category | Count | Location |
 |----------|-------|----------|
-| Agents | 13 | `.claude/agents/` |
+| Agents | 13 (5 opus, 7 sonnet, 1 haiku) | `.claude/agents/` |
 | Skills | 21 | `.claude/skills/` |
 | Commands | 22 | `.claude/commands/` |
 | Hooks | 17 | `.claude/hooks/scripts/` |
@@ -35,6 +35,14 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 - **Persistence**: SQLite (local, v1) — Supabase planned for v2
 - **Source of truth**: GitHub
 - **Runtime**: Claude Code CLI on Windows
+- **MCPs**: GitHub, Supabase, Context7
+
+## Windows Compatibility
+
+- Hook stdin parsing: shared `parseStdin()` helper sanitizes unescaped backslashes
+- Hook execution: `PATH` prefix ensures Node.js is found in bash
+- MCP servers: `cmd /c npx` wrapper for GitHub and Context7
+- `/doctor`: 0 warnings
 
 ## Attribution
 
@@ -42,4 +50,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-Phase 1 — Scaffold complete
+v0.1 — Operational (63 tests passing)

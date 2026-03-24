@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Hook: git-push-reminder | Trigger: PreToolUse (Bash)
 // Purpose: Print review reminder before git push
-import fs from 'node:fs';
+import { parseStdin } from './parse-stdin.js';
 try {
-  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const input = parseStdin();
   const cmd = input.tool_input?.command ?? '';
   if (cmd.includes('git push')) {
     console.log('Pre-push checklist: tests passing? typecheck clean? CLAUDE.md updated?');

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { parseStdin } from './parse-stdin.js';
 
 function gitExec(cmd, cwd) {
   try { return require('node:child_process').execSync(cmd, { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(); }
@@ -13,7 +14,7 @@ function gitExec(cmd, cwd) {
 
 async function main() {
   try {
-    const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+    const input = parseStdin();
     const sid = input.session_id ?? '';
     const cwd = input.cwd ?? process.cwd();
     if (!sid) process.exit(0);

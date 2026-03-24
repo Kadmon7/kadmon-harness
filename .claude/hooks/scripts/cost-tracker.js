@@ -2,10 +2,11 @@
 // Hook: cost-tracker | Trigger: Stop (*)
 // Purpose: Calculate and persist session token costs
 import fs from 'node:fs';
+import { parseStdin } from './parse-stdin.js';
 
 async function main() {
   try {
-    const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+    const input = parseStdin();
     const sid = input.session_id ?? '';
     if (!sid) process.exit(0);
 

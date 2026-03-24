@@ -4,8 +4,9 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { parseStdin } from './parse-stdin.js';
 try {
-  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const input = parseStdin();
   const healthFile = path.join(os.tmpdir(), 'kadmon', 'mcp-health.json');
   if (!fs.existsSync(healthFile)) process.exit(0);
   const health = JSON.parse(fs.readFileSync(healthFile, 'utf8'));

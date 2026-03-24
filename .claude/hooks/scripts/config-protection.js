@@ -3,6 +3,7 @@
 // Purpose: Block weakening of linter/compiler configs
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseStdin } from './parse-stdin.js';
 const PROTECTED = ['.eslintrc', '.prettierrc', 'tsconfig.json', '.eslintignore'];
 const DANGEROUS = [
   { re: /"strict"\s*:\s*false/, msg: 'Disabling strict mode' },
@@ -10,7 +11,7 @@ const DANGEROUS = [
   { re: /:\s*("off"|0)\s*[,}\]]/, msg: 'Disabling lint rules' },
 ];
 try {
-  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const input = parseStdin();
   const filePath = input.tool_input?.file_path ?? '';
   const content = input.tool_input?.content ?? input.tool_input?.new_string ?? '';
   const fileName = path.basename(filePath);

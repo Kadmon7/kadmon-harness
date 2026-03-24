@@ -39,15 +39,15 @@ Observe → Remember → Verify → Specialize → Evolve
 | planner | opus | Implementation planning, task breakdown |
 | code-reviewer | sonnet | Code quality and security review |
 | typescript-reviewer | sonnet | TypeScript-specific review |
-| database-reviewer | sonnet | PostgreSQL/Supabase review |
-| security-reviewer | sonnet | Security vulnerability detection |
+| database-reviewer | opus | PostgreSQL/Supabase review |
+| security-reviewer | opus | Security vulnerability detection |
 | tdd-guide | sonnet | Test-driven development workflow |
 | build-error-resolver | sonnet | Build/compile error resolution |
 | refactor-cleaner | sonnet | Code refactoring |
 | docs-lookup | sonnet | Documentation lookup via Context7 |
 | doc-updater | haiku | Codemap and documentation generation |
 | e2e-runner | sonnet | E2E testing specialist |
-| harness-optimizer | sonnet | Harness configuration analysis |
+| harness-optimizer | opus | Harness configuration analysis |
 
 ## Commands (22)
 | Command | Phase | Purpose |
@@ -94,5 +94,11 @@ Observe → Remember → Verify → Specialize → Evolve
 - no-context-guard: < 100ms (reads observations JSONL)
 - All other hooks: < 500ms
 
+## Windows Compatibility
+- Hook stdin: `parseStdin()` helper sanitizes unescaped Windows backslashes in JSON
+- Hook execution: all 17 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix
+- MCP servers: `cmd /c npx` wrapper for GitHub and Context7
+- /doctor: 0 warnings
+
 ## Status
-Phase 1 — Scaffold complete
+v0.1 — Operational (63 tests passing, 5 opus + 7 sonnet + 1 haiku agents)
