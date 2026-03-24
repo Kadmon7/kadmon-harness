@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep\\(800, 150\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep\\(600, 100\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep\\(700, 100\\); [Console]::Beep\\(900, 150\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep\\(500, 80\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep\\(523, 80\\); [Console]::Beep\\(659, 80\\); [Console]::Beep\\(784, 120\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep\\(440, 60\\); [Console]::Beep\\(520, 60\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"\\(New-Object System.Media.SoundPlayer 'C:\\\\Windows\\\\Media\\\\Windows Notify Messaging.wav'\\).PlaySync\\(\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"\\(New-Object System.Media.SoundPlayer 'C:\\\\Windows\\\\Media\\\\Windows Proximity Notification.wav'\\).PlaySync\\(\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"\\(New-Object System.Media.SoundPlayer 'C:\\\\Windows\\\\Media\\\\Windows Balloon.wav'\\).PlaySync\\(\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"\\(New-Object System.Media.SoundPlayer 'C:\\\\Windows\\\\Media\\\\Windows Unlock.wav'\\).PlaySync\\(\\)\")",
+      "Bash(powershell.exe -NoProfile -Command \"\\(New-Object System.Media.SoundPlayer 'C:\\\\Windows\\\\Media\\\\Windows Proximity Connection.wav'\\).PlaySync\\(\\)\")",
+      "Bash(gh:*)",
+      "Bash(winget:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(npx:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/nodejs\")",
+      "Bash(export PATH=\"$PATH:/c/Program Files/nodejs:/c/Program Files/GitHub CLI\")",
+      "Bash(claude mcp:*)",
+      "Bash(powershell.exe -NoProfile -Command \"[Environment]::SetEnvironmentVariable\\('GITHUB_TOKEN', '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', 'User'\\)\")",
+      "Bash(export GITHUB_TOKEN=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)"
+    ]
+  }
+}
