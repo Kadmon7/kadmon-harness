@@ -57,7 +57,7 @@ async function main() {
       const { startSession } = await import('../../../dist/scripts/lib/session-manager.js');
       startSession(sid, { projectHash, remoteUrl, branch, rootDir: cwd });
     } catch (dbErr) {
-      console.error(JSON.stringify({ warn: `session-start db: ${dbErr.message}` }));
+      console.log(`WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`);
     }
 
     console.log(`## Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}`);
