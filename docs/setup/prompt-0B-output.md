@@ -19,15 +19,15 @@
 ## Config Location
 - File: `~/.claude.json` (user-level, NOT in repo)
 - Section: `projects > C:/Proyectos Kadmon/Kadmon-Harness > mcpServers > github`
-- Token stored as environment variable in the config — not committed to git
+- Token: stored as Windows user environment variable `GITHUB_TOKEN`, referenced via `${GITHUB_TOKEN}` in MCP config
 
 ## Other MCP Servers Found
 - Supabase MCP (claude.ai managed) was already connected
 
-## Warnings
-- **SECURITY:** The GitHub PAT was shared in chat history. Recommend revoking and creating a new token.
-- MCP tools may not be available until Claude Code session is restarted.
-- No config file was created inside the repo — MCP config lives in user-level `~/.claude.json`.
+## Resolved Issues
+- Initial PAT was exposed in chat — revoked and replaced with a new token.
+- Token storage upgraded: moved from hardcoded value to `${GITHUB_TOKEN}` system environment variable (best practice).
+- MCP tools require Claude Code session restart to appear as callable tools.
 
 ## Status
-Phase 0-B complete. Waiting for architect approval before Prompt 1.
+Phase 0-B complete.

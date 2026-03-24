@@ -20,16 +20,16 @@
 ## Remote
 - URL: https://github.com/Kadmon7/kadmon-harness.git
 - Visibility: private
-- Branch: master
+- Default branch: main (renamed from master)
 
 ## Files Created
 - `.gitignore` — node_modules, dist, .env, logs, OS files
 - `README.md` — project description and mantra
 - `CLAUDE.md` — identity, core principle, stack, status
 
-## Warnings
-- Git defaulted to `master` branch (not `main`). Can rename later if preferred.
+## Resolved Issues
+- Branch renamed from `master` to `main` and set as default on GitHub.
 - LF/CRLF warnings on Windows — cosmetic only, no action needed.
 
 ## Status
-Phase 0-A complete. Waiting for architect approval before Prompt 1.
+Phase 0-A complete.
