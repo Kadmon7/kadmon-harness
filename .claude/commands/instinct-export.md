@@ -1,16 +1,16 @@
 ---
-description: Export instincts for backup or sharing
-phase: v1
-status: scaffold
-implements: Evolve
-source: affaan-m/everything-claude-code (MIT)
+description: Export instincts to JSON file for backup or sharing
 ---
 
-# /instinct-export
+## Purpose
+Export all active instincts for the current project to a JSON file.
 
-Export instincts for backup or sharing.
+## Steps
+1. Detect current project hash
+2. Query SQLite for all instincts (all statuses) in this project
+3. Serialize to JSON
+4. Write to docs/instincts-export-[YYYY-MM-DD].json
+5. Report file path and instinct count
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+File path + instinct count by status.

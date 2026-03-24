@@ -1,16 +1,23 @@
 ---
-description: Clean up contradicted or low-confidence instincts
-phase: v1
-status: scaffold
-implements: Evolve
-source: affaan-m/everything-claude-code (MIT)
+description: Archive weak or contradicted instincts
 ---
 
-# /prune
+## Purpose
+Clean up instincts that are no longer valid or have been contradicted.
 
-Clean up contradicted or low-confidence instincts.
+## Steps
+1. Invoke pruneInstincts() from instinct-manager
+2. Archives: contradicted instincts older than 7 days
+3. Archives: active instincts with confidence < 0.2 and occurrences < 2
+4. Show what was archived and why
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Count of archived instincts with reasons.
+
+## Example
+```
+Pruned 3 instincts:
+- "Skip type annotations" — contradicted (3 contradictions vs 1 occurrence)
+- "Use var for loops" — low confidence (0.1, 1 occurrence)
+- "Ignore lint warnings" — contradicted (5 contradictions vs 2 occurrences)
+```

@@ -1,16 +1,18 @@
 ---
-description: Cluster instincts into skills/commands
-phase: v1
-status: scaffold
-implements: Evolve
-source: affaan-m/everything-claude-code (MIT)
+description: Run harness self-optimization analysis
 ---
 
-# /evolve
+## Purpose
+Invoke harness-optimizer agent to analyze harness health and propose improvements.
 
-Cluster instincts into skills/commands.
+## Steps
+1. Invoke harness-optimizer agent (sonnet)
+2. Analyze: hook latency from recent sessions
+3. Analyze: instinct quality (confidence distribution, contradictions)
+4. Identify: unused or underperforming skills
+5. Identify: cost trends across sessions
+6. Produce optimization report with recommendations
+7. NEVER auto-apply changes — recommendations only
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Optimization report with actionable recommendations and expected impact.

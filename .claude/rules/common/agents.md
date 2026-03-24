@@ -1,16 +1,21 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
 ---
 
-# agents
+# Agent Usage Rules
 
-Common rule for agents — applies to all projects regardless of language.
+## Routing
+- MUST use opus model for: architect, planner (complex reasoning tasks)
+- MUST use sonnet model for: all other agents (speed + quality balance)
+- NEVER use haiku for code review or security analysis
 
-## TODO
-- Adapt content from ECC source
-- Remove references to non-TypeScript languages
-- Remove tmux references
-- Ensure Windows compatibility
-- Implementation in Prompt 4
+## When to Invoke
+- ALWAYS invoke security-reviewer for code touching: authentication, encryption, API keys, user input
+- ALWAYS invoke code-reviewer before any commit via /checkpoint
+- ALWAYS invoke planner for tasks estimated > 1 hour
+- NEVER invoke architect for routine bug fixes or small features
+
+## Communication
+- Agents return structured output (markdown with sections)
+- MUST include severity levels in reviews (BLOCK/WARN/NOTE or CRITICAL/HIGH/MEDIUM/LOW)
+- NEVER let an agent modify code without explicit approval from the user

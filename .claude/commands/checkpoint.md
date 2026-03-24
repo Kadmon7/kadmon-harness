@@ -1,16 +1,26 @@
 ---
-description: Git commit + session state save
-phase: v1
-status: scaffold
-implements: Remember
-source: affaan-m/everything-claude-code (MIT)
+description: Save progress — run verification then commit and push
 ---
 
-# /checkpoint
+## Purpose
+Safe commit workflow: verify first, then commit with conventional commit message.
 
-Git commit + session state save.
+## Steps
+1. Run /verify (typecheck + tests + lint)
+2. If any check fails: STOP — do not commit
+3. If all pass: `git add -A`
+4. Ask user for commit description
+5. Format as conventional commit: `feat|fix|docs|chore: description`
+6. `git commit -m "type: description"`
+7. `git push`
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Verification results + commit hash + push confirmation.
+
+## Example
+```
+Verify: PASS (63 tests, 0 errors)
+Commit: feat: add instinct export functionality
+Hash:   abc1234
+Pushed: origin/main
+```

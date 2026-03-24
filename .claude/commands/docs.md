@@ -1,16 +1,28 @@
 ---
-description: Lookup documentation via Context7
-phase: v1
-status: scaffold
-implements: Remember
-source: affaan-m/everything-claude-code (MIT)
+description: Look up live documentation for any library or framework
 ---
 
-# /docs
+## Purpose
+Fetch current API documentation via Context7 MCP instead of relying on training data.
 
-Lookup documentation via Context7.
+## Steps
+1. Invoke docs-lookup agent with the query
+2. Agent resolves library ID via Context7
+3. Agent fetches documentation for the specific topic
+4. If Context7 unavailable: fallback to WebSearch
+5. Return: exact API signature + working example + source URL
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+API signature, minimal example, and documentation source.
+
+## Example
+```
+User: /docs vitest mock function
+
+Result:
+vi.fn() — creates a mock function
+const mock = vi.fn((x: number) => x * 2);
+mock(5); // 10
+expect(mock).toHaveBeenCalledWith(5);
+Source: vitest.dev/api/vi#vi-fn
+```

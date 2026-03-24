@@ -1,16 +1,28 @@
 ---
-description: Audit current context window usage
-phase: v1
-status: scaffold
-implements: Observe
-source: affaan-m/everything-claude-code (MIT)
+description: Audit current context window usage and suggest optimizations
 ---
 
-# /context-budget
+## Purpose
+Analyze what is consuming context window tokens and recommend what to unload.
 
-Audit current context window usage.
+## Steps
+1. Count currently loaded files and their approximate sizes
+2. Identify largest context consumers
+3. Check if any loaded files are no longer relevant to current task
+4. Suggest files to unload or sections to compact
+5. Report total estimated usage vs capacity
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Context usage report with recommendations.
+
+## Example
+```
+Context Usage:
+- CLAUDE.md: ~800 tokens
+- types.ts: ~600 tokens
+- state-store.ts: ~2000 tokens (largest)
+- 3 test files: ~1500 tokens
+
+Total: ~5000 tokens (~5% of context)
+Recommendation: unload test files if not currently testing
+```

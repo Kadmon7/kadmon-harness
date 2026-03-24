@@ -1,16 +1,37 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
 ---
 
-# coding-style
+# Coding Style Rules
 
-Common rule for coding-style — applies to all projects regardless of language.
+## Naming
+- MUST use camelCase for variables, functions, and object properties
+- MUST use PascalCase for types, interfaces, and classes
+- MUST use kebab-case for file names (e.g., instinct-manager.ts)
+- MUST use snake_case ONLY for SQL column names (conversion in state-store.ts)
+- PREFER descriptive names: `getActiveInstincts` not `getAI`
 
-## TODO
-- Adapt content from ECC source
-- Remove references to non-TypeScript languages
-- Remove tmux references
-- Ensure Windows compatibility
-- Implementation in Prompt 4
+## Types
+- NEVER use `any` type — use `unknown` and narrow with type guards
+- MUST use explicit return types on all exported functions
+- PREFER `interface` over `type` for object shapes
+- NEVER use non-null assertion (`!`) without a justification comment
+
+## Variables
+- NEVER use `var` — use `const` or `let`
+- PREFER `const` over `let` when value does not change
+- PREFER early returns over nested if/else blocks
+
+## Validation
+- MUST use Zod for all external input validation
+- MUST validate at system boundaries (API inputs, file reads, stdin)
+
+## Files
+- PREFER small files (< 200 lines)
+- MUST have one module per file
+- MUST co-locate tests: `foo.ts` → `tests/lib/foo.test.ts`
+
+## Imports
+- MUST use `node:` prefix for Node.js builtins: `import fs from 'node:fs'`
+- MUST use .js extension for local imports (Node16 resolution)
+- NEVER create circular dependencies

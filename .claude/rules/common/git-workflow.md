@@ -1,16 +1,20 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
 ---
 
-# git-workflow
+# Git Workflow Rules
 
-Common rule for git-workflow — applies to all projects regardless of language.
+## Commits
+- MUST use conventional commit format: `type(scope): description`
+- Types: feat, fix, docs, chore, refactor, test, style, perf
+- NEVER use --no-verify (enforced by block-no-verify hook)
+- ALWAYS run typecheck before pushing
 
-## TODO
-- Adapt content from ECC source
-- Remove references to non-TypeScript languages
-- Remove tmux references
-- Ensure Windows compatibility
-- Implementation in Prompt 4
+## Branches
+- PREFER feature branches for multi-commit features
+- ALWAYS pull before push to avoid conflicts
+
+## Safety
+- NEVER force push to main
+- NEVER commit secrets, .env files, or .db files (.gitignore enforced)
+- ALWAYS review diff before committing: `git diff --staged`

@@ -1,16 +1,16 @@
 ---
-description: Update project documentation and codemaps
-phase: v1
-status: scaffold
-implements: Remember
-source: affaan-m/everything-claude-code (MIT)
+description: Update CLAUDE.md, README, and project documentation
 ---
 
-# /update-docs
+## Purpose
+Keep documentation in sync with code after implementation changes.
 
-Update project documentation and codemaps.
+## Steps
+1. Invoke doc-updater agent (sonnet)
+2. Scan recent git commits for structural changes
+3. Update CLAUDE.md: agent table, command table, status, component counts
+4. Update README.md: architecture section, component counts
+5. Commit documentation updates separately from code
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+List of docs updated + commit hash.

@@ -1,16 +1,26 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
 ---
 
-# hooks
+# Hook System Rules
 
-Common rule for hooks — applies to all projects regardless of language.
+## Exit Codes
+- exit(0) = allow the operation to proceed
+- exit(1) = warn but allow (non-blocking feedback)
+- exit(2) = block the operation
 
-## TODO
-- Adapt content from ECC source
-- Remove references to non-TypeScript languages
-- Remove tmux references
-- Ensure Windows compatibility
-- Implementation in Prompt 4
+## Safety
+- NEVER crash Claude Code — always exit(0) on unexpected errors
+- MUST wrap all hook logic in try/catch
+- MUST log errors to stderr as JSON: `{ "error": "..." }`
+
+## Performance
+- observe-pre and observe-post MUST complete in < 50ms
+- no-context-guard MUST complete in < 100ms
+- All other hooks MUST complete in < 500ms
+
+## Data
+- Hooks read input from stdin as JSON
+- observe hooks write to JSONL files (file append, no DB)
+- Lifecycle hooks (session-start, session-end) may access SQLite via compiled TypeScript in dist/
+- MUST run `npm run build` before lifecycle hooks can access state-store

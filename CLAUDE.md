@@ -26,6 +26,7 @@ Observe → Remember → Verify → Specialize → Evolve
 - Persistence: SQLite (local fast cache, v1) — Supabase planned for v2
 - Source of truth: GitHub (Kadmon7/kadmon-harness)
 - Runtime: Claude Code CLI on Windows
+- MCPs: GitHub (source of truth), Supabase (persistence), Context7 (live documentation)
 
 ## Active Projects
 - **ToratNetz** — Torah RAG system (Supabase + pgvector)

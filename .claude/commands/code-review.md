@@ -1,16 +1,33 @@
 ---
-description: Invoke code-reviewer agent on staged changes
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Run code review on staged or recent changes
 ---
 
-# /code-review
+## Purpose
+Invoke review agents to check code quality, TypeScript patterns, and security.
 
-Invoke code-reviewer agent on staged changes.
+## Steps
+1. Get diff: `git diff --staged` or `git diff HEAD~1`
+2. Invoke code-reviewer agent on the diff
+3. For .ts files: also invoke typescript-reviewer agent
+4. For auth/crypto/input code: also invoke security-reviewer agent
+5. Aggregate results by severity: BLOCK / WARN / NOTE
+6. Report findings
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Review report with severity-tagged items. BLOCK items must be fixed before merge.
+
+## Example
+```
+## Code Review: 3 files changed
+
+### BLOCK
+- state-store.ts:85 — SQL string concatenation (injection risk). Use parameterized query.
+
+### WARN
+- utils.ts:12 — Missing return type annotation on exported function.
+
+### NOTE
+- session-manager.ts:30 — Consider extracting duration calculation to utility.
+
+Summary: 1 BLOCK, 1 WARN, 1 NOTE — CHANGES REQUESTED
+```

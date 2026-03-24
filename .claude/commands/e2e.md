@@ -1,16 +1,16 @@
 ---
-description: Generate and run E2E tests
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Run end-to-end tests that verify full system workflows
 ---
 
-# /e2e
+## Purpose
+Invoke e2e-runner agent to test complete workflows across multiple components.
 
-Generate and run E2E tests.
+## Steps
+1. Invoke e2e-runner agent (sonnet)
+2. Run session lifecycle test: start → observe → end → verify SQLite
+3. Run instinct lifecycle test: create → reinforce → promote
+4. Run hook chain test: observe-pre → edit → observe-post → verify JSONL
+5. Report results per scenario with timing
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+E2E test results with pass/fail per scenario and execution time.

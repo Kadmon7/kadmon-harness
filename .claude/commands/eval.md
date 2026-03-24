@@ -1,16 +1,16 @@
 ---
-description: Run evaluation harness
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Run structured evaluation of agent or skill quality
 ---
 
-# /eval
+## Purpose
+Invoke eval-harness skill to measure agent/skill effectiveness against defined criteria.
 
-Run evaluation harness.
+## Steps
+1. Define evaluation criteria for the target agent/skill
+2. Create test cases with expected outcomes
+3. Run agent/skill against each test case
+4. Score: pass/fail per criterion
+5. Report summary with pass rate
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Evaluation report with scores and recommendations.

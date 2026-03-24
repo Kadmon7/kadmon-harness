@@ -1,16 +1,16 @@
 ---
-description: Promote project instinct to global scope
-phase: v1
-status: scaffold
-implements: Evolve
-source: affaan-m/everything-claude-code (MIT)
+description: Promote a high-confidence instinct to a skill
 ---
 
-# /promote
+## Purpose
+Convert a well-validated instinct into a permanent skill file.
 
-Promote project instinct to global scope.
+## Steps
+1. List promotable instincts (confidence >= 0.7, occurrences >= 3, status: active)
+2. User selects which instinct to promote
+3. Generate skill markdown from instinct pattern and action
+4. Save skill file to .claude/skills/[instinct-name].md
+5. Mark instinct as promoted in SQLite with promotedTo field
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+New skill file path + instinct marked as promoted.

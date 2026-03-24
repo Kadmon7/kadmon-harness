@@ -1,14 +1,26 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
+globs: ["**/*.ts"]
 ---
 
-# TypeScript patterns
+# TypeScript Pattern Rules
 
-TypeScript-specific rule for patterns.
+## Error Handling
+- PREFER Result pattern over throwing for expected errors
+- MUST use typed error classes for domain errors
+- NEVER use `catch (e: any)` — use `catch (e: unknown)` and narrow
 
-## TODO
-- Adapt content from ECC TypeScript rules
-- Ensure strict mode, no any, proper patterns
-- Implementation in Prompt 4
+## Validation
+- MUST use Zod schemas for all API contracts and external data
+- PREFER `.parse()` when input MUST be valid (throws on invalid)
+- PREFER `.safeParse()` when graceful handling of invalid input is needed
+
+## Immutability
+- PREFER `readonly` arrays and object properties where mutation is not needed
+- PREFER spread operator for creating modified copies
+- NEVER mutate function arguments
+
+## sql.js Typing
+- MUST type all query results explicitly (sql.js returns Record<string, unknown>)
+- MUST use mapping functions (mapSessionRow, mapInstinctRow) for type conversion
+- NEVER trust raw sql.js output types

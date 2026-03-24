@@ -40,7 +40,9 @@
       "Bash(node .claude/hooks/scripts/block-no-verify.js)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(node scripts/write-skills.mjs)",
-      "Bash(rm scripts/write-skills.mjs)"
+      "Bash(rm scripts/write-skills.mjs)",
+      "Bash(node scripts/write-content.mjs)",
+      "Bash(rm scripts/write-content.mjs)"
     ]
   }
 }

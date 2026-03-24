@@ -1,16 +1,22 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
 ---
 
-# development-workflow
+# Development Workflow Rules
 
-Common rule for development-workflow — applies to all projects regardless of language.
+## Order
+- ALWAYS follow: Research → Plan → Test → Implement → Review → Commit
+- ALWAYS run /verify before /checkpoint
+- NEVER commit failing tests (red tests)
+- ALWAYS write test before implementation (/tdd workflow)
 
-## TODO
-- Adapt content from ECC source
-- Remove references to non-TypeScript languages
-- Remove tmux references
-- Ensure Windows compatibility
-- Implementation in Prompt 4
+## Commits
+- MUST use conventional commits: feat/fix/chore/docs/refactor/test
+- PREFER small focused commits over large monolithic ones
+- MUST include scope when relevant: `feat(instincts): add export function`
+- NEVER commit unrelated changes in the same commit
+
+## Research
+- ALWAYS search codebase before writing new code (search-first skill)
+- ALWAYS use /docs for API lookups instead of relying on memory
+- MUST read existing code before modifying it (enforced by no-context-guard hook)

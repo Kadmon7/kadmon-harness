@@ -1,16 +1,15 @@
 ---
-description: Evaluate quality of learned patterns
-phase: v1
-status: scaffold
-implements: Evolve
-source: affaan-m/everything-claude-code (MIT)
+description: Evaluate quality of learned instincts
 ---
 
-# /learn-eval
+## Purpose
+Review active instincts for the current project and assess their quality and validity.
 
-Evaluate quality of learned patterns.
+## Steps
+1. Query SQLite for all active instincts in current project
+2. For each instinct: check confidence, occurrences, contradictions
+3. Flag: low confidence (<0.3), high contradictions, stale (no recent sessions)
+4. Recommend: promote, keep, or prune each instinct
 
-## TODO
-- Define command behavior and workflow
-- Wire to appropriate agent(s) if needed
-- Implementation in Prompt 4
+## Output
+Instinct quality report with recommendations.

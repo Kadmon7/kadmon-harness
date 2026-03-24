@@ -1,14 +1,21 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
+globs: ["**/*.ts"]
 ---
 
-# TypeScript security
+# TypeScript Security Rules
 
-TypeScript-specific rule for security.
+## Type Safety as Security
+- NEVER cast user input to a type without Zod validation first
+- MUST use branded types or newtypes for security-sensitive values (e.g., ProjectHash)
+- NEVER expose internal error details in user-facing output
 
-## TODO
-- Adapt content from ECC TypeScript rules
-- Ensure strict mode, no any, proper patterns
-- Implementation in Prompt 4
+## File Operations
+- MUST sanitize file paths before any fs operation
+- MUST use path.resolve() to prevent path traversal attacks
+- NEVER read/write files based solely on user-provided paths without validation
+
+## Data
+- MUST sanitize all data before inserting into SQLite
+- NEVER store plaintext secrets in SQLite
+- MUST use parameterized queries for all SQL operations

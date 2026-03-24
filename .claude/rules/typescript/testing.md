@@ -1,14 +1,25 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
+globs: ["tests/**/*.ts"]
 ---
 
-# TypeScript testing
+# TypeScript Testing Rules
 
-TypeScript-specific rule for testing.
+## Mocking
+- PREFER vi.fn() over manual mock objects
+- MUST mock external dependencies (git commands, file system) in unit tests
+- PREFER real :memory: SQLite over mocking state-store in integration tests
 
-## TODO
-- Adapt content from ECC TypeScript rules
-- Ensure strict mode, no any, proper patterns
-- Implementation in Prompt 4
+## Type Testing
+- MUST test TypeScript types with `expectTypeOf` where relevant
+- MUST verify that function return types match expected interfaces
+
+## Cleanup
+- MUST close database connections in afterEach
+- MUST remove temp files/directories in afterEach
+- NEVER leave test artifacts on disk
+
+## Hook Testing
+- MUST test hooks via execFileSync with input option
+- MUST verify both exit code AND stderr/stdout content
+- MUST test both blocking (exit 2) and allowing (exit 0) scenarios

@@ -1,16 +1,23 @@
 ---
-phase: v1
-status: scaffold
-source: affaan-m/everything-claude-code (MIT)
+alwaysApply: true
 ---
 
-# performance
+# Performance Rules
 
-Common rule for performance — applies to all projects regardless of language.
+## SQLite (sql.js)
+- PREFER batch operations over individual inserts in loops
+- MUST call saveToDisk() after write operations (handled by wrapper)
+- MUST use :memory: for tests — never touch production database
+- PREFER prepared statements over raw exec for queries with parameters
 
-## TODO
-- Adapt content from ECC source
-- Remove references to non-TypeScript languages
-- Remove tmux references
-- Ensure Windows compatibility
-- Implementation in Prompt 4
+## Context Window
+- NEVER load files > 50KB into context without explicit reason
+- PREFER reading specific line ranges over entire files
+- MUST compact at natural breakpoints (after commits, between features)
+- PREFER lazy loading for large data sets
+
+## Model Routing
+- MUST use appropriate model tier for task complexity
+- Opus: architecture, complex planning (expensive but thorough)
+- Sonnet: implementation, review, testing (balanced)
+- Haiku: documentation, formatting, simple lookups (cheap and fast)
