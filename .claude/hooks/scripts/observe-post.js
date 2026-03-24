@@ -1,9 +1,23 @@
 #!/usr/bin/env node
-// Hook: observe-post
-// Trigger: PostToolUse
-// Phase: v1 scaffold — implementation in Prompt 5
-// Purpose: Logs tool result metadata for continuous learning
-// Windows-safe: YES
-// TODO: implement
-
+// Hook: observe-post | Trigger: PostToolUse (*)
+// Purpose: Append tool result metadata to observations JSONL. Target: <50ms
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+try {
+  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const sid = input.session_id ?? '';
+  if (!sid) process.exit(0);
+  const dir = path.join(os.tmpdir(), 'kadmon', sid);
+  fs.mkdirSync(dir, { recursive: true });
+  const event = {
+    timestamp: new Date().toISOString(),
+    sessionId: sid,
+    eventType: 'tool_post',
+    toolName: input.tool_name ?? '',
+    filePath: input.tool_input?.file_path ?? input.tool_input?.path ?? null,
+    success: !input.tool_error,
+  };
+  fs.appendFileSync(path.join(dir, 'observations.jsonl'), JSON.stringify(event) + '\n');
+} catch (err) { console.error(JSON.stringify({ error: `observe-post: ${err.message}` })); }
 process.exit(0);

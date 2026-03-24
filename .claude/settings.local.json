@@ -36,7 +36,9 @@
       "Read(//tmp/everything-claude-code/skills/**)",
       "Read(//tmp/everything-claude-code/skills/$skill/**)",
       "Bash(cd:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(node .claude/hooks/scripts/block-no-verify.js)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

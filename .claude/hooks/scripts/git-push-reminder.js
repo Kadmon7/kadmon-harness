@@ -1,9 +1,12 @@
 #!/usr/bin/env node
-// Hook: git-push-reminder
-// Trigger: PreToolUse
-// Phase: v1 scaffold — implementation in Prompt 5
-// Purpose: Warns before git push to review changes
-// Windows-safe: YES
-// TODO: implement
-
+// Hook: git-push-reminder | Trigger: PreToolUse (Bash)
+// Purpose: Print review reminder before git push
+import fs from 'node:fs';
+try {
+  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const cmd = input.tool_input?.command ?? '';
+  if (cmd.includes('git push')) {
+    console.log('Pre-push checklist: tests passing? typecheck clean? CLAUDE.md updated?');
+  }
+} catch (err) { console.error(JSON.stringify({ error: `git-push-reminder: ${err.message}` })); }
 process.exit(0);

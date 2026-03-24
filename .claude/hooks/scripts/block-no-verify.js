@@ -1,9 +1,15 @@
 #!/usr/bin/env node
-// Hook: block-no-verify
-// Trigger: PreToolUse
-// Phase: v1 scaffold — implementation in Prompt 5
-// Purpose: Blocks --no-verify and --no-gpg-sign flags on git commands
-// Windows-safe: YES
-// TODO: implement
-
+// Hook: block-no-verify | Trigger: PreToolUse (Bash)
+// Purpose: Block git commit --no-verify and git push --no-gpg-sign
+import fs from 'node:fs';
+try {
+  const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  const command = input.tool_input?.command ?? '';
+  const blocked = ['--no-verify', '--no-gpg-sign'];
+  const found = blocked.find(flag => command.includes(flag));
+  if (found) {
+    console.error(JSON.stringify({ block: true, message: `Blocked: "${found}" is not allowed. Git hooks must not be bypassed.` }));
+    process.exit(2);
+  }
+} catch (err) { console.error(JSON.stringify({ error: `block-no-verify: ${err.message}` })); }
 process.exit(0);
