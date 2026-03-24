@@ -4,8 +4,8 @@
   "type": "module",
   "description": "Universal operative layer for Claude Code. Observe → Remember → Verify → Specialize → Evolve",
   "scripts": {
-    "postinstall": "tsc",
-    "build": "tsc",
+    "postinstall": "npm run build",
+    "build": "tsc && node -e \"require('fs').cpSync('scripts/lib/schema.sql','dist/scripts/lib/schema.sql')\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."

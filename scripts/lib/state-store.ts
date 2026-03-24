@@ -138,7 +138,9 @@ export async function openDb(customPath?: string): Promise<WrappedDb> {
   db.pragma('journal_mode = WAL');
 
   // Apply schema
-  const schemaPath = path.join(import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname), 'schema.sql');
+  const { fileURLToPath } = await import('node:url');
+  const thisDir = path.dirname(fileURLToPath(import.meta.url));
+  const schemaPath = path.join(thisDir, 'schema.sql');
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   for (const stmt of schema.split(';').filter(s => s.trim())) {
     db.exec(stmt + ';');

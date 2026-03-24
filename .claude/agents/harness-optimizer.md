@@ -1,6 +1,6 @@
 ---
 name: harness-optimizer
-description: Use via /evolve command to analyze harness health and propose improvements
+description: Invoked exclusively via /evolve command. Analyzes hook latency, instinct quality, skill gaps, and cost trends. Never auto-applies changes — produces recommendations for architect review.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 ---

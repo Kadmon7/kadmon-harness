@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Use when reviewing code for security vulnerabilities, secret exposure, or unsafe patterns
+description: Automatically invoked when editing code that handles: authentication, API keys, user input validation, exec/spawn calls, file system paths, or SQL queries. Also runs as part of /code-review. Severity: CRITICAL/HIGH/MEDIUM/LOW.
 model: sonnet
 tools: Read, Grep, Glob
 ---

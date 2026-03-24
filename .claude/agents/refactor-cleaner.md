@@ -1,6 +1,6 @@
 ---
 name: refactor-cleaner
-description: Use when /refactor-clean is invoked to identify and remove dead code, duplication, and structural issues
+description: Invoked exclusively via /refactor-clean command. Identifies dead code, duplication, and structural issues. Never runs automatically — refactoring must be explicitly requested.
 model: sonnet
 tools: Read, Grep, Glob, Edit
 ---

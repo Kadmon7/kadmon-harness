@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Use when breaking down a complex task into verifiable implementation steps
+description: Use when breaking down a complex task into verifiable implementation steps. Invoked via /plan command. Automatically suggested when task description exceeds 3 sentences or involves multiple files.
 model: opus
 tools: Read, Grep, Glob, Write
 ---

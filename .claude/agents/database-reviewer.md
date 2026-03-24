@@ -1,6 +1,6 @@
 ---
 name: database-reviewer
-description: Use when reviewing database schemas, queries, migrations, or Supabase/sql.js patterns
+description: Automatically invoked when editing files containing SQL queries, schema definitions, migration files, or Supabase client code. Reviews for missing indexes, RLS gaps, and sql.js-specific patterns.
 model: sonnet
 tools: Read, Grep, Glob
 ---

@@ -42,7 +42,25 @@
       "Bash(node scripts/write-skills.mjs)",
       "Bash(rm scripts/write-skills.mjs)",
       "Bash(node scripts/write-content.mjs)",
-      "Bash(rm scripts/write-content.mjs)"
+      "Bash(rm scripts/write-content.mjs)",
+      "Bash(node .claude/hooks/scripts/config-protection.js)",
+      "Bash(node .claude/hooks/scripts/no-context-guard.js)",
+      "Bash(node .claude/hooks/scripts/suggest-compact.js)",
+      "Bash(node .claude/hooks/scripts/git-push-reminder.js)",
+      "Bash(node .claude/hooks/scripts/post-edit-format.js)",
+      "Bash(node .claude/hooks/scripts/post-edit-typecheck.js)",
+      "Bash(node .claude/hooks/scripts/quality-gate.js)",
+      "Bash(node .claude/hooks/scripts/mcp-health-failure.js)",
+      "Bash(node .claude/hooks/scripts/mcp-health-check.js)",
+      "Read(//c/Proyectos Kadmon/Kadmon-Harness/$TEMP/kadmon/**)",
+      "Bash(node .claude/hooks/scripts/session-start.js)",
+      "Bash(node -e \":*)",
+      "Bash(echo '{\"\"\"\"session_id\"\"\"\":\"\"\"\"lifecycle-test-2\"\"\"\",\"\"\"\"source\"\"\"\":\"\"\"\"new\"\"\"\",\"\"\"\"cwd\"\"\"\":\"\"\"\"C:\\\\\\\\Proyectos Kadmon\\\\\\\\Kadmon-Harness\"\"\"\"}')",
+      "Bash(npm run:*)",
+      "Bash(grep -h \"^description:\" .claude/agents/*.md)",
+      "Bash(while IFS= read -r line)",
+      "Bash(node scripts/update-agent-descriptions.mjs)",
+      "Bash(rm scripts/update-agent-descriptions.mjs)"
     ]
   }
 }
