@@ -1,27 +1,43 @@
 ---
 name: security-review
-description: Security review patterns
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Use when reviewing code for security vulnerabilities or implementing security-sensitive features
 ---
 
-# security-review
+# Security Review
 
-Security review patterns.
+Systematic security checklist for TypeScript/Node.js code.
 
 ## When to Use
-- TODO: Define trigger conditions
+- Reviewing code that handles user input
+- Working with API keys, tokens, or secrets
+- Modifying Claude Code hooks
+- Before deploying
 
 ## How It Works
-- TODO: Define step-by-step methodology
+
+### Checklist
+1. **Secrets** — No hardcoded keys/tokens in code
+2. **Input validation** — All external input validated with Zod
+3. **SQL injection** — Parameterized queries only
+4. **Command injection** — Use execFile with argument arrays
+5. **Path traversal** — Validate file paths
+6. **Dependencies** — npm audit
+7. **Error messages** — No stack traces exposed
+8. **Prompt injection** — AI-facing inputs sanitized
 
 ## Examples
-- TODO: Add concrete examples
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+### Safe SQL in sql.js
+```typescript
+// Bad: db.exec(`SELECT * FROM sessions WHERE id = '${input}'`);
+// Good: db.prepare('SELECT * FROM sessions WHERE id = ?').get(input);
+```
+
+### Safe command execution
+```typescript
+// Bad: execSync('git log ' + userBranch);
+// Good: execFileSync('git', ['log', userBranch]);
+```
+
+## no_context Application
+Security review traces every input path from external sources to internal usage.

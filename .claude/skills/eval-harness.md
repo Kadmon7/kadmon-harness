@@ -1,27 +1,28 @@
 ---
 name: eval-harness
-description: Evaluation harness for agent and skill quality
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Use when evaluating agent or skill quality through structured evaluation criteria
 ---
 
-# eval-harness
+# Eval Harness
 
-Evaluation harness for agent and skill quality.
+Structured evaluation framework for measuring agent and skill effectiveness.
 
 ## When to Use
-- TODO: Define trigger conditions
+- After modifying an agent or skill
+- When /eval command is invoked
+- Assessing instinct quality before promotion
 
 ## How It Works
-- TODO: Define step-by-step methodology
+1. **Define criteria** — what does success look like?
+2. **Create test cases** — inputs with expected outputs
+3. **Run evaluation** — execute against test cases
+4. **Score** — pass/fail per criterion
+5. **Report** — summary with pass rate
 
-## Examples
-- TODO: Add concrete examples
+## Rules
+- Evaluations must be reproducible
+- Score against defined criteria, not subjective impression
+- Track eval results over time
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+## no_context Application
+Evaluations are evidence-based: scores come from test results, not impressions.

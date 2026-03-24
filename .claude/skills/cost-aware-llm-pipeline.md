@@ -1,27 +1,45 @@
 ---
 name: cost-aware-llm-pipeline
-description: Token cost optimization
-phase: v1
-status: scaffold
-implements: Specialize
-source: affaan-m/everything-claude-code (MIT)
+description: Use when optimizing token usage and API costs across sessions
 ---
 
-# cost-aware-llm-pipeline
+# Cost-Aware LLM Pipeline
 
-Token cost optimization.
+Optimize token usage and API costs without sacrificing quality.
 
 ## When to Use
-- TODO: Define trigger conditions
+- Planning which model to use for a task
+- Reviewing session cost trends
+- Optimizing prompt length
+- Budgeting for project phases
 
 ## How It Works
-- TODO: Define step-by-step methodology
 
-## Examples
-- TODO: Add concrete examples
+### Model Pricing (per 1M tokens)
+| Model | Input | Output | Best For |
+|-------|-------|--------|----------|
+| Haiku | $0.80 | $4.00 | Docs, formatting, simple tasks |
+| Sonnet | $3.00 | $15.00 | Implementation, review, testing |
+| Opus | $15.00 | $75.00 | Architecture, complex planning |
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+### Cost Optimization Strategies
+1. **Route by complexity** — Do not use Opus for simple edits
+2. **Compact strategically** — Reduce context before it gets expensive
+3. **Cache research** — Read once, reference many times
+4. **Batch operations** — Multiple small edits in one session vs many sessions
+5. **Track costs** — The cost-tracker hook logs every session cost
+
+### Cost Tracking
+The cost-tracker hook runs at session end and records:
+- Model used
+- Input/output tokens
+- Estimated cost (USD)
+- Stored in SQLite cost_events table
+
+## Rules
+- Monitor cost trends via harness-optimizer agent
+- Flag sessions that exceed $1.00 for review
+- Default to Sonnet unless task clearly requires Opus
+
+## no_context Application
+Cost calculations use actual token counts from the session, not estimates. The cost-calculator.ts module uses published pricing rates.

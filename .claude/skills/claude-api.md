@@ -1,27 +1,59 @@
 ---
 name: claude-api
-description: Claude API usage patterns
-phase: v1
-status: scaffold
-implements: Specialize
-source: affaan-m/everything-claude-code (MIT)
+description: Use when integrating with the Claude API or Anthropic SDK in application code
 ---
 
-# claude-api
+# Claude API
 
-Claude API usage patterns.
+Patterns for using the Claude API and Anthropic TypeScript SDK.
 
 ## When to Use
-- TODO: Define trigger conditions
+- Building features that call Claude API directly
+- Implementing tool use (function calling)
+- Streaming responses
+- Managing API costs
 
 ## How It Works
-- TODO: Define step-by-step methodology
 
-## Examples
-- TODO: Add concrete examples
+### Basic Message
+```typescript
+import Anthropic from '@anthropic-ai/sdk';
+const client = new Anthropic();
+const message = await client.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+```
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+### Tool Use
+```typescript
+const response = await client.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  tools: [{
+    name: 'search_torah',
+    description: 'Search Torah texts by topic',
+    input_schema: {
+      type: 'object',
+      properties: { query: { type: 'string' } },
+      required: ['query'],
+    },
+  }],
+  messages: [{ role: 'user', content: 'Find passages about creation' }],
+});
+```
+
+### Cost Awareness
+- Check token usage in response: `response.usage.input_tokens`, `response.usage.output_tokens`
+- Use cost-calculator.ts to estimate cost
+- Route by complexity: Haiku for simple, Sonnet for standard, Opus for complex
+
+## Rules
+- Always handle API errors (rate limits, overloaded, invalid request)
+- Never hardcode API keys — use environment variables
+- Log token usage for cost tracking
+- Use streaming for long responses
+
+## no_context Application
+Always fetch current API documentation via docs-lookup agent before using new API features. The Claude API evolves — do not rely on training data.

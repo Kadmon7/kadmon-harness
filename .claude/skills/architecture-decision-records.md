@@ -1,27 +1,68 @@
 ---
 name: architecture-decision-records
-description: ADR discipline, template, lifecycle
-phase: v1
-status: scaffold
-implements: Remember
-source: affaan-m/everything-claude-code (MIT)
+description: Use when making any architectural decision that affects multiple components or has long-term impact
 ---
 
-# architecture-decision-records
+# Architecture Decision Records
 
-ADR discipline, template, lifecycle.
+Capture architectural decisions as structured documents so future sessions have context.
 
 ## When to Use
-- TODO: Define trigger conditions
+- Choosing between persistence strategies (SQLite vs Supabase)
+- Designing new hook behavior or adding new hooks
+- Changing module boundaries or data flow
+- Selecting libraries or dependencies
+- Any decision where "why" matters more than "what"
 
 ## How It Works
-- TODO: Define step-by-step methodology
+
+### ADR Template
+```markdown
+# ADR-NNN: [Decision Title]
+
+## Status
+Proposed | Accepted | Deprecated | Superseded by ADR-XXX
+
+## Context
+[Why this decision is needed — the problem or constraint]
+
+## Decision
+[What we decided and why]
+
+## Alternatives Considered
+1. [Option A] — [why rejected]
+2. [Option B] — [why rejected]
+
+## Consequences
+- [positive consequence]
+- [negative consequence or trade-off]
+- [what must change as a result]
+```
+
+### File Location
+`docs/decisions/ADR-NNN-short-title.md`
 
 ## Examples
-- TODO: Add concrete examples
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+### Example 1: ADR-001 (actual)
+```markdown
+# ADR-001: Dual Persistence (SQLite + Supabase)
+## Decision: SQLite write-first, Supabase sync async
+## Why: Zero-latency writes, offline resilience
+```
+
+### Example 2: Hook enforcement
+```markdown
+# ADR-004: no-context-guard as PreToolUse Hook
+## Decision: Block Write/Edit without prior Read
+## Why: Strongest possible enforcement of no_context principle
+```
+
+## Rules
+- Every ADR gets a sequential number (ADR-001, ADR-002, ...)
+- Once accepted, an ADR is never edited — only superseded by a new ADR
+- The architect agent produces ADRs automatically
+- ADRs are committed and pushed alongside the code they affect
+
+## no_context Application
+ADRs are the "Remember" mechanism. They ensure that architectural decisions survive context compaction and session boundaries. Without ADRs, the same decision gets re-debated in every session.

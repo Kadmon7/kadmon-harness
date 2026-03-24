@@ -1,27 +1,46 @@
 ---
 name: context-budget
-description: Context window management strategy
-phase: v1
-status: scaffold
-implements: Observe
-source: affaan-m/everything-claude-code (MIT)
+description: Use when context window is getting large or when planning a long session
 ---
 
-# context-budget
+# Context Budget
 
-Context window management strategy.
+Manage Claude Code's context window to avoid degraded performance in long sessions.
 
 ## When to Use
-- TODO: Define trigger conditions
+- At the start of complex tasks (plan context usage)
+- When suggest-compact hook fires (>50 tool calls)
+- When responses start feeling slower or less accurate
+- Before starting a new major subtask
 
 ## How It Works
-- TODO: Define step-by-step methodology
+1. **Monitor** — The suggest-compact hook tracks tool call count
+2. **Assess** — Check context usage via /context-budget command
+3. **Compact strategically** — Use /compact at natural breakpoints, not mid-task
+4. **Prioritize** — Keep critical context (types, interfaces, current task) in window
 
 ## Examples
-- TODO: Add concrete examples
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+### Example 1: Long implementation session
+```
+Session plan:
+1. Implement utils.ts (small) — no compact needed
+2. Implement state-store.ts (large) — compact AFTER, before next file
+3. Implement session-manager.ts (medium) — uses state-store, keep in context
+4. Compact before switching to hook implementation
+```
+
+### Example 2: Context-heavy research
+```
+Reading 10 source files for analysis → compact after producing the analysis
+Don't compact mid-research — you'll lose the cross-file connections
+```
+
+## Rules
+- Compact at natural breakpoints (between features, not mid-implementation)
+- Never compact while holding uncommitted work context
+- After compaction, re-read critical files (types.ts, the file you're editing)
+- The suggest-compact hook suggests at 50+ tool calls — take the suggestion seriously
+
+## no_context Application
+Context budget management prevents the scenario where Claude "forgets" earlier context and starts inventing. By compacting strategically and re-reading critical files, no_context is maintained even in long sessions.

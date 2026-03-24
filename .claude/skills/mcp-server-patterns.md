@@ -1,27 +1,56 @@
 ---
 name: mcp-server-patterns
-description: Building and consuming MCP servers
-phase: v1
-status: scaffold
-implements: Specialize
-source: affaan-m/everything-claude-code (MIT)
+description: Use when building or consuming MCP (Model Context Protocol) servers
 ---
 
-# mcp-server-patterns
+# MCP Server Patterns
 
-Building and consuming MCP servers.
+Build and consume MCP servers with the TypeScript SDK.
 
 ## When to Use
-- TODO: Define trigger conditions
+- Building a custom MCP server
+- Integrating with existing MCP servers (GitHub, Supabase, Context7)
+- Debugging MCP connection issues
 
 ## How It Works
-- TODO: Define step-by-step methodology
 
-## Examples
-- TODO: Add concrete examples
+### Consuming MCP Servers
+MCP servers are configured in `~/.claude.json` under the project:
+```json
+{
+  "mcpServers": {
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+    }
+  }
+}
+```
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+### Building an MCP Server
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+
+const server = new McpServer({ name: 'my-server', version: '1.0.0' });
+
+server.tool('search_content', { query: z.string() }, async ({ query }) => {
+  const results = await searchDatabase(query);
+  return { content: [{ type: 'text', text: JSON.stringify(results) }] };
+});
+
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+## Rules
+- Keep under 10 MCP servers enabled to preserve context
+- Use environment variable expansion for secrets: `${VAR_NAME}`
+- Handle server health with mcp-health-check/mcp-health-failure hooks
+- Test MCP tools manually before relying on them in workflows
+
+## no_context Application
+When consuming MCP server tools, verify the tool exists and understand its parameters via documentation — do not assume MCP tool schemas.

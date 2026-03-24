@@ -1,27 +1,31 @@
 ---
 name: verification-loop
-description: Multi-step verification methodology
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Use after implementing any change to verify it works correctly end-to-end
 ---
 
-# verification-loop
+# Verification Loop
 
-Multi-step verification methodology.
+Multi-step verification that catches issues before they reach production.
 
 ## When to Use
-- TODO: Define trigger conditions
+- After implementing any feature
+- Before committing code
+- When /verify command is invoked
 
 ## How It Works
-- TODO: Define step-by-step methodology
+Run in order. Stop at first failure.
 
-## Examples
-- TODO: Add concrete examples
+1. **Build** — `npm run build`
+2. **Typecheck** — `npx tsc --noEmit`
+3. **Lint** — `npx eslint .`
+4. **Unit tests** — `npx vitest run tests/lib/`
+5. **Hook tests** — `npx vitest run tests/hooks/`
+6. **Diff review** — `git diff`
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+## Rules
+- Never skip steps — each catches different bug classes
+- Fix failures before moving to the next step
+- Run full loop before every commit
+
+## no_context Application
+The verification loop ensures no invented or incorrect code reaches the repository.

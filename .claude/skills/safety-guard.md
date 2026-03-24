@@ -1,27 +1,26 @@
 ---
 name: safety-guard
-description: Destructive operation prevention
-phase: v1
-status: scaffold
-implements: Verify
-source: affaan-m/everything-claude-code (MIT)
+description: Use to understand destructive operation prevention — what the harness blocks and why
 ---
 
-# safety-guard
+# Safety Guard
 
-Destructive operation prevention.
+Preventing destructive operations that could lose work or damage the project.
 
 ## When to Use
-- TODO: Define trigger conditions
+- Understanding why a command was blocked
+- Reviewing hook safety mechanisms
 
 ## How It Works
-- TODO: Define step-by-step methodology
+Three layers:
+1. **block-no-verify** — Blocks --no-verify and --no-gpg-sign on git commands
+2. **config-protection** — Blocks weakening of linter/compiler configs
+3. **no-context-guard** — Blocks Write/Edit without prior Read
 
-## Examples
-- TODO: Add concrete examples
+## Rules
+- Safety hooks exit code 2 (block)
+- Override no-context-guard: `KADMON_NO_CONTEXT_GUARD=off`
+- No override for block-no-verify — intentional
 
-## TODO
-- Write full skill content based on ECC source
-- Adapt to TypeScript/Supabase ecosystem
-- Remove any non-applicable language references
-- Implementation in Prompt 4
+## no_context Application
+The safety-guard system is the no_context principle made physical.
