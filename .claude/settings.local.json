@@ -35,7 +35,8 @@
       "Bash(for skill:*)",
       "Read(//tmp/everything-claude-code/skills/**)",
       "Read(//tmp/everything-claude-code/skills/$skill/**)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

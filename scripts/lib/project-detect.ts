@@ -1,21 +1,28 @@
-// Kadmon Harness — Project Detect
-// Phase: v1 scaffold — implementation in Prompt 4
-// Purpose: Git remote hash, project identification
+import { execSync } from 'node:child_process';
+import { hashString } from './utils.js';
+import type { ProjectInfo } from './types.js';
 
-// TODO: implement
-export function getProjectHash(cwd?: string): string {
-  // Compute SHA-256 of git remote URL for project scoping
-  throw new Error('Not implemented — Prompt 4');
+function gitExec(cmd: string, cwd: string): string | null {
+  try {
+    return execSync(cmd, { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch {
+    return null;
+  }
 }
 
-// TODO: implement
-export function getGitBranch(cwd?: string): string {
-  // Return current git branch name
-  throw new Error('Not implemented — Prompt 4');
-}
+export function detectProject(cwd?: string): ProjectInfo | null {
+  const dir = cwd ?? process.cwd();
 
-// TODO: implement
-export function getGitRemoteUrl(cwd?: string): string | null {
-  // Return git remote origin URL
-  throw new Error('Not implemented — Prompt 4');
+  const remoteUrl = gitExec('git remote get-url origin', dir);
+  if (!remoteUrl) return null;
+
+  const branch = gitExec('git branch --show-current', dir) ?? 'unknown';
+  const rootDir = gitExec('git rev-parse --show-toplevel', dir) ?? dir;
+
+  return {
+    projectHash: hashString(remoteUrl),
+    remoteUrl,
+    branch,
+    rootDir,
+  };
 }

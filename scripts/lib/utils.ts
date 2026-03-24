@@ -1,36 +1,41 @@
-// Kadmon Harness — Shared Utilities
-// Phase: v1 scaffold — implementation in Prompt 4
-// Purpose: Shared utilities (timestamps, os.tmpdir(), file paths)
-
+import { createHash, randomUUID } from 'node:crypto';
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-// TODO: implement
-export function getSessionDir(sessionId: string): string {
-  // Return path: os.tmpdir()/kadmon/<sessionId>/
-  return path.join(os.tmpdir(), 'kadmon', sessionId);
-}
-
-// TODO: implement
-export function getObservationsPath(sessionId: string): string {
-  // Return path to observations JSONL file
-  return path.join(getSessionDir(sessionId), 'observations.jsonl');
-}
-
-// TODO: implement
 export function nowISO(): string {
   return new Date().toISOString();
 }
 
-// TODO: implement
-export function generateId(): string {
-  // Generate UUID v4
-  throw new Error('Not implemented — Prompt 4');
+export function nowMs(): number {
+  return Date.now();
 }
 
-// TODO: implement
-export function getKadmonDataDir(): string {
-  // Return persistent data directory for SQLite DB
-  // Windows: %APPDATA%/kadmon-harness/
-  throw new Error('Not implemented — Prompt 4');
+export function tmpDir(): string {
+  return path.join(os.tmpdir(), 'kadmon');
+}
+
+export function sessionDir(sessionId: string): string {
+  return path.join(tmpDir(), sessionId);
+}
+
+export function ensureDir(dir: string): void {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+export function hashString(input: string): string {
+  return createHash('sha256').update(input).digest('hex').slice(0, 16);
+}
+
+export function generateId(): string {
+  return randomUUID();
+}
+
+export function kadmonDataDir(): string {
+  return path.join(os.homedir(), '.kadmon');
+}
+
+export function log(level: 'info' | 'warn' | 'error', msg: string, meta?: object): void {
+  const entry = { ts: nowISO(), level, msg, ...meta };
+  process.stderr.write(JSON.stringify(entry) + '\n');
 }

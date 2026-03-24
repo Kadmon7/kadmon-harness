@@ -1,29 +1,40 @@
-// Kadmon Harness — Cost Calculator
-// Phase: v1 scaffold — implementation in Prompt 4
-// Purpose: Token cost calculation per model
-
-import type { CostEvent } from './types.js';
+import type { CostResult } from './types.js';
 
 // Pricing per 1M tokens (USD)
-export const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  'haiku': { input: 0.8, output: 4.0 },
-  'sonnet': { input: 3.0, output: 15.0 },
-  'opus': { input: 15.0, output: 75.0 },
+const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  'claude-opus-4': { input: 15, output: 75 },
+  'opus': { input: 15, output: 75 },
+  'claude-sonnet-4': { input: 3, output: 15 },
+  'sonnet': { input: 3, output: 15 },
+  'claude-haiku-4': { input: 0.8, output: 4 },
+  'haiku': { input: 0.8, output: 4 },
 };
 
-// TODO: implement
-export function calculateCost(model: string, inputTokens: number, outputTokens: number): number {
-  // Return estimated cost in USD
-  throw new Error('Not implemented — Prompt 4');
+const DEFAULT_PRICING = MODEL_PRICING['sonnet'];
+
+function resolvePricing(model: string): { input: number; output: number } {
+  const normalized = model.toLowerCase();
+  for (const [key, pricing] of Object.entries(MODEL_PRICING)) {
+    if (normalized.includes(key)) return pricing;
+  }
+  return DEFAULT_PRICING;
 }
 
-// TODO: implement
-export function recordCostEvent(sessionId: string, model: string, inputTokens: number, outputTokens: number): CostEvent {
-  throw new Error('Not implemented — Prompt 4');
+export function calculateCost(model: string, inputTokens: number, outputTokens: number): CostResult {
+  const pricing = resolvePricing(model);
+  const inputCostUsd = (inputTokens / 1_000_000) * pricing.input;
+  const outputCostUsd = (outputTokens / 1_000_000) * pricing.output;
+
+  return {
+    model,
+    inputTokens,
+    outputTokens,
+    inputCostUsd,
+    outputCostUsd,
+    totalCostUsd: inputCostUsd + outputCostUsd,
+  };
 }
 
-// TODO: implement
-export function getSessionCost(sessionId: string): number {
-  // Return total cost for a session
-  throw new Error('Not implemented — Prompt 4');
+export function formatCost(usd: number): string {
+  return `$${usd.toFixed(4)}`;
 }

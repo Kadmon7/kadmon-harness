@@ -1,23 +1,384 @@
-// Kadmon Harness — SQLite State Store
-// Phase: v1 scaffold — implementation in Prompt 4
-// Purpose: SQLite wrapper for sessions, instincts, cost_events, sync_queue
+// Kadmon Harness — SQLite State Store (sql.js)
+// Adapted from ECC's state-store wrapper pattern.
+// camelCase interfaces ↔ snake_case SQL columns.
 
+import fs from 'node:fs';
+import path from 'node:path';
+import initSqlJs from 'sql.js';
 import type { Instinct, SessionSummary, CostEvent, SyncQueueEntry } from './types.js';
+import { kadmonDataDir, generateId, nowISO, ensureDir, log } from './utils.js';
 
-// TODO: implement
-export function initDatabase(dbPath: string): void {
-  // Initialize SQLite database with schema from scripts/lib/schema.sql
-  throw new Error('Not implemented — Prompt 4');
+// ─── sql.js wrapper (adapted from ECC) ───
+
+interface WrappedDb {
+  exec(sql: string): void;
+  pragma(pragmaStr: string): void;
+  prepare(sql: string): {
+    all(...args: unknown[]): Record<string, unknown>[];
+    get(...args: unknown[]): Record<string, unknown> | null;
+    run(params?: Record<string, unknown>): void;
+  };
+  transaction<T>(fn: (...args: unknown[]) => T): (...args: unknown[]) => T;
+  close(): void;
 }
 
-// TODO: implement
-export function getDatabase(): unknown {
-  // Return the initialized database instance
-  throw new Error('Not implemented — Prompt 4');
+function wrapSqlJsDb(rawDb: InstanceType<Awaited<ReturnType<typeof initSqlJs>>['Database']>, dbPath: string): WrappedDb {
+  let inTransaction = false;
+
+  function saveToDisk(): void {
+    if (dbPath === ':memory:' || inTransaction) return;
+    const data = rawDb.export();
+    fs.writeFileSync(dbPath, Buffer.from(data));
+  }
+
+  return {
+    exec(sql: string) {
+      rawDb.run(sql);
+      saveToDisk();
+    },
+
+    pragma(pragmaStr: string) {
+      try { rawDb.run(`PRAGMA ${pragmaStr}`); } catch { /* ignore unsupported */ }
+    },
+
+    prepare(sql: string) {
+      return {
+        all(...positionalArgs: unknown[]): Record<string, unknown>[] {
+          const stmt = rawDb.prepare(sql);
+          if (positionalArgs.length === 1 && typeof positionalArgs[0] !== 'object') {
+            stmt.bind([positionalArgs[0] as number | string]);
+          } else if (positionalArgs.length > 1) {
+            stmt.bind(positionalArgs as (number | string)[]);
+          }
+          const rows: Record<string, unknown>[] = [];
+          while (stmt.step()) rows.push(stmt.getAsObject() as Record<string, unknown>);
+          stmt.free();
+          return rows;
+        },
+
+        get(...positionalArgs: unknown[]): Record<string, unknown> | null {
+          const stmt = rawDb.prepare(sql);
+          if (positionalArgs.length === 1 && typeof positionalArgs[0] !== 'object') {
+            stmt.bind([positionalArgs[0] as number | string]);
+          } else if (positionalArgs.length > 1) {
+            stmt.bind(positionalArgs as (number | string)[]);
+          }
+          let row: Record<string, unknown> | null = null;
+          if (stmt.step()) row = stmt.getAsObject() as Record<string, unknown>;
+          stmt.free();
+          return row;
+        },
+
+        run(namedParams?: Record<string, unknown>) {
+          const stmt = rawDb.prepare(sql);
+          if (namedParams && typeof namedParams === 'object' && !Array.isArray(namedParams)) {
+            const sqlJsParams: Record<string, unknown> = {};
+            for (const [key, value] of Object.entries(namedParams)) {
+              sqlJsParams[`@${key}`] = value === undefined ? null : value;
+            }
+            stmt.bind(sqlJsParams);
+          }
+          stmt.step();
+          stmt.free();
+          saveToDisk();
+        },
+      };
+    },
+
+    transaction<T>(fn: (...args: unknown[]) => T) {
+      return (...args: unknown[]): T => {
+        rawDb.run('BEGIN');
+        inTransaction = true;
+        try {
+          const result = fn(...args);
+          rawDb.run('COMMIT');
+          inTransaction = false;
+          saveToDisk();
+          return result;
+        } catch (error) {
+          try { rawDb.run('ROLLBACK'); } catch { /* already rolled back */ }
+          inTransaction = false;
+          throw error;
+        }
+      };
+    },
+
+    close() {
+      saveToDisk();
+      rawDb.close();
+    },
+  };
 }
 
-// TODO: implement
-export function closeDatabase(): void {
-  // Close database connection
-  throw new Error('Not implemented — Prompt 4');
+// ─── Database singleton ───
+
+let db: WrappedDb | null = null;
+let dbPath: string = '';
+
+export async function openDb(customPath?: string): Promise<WrappedDb> {
+  if (db) return db;
+
+  dbPath = customPath ?? path.join(kadmonDataDir(), 'kadmon.db');
+
+  if (dbPath !== ':memory:') {
+    ensureDir(path.dirname(dbPath));
+  }
+
+  const SQL = await initSqlJs();
+
+  let rawDb: InstanceType<typeof SQL.Database>;
+  if (dbPath !== ':memory:' && fs.existsSync(dbPath)) {
+    rawDb = new SQL.Database(fs.readFileSync(dbPath));
+  } else {
+    rawDb = new SQL.Database();
+  }
+
+  db = wrapSqlJsDb(rawDb, dbPath);
+  db.pragma('foreign_keys = ON');
+  db.pragma('journal_mode = WAL');
+
+  // Apply schema
+  const schemaPath = path.join(import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname), 'schema.sql');
+  const schema = fs.readFileSync(schemaPath, 'utf-8');
+  for (const stmt of schema.split(';').filter(s => s.trim())) {
+    db.exec(stmt + ';');
+  }
+
+  return db;
+}
+
+export function getDb(): WrappedDb {
+  if (!db) throw new Error('Database not opened. Call openDb() first.');
+  return db;
+}
+
+export function closeDb(): void {
+  if (db) {
+    db.close();
+    db = null;
+  }
+}
+
+// ─── JSON helpers ───
+
+function parseJson<T>(val: unknown, fallback: T): T {
+  if (val === null || val === undefined || val === '') return fallback;
+  try { return JSON.parse(String(val)) as T; } catch { return fallback; }
+}
+
+// ─── Session operations (camelCase ↔ snake_case) ───
+
+function mapSessionRow(row: Record<string, unknown>): SessionSummary {
+  return {
+    id: String(row.id),
+    projectHash: String(row.project_hash),
+    startedAt: String(row.started_at ?? ''),
+    endedAt: String(row.ended_at ?? ''),
+    durationMs: Number(row.duration_ms ?? 0),
+    branch: String(row.branch ?? ''),
+    tasks: parseJson(row.tasks, []),
+    filesModified: parseJson(row.files_modified, []),
+    toolsUsed: parseJson(row.tools_used, []),
+    messageCount: Number(row.message_count ?? 0),
+    totalInputTokens: Number(row.total_input_tokens ?? 0),
+    totalOutputTokens: Number(row.total_output_tokens ?? 0),
+    estimatedCostUsd: Number(row.estimated_cost_usd ?? 0),
+    instinctsCreated: parseJson(row.instincts_created, []),
+    compactionCount: Number(row.compaction_count ?? 0),
+  };
+}
+
+export function upsertSession(session: Partial<SessionSummary> & { id: string }): void {
+  getDb().prepare(`
+    INSERT INTO sessions (id, project_hash, started_at, ended_at, duration_ms, branch,
+      tasks, files_modified, tools_used, message_count, total_input_tokens,
+      total_output_tokens, estimated_cost_usd, instincts_created, compaction_count)
+    VALUES (@id, @project_hash, @started_at, @ended_at, @duration_ms, @branch,
+      @tasks, @files_modified, @tools_used, @message_count, @total_input_tokens,
+      @total_output_tokens, @estimated_cost_usd, @instincts_created, @compaction_count)
+    ON CONFLICT(id) DO UPDATE SET
+      project_hash = COALESCE(excluded.project_hash, sessions.project_hash),
+      started_at = COALESCE(excluded.started_at, sessions.started_at),
+      ended_at = COALESCE(excluded.ended_at, sessions.ended_at),
+      duration_ms = COALESCE(excluded.duration_ms, sessions.duration_ms),
+      branch = COALESCE(excluded.branch, sessions.branch),
+      tasks = COALESCE(excluded.tasks, sessions.tasks),
+      files_modified = COALESCE(excluded.files_modified, sessions.files_modified),
+      tools_used = COALESCE(excluded.tools_used, sessions.tools_used),
+      message_count = COALESCE(excluded.message_count, sessions.message_count),
+      total_input_tokens = COALESCE(excluded.total_input_tokens, sessions.total_input_tokens),
+      total_output_tokens = COALESCE(excluded.total_output_tokens, sessions.total_output_tokens),
+      estimated_cost_usd = COALESCE(excluded.estimated_cost_usd, sessions.estimated_cost_usd),
+      instincts_created = COALESCE(excluded.instincts_created, sessions.instincts_created),
+      compaction_count = COALESCE(excluded.compaction_count, sessions.compaction_count)
+  `).run({
+    id: session.id,
+    project_hash: session.projectHash ?? '',
+    started_at: session.startedAt ?? nowISO(),
+    ended_at: session.endedAt ?? null,
+    duration_ms: session.durationMs ?? null,
+    branch: session.branch ?? null,
+    tasks: JSON.stringify(session.tasks ?? []),
+    files_modified: JSON.stringify(session.filesModified ?? []),
+    tools_used: JSON.stringify(session.toolsUsed ?? []),
+    message_count: session.messageCount ?? 0,
+    total_input_tokens: session.totalInputTokens ?? 0,
+    total_output_tokens: session.totalOutputTokens ?? 0,
+    estimated_cost_usd: session.estimatedCostUsd ?? 0,
+    instincts_created: JSON.stringify(session.instinctsCreated ?? []),
+    compaction_count: session.compactionCount ?? 0,
+  });
+}
+
+export function getSession(id: string): SessionSummary | null {
+  const row = getDb().prepare('SELECT * FROM sessions WHERE id = ?').get(id);
+  return row ? mapSessionRow(row) : null;
+}
+
+export function getRecentSessions(projectHash: string, limit = 10): SessionSummary[] {
+  return getDb().prepare(
+    'SELECT * FROM sessions WHERE project_hash = ? ORDER BY started_at DESC LIMIT ?'
+  ).all(projectHash, limit).map(mapSessionRow);
+}
+
+// ─── Instinct operations ───
+
+function mapInstinctRow(row: Record<string, unknown>): Instinct {
+  return {
+    id: String(row.id),
+    projectHash: String(row.project_hash),
+    pattern: String(row.pattern),
+    action: String(row.action),
+    confidence: Number(row.confidence),
+    occurrences: Number(row.occurrences),
+    contradictions: Number(row.contradictions),
+    sourceSessions: parseJson(row.source_sessions, []),
+    status: String(row.status) as Instinct['status'],
+    scope: String(row.scope) as Instinct['scope'],
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+    promotedTo: row.promoted_to ? String(row.promoted_to) : undefined,
+  };
+}
+
+export function upsertInstinct(instinct: Partial<Instinct> & { id: string }): void {
+  getDb().prepare(`
+    INSERT INTO instincts (id, project_hash, pattern, action, confidence, occurrences,
+      contradictions, source_sessions, status, scope, promoted_to, created_at, updated_at)
+    VALUES (@id, @project_hash, @pattern, @action, @confidence, @occurrences,
+      @contradictions, @source_sessions, @status, @scope, @promoted_to, @created_at, @updated_at)
+    ON CONFLICT(id) DO UPDATE SET
+      confidence = excluded.confidence,
+      occurrences = excluded.occurrences,
+      contradictions = excluded.contradictions,
+      source_sessions = excluded.source_sessions,
+      status = excluded.status,
+      scope = excluded.scope,
+      promoted_to = excluded.promoted_to,
+      updated_at = excluded.updated_at
+  `).run({
+    id: instinct.id,
+    project_hash: instinct.projectHash ?? '',
+    pattern: instinct.pattern ?? '',
+    action: instinct.action ?? '',
+    confidence: instinct.confidence ?? 0.3,
+    occurrences: instinct.occurrences ?? 1,
+    contradictions: instinct.contradictions ?? 0,
+    source_sessions: JSON.stringify(instinct.sourceSessions ?? []),
+    status: instinct.status ?? 'active',
+    scope: instinct.scope ?? 'project',
+    promoted_to: instinct.promotedTo ?? null,
+    created_at: instinct.createdAt ?? nowISO(),
+    updated_at: instinct.updatedAt ?? nowISO(),
+  });
+}
+
+export function getInstinct(id: string): Instinct | null {
+  const row = getDb().prepare('SELECT * FROM instincts WHERE id = ?').get(id);
+  return row ? mapInstinctRow(row) : null;
+}
+
+export function getActiveInstincts(projectHash: string): Instinct[] {
+  return getDb().prepare(
+    "SELECT * FROM instincts WHERE project_hash = ? AND status = 'active' ORDER BY confidence DESC"
+  ).all(projectHash).map(mapInstinctRow);
+}
+
+export function getPromotableInstincts(projectHash: string): Instinct[] {
+  return getDb().prepare(
+    "SELECT * FROM instincts WHERE project_hash = ? AND status = 'active' AND confidence >= 0.7 AND occurrences >= 3 ORDER BY confidence DESC"
+  ).all(projectHash).map(mapInstinctRow);
+}
+
+// ─── Cost event operations ───
+
+function mapCostRow(row: Record<string, unknown>): CostEvent {
+  return {
+    id: String(row.id),
+    sessionId: String(row.session_id),
+    timestamp: String(row.timestamp),
+    model: String(row.model),
+    inputTokens: Number(row.input_tokens),
+    outputTokens: Number(row.output_tokens),
+    estimatedCostUsd: Number(row.estimated_cost_usd),
+  };
+}
+
+export function insertCostEvent(event: Omit<CostEvent, 'id'>): void {
+  const id = generateId();
+  getDb().prepare(`
+    INSERT INTO cost_events (id, session_id, timestamp, model, input_tokens, output_tokens, estimated_cost_usd)
+    VALUES (@id, @session_id, @timestamp, @model, @input_tokens, @output_tokens, @estimated_cost_usd)
+  `).run({
+    id,
+    session_id: event.sessionId,
+    timestamp: event.timestamp ?? nowISO(),
+    model: event.model,
+    input_tokens: event.inputTokens,
+    output_tokens: event.outputTokens,
+    estimated_cost_usd: event.estimatedCostUsd,
+  });
+}
+
+export function getCostBySession(sessionId: string): CostEvent[] {
+  return getDb().prepare(
+    'SELECT * FROM cost_events WHERE session_id = ? ORDER BY timestamp ASC'
+  ).all(sessionId).map(mapCostRow);
+}
+
+// ─── Sync queue operations ───
+
+export function queueSync(table: string, recordId: string, operation: 'insert' | 'update' | 'delete', payload: object): void {
+  getDb().prepare(`
+    INSERT INTO sync_queue (table_name, record_id, operation, payload)
+    VALUES (@table_name, @record_id, @operation, @payload)
+  `).run({
+    table_name: table,
+    record_id: recordId,
+    operation,
+    payload: JSON.stringify(payload),
+  });
+}
+
+export function getPendingSync(limit = 50): SyncQueueEntry[] {
+  return getDb().prepare(
+    'SELECT * FROM sync_queue WHERE synced_at IS NULL ORDER BY id ASC LIMIT ?'
+  ).all(limit).map(row => ({
+    id: Number(row.id),
+    tableName: String(row.table_name),
+    recordId: String(row.record_id),
+    operation: String(row.operation) as SyncQueueEntry['operation'],
+    payload: String(row.payload),
+    createdAt: String(row.created_at),
+    syncedAt: row.synced_at ? String(row.synced_at) : null,
+    retryCount: Number(row.retry_count),
+    lastError: row.last_error ? String(row.last_error) : null,
+  }));
+}
+
+export function markSynced(id: number): void {
+  getDb().prepare('UPDATE sync_queue SET synced_at = @synced_at WHERE id = @id').run({
+    id,
+    synced_at: nowISO(),
+  });
 }
