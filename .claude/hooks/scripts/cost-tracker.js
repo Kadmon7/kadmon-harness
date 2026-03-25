@@ -1,24 +1,80 @@
 #!/usr/bin/env node
 // Hook: cost-tracker | Trigger: Stop (*)
 // Purpose: Calculate and persist session token costs
-import fs from 'node:fs';
-import { parseStdin } from './parse-stdin.js';
+// Note: Claude Code Stop hook does NOT send token data (GitHub Issue #24459).
+// Workaround: estimate tokens from transcript_path JSONL (~4 chars per token).
+import fs from "node:fs";
+import { parseStdin } from "./parse-stdin.js";
+
+function estimateTokensFromTranscript(transcriptPath) {
+  try {
+    if (!transcriptPath || !fs.existsSync(transcriptPath)) return null;
+    const content = fs.readFileSync(transcriptPath, "utf8");
+    const lines = content.trim().split("\n").filter(Boolean);
+
+    let inputChars = 0;
+    let outputChars = 0;
+
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        const role = entry.role ?? entry.type ?? "";
+        const text =
+          typeof entry.content === "string"
+            ? entry.content
+            : JSON.stringify(entry.content ?? "");
+
+        if (role === "user" || role === "system") {
+          inputChars += text.length;
+        } else if (role === "assistant") {
+          outputChars += text.length;
+        }
+      } catch {
+        /* skip malformed lines */
+      }
+    }
+
+    // ~4 chars per token is a rough but reasonable estimate
+    return {
+      inputTokens: Math.ceil(inputChars / 4),
+      outputTokens: Math.ceil(outputChars / 4),
+    };
+  } catch {
+    return null;
+  }
+}
 
 async function main() {
   try {
     const input = parseStdin();
-    const sid = input.session_id ?? '';
+    const sid = input.session_id ?? "";
     if (!sid) process.exit(0);
 
-    const inputTokens = input.usage?.input_tokens ?? input.total_input_tokens ?? 0;
-    const outputTokens = input.usage?.output_tokens ?? input.total_output_tokens ?? 0;
-    const model = input.model ?? input.display_name ?? 'sonnet';
+    // Primary: check if Claude Code sent token data (future-proof)
+    let inputTokens =
+      input.usage?.input_tokens ?? input.total_input_tokens ?? 0;
+    let outputTokens =
+      input.usage?.output_tokens ?? input.total_output_tokens ?? 0;
+    let model = input.model ?? input.display_name ?? "opus";
+    let estimated = false;
+
+    // Fallback: estimate from transcript if no token data
+    if (!inputTokens && !outputTokens && input.transcript_path) {
+      const estimate = estimateTokensFromTranscript(input.transcript_path);
+      if (estimate) {
+        inputTokens = estimate.inputTokens;
+        outputTokens = estimate.outputTokens;
+        estimated = true;
+      }
+    }
 
     if (!inputTokens && !outputTokens) process.exit(0);
 
     try {
-      const { openDb, insertCostEvent, upsertSession, getSession } = await import('../../../dist/scripts/lib/state-store.js');
-      const { calculateCost, formatCost } = await import('../../../dist/scripts/lib/cost-calculator.js');
+      const { openDb, insertCostEvent, upsertSession, getSession } =
+        await import("../../../dist/scripts/lib/state-store.js");
+      const { calculateCost, formatCost } =
+        await import("../../../dist/scripts/lib/cost-calculator.js");
       await openDb();
 
       const cost = calculateCost(model, inputTokens, outputTokens);
@@ -42,11 +98,18 @@ async function main() {
         });
       }
 
-      console.log(`Session cost: ${formatCost(cost.totalCostUsd)} (${model}: ${inputTokens} in, ${outputTokens} out)`);
+      const suffix = estimated ? " (estimated from transcript)" : "";
+      console.log(
+        `Session cost: ${formatCost(cost.totalCostUsd)} (${model}: ${inputTokens} in, ${outputTokens} out)${suffix}`,
+      );
     } catch (dbErr) {
-      console.error(JSON.stringify({ warn: `cost-tracker db: ${dbErr.message}` }));
+      console.error(
+        JSON.stringify({ warn: `cost-tracker db: ${dbErr.message}` }),
+      );
     }
-  } catch (err) { console.error(JSON.stringify({ error: `cost-tracker: ${err.message}` })); }
+  } catch (err) {
+    console.error(JSON.stringify({ error: `cost-tracker: ${err.message}` }));
+  }
   process.exit(0);
 }
 main();
