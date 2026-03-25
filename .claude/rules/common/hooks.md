@@ -9,18 +9,81 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
+## Hook Catalog (17)
+
+### PreToolUse — Bash matcher (2)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| block-no-verify | block-no-verify.js | Blocks git commands with --no-verify flag | 2 on match |
+| git-push-reminder | git-push-reminder.js | Reminds to run /verify before git push | 1 as warning |
+
+### PreToolUse — Edit|Write matcher (2)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| config-protection | config-protection.js | Protects critical config files from accidental edits | 2 on protected files |
+| no-context-guard | no-context-guard.js | Enforces no_context principle — blocks edits without prior Read | 2 on violation |
+
+### PreToolUse — mcp__ matcher (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| mcp-health-check | mcp-health-check.js | Validates MCP server health before MCP tool calls | 1 on unhealthy |
+
+### PreToolUse — all tools (2)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| observe-pre | observe-pre.js | Logs tool invocation to observations JSONL (pre-execution) | 0 always |
+| suggest-compact | suggest-compact.js | Suggests context compaction when window is large | 1 as suggestion |
+
+### PostToolUse — Edit|Write matcher (3)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
+| post-edit-typecheck | post-edit-typecheck.js | Runs TypeScript typecheck on edited .ts/.tsx files | 1 on type errors |
+| quality-gate | quality-gate.js | Runs quality checks (lint, style) on edited files | 1 on issues |
+
+### PostToolUse — all tools (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| observe-post | observe-post.js | Logs tool result to observations JSONL (post-execution) | 0 always |
+
+### PostToolUseFailure — mcp__ matcher (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| mcp-health-failure | mcp-health-failure.js | Logs MCP server failures for diagnostics | 0 always |
+
+### PreCompact — all (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| pre-compact-save | pre-compact-save.js | Saves session state before context compaction | 0 always |
+
+### SessionStart — all (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| session-start | session-start.js | Initializes session: loads instincts, previous session summary | 0 always |
+
+### Stop — all (3)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| session-end-persist | session-end-persist.js | Persists session summary and observations to SQLite | 0 always |
+| evaluate-session | evaluate-session.js | Evaluates session quality and updates instinct confidence | 0 always |
+| cost-tracker | cost-tracker.js | Tracks token usage and cost per session | 0 always |
+
 ## Safety
 - NEVER crash Claude Code — always exit(0) on unexpected errors
 - MUST wrap all hook logic in try/catch
 - MUST log errors to stderr as JSON: `{ "error": "..." }`
 
 ## Performance
-- observe-pre and observe-post MUST complete in < 50ms
-- no-context-guard MUST complete in < 100ms
+- observe-pre and observe-post MUST complete in < 50ms (file append only)
+- no-context-guard MUST complete in < 100ms (reads observations JSONL)
 - All other hooks MUST complete in < 500ms
 
 ## Data
 - Hooks read input from stdin as JSON
 - observe hooks write to JSONL files (file append, no DB)
-- Lifecycle hooks (session-start, session-end) may access SQLite via compiled TypeScript in dist/
+- Lifecycle hooks (session-start, session-end-persist, evaluate-session, cost-tracker) may access SQLite via compiled TypeScript in dist/
 - MUST run `npm run build` before lifecycle hooks can access state-store
+
+## Windows Compatibility
+- All 17 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

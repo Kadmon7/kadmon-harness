@@ -24,3 +24,11 @@ alwaysApply: true
 ## Dependencies
 - MUST run `npm audit` periodically
 - MUST review new dependencies before adding them
+
+## Enforcement
+- security-reviewer agent auto-invoked for code touching auth, API keys, user input, exec/spawn, file paths, SQL queries
+- config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)
+- block-no-verify hook prevents bypassing git safety hooks (PreToolUse on Bash, exit 2)
+- safety-guard skill provides runtime security guardrails
+- security-review skill provides structured security analysis during /code-review
+- permissions.deny in settings.json blocks Read access to .env, .env.*, and secrets/ files

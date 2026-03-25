@@ -24,3 +24,9 @@ globs: ["**/*.ts"]
 - MUST type all query results explicitly (sql.js returns Record<string, unknown>)
 - MUST use mapping functions (mapSessionRow, mapInstinctRow) for type conversion
 - NEVER trust raw sql.js output types
+
+## Enforcement
+- typescript-reviewer agent validates pattern compliance on .ts/.tsx edits
+- database-reviewer agent validates sql.js typing and Zod validation patterns when editing database code
+- code-reviewer agent checks error handling and immutability patterns via /code-review
+- post-edit-typecheck hook catches type errors from pattern violations immediately

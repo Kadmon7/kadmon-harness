@@ -24,3 +24,15 @@ alwaysApply: true
 - MUST write failing test before implementation (when using /tdd)
 - NEVER mark tests as .skip in committed code without tracking comment
 - MUST run full test suite before committing
+
+## Enforcement
+- tdd-guide agent enforces red-green-refactor cycle via /tdd command
+- e2e-runner agent runs full workflow tests via /e2e command
+- /verify command runs typecheck + tests + lint as verification loop
+- /quality-gate command runs all quality checks including test suite
+- /test-coverage command reports coverage per file
+- /eval command evaluates agent and skill quality with structured tests
+- post-edit-typecheck hook catches type errors immediately after edits
+- verification-loop skill orchestrates the full verify pipeline
+- tdd-workflow skill provides TDD methodology guidance
+- e2e-testing skill provides E2E test patterns and structure

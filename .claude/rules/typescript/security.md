@@ -19,3 +19,11 @@ globs: ["**/*.ts"]
 - MUST sanitize all data before inserting into SQLite
 - NEVER store plaintext secrets in SQLite
 - MUST use parameterized queries for all SQL operations
+
+## Enforcement
+- security-reviewer agent auto-invoked for code touching auth, API keys, user input, exec/spawn, file paths, SQL queries
+- database-reviewer agent validates parameterized queries and data sanitization in SQL/Supabase code
+- config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)
+- permissions.deny in settings.json blocks Read access to .env, .env.*, and secrets/ files
+- safety-guard skill provides runtime security guardrails
+- security-review skill provides structured security analysis

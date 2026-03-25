@@ -21,3 +21,10 @@ alwaysApply: true
 - MUST convert camelCase ↔ snake_case only in state-store.ts
 - NEVER store derived data that can be computed
 - PREFER immutable data structures
+
+## Enforcement
+- architect agent reviews system design and pattern decisions via /kplan
+- code-reviewer agent validates pattern adherence via /code-review and /checkpoint
+- typescript-reviewer agent checks type safety and immutability patterns on .ts/.tsx edits
+- database-reviewer agent validates data layer patterns when editing SQL or Supabase code
+- no-context-guard hook ensures code is read before modification (enforces understand-before-edit pattern)

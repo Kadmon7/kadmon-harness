@@ -18,3 +18,11 @@ alwaysApply: true
 - NEVER force push to main
 - NEVER commit secrets, .env files, or .db files (.gitignore enforced)
 - ALWAYS review diff before committing: `git diff --staged`
+
+## Enforcement
+- block-no-verify hook blocks any git command with --no-verify flag (PreToolUse on Bash, exit 2)
+- git-push-reminder hook warns before git push without running /verify first (PreToolUse on Bash, exit 1)
+- config-protection hook prevents accidental edits to critical config files (PreToolUse on Edit|Write, exit 2)
+- code-reviewer agent runs automatically before /checkpoint commits
+- /verify command runs typecheck + tests + lint before commit
+- /checkpoint command orchestrates: verify → review → commit → push

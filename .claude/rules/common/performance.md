@@ -21,3 +21,12 @@ alwaysApply: true
 - Opus: architecture, complex planning (expensive but thorough)
 - Sonnet: implementation, review, testing (balanced)
 - Haiku: documentation, formatting, simple lookups (cheap and fast)
+
+## Enforcement
+- suggest-compact hook monitors context window size and suggests compaction (PreToolUse on all tools)
+- pre-compact-save hook preserves session state before context compaction (PreCompact)
+- /context-budget command audits current context window usage
+- cost-tracker hook tracks token usage per session (Stop event)
+- observe-pre and observe-post hooks enforce < 50ms latency budget
+- harness-optimizer agent analyzes hook latency and cost trends via /evolve
+- database-reviewer agent validates sql.js query patterns when editing database code

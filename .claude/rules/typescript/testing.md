@@ -23,3 +23,13 @@ globs: ["tests/**/*.ts"]
 - MUST test hooks via execFileSync with input option
 - MUST verify both exit code AND stderr/stdout content
 - MUST test both blocking (exit 2) and allowing (exit 0) scenarios
+
+## Enforcement
+- tdd-guide agent enforces red-green-refactor cycle via /tdd command
+- e2e-runner agent generates and runs E2E tests via /e2e command
+- /verify command runs typecheck + tests + lint as verification loop
+- /test-coverage command reports coverage per file
+- post-edit-typecheck hook catches type errors in test files after edits
+- tdd-workflow skill provides TDD methodology guidance
+- e2e-testing skill provides E2E test patterns and structure
+- verification-loop skill orchestrates the full verify pipeline
