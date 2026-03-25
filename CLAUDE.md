@@ -75,6 +75,10 @@ Observe → Remember → Verify → Specialize → Evolve
 | /instinct-export | Evolve | Export instincts |
 | /update-docs | Remember | Update documentation |
 
+## Skills (21)
+Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
+Key skills: search-first, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, mcp-server-patterns, postgres-patterns, strategic-compact.
+
 ## Development Workflow
 1. Research first (/docs, search-first skill)
 2. Plan (/kplan command, planner agent)
@@ -88,6 +92,8 @@ Observe → Remember → Verify → Specialize → Evolve
 - **Instincts**: learned patterns with confidence scoring (0.3→0.9), auto-promoted at confidence ≥0.7
 - **Cost events**: token usage tracked per session
 - **Observations**: ephemeral JSONL per session, summarized at session end
+- **Auto Memory**: Claude Code built-in memory in `~/.claude/memory/` (global) and project memory dir
+- **Dashboard**: `npx tsx scripts/dashboard.ts` shows instincts, sessions, hook health
 
 ## Hook Latency Budget
 - observe-pre / observe-post: < 50ms each (file append only)
@@ -101,4 +107,4 @@ Observe → Remember → Verify → Specialize → Evolve
 - /doctor: 0 warnings
 
 ## Status
-v0.1 — Operational (63 tests passing, 5 opus + 8 sonnet agents)
+v0.1 — Operational (76 tests passing, 5 opus + 8 sonnet agents)

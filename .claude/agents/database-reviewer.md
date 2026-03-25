@@ -3,6 +3,7 @@ name: database-reviewer
 description: Automatically invoked when editing files containing SQL queries, schema definitions, migration files, or Supabase client code. Reviews for missing indexes, RLS gaps, and sql.js-specific patterns.
 model: opus
 tools: Read, Grep, Glob
+memory: project
 ---
 
 # Database Reviewer
