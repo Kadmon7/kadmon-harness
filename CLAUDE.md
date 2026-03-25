@@ -87,6 +87,19 @@ Key skills: search-first, safety-guard, tdd-workflow, verification-loop, context
 5. Review (/code-review, /verify)
 6. Commit (conventional commits via /checkpoint)
 
+## Transparency Mode
+Always announce actions with these exact emojis:
+- 🤖 [agent-name]: [reason]
+- 📚 [skill-name]: [what I'm applying]
+- 🪝 [hook-name]: [what it did]
+- 🧠 Instinct reinforced: [pattern]
+- 💾 Memory saved: [what]
+- 🔍 no_context: checking [file] before editing
+- ✅ Verify passed: [check]
+- ❌ Verify failed: [check]
+- 💰 Cost: [amount]
+- 📋 Plan: [file created]
+
 ## Memory
 - **Sessions**: summaries persist to SQLite
 - **Instincts**: learned patterns with confidence scoring (0.3→0.9), auto-promoted at confidence ≥0.7
