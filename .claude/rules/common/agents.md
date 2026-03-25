@@ -5,17 +5,18 @@ alwaysApply: true
 # Agent Usage Rules
 
 ## Routing
-- MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
+- MUST use opus model for: architect, planner, oren, security-reviewer, database-reviewer, harness-optimizer
 - MUST use sonnet model for: code-reviewer, typescript-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, docs-lookup, e2e-runner
 - MUST use sonnet model for doc-updater (documentation generation)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
-## Agent Catalog (13)
+## Agent Catalog (14)
 
 | Agent | Model | Trigger | Command |
 |-------|-------|---------|---------|
 | architect | opus | /kplan for architectural tasks, explicit design review request | /kplan |
 | planner | opus | /kplan for implementation planning, multi-file tasks | /kplan |
+| oren | opus | /oren-master-research command, research tasks, daily briefings, trend analysis | /oren-master-research |
 | code-reviewer | sonnet | /code-review, /checkpoint (auto-invoked before commit) | /code-review, /checkpoint |
 | typescript-reviewer | sonnet | Auto-invoked when editing .ts/.tsx files, /code-review on TS changes | /code-review |
 | database-reviewer | opus | Auto-invoked when editing SQL, schema, migration, or Supabase client files | — |
@@ -39,6 +40,7 @@ alwaysApply: true
 - NEVER invoke architect for routine bug fixes or small features
 - NEVER invoke harness-optimizer without explicit /evolve command
 - NEVER invoke e2e-runner without explicit /e2e command (tests are expensive)
+- ALWAYS invoke oren for research tasks, daily briefings, technology monitoring, and trend analysis
 - NEVER invoke refactor-cleaner without explicit /refactor-clean command
 
 ## Communication

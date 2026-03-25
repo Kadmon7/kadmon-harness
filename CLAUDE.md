@@ -32,11 +32,12 @@ Observe → Remember → Verify → Specialize → Evolve
 - **ToratNetz** — Torah RAG system (Supabase + pgvector)
 - **UNIVERSO KAIRON** — AI companion universe
 
-## Agents (13)
+## Agents (14)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | architect | opus | System design, architecture decisions |
 | planner | opus | Implementation planning, task breakdown |
+| oren | opus | Daily intelligence research and trend analysis |
 | code-reviewer | sonnet | Code quality and security review |
 | typescript-reviewer | sonnet | TypeScript-specific review |
 | database-reviewer | opus | PostgreSQL/Supabase review |
@@ -49,9 +50,10 @@ Observe → Remember → Verify → Specialize → Evolve
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (22)
+## Commands (23)
 | Command | Phase | Purpose |
 |---------|-------|---------|
+| /oren-master-research | Observe | Daily intelligence briefing |
 | /kplan | Specialize | Invoke for complex multi-file or uncertain tasks |
 | /tdd | Verify | Test-driven development cycle |
 | /verify | Verify | Run verification loop |
@@ -75,9 +77,9 @@ Observe → Remember → Verify → Specialize → Evolve
 | /instinct-export | Evolve | Export instincts |
 | /update-docs | Remember | Update documentation |
 
-## Skills (21)
+## Skills (22)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
-Key skills: search-first, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, mcp-server-patterns, postgres-patterns, strategic-compact.
+Key skills: search-first, daily-research, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, mcp-server-patterns, postgres-patterns, strategic-compact.
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
@@ -120,4 +122,4 @@ Always announce actions with these exact emojis:
 - /doctor: 0 warnings
 
 ## Status
-v0.1 — Operational (76 tests passing, 5 opus + 8 sonnet agents)
+v0.1 — Operational (76 tests passing, 6 opus + 8 sonnet agents)
