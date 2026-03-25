@@ -3,6 +3,7 @@ name: tdd-guide
 description: Invoked via /tdd command to enforce red-green-refactor cycle. Proactively guides test-first development for new functions or modules.
 model: sonnet
 tools: Read, Grep, Glob, Bash
+memory: project
 ---
 
 # TDD Guide

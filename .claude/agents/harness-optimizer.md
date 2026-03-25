@@ -3,6 +3,7 @@ name: harness-optimizer
 description: Invoked exclusively via /evolve command. Analyzes hook latency, instinct quality, skill gaps, and cost trends. Never auto-applies changes — produces recommendations for architect review.
 model: opus
 tools: Read, Grep, Glob, Bash
+memory: project
 ---
 
 # Harness Optimizer

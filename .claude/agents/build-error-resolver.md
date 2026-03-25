@@ -3,6 +3,7 @@ name: build-error-resolver
 description: Automatically invoked when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Diagnoses root cause and proposes minimal fix without unrelated changes.
 model: sonnet
 tools: Read, Grep, Glob, Bash
+memory: project
 ---
 
 # Build Error Resolver

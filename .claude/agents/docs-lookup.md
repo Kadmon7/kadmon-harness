@@ -3,6 +3,7 @@ name: docs-lookup
 description: Automatically invoked when code references unfamiliar APIs, when /docs command is used, or when no_context principle requires verification of API signatures. Uses Context7 MCP with WebSearch fallback.
 model: sonnet
 tools: Read, Grep, mcp__context7__resolve_library_id, mcp__context7__get_library_docs, WebSearch, WebFetch
+memory: user
 ---
 
 # Docs Lookup

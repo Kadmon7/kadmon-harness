@@ -3,6 +3,7 @@ name: planner
 description: Use when breaking down a complex task into verifiable implementation steps. Invoked via /kplan command. Best for multi-file changes, uncertain approaches, or cross-system impact.
 model: opus
 tools: Read, Grep, Glob, Write
+memory: project
 ---
 
 # Planner

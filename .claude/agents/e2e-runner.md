@@ -3,6 +3,7 @@ name: e2e-runner
 description: Invoked via /e2e command to run full workflow tests: session lifecycle, instinct lifecycle, hook chains. Not auto-triggered — E2E tests are expensive and run on demand.
 model: sonnet
 tools: Read, Glob, Bash
+memory: project
 ---
 
 # E2E Runner

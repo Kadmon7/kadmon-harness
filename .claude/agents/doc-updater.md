@@ -3,6 +3,7 @@ name: doc-updater
 description: Invoked via /update-docs command or automatically suggested after commits that add new agents, skills, commands, or change project structure. Updates CLAUDE.md component counts and README architecture section.
 model: sonnet
 tools: Read, Grep, Glob, Write, Bash
+memory: project
 ---
 
 # Doc Updater

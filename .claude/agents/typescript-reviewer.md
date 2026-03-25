@@ -3,6 +3,7 @@ name: typescript-reviewer
 description: Automatically invoked when editing TypeScript files (.ts, .tsx) to check strict mode compliance, type safety, async patterns, and Node16 module resolution. Also runs as part of /code-review on TypeScript changes.
 model: sonnet
 tools: Read, Grep, Glob
+memory: project
 ---
 
 # TypeScript Reviewer

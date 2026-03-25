@@ -3,6 +3,7 @@ name: code-reviewer
 description: Automatically reviews code when /code-review or /checkpoint is invoked. Also triggered when reviewing PRs. Checks quality, security, and convention compliance.
 model: sonnet
 tools: Read, Grep, Glob
+memory: project
 ---
 
 # Code Reviewer
