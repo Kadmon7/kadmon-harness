@@ -20,7 +20,7 @@ alwaysApply: true
 - MUST use appropriate model tier for task complexity
 - Opus: architecture, complex planning (expensive but thorough)
 - Sonnet: implementation, review, testing (balanced)
-- Haiku: documentation, formatting, simple lookups (cheap and fast)
+- Sonnet also handles: documentation (doc-updater), formatting, lookups (docs-lookup)
 
 ## Enforcement
 - suggest-compact hook monitors context window size and suggests compaction (PreToolUse on all tools)

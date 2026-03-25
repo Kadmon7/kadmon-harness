@@ -7,8 +7,8 @@ alwaysApply: true
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
 - MUST use sonnet model for: code-reviewer, typescript-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, docs-lookup, e2e-runner
-- MUST use haiku model for: doc-updater (documentation generation only)
-- NEVER use haiku for code review or security analysis
+- MUST use sonnet model for doc-updater (documentation generation)
+- NEVER use haiku for code review, security analysis, or documentation updates
 
 ## Agent Catalog (13)
 
@@ -24,7 +24,7 @@ alwaysApply: true
 | build-error-resolver | sonnet | Auto-invoked on TypeScript compilation failure, Vitest errors, module resolution errors | /build-fix |
 | refactor-cleaner | sonnet | /refactor-clean command only (never auto-triggered) | /refactor-clean |
 | docs-lookup | sonnet | /docs command, unfamiliar API references, no_context verification | /docs |
-| doc-updater | haiku | /update-docs command, suggested after commits adding agents/skills/commands | /update-docs |
+| doc-updater | sonnet | /update-docs command, suggested after commits adding agents/skills/commands | /update-docs |
 | e2e-runner | sonnet | /e2e command only (expensive, on-demand) | /e2e |
 | harness-optimizer | opus | /evolve command only (never auto-applies, produces recommendations) | /evolve |
 

@@ -45,7 +45,7 @@ Observe → Remember → Verify → Specialize → Evolve
 | build-error-resolver | sonnet | Build/compile error resolution |
 | refactor-cleaner | sonnet | Code refactoring |
 | docs-lookup | sonnet | Documentation lookup via Context7 |
-| doc-updater | haiku | Codemap and documentation generation |
+| doc-updater | sonnet | Codemap and documentation generation |
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
@@ -101,4 +101,4 @@ Observe → Remember → Verify → Specialize → Evolve
 - /doctor: 0 warnings
 
 ## Status
-v0.1 — Operational (63 tests passing, 5 opus + 7 sonnet + 1 haiku agents)
+v0.1 — Operational (63 tests passing, 5 opus + 8 sonnet agents)
