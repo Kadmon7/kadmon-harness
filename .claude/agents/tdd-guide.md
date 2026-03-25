@@ -1,6 +1,6 @@
 ---
 name: tdd-guide
-description: Invoked via /tdd command to enforce red-green-refactor cycle. Automatically suggested when user asks to implement a new function or module without mentioning tests first.
+description: Invoked via /tdd command to enforce red-green-refactor cycle. Proactively guides test-first development for new functions or modules.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 ---

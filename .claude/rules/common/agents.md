@@ -12,7 +12,7 @@ alwaysApply: true
 ## When to Invoke
 - ALWAYS invoke security-reviewer for code touching: authentication, encryption, API keys, user input
 - ALWAYS invoke code-reviewer before any commit via /checkpoint
-- ALWAYS invoke planner for tasks estimated > 1 hour
+- ALWAYS invoke planner for tasks involving multiple files or uncertain approach
 - NEVER invoke architect for routine bug fixes or small features
 
 ## Communication

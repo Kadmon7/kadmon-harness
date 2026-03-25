@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Automatically reviews code when /code-review or /checkpoint is invoked. Also triggered when reviewing PRs or when git diff shows changes to 3+ files. Checks quality, security, and convention compliance.
+description: Automatically reviews code when /code-review or /checkpoint is invoked. Also triggered when reviewing PRs. Checks quality, security, and convention compliance.
 model: sonnet
 tools: Read, Grep, Glob
 ---

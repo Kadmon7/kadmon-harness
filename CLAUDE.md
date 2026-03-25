@@ -18,7 +18,7 @@ Observe → Remember → Verify → Specialize → Evolve
 | Observe | observe hooks, context-budget, search-first, suggest-compact |
 | Remember | session persistence, instinct store, ADRs, /checkpoint, /docs |
 | Verify | TDD, code review, security review, quality gates, type checking, no-context-guard |
-| Specialize | domain agents, skill catalog, /plan |
+| Specialize | domain agents, skill catalog, /kplan |
 | Evolve | instinct learning, /learn, /refactor-clean, pattern extraction |
 
 ## Stack
@@ -52,7 +52,7 @@ Observe → Remember → Verify → Specialize → Evolve
 ## Commands (22)
 | Command | Phase | Purpose |
 |---------|-------|---------|
-| /plan | Observe | Plan before implementing |
+| /kplan | Specialize | Invoke for complex multi-file or uncertain tasks |
 | /tdd | Verify | Test-driven development cycle |
 | /verify | Verify | Run verification loop |
 | /build-fix | Verify | Fix build errors |
@@ -77,7 +77,7 @@ Observe → Remember → Verify → Specialize → Evolve
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
-2. Plan (/plan command, planner agent)
+2. Plan (/kplan command, planner agent)
 3. Test first (/tdd command, tdd-guide agent)
 4. Implement (build-error-resolver if needed)
 5. Review (/code-review, /verify)

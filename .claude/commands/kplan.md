@@ -1,5 +1,5 @@
 ---
-description: Create implementation plan for a feature or task
+description: Invoke for complex tasks involving multiple files, uncertain approach, or cross-system changes. Skip for simple single-file edits.
 ---
 
 ## Purpose
@@ -18,7 +18,7 @@ Plan file path + numbered step summary with complexity estimates (S/M/L).
 
 ## Example
 ```
-User: /plan implement instinct export to JSON
+User: /kplan implement instinct export to JSON
 
 Output:
 ## Plan: Instinct Export
