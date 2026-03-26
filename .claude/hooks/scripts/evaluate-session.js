@@ -5,10 +5,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
 import { parseStdin } from './parse-stdin.js';
 
 function gitExec(cmd, cwd) {
-  try { return require('node:child_process').execSync(cmd, { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(); }
+  try { return execSync(cmd, { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(); }
   catch { return null; }
 }
 
@@ -44,8 +45,8 @@ async function main() {
 
     let instinctsUpdated = 0;
     try {
-      const { openDb, getActiveInstincts } = await import('../../../dist/scripts/lib/state-store.js');
-      const { createInstinct, reinforceInstinct } = await import('../../../dist/scripts/lib/instinct-manager.js');
+      const { openDb, getActiveInstincts } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
+      const { createInstinct, reinforceInstinct } = await import(new URL('../../../dist/scripts/lib/instinct-manager.js', import.meta.url).href);
       await openDb();
 
       const existing = getActiveInstincts(projectHash);

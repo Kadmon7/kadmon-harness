@@ -29,8 +29,8 @@ async function main() {
     }
 
     try {
-      const { openDb } = await import('../../../dist/scripts/lib/state-store.js');
-      const { endSession } = await import('../../../dist/scripts/lib/session-manager.js');
+      const { openDb } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
+      const { endSession } = await import(new URL('../../../dist/scripts/lib/session-manager.js', import.meta.url).href);
       await openDb();
       const result = endSession(sid, {
         filesModified: [...filesModified],

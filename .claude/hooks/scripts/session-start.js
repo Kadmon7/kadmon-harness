@@ -34,7 +34,7 @@ async function main() {
     let context = '';
     let instinctCount = 0;
     try {
-      const { openDb, getRecentSessions, getActiveInstincts } = await import('../../../dist/scripts/lib/state-store.js');
+      const { openDb, getRecentSessions, getActiveInstincts } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
       await openDb();
       const sessions = getRecentSessions(projectHash, 1);
       const instincts = getActiveInstincts(projectHash);
@@ -55,7 +55,7 @@ async function main() {
       }
 
       // Start new session
-      const { startSession } = await import('../../../dist/scripts/lib/session-manager.js');
+      const { startSession } = await import(new URL('../../../dist/scripts/lib/session-manager.js', import.meta.url).href);
       startSession(sid, { projectHash, remoteUrl, branch, rootDir: cwd });
     } catch (dbErr) {
       console.log(`WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`);

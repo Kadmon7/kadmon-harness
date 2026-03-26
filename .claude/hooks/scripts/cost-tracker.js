@@ -72,9 +72,9 @@ async function main() {
 
     try {
       const { openDb, insertCostEvent, upsertSession, getSession } =
-        await import("../../../dist/scripts/lib/state-store.js");
+        await import(new URL("../../../dist/scripts/lib/state-store.js", import.meta.url).href);
       const { calculateCost, formatCost } =
-        await import("../../../dist/scripts/lib/cost-calculator.js");
+        await import(new URL("../../../dist/scripts/lib/cost-calculator.js", import.meta.url).href);
       await openDb();
 
       const cost = calculateCost(model, inputTokens, outputTokens);

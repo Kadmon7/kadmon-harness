@@ -30,7 +30,7 @@ async function main() {
     }
 
     try {
-      const { openDb, upsertSession, getSession } = await import('../../../dist/scripts/lib/state-store.js');
+      const { openDb, upsertSession, getSession } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
       await openDb();
       const session = getSession(sid);
       if (session) {
