@@ -11,6 +11,7 @@ import {
   getInstinctRows,
   getSessionRows,
   getHookHealthRows,
+  getCostRows,
   renderDashboard,
 } from "../../scripts/lib/dashboard.js";
 import type { ObservabilityEvent } from "../../scripts/lib/types.js";
@@ -217,6 +218,70 @@ describe("dashboard", () => {
       const rows = getHookHealthRows(events);
       expect(rows).toHaveLength(1);
       expect(rows[0].total).toBe(1);
+    });
+  });
+
+  // ─── getCostRows ───
+
+  describe("getCostRows", () => {
+    it("returns empty array when no cost events", () => {
+      const rows = getCostRows("proj1");
+      expect(rows).toEqual([]);
+    });
+
+    it("aggregates cost per session with model info", () => {
+      upsertSession({
+        id: "s1",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-03-24T10:00:00Z",
+        estimatedCostUsd: 0.45,
+      });
+      insertCostEvent({
+        sessionId: "s1",
+        timestamp: "2026-03-24T10:30:00Z",
+        model: "claude-opus-4",
+        inputTokens: 50000,
+        outputTokens: 10000,
+        estimatedCostUsd: 0.15,
+      });
+      insertCostEvent({
+        sessionId: "s1",
+        timestamp: "2026-03-24T10:45:00Z",
+        model: "claude-sonnet-4",
+        inputTokens: 30000,
+        outputTokens: 5000,
+        estimatedCostUsd: 0.02,
+      });
+
+      const rows = getCostRows("proj1");
+      expect(rows).toHaveLength(1);
+      expect(rows[0].sessionId).toBe("s1");
+      expect(rows[0].totalCost).toBeCloseTo(0.45, 2);
+      expect(rows[0].eventCount).toBe(2);
+      expect(rows[0].date).toBe("2026-03-24");
+    });
+
+    it("returns multiple sessions sorted by date desc", () => {
+      upsertSession({
+        id: "s1",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-03-23T10:00:00Z",
+        estimatedCostUsd: 0.1,
+      });
+      upsertSession({
+        id: "s2",
+        projectHash: "proj1",
+        branch: "feat/x",
+        startedAt: "2026-03-24T10:00:00Z",
+        estimatedCostUsd: 0.5,
+      });
+
+      const rows = getCostRows("proj1");
+      expect(rows).toHaveLength(2);
+      expect(rows[0].sessionId).toBe("s2"); // most recent first
+      expect(rows[1].sessionId).toBe("s1");
     });
   });
 

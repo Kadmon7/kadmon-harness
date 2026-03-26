@@ -2,7 +2,11 @@
 // Pure functions for data fetching and rendering.
 // Entry point: scripts/dashboard.ts
 
-import { getActiveInstincts, getRecentSessions } from "./state-store.js";
+import {
+  getActiveInstincts,
+  getRecentSessions,
+  getCostBySession,
+} from "./state-store.js";
 import type { ObservabilityEvent } from "./types.js";
 
 // ─── Types ───
@@ -26,6 +30,13 @@ export interface HookHealthRow {
   total: number;
   failures: number;
   status: "OK" | "WARN" | "FAIL";
+}
+
+export interface CostRow {
+  sessionId: string;
+  date: string;
+  totalCost: number;
+  eventCount: number;
 }
 
 // ─── ANSI helpers ───
@@ -107,6 +118,19 @@ export function getHookHealthRows(
   });
 }
 
+export function getCostRows(projectHash: string, limit = 5): CostRow[] {
+  const sessions = getRecentSessions(projectHash, limit);
+  return sessions.map((s) => {
+    const events = getCostBySession(s.id);
+    return {
+      sessionId: s.id,
+      date: s.startedAt ? s.startedAt.slice(0, 10) : "—",
+      totalCost: s.estimatedCostUsd,
+      eventCount: events.length,
+    };
+  });
+}
+
 // ─── Full dashboard render ───
 
 export function renderDashboard(
@@ -148,6 +172,21 @@ export function renderDashboard(
       const branch = row.branch.padEnd(22).slice(0, 22);
       const files = String(row.filesCount).padStart(5);
       lines.push(`  ${row.date}  ${branch} ${files}  ${row.cost}`);
+    }
+  }
+  lines.push("");
+
+  // Costs
+  lines.push(`${BOLD}── COSTS ──${RESET}`);
+  const costs = getCostRows(projectHash);
+  if (costs.length === 0) {
+    lines.push(`  ${DIM}No cost data${RESET}`);
+  } else {
+    lines.push(`  ${DIM}Date        Session          Events  Cost${RESET}`);
+    for (const row of costs) {
+      const sid = row.sessionId.slice(0, 16).padEnd(16);
+      const evts = String(row.eventCount).padStart(6);
+      lines.push(`  ${row.date}  ${sid} ${evts}  $${row.totalCost.toFixed(2)}`);
     }
   }
   lines.push("");
