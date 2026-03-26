@@ -1,7 +1,7 @@
-import { createHash, randomUUID } from 'node:crypto';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
+import { createHash, randomUUID } from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 export function nowISO(): string {
   return new Date().toISOString();
@@ -12,7 +12,7 @@ export function nowMs(): number {
 }
 
 export function tmpDir(): string {
-  return path.join(os.tmpdir(), 'kadmon');
+  return path.join(os.tmpdir(), "kadmon");
 }
 
 export function sessionDir(sessionId: string): string {
@@ -24,7 +24,7 @@ export function ensureDir(dir: string): void {
 }
 
 export function hashString(input: string): string {
-  return createHash('sha256').update(input).digest('hex').slice(0, 16);
+  return createHash("sha256").update(input).digest("hex").slice(0, 16);
 }
 
 export function generateId(): string {
@@ -32,10 +32,22 @@ export function generateId(): string {
 }
 
 export function kadmonDataDir(): string {
-  return path.join(os.homedir(), '.kadmon');
+  return path.join(os.homedir(), ".kadmon");
 }
 
-export function log(level: 'info' | 'warn' | 'error', msg: string, meta?: object): void {
+export function formatDuration(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
+
+export function log(
+  level: "info" | "warn" | "error",
+  msg: string,
+  meta?: object,
+): void {
   const entry = { ts: nowISO(), level, msg, ...meta };
-  process.stderr.write(JSON.stringify(entry) + '\n');
+  process.stderr.write(JSON.stringify(entry) + "\n");
 }

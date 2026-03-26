@@ -1,13 +1,21 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
+import { describe, it, expect, afterEach } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
-  nowISO, nowMs, tmpDir, sessionDir, ensureDir,
-  hashString, generateId, kadmonDataDir, log,
-} from '../../scripts/lib/utils.js';
+  nowISO,
+  nowMs,
+  tmpDir,
+  sessionDir,
+  ensureDir,
+  hashString,
+  generateId,
+  kadmonDataDir,
+  log,
+  formatDuration,
+} from "../../scripts/lib/utils.js";
 
-describe('utils', () => {
+describe("utils", () => {
   const testDirs: string[] = [];
 
   afterEach(() => {
@@ -17,12 +25,12 @@ describe('utils', () => {
     testDirs.length = 0;
   });
 
-  it('nowISO returns valid ISO 8601 string', () => {
+  it("nowISO returns valid ISO 8601 string", () => {
     const iso = nowISO();
     expect(new Date(iso).toISOString()).toBe(iso);
   });
 
-  it('nowMs returns a number close to Date.now()', () => {
+  it("nowMs returns a number close to Date.now()", () => {
     const before = Date.now();
     const ms = nowMs();
     const after = Date.now();
@@ -30,62 +38,91 @@ describe('utils', () => {
     expect(ms).toBeLessThanOrEqual(after);
   });
 
-  it('tmpDir returns path under os.tmpdir()', () => {
+  it("tmpDir returns path under os.tmpdir()", () => {
     const dir = tmpDir();
-    expect(dir).toBe(path.join(os.tmpdir(), 'kadmon'));
+    expect(dir).toBe(path.join(os.tmpdir(), "kadmon"));
   });
 
-  it('sessionDir returns path under tmpDir', () => {
-    const dir = sessionDir('abc-123');
-    expect(dir).toBe(path.join(os.tmpdir(), 'kadmon', 'abc-123'));
+  it("sessionDir returns path under tmpDir", () => {
+    const dir = sessionDir("abc-123");
+    expect(dir).toBe(path.join(os.tmpdir(), "kadmon", "abc-123"));
   });
 
-  it('ensureDir creates nested directories', () => {
-    const dir = path.join(os.tmpdir(), 'kadmon-test-' + Date.now(), 'a', 'b');
-    testDirs.push(path.join(os.tmpdir(), 'kadmon-test-' + Date.now().toString().slice(0, -1)));
+  it("ensureDir creates nested directories", () => {
+    const dir = path.join(os.tmpdir(), "kadmon-test-" + Date.now(), "a", "b");
+    testDirs.push(
+      path.join(
+        os.tmpdir(),
+        "kadmon-test-" + Date.now().toString().slice(0, -1),
+      ),
+    );
     testDirs.push(dir.split(path.sep).slice(0, -2).join(path.sep));
     ensureDir(dir);
     expect(fs.existsSync(dir)).toBe(true);
-    fs.rmSync(dir.split(path.sep).slice(0, -2).join(path.sep), { recursive: true, force: true });
+    fs.rmSync(dir.split(path.sep).slice(0, -2).join(path.sep), {
+      recursive: true,
+      force: true,
+    });
   });
 
-  it('hashString returns 16 char hex', () => {
-    const h = hashString('https://github.com/Kadmon7/kadmon-harness.git');
+  it("hashString returns 16 char hex", () => {
+    const h = hashString("https://github.com/Kadmon7/kadmon-harness.git");
     expect(h).toHaveLength(16);
     expect(h).toMatch(/^[0-9a-f]{16}$/);
   });
 
-  it('hashString is deterministic', () => {
-    const a = hashString('test');
-    const b = hashString('test');
+  it("hashString is deterministic", () => {
+    const a = hashString("test");
+    const b = hashString("test");
     expect(a).toBe(b);
   });
 
-  it('hashString differs for different inputs', () => {
-    const a = hashString('foo');
-    const b = hashString('bar');
+  it("hashString differs for different inputs", () => {
+    const a = hashString("foo");
+    const b = hashString("bar");
     expect(a).not.toBe(b);
   });
 
-  it('generateId returns a UUID v4', () => {
+  it("generateId returns a UUID v4", () => {
     const id = generateId();
-    expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
   });
 
-  it('kadmonDataDir returns path under homedir', () => {
+  it("kadmonDataDir returns path under homedir", () => {
     const dir = kadmonDataDir();
-    expect(dir).toBe(path.join(os.homedir(), '.kadmon'));
+    expect(dir).toBe(path.join(os.homedir(), ".kadmon"));
   });
 
-  it('log writes JSON to stderr', () => {
+  // ─── formatDuration ───
+
+  it("formatDuration shows seconds for < 60s", () => {
+    expect(formatDuration(5000)).toBe("5s");
+    expect(formatDuration(45000)).toBe("45s");
+  });
+
+  it("formatDuration shows minutes and seconds", () => {
+    expect(formatDuration(90000)).toBe("1m 30s");
+    expect(formatDuration(3600000)).toBe("60m 0s");
+  });
+
+  it("formatDuration handles 0", () => {
+    expect(formatDuration(0)).toBe("0s");
+  });
+
+  it("log writes JSON to stderr", () => {
     const original = process.stderr.write;
-    let output = '';
-    process.stderr.write = ((chunk: string) => { output += chunk; return true; }) as typeof process.stderr.write;
+    let output = "";
+    process.stderr.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stderr.write;
     try {
-      log('info', 'test message', { extra: 42 });
+      log("info", "test message", { extra: 42 });
       const parsed = JSON.parse(output.trim());
-      expect(parsed.level).toBe('info');
-      expect(parsed.msg).toBe('test message');
+      expect(parsed.level).toBe("info");
+      expect(parsed.msg).toBe("test message");
       expect(parsed.extra).toBe(42);
       expect(parsed.ts).toBeDefined();
     } finally {
