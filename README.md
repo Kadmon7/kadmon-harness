@@ -88,13 +88,14 @@ npx tsx scripts/dashboard.ts
 | oren | opus | /oren-master-research, research tasks |
 | harness-optimizer | opus | /evolve |
 
-## Skills (22)
+## Skills (23)
 
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
 | Skill | Domain |
 |-------|--------|
 | search-first | Research before coding |
+| daily-research | Daily research workflow |
 | safety-guard | no_context enforcement |
 | tdd-workflow | TDD cycle guide |
 | verification-loop | Verify pipeline |
@@ -113,6 +114,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | cost-aware-llm-pipeline | Token cost optimization |
 | database-migrations | Schema migration patterns |
 | iterative-retrieval | RAG retrieval patterns |
+| iterative-retrieval-hebrew | Hebrew-specific RAG retrieval |
 | mcp-server-patterns | MCP integration |
 | postgres-patterns | PostgreSQL/Supabase |
 
@@ -158,4 +160,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.1 — Operational (79 tests passing)
+v0.1 — Operational (101 tests passing)

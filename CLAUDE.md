@@ -131,4 +131,4 @@ Note: Hooks can remind but cannot force text output format. Best-effort items re
 - /doctor: 0 warnings
 
 ## Status
-v0.1 — Operational (79 tests passing, 6 opus + 8 sonnet agents)
+v0.1 — Operational (101 tests passing, 6 opus + 8 sonnet agents)
