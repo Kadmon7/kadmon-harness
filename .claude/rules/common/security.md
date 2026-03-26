@@ -25,6 +25,13 @@ alwaysApply: true
 - MUST run `npm audit` periodically
 - MUST review new dependencies before adding them
 
+## Incident Response
+- STOP — do not proceed with the current task
+- INVOKE security-reviewer agent immediately
+- FIX the vulnerability before continuing
+- ROTATE any exposed credentials (API keys, tokens, passwords)
+- REVIEW — run /code-review on the fix before committing
+
 ## Enforcement
 - security-reviewer agent auto-invoked for code touching auth, API keys, user input, exec/spawn, file paths, SQL queries
 - config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)

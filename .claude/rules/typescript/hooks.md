@@ -1,5 +1,5 @@
 ---
-alwaysApply: true
+alwaysApply: false
 globs: [".claude/hooks/scripts/*.js"]
 ---
 
