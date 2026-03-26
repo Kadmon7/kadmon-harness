@@ -11,6 +11,19 @@
           {
             "type": "command",
             "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/git-push-reminder.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-format-guard.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/transparency-reminder.js"
           }
         ]
       },
@@ -65,6 +78,10 @@
           {
             "type": "command",
             "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/quality-gate.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/ts-review-reminder.js"
           }
         ]
       },
