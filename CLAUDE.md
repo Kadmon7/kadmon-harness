@@ -50,10 +50,11 @@ Observe → Remember → Verify → Specialize → Evolve
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (23)
+## Commands (24)
 | Command | Phase | Purpose |
 |---------|-------|---------|
 | /oren-master-research | Observe | Daily intelligence briefing |
+| /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
 | /kplan | Specialize | Invoke for complex multi-file or uncertain tasks |
 | /tdd | Verify | Test-driven development cycle |
 | /verify | Verify | Run verification loop |
@@ -122,4 +123,4 @@ Always announce actions with these exact emojis:
 - /doctor: 0 warnings
 
 ## Status
-v0.1 — Operational (76 tests passing, 6 opus + 8 sonnet agents)
+v0.1 — Operational (79 tests passing, 6 opus + 8 sonnet agents)

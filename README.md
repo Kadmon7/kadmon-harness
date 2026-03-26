@@ -22,9 +22,9 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 
 | Category | Count | Location |
 |----------|-------|----------|
-| Agents | 13 (5 opus, 8 sonnet) | `.claude/agents/` |
-| Skills | 21 | `.claude/skills/` |
-| Commands | 22 | `.claude/commands/` |
+| Agents | 14 (6 opus, 8 sonnet) | `.claude/agents/` |
+| Skills | 22 | `.claude/skills/` |
+| Commands | 24 | `.claude/commands/` |
 | Hooks | 17 | `.claude/hooks/scripts/` |
 | Rules | 14 | `.claude/rules/` |
 | Contexts | 3 | `.claude/contexts/` |
@@ -69,7 +69,7 @@ npx tsx scripts/dashboard.ts
 - **Runtime**: Claude Code CLI on Windows
 - **MCPs**: GitHub, Supabase, Context7
 
-## Agents (13)
+## Agents (14)
 
 | Agent | Model | Trigger |
 |-------|-------|---------|
@@ -85,9 +85,10 @@ npx tsx scripts/dashboard.ts
 | docs-lookup | sonnet | /docs |
 | doc-updater | sonnet | /update-docs |
 | e2e-runner | sonnet | /e2e |
+| oren | opus | /oren-master-research, research tasks |
 | harness-optimizer | opus | /evolve |
 
-## Skills (21)
+## Skills (22)
 
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
@@ -115,7 +116,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | mcp-server-patterns | MCP integration |
 | postgres-patterns | PostgreSQL/Supabase |
 
-## Commands (22)
+## Commands (24)
 
 | Command | Phase | Purpose |
 |---------|-------|---------|
@@ -133,6 +134,8 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | /update-docs | Remember | Update project documentation |
 | /sessions | Remember | List past sessions |
 | /context-budget | Observe | Audit context window |
+| /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
+| /oren-master-research | Observe | Daily intelligence briefing |
 | /refactor-clean | Evolve | Refactor code |
 | /learn | Evolve | Extract session patterns |
 | /learn-eval | Evolve | Evaluate learned patterns |
@@ -155,4 +158,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.1 — Operational (76 tests passing)
+v0.1 — Operational (79 tests passing)

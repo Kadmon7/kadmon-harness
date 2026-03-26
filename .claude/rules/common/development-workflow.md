@@ -10,12 +10,13 @@ alwaysApply: true
 - NEVER commit failing tests (red tests)
 - ALWAYS write test before implementation (/tdd workflow)
 
-## Command Reference (22)
+## Command Reference (24)
 
 ### Observe Phase
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /context-budget | Audit context window usage and suggest optimizations | — |
+| /dashboard | Show harness dashboard (instincts, sessions, costs, hook health) | — |
 | /sessions | Show recent session history for the current project | — |
 
 ### Remember Phase
