@@ -110,10 +110,12 @@ Session end ──→ hooks persisten todo a SQLite
 
 ## 4. Los 24 Comandos
 
-### Observe (2)
+### Observe (4)
 
 | Comando | Cuándo usar | Ejemplo |
 |---------|-------------|---------|
+| `/dashboard` | Ver estado del harness: instintos, sesiones, costos, hook health | `/dashboard` |
+| `/oren-master-research` | Briefing diario de inteligencia — Claude Code, AI, stack Kadmon | `/oren-master-research` |
 | `/context-budget` | Antes de sesiones largas, cuando Claude se pone lento | `/context-budget` |
 | `/sessions` | Ver historial de sesiones pasadas | `/sessions` |
 
