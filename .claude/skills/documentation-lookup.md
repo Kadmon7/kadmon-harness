@@ -44,10 +44,15 @@ stmt.free();
 ```
 
 ## Rules
-- Never trust training data for API signatures — always fetch live docs
-- Cite the source in your response
-- If docs are ambiguous, flag the ambiguity instead of guessing
-- Cache nothing — APIs change between versions
+- MUST use Context7 MCP as primary source — resolve library ID first, then fetch docs
+- MUST fall back to WebSearch + WebFetch if Context7 is unavailable or returns empty
+- NEVER fall back to training data memory — if both Context7 and WebSearch fail, report `no_context`
+- MUST include library version number in lookups when available (e.g., `supabase-js@2.39.0`)
+- MUST cite the source URL in every response
+- MUST flag deprecated APIs with `[DEPRECATED]` tag and suggest replacement
+- MUST verify return type constraints: distinguish null vs undefined, exception vs error return
+- NEVER cache documentation results — APIs change between versions, always fetch fresh
+- MUST report when docs are ambiguous or contradictory instead of guessing
 
 ## no_context Application
 This skill is the no_context principle applied to API knowledge. Every API detail must be verified against current documentation, not recalled from memory.

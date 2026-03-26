@@ -23,7 +23,7 @@ globs: [".claude/hooks/scripts/*.js"]
 
 ## Windows Compatibility
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin
-- All 17 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - MUST use `cmd /c npx` wrapper for MCP servers (GitHub, Context7)
 
 ## Lifecycle Hooks (4)

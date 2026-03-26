@@ -2,7 +2,7 @@
 
 ## 1. ¿Qué es Kadmon Harness?
 
-Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 17 hooks, 13 agentes especializados y un motor de aprendizaje por instintos.
+Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 20 hooks, 14 agentes especializados y un motor de aprendizaje por instintos.
 
 ### El Mantra: Observe → Remember → Verify → Specialize → Evolve
 
@@ -11,7 +11,7 @@ Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Clau
 | **Observe** | Registra cada operación, gestiona contexto | observe hooks, `/context-budget`, suggest-compact |
 | **Remember** | Persiste sesiones, instintos, decisiones | SQLite, sessions, `/checkpoint`, `/docs` |
 | **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 13 agentes, 21 skills, `/kplan` |
+| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 23 skills, `/kplan` |
 | **Evolve** | Aprende de sesiones, extrae patrones | `/learn`, `/evolve`, instinct engine |
 
 ### ¿Cómo difiere de Claude Code vanilla?
@@ -20,7 +20,7 @@ Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Clau
 |--------------------|--------------------|
 | Sin memoria entre sesiones | SQLite persiste sesiones, instintos y costos |
 | Sin verificación automática | Hooks validan tipos, lint y seguridad en cada edit |
-| Agente genérico | 13 agentes especializados (5 opus, 8 sonnet) |
+| Agente genérico | 14 agentes especializados (6 opus, 8 sonnet) |
 | Sin aprendizaje | Motor de instintos con scoring de confianza (0.3→0.9) |
 | Sin observabilidad | JSONL por sesión + dashboard CLI |
 
@@ -108,7 +108,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ---
 
-## 4. Los 22 Comandos
+## 4. Los 24 Comandos
 
 ### Observe (2)
 
@@ -159,7 +159,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ---
 
-## 5. Los 13 Agentes
+## 5. Los 14 Agentes
 
 ### Agentes automáticos (Claude los invoca solo)
 
@@ -182,13 +182,14 @@ Session end ──→ hooks persisten todo a SQLite
 | docs-lookup | sonnet | `/docs` | Buscar API docs actualizadas vía Context7 |
 | doc-updater | sonnet | `/update-docs` | Actualizar CLAUDE.md y README |
 | e2e-runner | sonnet | `/e2e` | Tests E2E completos (costoso) |
+| oren | opus | `/oren-master-research` | Investigación diaria, briefings, análisis de tendencias |
 | harness-optimizer | opus | `/evolve` | Análisis de optimización (solo recomendaciones) |
 
-**Regla de modelo**: opus para decisiones complejas (5 agentes), sonnet para implementación (8 agentes). Nunca haiku para review ni seguridad.
+**Regla de modelo**: opus para decisiones complejas (6 agentes), sonnet para implementación (8 agentes). Nunca haiku para review ni seguridad.
 
 ---
 
-## 6. Los 21 Skills
+## 6. Los 23 Skills
 
 ### Observe
 
@@ -245,7 +246,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ## 7. El Sistema de Hooks
 
-Kadmon tiene **17 hooks** que se ejecutan automáticamente en distintos momentos.
+Kadmon tiene **20 hooks** que se ejecutan automáticamente en distintos momentos.
 
 ### Hooks de seguridad (bloquean operaciones)
 
@@ -498,5 +499,5 @@ claude
 
 ---
 
-*Kadmon Harness v0.1 — 13 agentes, 22 comandos, 21 skills, 17 hooks*
+*Kadmon Harness v0.1 — 14 agentes, 24 comandos, 23 skills, 20 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

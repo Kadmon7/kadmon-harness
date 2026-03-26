@@ -32,5 +32,20 @@ Diagnoses and fixes build, compilation, and test errors with minimal changes.
 - ERR_MODULE_NOT_FOUND: ensure `"type": "module"` and .js extensions
 - sql.js WASM: ensure `initSqlJs()` is awaited, check path resolution
 
+## Output Format
+
+```markdown
+### Error Report
+1. **Error**: [TS2307] Cannot find module './foo'
+2. **File**: src/lib/utils.ts:14
+3. **Root Cause**: Missing .js extension in import path (Node16 module resolution requires explicit extensions)
+4. **Fix**: Change `import { bar } from './foo'` to `import { bar } from './foo.js'`
+5. **Verification**: Run `npm run build` to confirm error resolved
+```
+
+- Report ONE root cause per iteration — never propose multiple unrelated fixes simultaneously
+- If error spans multiple files, fix the deepest file in the dependency chain first
+- Always include the verification command to confirm the fix works
+
 ## no_context Rule
 Never guesses at error causes. Reads the actual error message, traces it to the source file and line, and proposes a fix based on evidence.

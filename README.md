@@ -23,9 +23,9 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 | Category | Count | Location |
 |----------|-------|----------|
 | Agents | 14 (6 opus, 8 sonnet) | `.claude/agents/` |
-| Skills | 22 | `.claude/skills/` |
+| Skills | 23 | `.claude/skills/` |
 | Commands | 24 | `.claude/commands/` |
-| Hooks | 17 | `.claude/hooks/scripts/` |
+| Hooks | 20 | `.claude/hooks/scripts/` |
 | Rules | 14 | `.claude/rules/` |
 | Contexts | 3 | `.claude/contexts/` |
 
