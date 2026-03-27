@@ -29,7 +29,7 @@ Security specialist detecting vulnerabilities, secret exposure, and unsafe patte
 
 ## Output Format
 ```markdown
-## Security Review: [scope]
+## 🛡️ Security Review: [scope] [security-reviewer]
 
 ### CRITICAL
 - [file:line] [vulnerability]. Remediation: [fix]

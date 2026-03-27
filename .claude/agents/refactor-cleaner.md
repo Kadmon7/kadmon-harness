@@ -28,7 +28,7 @@ Code refactoring specialist focused on removing dead code, consolidating duplica
 
 ## Output Format
 ```markdown
-## Refactoring Summary
+## ♻️ Refactoring Summary [refactor-cleaner]
 
 ### Removed
 - [file]: removed unused import `X`

@@ -28,7 +28,7 @@ TypeScript specialist reviewing type safety, async correctness, and idiomatic pa
 
 ## Output Format
 ```markdown
-## TypeScript Review: [file]
+## 🔷 TypeScript Review: [file] [typescript-reviewer]
 
 ### Type Safety
 - [file:line] `any` type — use `unknown` or define proper type

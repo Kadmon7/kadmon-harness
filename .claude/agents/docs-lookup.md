@@ -33,5 +33,19 @@ Documentation retrieval specialist. Fetches live, current documentation instead 
 3. If Context7 fails: `WebSearch` for official docs → `WebFetch` the page
 4. Return: signature, example, source URL
 
+## Output Format
+```markdown
+## 📚 Documentation: [library/topic] [docs-lookup]
+
+### Signature
+[exact API signature from documentation]
+
+### Example
+[minimal working example]
+
+### Source
+[documentation URL or Context7 library ID]
+```
+
 ## no_context Rule
 This agent IS the no_context enforcer for API knowledge. It exists because Claude should never invent API signatures. Every API detail must come from fetched documentation, not memory.

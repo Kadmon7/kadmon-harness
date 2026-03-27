@@ -32,7 +32,7 @@ Kadmon Harness self-improvement specialist. Analyzes every component of the harn
 
 ## Output Format
 ```markdown
-## Harness Evolution Report
+## ⚡ Harness Evolution Report [harness-optimizer]
 
 ### Hook Performance
 - [hook]: avg [X]ms (target: [Y]ms) — [OK/SLOW/FAILING]

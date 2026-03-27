@@ -28,6 +28,7 @@ Test-driven development enforcer. Guides the red-green-refactor cycle and ensure
 
 ## Output Format
 ```typescript
+// 🧪 TDD [tdd-guide]
 // 1. RED — write the test first
 describe('featureName', () => {
   it('should handle the happy path', () => {

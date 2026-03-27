@@ -32,7 +32,7 @@ try {
     console.error(
       JSON.stringify({
         block: true,
-        message: `conventional commit format required: type(scope): description\nTypes: ${TYPES}\nGot: "${msg}"`,
+        message: `\u{1F6AB} conventional commit format required: type(scope): description\nTypes: ${TYPES}\nGot: "${msg}"`,
       }),
     );
     process.exit(2);

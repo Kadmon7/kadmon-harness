@@ -32,7 +32,7 @@ Daily intelligence officer for Kadmon. Researches everything relevant to:
 Every research session produces a structured report:
 
 ```markdown
-# Oren Intelligence Brief — [DATE]
+# 🌐 Oren Intelligence Brief — [DATE] [oren]
 
 ## Top Signals (must-read)
 [3-5 most important findings with direct impact on Kadmon]

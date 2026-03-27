@@ -30,7 +30,7 @@ System design specialist responsible for architecture decisions, schema design, 
 
 ## Output Format
 ```markdown
-## Decision: [title]
+## 🏗️ Decision: [title] [architect]
 ### Context
 [Why this decision is needed]
 ### Options Considered

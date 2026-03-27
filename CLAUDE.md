@@ -92,17 +92,16 @@ Key skills: search-first, explore-before-act, verify-before-commit, daily-resear
 6. Commit (conventional commits via /checkpoint)
 7. Skill work (create, edit, optimize, evaluate) → MUST use skill-creator:skill-creator plugin
 
-## Transparency Mode
-Hooks provide automatic visibility — no manual emoji discipline required.
+## Transparency
+Three-layer observability — no manual discipline required.
 
-**What you actually see:**
-- Hook stderr output on every tool call (observe-pre/post, no-context-guard blocks, etc.)
-- Agent invocations logged in observations JSONL (visible via /dashboard Hook Health)
-- /dashboard shows sessions, instincts, costs, and hook health in real-time
-- Conventional commit messages document every change
+| Layer | Mechanism | Visibility |
+|-------|-----------|------------|
+| Output | Agent emoji+text labels in output headers (e.g., `## 🏗️ Decision [architect]`) | Always visible |
+| Dashboard | `/dashboard` command — instincts, sessions, costs, hook health | On demand |
+| Traces | `observations.jsonl` via observe-pre/post hooks | Deep dive |
 
-**Not enforced** (aspirational, not reliable):
-- Emoji announcements (🤖, 📚, 🧠) — these depend on Claude voluntarily using them and should not be expected
+Each agent defines its own labeled output format in `.claude/agents/*.md`.
 
 ## Memory
 - **Sessions**: summaries persist to SQLite
@@ -119,7 +118,7 @@ Hooks provide automatic visibility — no manual emoji discipline required.
 
 ## Windows Compatibility
 - Hook stdin: `parseStdin()` helper sanitizes unescaped Windows backslashes in JSON
-- Hook execution: all 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix
+- Hook execution: all 19 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix
 - MCP servers: `cmd /c npx` wrapper for GitHub and Context7
 - /doctor: 0 warnings
 

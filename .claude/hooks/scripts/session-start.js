@@ -1,47 +1,66 @@
 #!/usr/bin/env node
 // Hook: session-start | Trigger: SessionStart (*)
 // Purpose: Load previous context, initialize session
-import fs from 'node:fs';
-import { execSync } from 'node:child_process';
-import os from 'node:os';
-import path from 'node:path';
-import crypto from 'node:crypto';
-import { parseStdin } from './parse-stdin.js';
+import fs from "node:fs";
+import { execSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+import crypto from "node:crypto";
+import { parseStdin } from "./parse-stdin.js";
 
 function gitExec(cmd, cwd) {
-  try { return execSync(cmd, { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(); }
-  catch { return null; }
+  try {
+    return execSync(cmd, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    return null;
+  }
 }
 
 async function main() {
   try {
     const input = parseStdin();
-    const sid = input.session_id ?? '';
+    const sid = input.session_id ?? "";
     const cwd = input.cwd ?? process.cwd();
     if (!sid) process.exit(0);
 
     // Detect project
-    const remoteUrl = gitExec('git remote get-url origin', cwd);
-    if (!remoteUrl) { console.log('Kadmon: Not in a git repo — session tracking disabled.'); process.exit(0); }
-    const projectHash = crypto.createHash('sha256').update(remoteUrl).digest('hex').slice(0, 16);
-    const branch = gitExec('git branch --show-current', cwd) ?? 'unknown';
+    const remoteUrl = gitExec("git remote get-url origin", cwd);
+    if (!remoteUrl) {
+      console.log("Kadmon: Not in a git repo — session tracking disabled.");
+      process.exit(0);
+    }
+    const projectHash = crypto
+      .createHash("sha256")
+      .update(remoteUrl)
+      .digest("hex")
+      .slice(0, 16);
+    const branch = gitExec("git branch --show-current", cwd) ?? "unknown";
 
     // Initialize session dir
-    const sessionDir = path.join(os.tmpdir(), 'kadmon', sid);
+    const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
     fs.mkdirSync(sessionDir, { recursive: true });
 
     // Backup DB before opening (prevents data loss from silent failures)
     try {
-      const dbFile = path.join(os.homedir(), '.kadmon', 'kadmon.db');
-      const backupFile = path.join(os.homedir(), '.kadmon', 'kadmon.db.bak');
+      const dbFile = path.join(os.homedir(), ".kadmon", "kadmon.db");
+      const backupFile = path.join(os.homedir(), ".kadmon", "kadmon.db.bak");
       if (fs.existsSync(dbFile)) fs.copyFileSync(dbFile, backupFile);
-    } catch { /* never block session start for backup failure */ }
+    } catch {
+      /* never block session start for backup failure */
+    }
 
     // Try loading previous session context from SQLite
-    let context = '';
+    let context = "";
     let instinctCount = 0;
     try {
-      const { openDb, getRecentSessions, getActiveInstincts } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
+      const { openDb, getRecentSessions, getActiveInstincts } = await import(
+        new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
+          .href
+      );
       await openDb(process.env.KADMON_TEST_DB || undefined);
       const sessions = getRecentSessions(projectHash, 1);
       const instincts = getActiveInstincts(projectHash);
@@ -50,7 +69,7 @@ async function main() {
       if (sessions.length > 0) {
         const last = sessions[0];
         context += `\n## Previous Session\n- Date: ${last.startedAt}\n- Branch: ${last.branch}`;
-        if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(', ')}`;
+        if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(", ")}`;
         context += `\n- Files modified: ${last.filesModified.length}`;
       }
 
@@ -62,14 +81,23 @@ async function main() {
       }
 
       // Start new session
-      const { startSession } = await import(new URL('../../../dist/scripts/lib/session-manager.js', import.meta.url).href);
+      const { startSession } = await import(
+        new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
+          .href
+      );
       startSession(sid, { projectHash, remoteUrl, branch, rootDir: cwd });
     } catch (dbErr) {
-      console.log(`WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`);
+      console.log(
+        `WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`,
+      );
     }
 
-    console.log(`## Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}`);
-  } catch (err) { console.error(JSON.stringify({ error: `session-start: ${err.message}` })); }
+    console.log(
+      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}`,
+    );
+  } catch (err) {
+    console.error(JSON.stringify({ error: `session-start: ${err.message}` }));
+  }
   process.exit(0);
 }
 main();

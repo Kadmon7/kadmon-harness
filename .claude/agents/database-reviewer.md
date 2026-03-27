@@ -27,7 +27,7 @@ PostgreSQL and SQLite specialist reviewing schemas, queries, and persistence pat
 
 ## Output Format
 ```markdown
-## Database Review: [file/migration]
+## 🗄️ Database Review: [file/migration] [database-reviewer]
 
 ### Schema
 - [issue]: [recommendation]

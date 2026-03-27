@@ -28,7 +28,7 @@ Implementation planning specialist. Breaks complex features into ordered, verifi
 
 ## Output Format
 ```markdown
-## Plan: [feature name]
+## 📋 Plan: [feature name] [planner]
 
 ### Phase 0: Research
 - [ ] Read [files] to understand current state

@@ -28,7 +28,7 @@ Documentation maintenance specialist. Keeps CLAUDE.md, README.md, and project do
 
 ## Output Format
 ```markdown
-## Documentation Updates
+## 📝 Documentation Updates [doc-updater]
 
 ### Files Updated
 - CLAUDE.md: updated agent count (10 → 13), added new commands

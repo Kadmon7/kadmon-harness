@@ -38,7 +38,7 @@ Report skill violations as WARN severity with reference to the specific skill.
 
 ## Output Format
 ```markdown
-## Code Review: [file or PR]
+## 🔍 Code Review: [file or PR] [code-reviewer]
 
 ### BLOCK
 - [file:line] [issue description]. Fix: [suggestion]

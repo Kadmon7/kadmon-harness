@@ -35,7 +35,7 @@ Diagnoses and fixes build, compilation, and test errors with minimal changes.
 ## Output Format
 
 ```markdown
-### Error Report
+### 🔧 Error Report [build-error-resolver]
 1. **Error**: [TS2307] Cannot find module './foo'
 2. **File**: src/lib/utils.ts:14
 3. **Root Cause**: Missing .js extension in import path (Node16 module resolution requires explicit extensions)

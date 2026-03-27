@@ -32,5 +32,21 @@ End-to-end test specialist verifying full workflows across multiple components.
 4. no-context-guard: Write without Read → blocked; Read then Write → allowed
 5. Cost tracking: session with known tokens → verify cost calculation
 
+## Output Format
+```markdown
+## 🏃 E2E Results [e2e-runner]
+
+### Scenarios
+| # | Scenario | Status | Time |
+|---|----------|--------|------|
+| 1 | [name]   | PASS/FAIL | [ms] |
+
+### Failures
+- [scenario]: [error description] — [suggested fix]
+
+### Summary
+[N] scenarios: [X] PASS, [Y] FAIL
+```
+
 ## no_context Rule
 E2E tests verify actual system behavior. Never writes tests that pass by mocking the system under test.

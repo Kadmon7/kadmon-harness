@@ -76,9 +76,14 @@ async function main() {
 
     try {
       const { openDb, insertCostEvent, upsertSession, getSession } =
-        await import(new URL("../../../dist/scripts/lib/state-store.js", import.meta.url).href);
-      const { calculateCost, formatCost } =
-        await import(new URL("../../../dist/scripts/lib/cost-calculator.js", import.meta.url).href);
+        await import(
+          new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
+            .href
+        );
+      const { calculateCost, formatCost } = await import(
+        new URL("../../../dist/scripts/lib/cost-calculator.js", import.meta.url)
+          .href
+      );
       await openDb(process.env.KADMON_TEST_DB || undefined);
 
       const cost = calculateCost(model, inputTokens, outputTokens);
@@ -104,7 +109,7 @@ async function main() {
 
       const suffix = estimated ? " (estimated from transcript)" : "";
       console.log(
-        `Session cost: ${formatCost(cost.totalCostUsd)} (${model}: ${inputTokens} in, ${outputTokens} out)${suffix}`,
+        `\u{1F4B0} Session cost: ${formatCost(cost.totalCostUsd)} (${model}: ${inputTokens} in, ${outputTokens} out)${suffix}`,
       );
     } catch (dbErr) {
       console.error(
