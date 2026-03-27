@@ -48,6 +48,25 @@ describe("commit-format-guard", () => {
     expect(r.code).toBe(0);
   });
 
+  it("allows HEREDOC with multi-line body and Co-Authored-By", () => {
+    const r = runHook({
+      tool_input: {
+        command:
+          "git commit -m \"$(cat <<'EOF'\\nfeat(kplan): smart routing — architect+planner based on signals\\n\\nCo-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>\\nEOF\\n)\"",
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("blocks bad HEREDOC commit message", () => {
+    const r = runHook({
+      tool_input: {
+        command: "git commit -m \"$(cat <<'EOF'\\nbad message here\\nEOF\\n)\"",
+      },
+    });
+    expect(r.code).toBe(2);
+  });
+
   it("blocks non-conventional commit message", () => {
     const r = runHook({
       tool_input: { command: 'git commit -m "updated stuff"' },

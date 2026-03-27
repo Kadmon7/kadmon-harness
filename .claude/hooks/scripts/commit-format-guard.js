@@ -16,10 +16,18 @@ try {
   // Extract message: handle both "msg" and HEREDOC $(cat <<'EOF'\ntype: msg\n...)
   let msg = "";
 
-  // HEREDOC format: git commit -m "$(cat <<'EOF'\nfeat: ...\n...EOF\n)"
-  const heredocMatch = cmd.match(/<<'?EOF'?\s*[\n\\n]+(.+?)[\n\\n]/);
-  if (heredocMatch) {
-    msg = heredocMatch[1].trim();
+  if (cmd.includes("<<")) {
+    // HEREDOC format: split by newlines, find first non-empty line after <<EOF
+    const eofIdx = cmd.search(/<<'?EOF'?/);
+    if (eofIdx !== -1) {
+      const afterEof = cmd.slice(eofIdx);
+      const lines = afterEof.split(/\\n|\n/).map((l) => l.trim());
+      // First non-empty line after the <<EOF marker is the commit message
+      msg =
+        lines.find(
+          (l, i) => i > 0 && l && !l.startsWith("EOF") && !l.startsWith(")"),
+        ) ?? "";
+    }
   } else {
     // Standard format: git commit -m "type: msg" or -m 'type: msg'
     const msgMatch = cmd.match(/git commit.*-m\s+["']([^"']+)["']/);
