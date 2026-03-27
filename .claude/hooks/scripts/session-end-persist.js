@@ -31,7 +31,7 @@ async function main() {
     try {
       const { openDb } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
       const { endSession } = await import(new URL('../../../dist/scripts/lib/session-manager.js', import.meta.url).href);
-      await openDb();
+      await openDb(process.env.KADMON_TEST_DB || undefined);
       const result = endSession(sid, {
         filesModified: [...filesModified],
         toolsUsed: [...toolsUsed],

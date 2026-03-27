@@ -43,7 +43,7 @@ async function main() {
       const { openDb, getActiveInstincts } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
       const { createInstinct, reinforceInstinct } = await import(new URL('../../../dist/scripts/lib/instinct-manager.js', import.meta.url).href);
       const { evaluatePatterns, loadPatternDefinitions } = await import(new URL('../../../dist/scripts/lib/pattern-engine.js', import.meta.url).href);
-      await openDb();
+      await openDb(process.env.KADMON_TEST_DB || undefined);
 
       // Load pattern definitions from JSON
       const defsPath = new URL('../pattern-definitions.json', import.meta.url);

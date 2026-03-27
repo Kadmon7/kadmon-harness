@@ -75,7 +75,7 @@ async function main() {
         await import(new URL("../../../dist/scripts/lib/state-store.js", import.meta.url).href);
       const { calculateCost, formatCost } =
         await import(new URL("../../../dist/scripts/lib/cost-calculator.js", import.meta.url).href);
-      await openDb();
+      await openDb(process.env.KADMON_TEST_DB || undefined);
 
       const cost = calculateCost(model, inputTokens, outputTokens);
       insertCostEvent({

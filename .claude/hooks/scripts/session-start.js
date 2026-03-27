@@ -42,7 +42,7 @@ async function main() {
     let instinctCount = 0;
     try {
       const { openDb, getRecentSessions, getActiveInstincts } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
-      await openDb();
+      await openDb(process.env.KADMON_TEST_DB || undefined);
       const sessions = getRecentSessions(projectHash, 1);
       const instincts = getActiveInstincts(projectHash);
       instinctCount = instincts.length;

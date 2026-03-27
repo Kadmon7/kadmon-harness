@@ -31,7 +31,7 @@ async function main() {
 
     try {
       const { openDb, upsertSession, getSession } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
-      await openDb();
+      await openDb(process.env.KADMON_TEST_DB || undefined);
       const session = getSession(sid);
       if (session) {
         upsertSession({ ...session, id: sid, compactionCount: (session.compactionCount ?? 0) + 1 });
