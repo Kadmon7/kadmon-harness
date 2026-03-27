@@ -23,8 +23,8 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 | Category | Count | Location |
 |----------|-------|----------|
 | Agents | 14 (6 opus, 8 sonnet) | `.claude/agents/` |
-| Skills | 23 | `.claude/skills/` |
-| Commands | 24 | `.claude/commands/` |
+| Skills | 25 | `.claude/skills/` |
+| Commands | 25 | `.claude/commands/` |
 | Hooks | 20 | `.claude/hooks/scripts/` |
 | Rules | 14 | `.claude/rules/` |
 | Contexts | 3 | `.claude/contexts/` |
@@ -88,7 +88,7 @@ npx tsx scripts/dashboard.ts
 | oren | opus | /oren-master-research, research tasks |
 | harness-optimizer | opus | /evolve |
 
-## Skills (23)
+## Skills (25)
 
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
@@ -117,8 +117,10 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | iterative-retrieval-hebrew | Hebrew-specific RAG retrieval |
 | mcp-server-patterns | MCP integration |
 | postgres-patterns | PostgreSQL/Supabase |
+| explore-before-act | Read multiple files before editing |
+| verify-before-commit | Verify before git commit/push |
 
-## Commands (24)
+## Commands (25)
 
 | Command | Phase | Purpose |
 |---------|-------|---------|
@@ -146,6 +148,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | /instinct-export | Evolve | Export instincts |
 | /promote | Evolve | Promote instinct to global |
 | /prune | Evolve | Clean up low-confidence instincts |
+| /kompact | Observe | Smart compaction — audit, safety check, compact, reload |
 
 ## Windows Compatibility
 
@@ -160,4 +163,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.1 — Operational (101 tests passing)
+v0.1 — Operational (109 tests passing, 25 skills, 25 commands, 14 agents)
