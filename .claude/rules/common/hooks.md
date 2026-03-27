@@ -9,7 +9,7 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-## Hook Catalog (19)
+## Hook Catalog (20)
 
 ### PreToolUse — Bash matcher (3)
 | Hook | Script | Purpose | Exit |
@@ -35,13 +35,14 @@ alwaysApply: true
 | observe-pre | observe-pre.js | Logs tool invocation to observations JSONL (pre-execution) | 0 always |
 | suggest-compact | suggest-compact.js | Suggests context compaction when window is large | 1 as suggestion |
 
-### PostToolUse — Edit|Write matcher (4)
+### PostToolUse — Edit|Write matcher (5)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
 | post-edit-typecheck | post-edit-typecheck.js | Runs TypeScript typecheck on edited .ts/.tsx files | 1 on type errors |
 | quality-gate | quality-gate.js | Runs quality checks (lint, style) on edited files | 1 on issues |
 | ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts edits without code review in session | 1 as warning |
+| console-log-warn | console-log-warn.js | Warns about console.log() in production code | 1 as warning |
 
 ### PostToolUse — all tools (1)
 | Hook | Script | Purpose | Exit |
@@ -87,5 +88,6 @@ alwaysApply: true
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
 ## Windows Compatibility
-- All 19 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

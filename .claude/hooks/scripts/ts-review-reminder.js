@@ -4,12 +4,13 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 
 const TS_THRESHOLD = 5;
 const REVIEWER_TYPES = ["code-reviewer", "typescript-reviewer"];
 
 try {
+  if (isDisabled("ts-review-reminder")) process.exit(0);
   const input = parseStdin();
   const filePath = input.tool_input?.file_path ?? "";
 

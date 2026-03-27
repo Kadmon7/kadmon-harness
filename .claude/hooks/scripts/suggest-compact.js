@@ -4,8 +4,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 try {
+  if (isDisabled("suggest-compact")) process.exit(0);
   const input = parseStdin();
   const sid = input.session_id ?? "";
   if (!sid) process.exit(0);

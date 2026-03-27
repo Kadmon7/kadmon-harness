@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, wasTruncated } from "./parse-stdin.js";
 const EXEMPT_EXT = [".test.ts", ".spec.ts", ".md", ".json"];
 function isExempt(fp) {
   if (!fp) return true;
@@ -39,6 +39,16 @@ function getResearched(obsPath) {
 try {
   if (process.env.KADMON_NO_CONTEXT_GUARD === "off") process.exit(0);
   const input = parseStdin();
+  if (wasTruncated(input)) {
+    console.error(
+      JSON.stringify({
+        block: true,
+        message:
+          "\u{1F6AB} no-context-guard: stdin truncated — cannot verify prior Read",
+      }),
+    );
+    process.exit(2);
+  }
   const target = input.tool_input?.file_path ?? "";
   if (!target || isExempt(target)) process.exit(0);
   const sid = input.session_id ?? "";

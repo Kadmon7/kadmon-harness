@@ -118,7 +118,8 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 
 ## Windows Compatibility
 - Hook stdin: `parseStdin()` helper sanitizes unescaped Windows backslashes in JSON
-- Hook execution: all 19 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix
+- Hook execution: all 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix
+- Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MCP servers: `cmd /c npx` wrapper for GitHub and Context7
 - /doctor: 0 warnings
 
@@ -129,4 +130,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - evaluate-session.js detects 3 patterns: "Read before Edit", "Verify before commit", "Explore clusters"
 
 ## Status
-v0.1 — Operational (109 tests passing, 6 opus + 8 sonnet agents)
+v0.2 — Operational (139 tests passing, 20 hooks, 14 agents, 25 skills, 25 commands)
