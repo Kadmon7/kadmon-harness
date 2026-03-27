@@ -30,6 +30,13 @@ async function main() {
     const sessionDir = path.join(os.tmpdir(), 'kadmon', sid);
     fs.mkdirSync(sessionDir, { recursive: true });
 
+    // Backup DB before opening (prevents data loss from silent failures)
+    try {
+      const dbFile = path.join(os.homedir(), '.kadmon', 'kadmon.db');
+      const backupFile = path.join(os.homedir(), '.kadmon', 'kadmon.db.bak');
+      if (fs.existsSync(dbFile)) fs.copyFileSync(dbFile, backupFile);
+    } catch { /* never block session start for backup failure */ }
+
     // Try loading previous session context from SQLite
     let context = '';
     let instinctCount = 0;

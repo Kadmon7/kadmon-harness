@@ -39,6 +39,8 @@ async function main() {
       });
       if (result) {
         console.log(`Session persisted: ${messageCount} tools, ${filesModified.size} files`);
+      } else {
+        console.error(JSON.stringify({ warn: `session-end-persist: endSession returned null for ${sid} — data may be lost` }));
       }
     } catch (dbErr) {
       console.error(JSON.stringify({ warn: `session-end-persist db: ${dbErr.message}` }));
