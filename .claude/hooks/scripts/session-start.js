@@ -92,6 +92,14 @@ async function main() {
       );
     }
 
+    // Write instinct count for status line
+    try {
+      fs.writeFileSync(
+        path.join(sessionDir, "instinct_count.txt"),
+        String(instinctCount),
+      );
+    } catch {}
+
     console.log(
       `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}`,
     );

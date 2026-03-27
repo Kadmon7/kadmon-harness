@@ -20,8 +20,9 @@ try {
   fs.writeFileSync(countFile, String(count));
   if (count > 50 && count % 10 === 0) {
     console.log(
-      `\u{1F4E6} Context getting large (${count} tool calls). Consider /kompact.`,
+      `\u{1F4E6} Context getting large (${count} tool calls since last compact). Consider /kompact.`,
     );
+    process.exit(1);
   }
 } catch (err) {
   console.error(JSON.stringify({ error: `suggest-compact: ${err.message}` }));
