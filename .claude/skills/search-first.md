@@ -1,6 +1,6 @@
 ---
 name: search-first
-description: Use before implementing any feature — research existing code, libraries, and patterns first
+description: Research existing code before writing new code — Grep for implementations, check dependencies, verify APIs. Use this skill whenever about to write a new function, add a dependency, design a new pattern, or implement something unfamiliar. Also use when the no-context-guard hook blocks an edit — it means you skipped the research step. The foundation of the no_context principle: if you haven't searched for it, you might be reinventing the wheel.
 ---
 
 # Search First

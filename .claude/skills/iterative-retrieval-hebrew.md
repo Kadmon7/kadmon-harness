@@ -1,6 +1,6 @@
 ---
 name: iterative-retrieval-hebrew
-description: Use when building Hebrew/Aramaic RAG systems for ToratNetz — Torah, Talmud, and commentary retrieval
+description: Hebrew and Aramaic RAG patterns for ToratNetz — Torah, Talmud, Midrash, commentary retrieval with right-to-left handling and Sefaria API. Use this skill whenever working on ToratNetz search, building Hebrew text pipelines, handling RTL content in embeddings, querying Sefaria API, or when the user mentions "Torah", "Talmud", "Hebrew search", "Sefaria", "parasha", or "daf". Also use when the general iterative-retrieval skill needs Hebrew-specific adaptations.
 ---
 
 # Iterative Retrieval — Hebrew (ToratNetz)

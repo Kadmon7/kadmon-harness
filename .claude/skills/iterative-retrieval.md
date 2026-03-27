@@ -1,6 +1,6 @@
 ---
 name: iterative-retrieval
-description: Use when building RAG (Retrieval-Augmented Generation) systems, especially for ToratNetz
+description: RAG system patterns — query expansion, re-ranking, chunk management, context window optimization. Use this skill whenever building retrieval-augmented generation pipelines, implementing semantic search with embeddings, designing chunk strategies for ToratNetz or any document corpus, or when the user mentions "RAG", "retrieval", "embeddings", "chunks", "semantic search", or "vector search". Also use when optimizing retrieval quality or debugging poor search results.
 ---
 
 # Iterative Retrieval

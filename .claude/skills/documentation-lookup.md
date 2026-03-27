@@ -1,6 +1,6 @@
 ---
 name: documentation-lookup
-description: Use when needing to verify API signatures, library behavior, or framework conventions
+description: Fetch live documentation instead of relying on training data — Context7 MCP primary, WebSearch fallback. Use this skill whenever referencing an API you're not 100% sure about, when the user says "how does X work", "what's the API for", "check the docs", or /docs. Also use when no_context principle requires verification of function signatures, library versions, or framework conventions before writing code that depends on them.
 ---
 
 # Documentation Lookup

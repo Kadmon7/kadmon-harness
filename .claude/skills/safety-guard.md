@@ -1,6 +1,6 @@
 ---
 name: safety-guard
-description: Use to understand destructive operation prevention — what the harness blocks and why
+description: Three-layer safety system — block-no-verify, config-protection, no-context-guard. Use this skill whenever an operation gets blocked by a hook (exit code 2), when trying to understand why an edit was prevented, when onboarding someone to the harness safety mechanisms, or when the user asks "why was my edit blocked?", "how do I bypass this?", or "what does no-context-guard do?". Also consult when designing new hooks that need to block operations safely.
 ---
 
 # Safety Guard

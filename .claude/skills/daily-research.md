@@ -1,6 +1,6 @@
 ---
 name: daily-research
-description: Deep research methodology for staying current with AI, Claude Code, Anthropic ecosystem, and Kadmon project technologies. Use when performing daily intelligence briefings, trend analysis, or technology monitoring.
+description: Deep research methodology for AI intelligence briefings — source evaluation, signal vs noise, structured reporting. Use this skill whenever running /oren-master-research, investigating new tools or frameworks, monitoring Claude Code changelogs, evaluating YouTube channels or GitHub repos, or when the user asks to "research", "investigate", "what's new with", or "stay current on". Also use when cross-referencing claims across multiple sources or generating actionable insights for Kadmon projects.
 ---
 
 # Daily Research Skill

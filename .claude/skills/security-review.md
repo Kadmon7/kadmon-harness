@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: Use when reviewing code for security vulnerabilities or implementing security-sensitive features
+description: Security vulnerability checklist — injection, secrets, auth bypass, unsafe exec, input validation. Use this skill whenever reviewing code that handles authentication, API keys, user input, exec/spawn calls, file paths, SQL queries, or environment variables. Also use when the security-reviewer agent is invoked, when implementing crypto or token handling, or when the user mentions "security", "vulnerability", "secrets", "injection", or "OWASP". Even simple input handling benefits from this checklist.
 ---
 
 # Security Review

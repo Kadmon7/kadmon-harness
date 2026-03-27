@@ -1,6 +1,6 @@
 ---
 name: continuous-learning-v2
-description: Use to understand how the instinct system works — observation, confidence scoring, and promotion
+description: How the instinct learning system works — observation, confidence scoring (0.3→0.9), promotion to skills. Use this skill whenever working with /learn, /instinct-status, /promote, or /prune commands, when debugging why an instinct was or wasn't created, understanding the evaluate-session hook, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
 ---
 
 # Continuous Learning v2

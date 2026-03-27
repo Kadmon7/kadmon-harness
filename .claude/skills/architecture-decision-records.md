@@ -1,6 +1,6 @@
 ---
 name: architecture-decision-records
-description: Use when making any architectural decision that affects multiple components or has long-term impact
+description: Document architectural decisions as ADRs in docs/decisions/ — context, options, consequences. Use this skill whenever making a decision that affects multiple components, choosing between persistence strategies, adding new hooks or agents, changing the data model, or when the user asks "why did we do it this way?" or "should we change the approach?". Even if the decision seems small, if it constrains future choices it deserves an ADR.
 ---
 
 # Architecture Decision Records
