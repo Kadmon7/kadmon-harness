@@ -239,7 +239,7 @@ export function getSession(id: string): SessionSummary | null {
 
 export function getRecentSessions(projectHash: string, limit = 10): SessionSummary[] {
   return getDb().prepare(
-    'SELECT * FROM sessions WHERE project_hash = ? ORDER BY started_at DESC LIMIT ?'
+    'SELECT * FROM sessions WHERE project_hash = ? ORDER BY started_at DESC, rowid DESC LIMIT ?'
   ).all(projectHash, limit).map(mapSessionRow);
 }
 
@@ -302,13 +302,13 @@ export function getInstinct(id: string): Instinct | null {
 
 export function getActiveInstincts(projectHash: string): Instinct[] {
   return getDb().prepare(
-    "SELECT * FROM instincts WHERE project_hash = ? AND status = 'active' ORDER BY confidence DESC"
+    "SELECT * FROM instincts WHERE project_hash = ? AND status = 'active' ORDER BY confidence DESC, rowid DESC"
   ).all(projectHash).map(mapInstinctRow);
 }
 
 export function getPromotableInstincts(projectHash: string): Instinct[] {
   return getDb().prepare(
-    "SELECT * FROM instincts WHERE project_hash = ? AND status = 'active' AND confidence >= 0.7 AND occurrences >= 3 ORDER BY confidence DESC"
+    "SELECT * FROM instincts WHERE project_hash = ? AND status = 'active' AND confidence >= 0.7 AND occurrences >= 3 ORDER BY confidence DESC, rowid DESC"
   ).all(projectHash).map(mapInstinctRow);
 }
 
@@ -344,7 +344,7 @@ export function insertCostEvent(event: Omit<CostEvent, 'id'>): void {
 
 export function getCostBySession(sessionId: string): CostEvent[] {
   return getDb().prepare(
-    'SELECT * FROM cost_events WHERE session_id = ? ORDER BY timestamp ASC'
+    'SELECT * FROM cost_events WHERE session_id = ? ORDER BY timestamp ASC, rowid ASC'
   ).all(sessionId).map(mapCostRow);
 }
 
