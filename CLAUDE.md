@@ -78,9 +78,9 @@ Observe → Remember → Verify → Specialize → Evolve
 | /instinct-export | Evolve | Export instincts |
 | /update-docs | Remember | Update documentation |
 
-## Skills (23)
+## Skills (25)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
-Key skills: search-first, daily-research, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, iterative-retrieval-hebrew, mcp-server-patterns, postgres-patterns, strategic-compact.
+Key skills: search-first, explore-before-act, verify-before-commit, daily-research, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, iterative-retrieval-hebrew, mcp-server-patterns, postgres-patterns, strategic-compact.
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
