@@ -124,7 +124,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 
 | Command | Phase | Purpose |
 |---------|-------|---------|
-| /kplan | Specialize | Plan complex multi-file tasks |
+| /kplan | Specialize | Smart planning — routes to architect+planner or planner-only based on task signals |
 | /tdd | Verify | Test-driven development cycle |
 | /verify | Verify | Run typecheck + tests + lint |
 | /build-fix | Verify | Fix build errors |
@@ -152,8 +152,9 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 
 ## Windows Compatibility
 
-- Hook stdin parsing: shared `parseStdin()` helper sanitizes unescaped backslashes
+- Hook stdin parsing: shared `parseStdin()` helper sanitizes unescaped backslashes; `wasTruncated()` detects oversized payloads
 - Hook execution: `PATH` prefix ensures Node.js is found in bash
+- Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MCP servers: `cmd /c npx` wrapper for GitHub and Context7
 - `/doctor`: 0 warnings
 
@@ -163,4 +164,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.1 — Operational (109 tests passing, 25 skills, 25 commands, 14 agents)
+v0.2 — Operational (139 tests passing, 20 hooks, 25 skills, 25 commands, 14 agents)
