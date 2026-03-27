@@ -50,11 +50,12 @@ Observe → Remember → Verify → Specialize → Evolve
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (24)
+## Commands (25)
 | Command | Phase | Purpose |
 |---------|-------|---------|
 | /oren-master-research | Observe | Daily intelligence briefing |
 | /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
+| /kompact | Observe | Smart compaction — audit, safety check, summarize, compact, reload |
 | /kplan | Specialize | Invoke for complex multi-file or uncertain tasks |
 | /tdd | Verify | Test-driven development cycle |
 | /verify | Verify | Run verification loop |
