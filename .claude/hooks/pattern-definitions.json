@@ -1,0 +1,66 @@
+[
+  {
+    "type": "sequence",
+    "name": "Read files before editing them",
+    "action": "Always Read target file before Edit/Write",
+    "before": "Read",
+    "after": "Edit",
+    "threshold": 3
+  },
+  {
+    "type": "command_sequence",
+    "name": "Verify before committing code",
+    "action": "Run vitest/tsc before git commit or push",
+    "triggerCommands": ["vitest", "tsc --noEmit"],
+    "followedByCommands": ["git commit", "git push"],
+    "threshold": 1
+  },
+  {
+    "type": "cluster",
+    "name": "Explore multiple files before taking action",
+    "action": "Read 3+ related files to build context before running commands or editing",
+    "tool": "Read",
+    "minClusterSize": 3,
+    "threshold": 3
+  },
+  {
+    "type": "sequence",
+    "name": "Search before writing new code",
+    "action": "Use Grep/Glob to find existing implementations before creating new files",
+    "before": "Grep",
+    "after": "Write",
+    "threshold": 2
+  },
+  {
+    "type": "command_sequence",
+    "name": "Test after implementing changes",
+    "action": "Run vitest after editing source files to catch regressions immediately",
+    "triggerCommands": ["vitest"],
+    "followedByCommands": [],
+    "threshold": 3
+  },
+  {
+    "type": "command_sequence",
+    "name": "Check dashboard for system health",
+    "action": "Run /dashboard or npx tsx scripts/dashboard.ts to verify harness state",
+    "triggerCommands": ["dashboard"],
+    "followedByCommands": [],
+    "threshold": 2
+  },
+  {
+    "type": "sequence",
+    "name": "Plan before implementing changes",
+    "action": "Use /kplan or Agent to break complex tasks into steps before editing code",
+    "before": "Agent",
+    "after": "Edit",
+    "threshold": 1
+  },
+  {
+    "type": "sequence",
+    "name": "Read tests alongside source code",
+    "action": "Read the test file for a module to understand expected behavior and edge cases",
+    "before": "Read",
+    "after": "Bash",
+    "threshold": 3
+  }
+]

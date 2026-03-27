@@ -37,42 +37,18 @@ async function main() {
       try { const e = JSON.parse(line); if (e.eventType === 'tool_pre') toolSequences.push(e.toolName); } catch {}
     }
 
-    // Pattern 1: Read before Edit (count occurrences)
-    let readBeforeEdit = 0;
-    for (let i = 1; i < toolSequences.length; i++) {
-      if (toolSequences[i] === 'Edit' && toolSequences[i - 1] === 'Read') readBeforeEdit++;
-    }
-
-    // Pattern 2: Verify before commit (vitest/tsc before git commit/push)
-    let verifyBeforeCommit = 0;
-    let hasVerify = false;
-    for (const line of lines) {
-      try {
-        const e = JSON.parse(line);
-        if (e.eventType !== 'tool_pre') continue;
-        const cmd = e.metadata?.command ?? '';
-        if (cmd.includes('vitest') || cmd.includes('tsc --noEmit')) hasVerify = true;
-        if (hasVerify && (cmd.includes('git commit') || cmd.includes('git push'))) {
-          verifyBeforeCommit++;
-          hasVerify = false;
-        }
-      } catch {}
-    }
-
-    // Pattern 3: Explore multiple files before acting (clusters of 3+ Reads)
-    let exploreClusters = 0;
-    let consecutiveReads = 0;
-    for (const t of toolSequences) {
-      if (t === 'Read') { consecutiveReads++; }
-      else { if (consecutiveReads >= 3) exploreClusters++; consecutiveReads = 0; }
-    }
-    if (consecutiveReads >= 3) exploreClusters++;
-
+    // Evaluate patterns using configurable engine
     let instinctsUpdated = 0;
     try {
       const { openDb, getActiveInstincts } = await import(new URL('../../../dist/scripts/lib/state-store.js', import.meta.url).href);
       const { createInstinct, reinforceInstinct } = await import(new URL('../../../dist/scripts/lib/instinct-manager.js', import.meta.url).href);
+      const { evaluatePatterns, loadPatternDefinitions } = await import(new URL('../../../dist/scripts/lib/pattern-engine.js', import.meta.url).href);
       await openDb();
+
+      // Load pattern definitions from JSON
+      const defsPath = new URL('../pattern-definitions.json', import.meta.url);
+      const definitions = loadPatternDefinitions(defsPath.pathname.replace(/^\/([A-Z]:)/, '$1'));
+      const results = evaluatePatterns(definitions, toolSequences, lines);
 
       const existing = getActiveInstincts(projectHash);
       const existingPatterns = new Map(existing.map(i => [i.pattern, i]));
@@ -86,15 +62,9 @@ async function main() {
         instinctsUpdated++;
       }
 
-      // Apply detected patterns
-      if (readBeforeEdit >= 3) {
-        applyPattern('Read files before editing them', 'Always Read target file before Edit/Write');
-      }
-      if (verifyBeforeCommit >= 1) {
-        applyPattern('Verify before committing code', 'Run vitest/tsc before git commit or push');
-      }
-      if (exploreClusters >= 3) {
-        applyPattern('Explore multiple files before taking action', 'Read 3+ related files to build context before running commands or editing');
+      // Apply all triggered patterns
+      for (const r of results) {
+        if (r.triggered) applyPattern(r.name, r.action);
       }
     } catch (dbErr) {
       console.error(JSON.stringify({ warn: `evaluate-session db: ${dbErr.message}` }));

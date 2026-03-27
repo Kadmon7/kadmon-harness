@@ -106,3 +106,18 @@ export interface CostResult {
   outputCostUsd: number;
   totalCostUsd: number;
 }
+
+// ─── Pattern Engine ───
+
+export type PatternDefinition =
+  | { type: 'sequence'; name: string; action: string; before: string; after: string; threshold: number }
+  | { type: 'command_sequence'; name: string; action: string; triggerCommands: string[]; followedByCommands: string[]; threshold: number }
+  | { type: 'cluster'; name: string; action: string; tool: string; minClusterSize: number; threshold: number };
+
+export interface PatternResult {
+  name: string;
+  action: string;
+  count: number;
+  threshold: number;
+  triggered: boolean;
+}
