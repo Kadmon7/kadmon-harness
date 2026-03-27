@@ -71,6 +71,7 @@ Session 5: same pattern → reinforced (0.7) — now promotable!
 - Instincts persist in SQLite across sessions
 - Promotion requires architect approval (/promote is manual, not automatic)
 - Contradictions are tracked — instincts can die
+- All skill creation, editing, and optimization MUST use the skill-creator:skill-creator plugin — it handles drafting, testing, benchmarking, and description optimization
 
 ## no_context Application
 The learning system only creates instincts from observed behavior — never from assumptions. If a pattern was not observed in the JSONL, it cannot become an instinct.

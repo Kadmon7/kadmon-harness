@@ -19,7 +19,7 @@ Observe → Remember → Verify → Specialize → Evolve
 | Remember | session persistence, instinct store, ADRs, /checkpoint, /docs |
 | Verify | TDD, code review, security review, quality gates, type checking, no-context-guard |
 | Specialize | domain agents, skill catalog, /kplan |
-| Evolve | instinct learning, /learn, /refactor-clean, pattern extraction |
+| Evolve | instinct learning, /learn, /refactor-clean, pattern extraction, skill-creator (for all skill work) |
 
 ## Stack
 - Language: TypeScript / JavaScript (primary)
@@ -89,6 +89,7 @@ Key skills: search-first, explore-before-act, verify-before-commit, daily-resear
 4. Implement (build-error-resolver if needed)
 5. Review (/code-review, /verify)
 6. Commit (conventional commits via /checkpoint)
+7. Skill work (create, edit, optimize, evaluate) → MUST use skill-creator:skill-creator plugin
 
 ## Transparency Mode
 Announce actions with emojis. Enforcement level varies:

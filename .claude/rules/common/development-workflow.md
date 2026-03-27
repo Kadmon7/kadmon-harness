@@ -9,6 +9,7 @@ alwaysApply: true
 - ALWAYS run /verify before /checkpoint
 - NEVER commit failing tests (red tests)
 - ALWAYS write test before implementation (/tdd workflow)
+- ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills
 
 ## Command Reference (24)
 

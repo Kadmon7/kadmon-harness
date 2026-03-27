@@ -1,48 +1,44 @@
 ---
 name: explore-before-act
-description: Use before making changes — read 3+ related files in clusters to build context before editing or running commands
+description: Read 3+ related files before editing or running commands. Use this skill whenever you're about to modify code in an unfamiliar module, debug an issue across multiple files, enter a new area of the codebase, or implement a feature that touches several components. Even if the change seems small, building context from surrounding files prevents mistakes. Complements search-first (which says "search before coding") with the specific pattern of reading in clusters.
 ---
 
 # Explore Before Act
 
-Read multiple related files before taking action. Build a mental model of the code area before changing it.
-
-Promoted from instinct: confidence 0.9, 13 occurrences across sessions.
-
-## When to Use
-- Before editing any file in an unfamiliar module
-- Before running a command that affects multiple components
-- When entering a new area of the codebase
-- When debugging — read the call chain before proposing fixes
+The fastest way to break code is to edit a file you don't fully understand. Reading a single file shows you the function; reading its neighbors shows you the system. This skill is about building a mental model of the code area before touching it.
 
 ## How It Works
-1. **Identify the cluster** — which files are related to the task?
-2. **Read 3+ files** consecutively before switching to Edit/Bash/Write
-3. **Build context** — understand types, dependencies, and patterns
-4. **Then act** — edit, run tests, or execute commands
+
+1. **Identify the cluster** — which files are related to the task? Think: types, implementation, persistence layer, tests
+2. **Read 3+ files** consecutively before switching to Edit, Bash, or Write
+3. **Build context** — understand interfaces, dependencies, data flow, and naming patterns
+4. **Then act** — now that you see how pieces connect, your edit will fit naturally
+
+The key insight is that reading one file tells you WHAT a function does, but reading its neighbors tells you WHY it does it that way and WHAT depends on it.
 
 ## Examples
 
-### Example 1: Fixing a bug in session-manager
+**Fixing a bug in session-manager:**
 ```
-Read scripts/lib/types.ts          → understand SessionSummary interface
-Read scripts/lib/session-manager.ts → understand the function to fix
-Read scripts/lib/state-store.ts     → understand how it persists
-Read tests/lib/session-manager.test.ts → understand expected behavior
-THEN: Edit the fix
+Read scripts/lib/types.ts              → SessionSummary interface shape
+Read scripts/lib/session-manager.ts    → the function with the bug
+Read scripts/lib/state-store.ts        → how it persists to SQLite
+Read tests/lib/session-manager.test.ts → expected behavior and edge cases
+THEN: Edit the fix with full context
 ```
 
-### Example 2: Adding a new hook
+**Adding a new hook:**
 ```
 Read .claude/hooks/scripts/observe-pre.js → existing hook pattern
-Read .claude/hooks/scripts/parse-stdin.js → stdin parsing
-Read .claude/settings.json                → how hooks are wired
-THEN: Write the new hook
+Read .claude/hooks/scripts/parse-stdin.js → stdin parsing helper
+Read .claude/settings.json                → how hooks are wired to triggers
+THEN: Write the new hook following the pattern
 ```
 
-## Relationship to Other Skills
-- **search-first** — general principle "research before coding". This skill is the specific pattern: "read 3+ files in clusters"
-- **no-context-guard** — enforces Read before Edit at the file level. This skill goes further: read the CONTEXT (multiple files) not just the target
+## Why This Matters
 
-## Detection
-The `evaluate-session.js` hook detects this pattern automatically: clusters of 3+ consecutive Read calls in tool sequences. Threshold: >= 3 clusters per session.
+The no-context-guard hook enforces reading the TARGET file before editing it. But that's the minimum — reading just the target is like reading one page of a book. This skill goes further: read the chapter. When you understand the surrounding context (types, callers, tests, dependencies), your changes are more likely to be correct the first time, reducing debugging cycles.
+
+## Automatic Detection
+
+The `evaluate-session.js` hook tracks this pattern: clusters of 3+ consecutive Read calls in the tool sequence. When 3+ such clusters appear in a session, the pattern instinct is reinforced.
