@@ -1,6 +1,6 @@
 ---
 name: database-migrations
-description: Use when modifying database schemas or creating new tables
+description: Safe schema evolution for SQLite and Supabase — idempotent migrations, IF NOT EXISTS guards, TypeScript interface sync. Use this skill whenever adding tables, columns, or indexes to schema.sql or supabase/migrations/, when the user mentions "new table", "add column", "schema change", or "migration". Also use when types.ts interfaces need to match a schema update, or when preparing data for Supabase v2 sync. Even small schema tweaks benefit from this checklist to avoid breaking state-store.ts.
 ---
 
 # Database Migrations

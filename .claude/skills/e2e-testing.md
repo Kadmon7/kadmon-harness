@@ -1,6 +1,6 @@
 ---
 name: e2e-testing
-description: Use when designing or running end-to-end tests that verify full system workflows
+description: Full workflow testing with real dependencies — session lifecycle, instinct lifecycle, hook chains, SQLite integration. Use this skill whenever writing tests that span multiple components, testing hook stdin/stdout/exit codes, verifying database operations end-to-end, or when the user says "E2E", "integration test", "full workflow test", or "test the whole flow". Also use when deciding what to mock vs use real (the decision matrix inside covers SQLite, file system, Supabase, GitHub, hooks).
 ---
 
 # E2E Testing

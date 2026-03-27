@@ -1,6 +1,6 @@
 ---
 name: mcp-server-patterns
-description: Use when building or consuming MCP (Model Context Protocol) servers
+description: Build and consume MCP servers — TypeScript SDK, stdio transport, tool definitions, health monitoring. Use this skill whenever configuring MCP servers in claude.json, building a custom MCP server, debugging MCP connection issues, or working with the GitHub/Supabase/Context7 MCPs. Also use when the user mentions "MCP", "tool server", "model context protocol", or when mcp-health-check hook reports failures.
 ---
 
 # MCP Server Patterns

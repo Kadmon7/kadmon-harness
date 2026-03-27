@@ -1,6 +1,6 @@
 ---
 name: agentic-engineering
-description: Use when building AI-first features or designing agent workflows
+description: AI-first development methodology — eval-driven design, model routing, agent decomposition, verification loops. Use this skill whenever designing features that use Claude Code agents, building multi-step automated workflows, deciding which model tier to use (opus/sonnet/haiku), or implementing eval-driven development. Also use when the user mentions "agent", "workflow", "pipeline", "multi-step", or asks how to structure an AI-powered feature for ToratNetz or KAIRON.
 ---
 
 # Agentic Engineering

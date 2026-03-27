@@ -1,6 +1,6 @@
 ---
 name: cost-aware-llm-pipeline
-description: Use when optimizing token usage and API costs across sessions
+description: Optimize token usage and API costs — model routing (opus/sonnet/haiku), prompt sizing, session budgeting. Use this skill whenever choosing which model to use for a task, reviewing cost trends via /dashboard, when a session seems expensive, or when the user asks about "cost", "tokens", "pricing", "budget", or "which model should I use". Also use when the cost-tracker hook reports high session costs or when planning multi-session projects that need cost estimates.
 ---
 
 # Cost-Aware LLM Pipeline

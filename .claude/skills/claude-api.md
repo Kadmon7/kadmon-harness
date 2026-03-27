@@ -1,6 +1,6 @@
 ---
 name: claude-api
-description: Use when integrating with the Claude API or Anthropic SDK in application code
+description: Patterns for Claude API and Anthropic TypeScript SDK — messages, tool use, streaming, cost tracking. Use this skill whenever code imports @anthropic-ai/sdk, when building features that call Claude directly, implementing function calling / tool use, streaming responses, or managing API costs. Also use when the user asks to "call Claude", "use the API", "add tool use", or works on ToratNetz/KAIRON backend integration.
 ---
 
 # Claude API

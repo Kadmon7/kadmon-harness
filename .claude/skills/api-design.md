@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: Use when designing REST APIs, RPC endpoints, or service interfaces
+description: RESTful and RPC API design — resource naming, HTTP methods, Zod validation, response envelopes, pagination. Use this skill whenever designing new API endpoints, reviewing endpoint structure, planning Supabase Edge Functions, defining service boundaries, or when the user mentions "endpoint", "REST", "API route", "request/response format", or "service interface". Also use when implementing API contracts for ToratNetz search or KAIRON voice endpoints.
 ---
 
 # API Design
