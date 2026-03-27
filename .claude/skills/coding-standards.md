@@ -1,6 +1,6 @@
 ---
 name: coding-standards
-description: Use as reference for TypeScript/JavaScript coding conventions in this project
+description: TypeScript/JavaScript conventions for Kadmon projects — naming, types, imports, error handling. Use this skill whenever writing new code, reviewing code for convention compliance, or unsure about naming (camelCase vs PascalCase vs snake_case), import style (node: prefix, .js extensions), error handling patterns, or file organization. Also consult when onboarding to the project or when the typescript-reviewer agent flags issues.
 ---
 
 # Coding Standards

@@ -1,6 +1,6 @@
 ---
 name: context-budget
-description: Use when context window is getting large or when planning a long session
+description: Manage Claude Code's context window to avoid performance degradation. Use this skill whenever the suggest-compact hook fires (50+ tool calls), when responses feel slower or less accurate, when planning a long multi-file session, or when switching between major tasks. Also use when the user mentions "context", "window", "slow", "compact", or "running out of space". Helps decide WHEN to compact and what to keep in context.
 ---
 
 # Context Budget

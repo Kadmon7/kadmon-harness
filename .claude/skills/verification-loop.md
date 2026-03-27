@@ -1,6 +1,6 @@
 ---
 name: verification-loop
-description: Use after implementing any change to verify it works correctly end-to-end
+description: Run build + typecheck + lint + tests in sequence after any code change. Use this skill whenever you finish implementing a feature, fix a bug, refactor code, or before running /checkpoint. Also use when the user says "verify", "check if it works", "run tests", or "does it compile". Stop at first failure — fix before proceeding. This is the safety net that catches type errors, lint violations, and regressions before they reach git.
 ---
 
 # Verification Loop

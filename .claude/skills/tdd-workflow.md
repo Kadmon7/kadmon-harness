@@ -1,6 +1,6 @@
 ---
 name: tdd-workflow
-description: Use when implementing any new feature or fixing bugs — always write tests first
+description: Write the test before the code — red, green, refactor. Use this skill whenever implementing a new function, fixing a bug, adding a hook, modifying behavior, or when the user says "add", "implement", "create", or "fix". Also use when reviewing whether test coverage exists for new code. Even for small changes, the test-first discipline catches edge cases before they ship.
 ---
 
 # TDD Workflow
