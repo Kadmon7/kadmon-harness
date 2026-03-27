@@ -113,7 +113,7 @@ Note: Hooks can remind but cannot force text output format. Best-effort items re
 
 ## Memory
 - **Sessions**: summaries persist to SQLite
-- **Instincts**: learned patterns with confidence scoring (0.3→0.9), auto-promoted at confidence ≥0.7
+- **Instincts**: learned patterns with confidence scoring (0.3→0.9), promotable at confidence ≥0.7 + occurrences ≥3 (manual via /promote)
 - **Cost events**: token usage tracked per session
 - **Observations**: ephemeral JSONL per session, summarized at session end
 - **Auto Memory**: Claude Code built-in memory in `~/.claude/memory/` (global) and project memory dir
@@ -130,5 +130,11 @@ Note: Hooks can remind but cannot force text output format. Best-effort items re
 - MCP servers: `cmd /c npx` wrapper for GitHub and Context7
 - /doctor: 0 warnings
 
+## Common Pitfalls
+- Lifecycle hooks (session-start, session-end-persist, evaluate-session, cost-tracker) import from `dist/` — run `npm run build` after changing `scripts/lib/` or hooks fail silently
+- Hook latency budgets are for hook LOGIC only — Node.js cold start adds ~236ms on Windows, so absolute times appear higher than budgets
+- ORDER BY queries need `rowid` tiebreaker for deterministic results when timestamps collide
+- evaluate-session.js detects 3 patterns: "Read before Edit", "Verify before commit", "Explore clusters"
+
 ## Status
-v0.1 — Operational (101 tests passing, 6 opus + 8 sonnet agents)
+v0.1 — Operational (109 tests passing, 6 opus + 8 sonnet agents)
