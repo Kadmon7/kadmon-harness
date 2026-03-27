@@ -1,32 +1,82 @@
 ---
-description: Invoke for complex tasks involving multiple files, uncertain approach, or cross-system changes. Skip for simple single-file edits.
+description: Smart planning for complex tasks — routes to architect+planner or planner-only based on task signals, then suggests TDD. Invoke for multi-file, uncertain, or cross-system changes. Skip for simple single-file edits.
 ---
 
 ## Purpose
-Invoke the planner agent to break a task into ordered, verifiable steps with dependencies and risk identification.
+Smart planning command that routes to the right agent(s) based on task signals.
 
-## Steps
-1. Receive task description from user
-2. Invoke planner agent (opus) with full task context
-3. Planner reads relevant code via Grep/Glob to understand current state
-4. Produce numbered plan with verification per step
-5. Save plan to docs/plans/[date]-[slug].md
-6. Present summary to user for approval
+## Step 1: Classify the Task
+
+Scan the user's task description for these signals:
+
+### Architecture Signals (ANY match -> architect first)
+- Keywords: "architecture", "design", "schema", "data model", "migration", "new system", "restructure", "add agent", "add hook", "persistence", "API design", "trade-off", "evaluate options"
+- Multi-component impact: task affects 3+ areas (e.g., hooks + agents + skills, or DB + API + UI)
+- New subsystem: creating something that doesn't exist yet (new agent, new service, new persistence layer)
+
+### Implementation Signals (NO architecture signals -> planner direct)
+- Keywords: "fix", "bug", "add function", "implement", "test", "refactor", "update", "wire up"
+- Single-feature work within existing patterns
+- Bug fixes or known-pattern application
+
+Architecture signals take priority when both are present.
+
+## Step 2: Execute the Route
+
+### Route A: Architecture First (architecture signals detected)
+1. Announce: "Architecture signals detected — running architect first, then planner."
+2. Invoke **architect agent** (opus) with full task context
+3. Architect produces ADR in `docs/decisions/ADR-NNN-*.md`
+4. THEN invoke **planner agent** (opus) with task context + ADR reference
+5. Planner produces implementation plan in `docs/plans/[date]-[slug].md`
+6. Present: ADR path + plan summary
+
+### Route B: Implementation Direct (no architecture signals)
+1. Announce: "Implementation task — running planner directly."
+2. Invoke **planner agent** (opus) with full task context
+3. Planner reads relevant code via Grep/Glob
+4. Planner produces plan in `docs/plans/[date]-[slug].md`
+5. Present: plan summary with complexity estimates
+
+## Step 3: TDD Suggestion
+
+After ANY route completes, check if the plan includes steps that write new code.
+If yes, append:
+
+> **TDD recommended**: This plan includes new code. Run `/tdd` for each implementation step to follow red-green-refactor.
 
 ## Output
-Plan file path + numbered step summary with complexity estimates (S/M/L).
+Route taken + artifact paths + numbered step summary with complexity estimates (S/M/L).
 
-## Example
+## Example: Architecture Route
+```
+User: /kplan design persistence layer for instinct versioning
+
+Route: ARCHITECTURE FIRST (signals: "design", "persistence", new subsystem)
+
+🏗️ Phase 1 — Architect:
+  ADR: docs/decisions/ADR-006-instinct-versioning.md
+  Decision: sql.js with version column + diff tracking
+
+📋 Phase 2 — Planner:
+  Plan: docs/plans/2026-03-27-instinct-versioning.md
+  - [ ] Step 1.1: Add version column to instincts table (S)
+  - [ ] Step 1.2: Write migration script (M)
+  - [ ] Step 1.3: Update instinct-manager read/write (M)
+
+🧪 TDD recommended: Run /tdd for steps 1.1-1.3
+```
+
+## Example: Implementation Route
 ```
 User: /kplan implement instinct export to JSON
 
-Output:
-## Plan: Instinct Export
-### Phase 0: Research
-- [ ] Read instinct-manager.ts to understand current export (S)
-### Phase 1: Implementation
+Route: IMPLEMENTATION DIRECT (no architecture signals)
+
+📋 Plan: docs/plans/2026-03-27-instinct-export.md
 - [ ] Step 1.1: Write test for exportInstincts() (S)
 - [ ] Step 1.2: Implement JSON serialization (S)
 - [ ] Step 1.3: Add CLI command wiring (S)
-Saved to: docs/plans/2026-03-24-instinct-export.md
+
+🧪 TDD recommended: Run /tdd for steps 1.1-1.3
 ```

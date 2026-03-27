@@ -42,7 +42,7 @@ alwaysApply: true
 ### Specialize Phase
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kplan | Plan complex multi-file or uncertain tasks | planner, architect |
+| /kplan | Smart planning — routes to architect+planner or planner-only based on task signals | planner, architect |
 
 ### Evolve Phase
 | Command | Purpose | Agent |

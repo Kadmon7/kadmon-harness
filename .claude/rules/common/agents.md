@@ -14,8 +14,8 @@ alwaysApply: true
 
 | Agent | Model | Trigger | Command |
 |-------|-------|---------|---------|
-| architect | opus | /kplan for architectural tasks, explicit design review request | /kplan |
-| planner | opus | /kplan for implementation planning, multi-file tasks | /kplan |
+| architect | opus | /kplan when architecture signals detected (design, schema, migration, new system, multi-component), explicit design review | /kplan |
+| planner | opus | /kplan always — after architect (Route A) or directly (Route B) | /kplan |
 | oren | opus | /oren-master-research command, research tasks, daily briefings, trend analysis | /oren-master-research |
 | code-reviewer | sonnet | /code-review, /checkpoint (auto-invoked before commit) | /code-review, /checkpoint |
 | typescript-reviewer | sonnet | Auto-invoked when editing .ts/.tsx files, /code-review on TS changes | /code-review |
@@ -34,7 +34,8 @@ alwaysApply: true
 - ALWAYS invoke code-reviewer before any commit via /checkpoint
 - ALWAYS invoke typescript-reviewer when editing .ts or .tsx files
 - ALWAYS invoke database-reviewer when editing SQL, schema definitions, or Supabase client code
-- ALWAYS invoke planner for tasks involving multiple files or uncertain approach
+- ALWAYS invoke planner via /kplan — runs for every /kplan invocation (after architect for Route A, directly for Route B)
+- ALWAYS invoke architect before planner when /kplan task contains architecture signals (see /kplan command for signal list)
 - ALWAYS invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
 - ALWAYS invoke build-error-resolver when TypeScript compilation or Vitest tests fail
 - NEVER invoke architect for routine bug fixes or small features
