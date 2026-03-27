@@ -34,10 +34,14 @@ function estimateTokensFromTranscript(transcriptPath) {
       }
     }
 
-    // ~4 chars per token is a rough but reasonable estimate
+    // Adaptive estimation: code-heavy content ~3 chars/token, prose ~4 chars/token
+    const allText = content;
+    const codeChars = (allText.match(/[{}\[\]();=]/g) ?? []).length;
+    const codeRatio = allText.length > 0 ? codeChars / allText.length : 0;
+    const charsPerToken = codeRatio > 0.05 ? 3.0 : 4.0;
     return {
-      inputTokens: Math.ceil(inputChars / 4),
-      outputTokens: Math.ceil(outputChars / 4),
+      inputTokens: Math.ceil(inputChars / charsPerToken),
+      outputTokens: Math.ceil(outputChars / charsPerToken),
     };
   } catch {
     return null;

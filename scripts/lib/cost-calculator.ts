@@ -38,3 +38,12 @@ export function calculateCost(model: string, inputTokens: number, outputTokens: 
 export function formatCost(usd: number): string {
   return `$${usd.toFixed(4)}`;
 }
+
+const CODE_CHARS = /[{}\[\]();=]/g;
+
+export function estimateCharsPerToken(content: string): number {
+  if (content.length === 0) return 4.0;
+  const codeChars = (content.match(CODE_CHARS) ?? []).length;
+  const codeRatio = codeChars / content.length;
+  return codeRatio > 0.05 ? 3.0 : 4.0;
+}
