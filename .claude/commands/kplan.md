@@ -38,12 +38,12 @@ Architecture signals take priority when both are present.
 4. Planner produces plan in `docs/plans/[date]-[slug].md`
 5. Present: plan summary with complexity estimates
 
-## Step 3: TDD Suggestion
+## Step 3: Embed /tdd in Plan Steps
 
-After ANY route completes, check if the plan includes steps that write new code.
-If yes, append:
+The planner MUST prefix any step that writes new code with `/tdd —`.
+This ensures TDD is part of the plan execution, not a loose suggestion that gets lost.
 
-> **TDD recommended**: This plan includes new code. Run `/tdd` for each implementation step to follow red-green-refactor.
+Steps that are research, config, or docs-only do NOT get the /tdd prefix.
 
 ## Output
 Route taken + artifact paths + numbered step summary with complexity estimates (S/M/L).
@@ -60,11 +60,9 @@ Route: ARCHITECTURE FIRST (signals: "design", "persistence", new subsystem)
 
 📋 Phase 2 — Planner:
   Plan: docs/plans/2026-03-27-instinct-versioning.md
-  - [ ] Step 1.1: Add version column to instincts table (S)
-  - [ ] Step 1.2: Write migration script (M)
-  - [ ] Step 1.3: Update instinct-manager read/write (M)
-
-🧪 TDD recommended: Run /tdd for steps 1.1-1.3
+  - [ ] Step 1.1: /tdd — Add version column to instincts table (S)
+  - [ ] Step 1.2: /tdd — Write migration script (M)
+  - [ ] Step 1.3: /tdd — Update instinct-manager read/write (M)
 ```
 
 ## Example: Implementation Route
@@ -74,9 +72,7 @@ User: /kplan implement instinct export to JSON
 Route: IMPLEMENTATION DIRECT (no architecture signals)
 
 📋 Plan: docs/plans/2026-03-27-instinct-export.md
-- [ ] Step 1.1: Write test for exportInstincts() (S)
-- [ ] Step 1.2: Implement JSON serialization (S)
-- [ ] Step 1.3: Add CLI command wiring (S)
-
-🧪 TDD recommended: Run /tdd for steps 1.1-1.3
+- [ ] Step 1.1: /tdd — Write exportInstincts() function (S)
+- [ ] Step 1.2: /tdd — Implement JSON serialization (S)
+- [ ] Step 1.3: /tdd — Add CLI command wiring (S)
 ```
