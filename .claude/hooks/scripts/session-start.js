@@ -72,6 +72,19 @@ async function main() {
         if (last.summary) context += `\n- Summary: ${last.summary}`;
         if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(", ")}`;
         context += `\n- Files modified: ${last.filesModified.length}`;
+
+        // Check if previous session ended cleanly (best-effort, temp dirs may be gone)
+        try {
+          const prevDir = path.join(os.tmpdir(), "kadmon", last.id);
+          if (
+            fs.existsSync(prevDir) &&
+            !fs.existsSync(path.join(prevDir, "clean-exit.marker"))
+          ) {
+            context += `\n- \u{26A0}\u{FE0F} Previous session may not have ended cleanly`;
+          }
+        } catch {
+          /* ignore — marker check is best-effort */
+        }
       }
 
       if (instincts.length > 0) {
