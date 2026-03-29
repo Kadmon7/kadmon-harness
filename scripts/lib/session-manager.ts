@@ -1,8 +1,16 @@
-import type { SessionSummary, ProjectInfo } from './types.js';
-import { upsertSession, getSession, getRecentSessions, getActiveInstincts } from './state-store.js';
-import { nowISO, nowMs, sessionDir, ensureDir } from './utils.js';
+import type { SessionSummary, ProjectInfo } from "./types.js";
+import {
+  upsertSession,
+  getSession,
+  getRecentSessions,
+  getActiveInstincts,
+} from "./state-store.js";
+import { nowISO, nowMs, sessionDir, ensureDir } from "./utils.js";
 
-export function startSession(sessionId: string, projectInfo: ProjectInfo): SessionSummary {
+export function startSession(
+  sessionId: string,
+  projectInfo: ProjectInfo,
+): SessionSummary {
   const now = nowISO();
   ensureDir(sessionDir(sessionId));
 
@@ -10,7 +18,7 @@ export function startSession(sessionId: string, projectInfo: ProjectInfo): Sessi
     id: sessionId,
     projectHash: projectInfo.projectHash,
     startedAt: now,
-    endedAt: '',
+    endedAt: "",
     durationMs: 0,
     branch: projectInfo.branch,
     tasks: [],
@@ -22,13 +30,17 @@ export function startSession(sessionId: string, projectInfo: ProjectInfo): Sessi
     estimatedCostUsd: 0,
     instinctsCreated: [],
     compactionCount: 0,
+    summary: undefined,
   };
 
   upsertSession(session);
   return session;
 }
 
-export function endSession(sessionId: string, updates: Partial<SessionSummary>): SessionSummary | null {
+export function endSession(
+  sessionId: string,
+  updates: Partial<SessionSummary>,
+): SessionSummary | null {
   const existing = getSession(sessionId);
   if (!existing) return null;
 
@@ -55,25 +67,27 @@ export function getLastSession(projectHash: string): SessionSummary | null {
 
 export function loadSessionContext(projectHash: string): string {
   const last = getLastSession(projectHash);
-  if (!last) return '';
+  if (!last) return "";
 
   const instincts = getActiveInstincts(projectHash);
 
   const lines = [
-    '## Previous Session Context',
-    `- Date: ${last.startedAt}`,
-    `- Branch: ${last.branch}`,
-    `- Tasks: ${last.tasks.length > 0 ? last.tasks.join(', ') : 'none recorded'}`,
+    "## Previous Session Context",
+    `- Date: ${last.startedAt} | Branch: ${last.branch}`,
+  ];
+  if (last.summary) lines.push(`- Summary: ${last.summary}`);
+  if (last.tasks.length > 0) lines.push(`- Tasks: ${last.tasks.join(", ")}`);
+  lines.push(
     `- Files modified: ${last.filesModified.length}`,
     `- Active instincts: ${instincts.length}`,
-  ];
+  );
 
   if (instincts.length > 0) {
-    lines.push('', '### Top Instincts');
+    lines.push("", "### Top Instincts");
     for (const inst of instincts.slice(0, 5)) {
       lines.push(`- [${inst.confidence.toFixed(1)}] ${inst.pattern}`);
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

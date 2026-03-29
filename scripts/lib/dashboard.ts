@@ -23,6 +23,7 @@ export interface SessionRow {
   branch: string;
   filesCount: number;
   cost: string;
+  isLive: boolean;
 }
 
 export interface HookHealthRow {
@@ -37,6 +38,7 @@ export interface CostRow {
   date: string;
   totalCost: number;
   eventCount: number;
+  isLive: boolean;
 }
 
 // ─── ANSI helpers ───
@@ -84,6 +86,7 @@ export function getSessionRows(projectHash: string, limit = 5): SessionRow[] {
     branch: s.branch || "—",
     filesCount: s.filesModified.length,
     cost: `$${s.estimatedCostUsd.toFixed(2)}`,
+    isLive: !s.endedAt,
   }));
 }
 
@@ -127,6 +130,7 @@ export function getCostRows(projectHash: string, limit = 5): CostRow[] {
       date: s.startedAt ? s.startedAt.slice(0, 10) : "—",
       totalCost: s.estimatedCostUsd,
       eventCount: events.length,
+      isLive: !s.endedAt,
     };
   });
 }
@@ -171,7 +175,8 @@ export function renderDashboard(
     for (const row of sessions) {
       const branch = row.branch.padEnd(22).slice(0, 22);
       const files = String(row.filesCount).padStart(5);
-      lines.push(`  ${row.date}  ${branch} ${files}  ${row.cost}`);
+      const liveTag = row.isLive ? ` ${YELLOW}(live)${RESET}` : "";
+      lines.push(`  ${row.date}  ${branch} ${files}  ${row.cost}${liveTag}`);
     }
   }
   lines.push("");
@@ -186,7 +191,10 @@ export function renderDashboard(
     for (const row of costs) {
       const sid = row.sessionId.slice(0, 16).padEnd(16);
       const evts = String(row.eventCount).padStart(6);
-      lines.push(`  ${row.date}  ${sid} ${evts}  $${row.totalCost.toFixed(2)}`);
+      const liveTag = row.isLive ? ` ${YELLOW}(live)${RESET}` : "";
+      lines.push(
+        `  ${row.date}  ${sid} ${evts}  $${row.totalCost.toFixed(2)}${liveTag}`,
+      );
     }
   }
   lines.push("");

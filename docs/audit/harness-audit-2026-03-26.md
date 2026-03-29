@@ -44,7 +44,6 @@ All 14 agent files read. All apply `no_context` principle. All reference Kadmon 
 | docs-lookup | A | 38 | YES | YES — /docs, unfamiliar APIs | — |
 | e2e-runner | A | 37 | YES | YES — /e2e only (expensive) | — |
 | harness-optimizer | A | 67 | YES (heavy) | YES — /evolve only | — |
-| oren | A | 126 | YES (heavy) | YES — research, daily briefings | — |
 | planner | A | 49 | YES | YES — /kplan for complex tasks | — |
 | refactor-cleaner | A | 47 | YES | YES — /refactor-clean only | — |
 | security-reviewer | A | 49 | YES | YES — auto on auth/keys/exec/SQL | — |
@@ -108,7 +107,6 @@ All 24 command files read. All have specific steps, real agent/skill references,
 | kplan | A | YES | planner agent (opus) | YES (example) |
 | learn | A | YES | — | YES (example) |
 | learn-eval | A | YES | — | YES |
-| oren-master-research | A | YES | oren agent (opus) | YES |
 | promote | A | YES | — | YES |
 | prune | A | YES | — | YES (example) |
 | quality-gate | A | YES | — | YES |

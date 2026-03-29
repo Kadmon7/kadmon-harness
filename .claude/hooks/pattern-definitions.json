@@ -5,7 +5,8 @@
     "action": "Always Read target file before Edit/Write",
     "before": "Read",
     "after": "Edit",
-    "threshold": 3
+    "threshold": 3,
+    "domain": "workflow"
   },
   {
     "type": "command_sequence",
@@ -13,7 +14,8 @@
     "action": "Run vitest/tsc before git commit or push",
     "triggerCommands": ["vitest", "tsc --noEmit"],
     "followedByCommands": ["git commit", "git push"],
-    "threshold": 1
+    "threshold": 1,
+    "domain": "git"
   },
   {
     "type": "cluster",
@@ -21,7 +23,8 @@
     "action": "Read 3+ related files to build context before running commands or editing",
     "tool": "Read",
     "minClusterSize": 3,
-    "threshold": 3
+    "threshold": 3,
+    "domain": "workflow"
   },
   {
     "type": "sequence",
@@ -29,7 +32,8 @@
     "action": "Use Grep/Glob to find existing implementations before creating new files",
     "before": "Grep",
     "after": "Write",
-    "threshold": 2
+    "threshold": 2,
+    "domain": "workflow"
   },
   {
     "type": "command_sequence",
@@ -37,7 +41,8 @@
     "action": "Run vitest after editing source files to catch regressions immediately",
     "triggerCommands": ["vitest"],
     "followedByCommands": [],
-    "threshold": 3
+    "threshold": 3,
+    "domain": "testing"
   },
   {
     "type": "command_sequence",
@@ -45,7 +50,8 @@
     "action": "Run /dashboard or npx tsx scripts/dashboard.ts to verify harness state",
     "triggerCommands": ["dashboard"],
     "followedByCommands": [],
-    "threshold": 2
+    "threshold": 2,
+    "domain": "observability"
   },
   {
     "type": "sequence",
@@ -53,7 +59,8 @@
     "action": "Use /kplan or Agent to break complex tasks into steps before editing code",
     "before": "Agent",
     "after": "Edit",
-    "threshold": 1
+    "threshold": 1,
+    "domain": "workflow"
   },
   {
     "type": "sequence",
@@ -61,6 +68,52 @@
     "action": "Read the test file for a module to understand expected behavior and edge cases",
     "before": "Read",
     "after": "Bash",
-    "threshold": 3
+    "threshold": 3,
+    "domain": "testing"
+  },
+  {
+    "type": "command_sequence",
+    "name": "Commit before pushing",
+    "action": "Always commit changes before pushing to remote",
+    "triggerCommands": ["git commit"],
+    "followedByCommands": ["git push"],
+    "threshold": 1,
+    "domain": "git"
+  },
+  {
+    "type": "command_sequence",
+    "name": "Re-run tests after fixing failures",
+    "action": "When tests fail, edit code and re-run tests to confirm the fix",
+    "triggerCommands": ["vitest"],
+    "followedByCommands": ["vitest"],
+    "threshold": 1,
+    "domain": "testing"
+  },
+  {
+    "type": "cluster",
+    "name": "Multi-file refactor pattern",
+    "action": "When editing 3+ files in sequence, consider using a structured refactor plan",
+    "tool": "Edit",
+    "minClusterSize": 3,
+    "threshold": 2,
+    "domain": "refactoring"
+  },
+  {
+    "type": "sequence",
+    "name": "Glob search before editing",
+    "action": "Use Glob to find files by pattern before editing them",
+    "before": "Glob",
+    "after": "Edit",
+    "threshold": 2,
+    "domain": "workflow"
+  },
+  {
+    "type": "command_sequence",
+    "name": "Build after editing TypeScript",
+    "action": "Run npm run build or tsc after editing TypeScript to verify compilation",
+    "triggerCommands": ["tsc", "npm run build"],
+    "followedByCommands": [],
+    "threshold": 2,
+    "domain": "build"
   }
 ]

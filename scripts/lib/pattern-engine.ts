@@ -2,12 +2,16 @@
 // Detects behavioral patterns from session observations.
 // Definitions loaded from .claude/hooks/pattern-definitions.json.
 
-import fs from 'node:fs';
-import type { PatternDefinition, PatternResult } from './types.js';
+import fs from "node:fs";
+import type { PatternDefinition, PatternResult } from "./types.js";
 
 // ─── Detectors ───
 
-export function detectSequence(toolSeq: string[], before: string, after: string): number {
+export function detectSequence(
+  toolSeq: string[],
+  before: string,
+  after: string,
+): number {
   let count = 0;
   for (let i = 1; i < toolSeq.length; i++) {
     if (toolSeq[i] === after && toolSeq[i - 1] === before) count++;
@@ -26,10 +30,12 @@ export function detectCommandSequence(
     for (const line of lines) {
       try {
         const e = JSON.parse(line);
-        if (e.eventType !== 'tool_pre') continue;
-        const cmd: string = e.metadata?.command ?? '';
+        if (e.eventType !== "tool_pre") continue;
+        const cmd: string = e.metadata?.command ?? "";
         if (triggerCommands.some((t: string) => cmd.includes(t))) count++;
-      } catch { /* skip malformed */ }
+      } catch {
+        /* skip malformed */
+      }
     }
     return count;
   }
@@ -40,19 +46,29 @@ export function detectCommandSequence(
   for (const line of lines) {
     try {
       const e = JSON.parse(line);
-      if (e.eventType !== 'tool_pre') continue;
-      const cmd: string = e.metadata?.command ?? '';
-      if (triggerCommands.some((t: string) => cmd.includes(t))) hasTrigger = true;
-      if (hasTrigger && followedByCommands.some((f: string) => cmd.includes(f))) {
+      if (e.eventType !== "tool_pre") continue;
+      const cmd: string = e.metadata?.command ?? "";
+      if (triggerCommands.some((t: string) => cmd.includes(t)))
+        hasTrigger = true;
+      if (
+        hasTrigger &&
+        followedByCommands.some((f: string) => cmd.includes(f))
+      ) {
         count++;
         hasTrigger = false;
       }
-    } catch { /* skip malformed */ }
+    } catch {
+      /* skip malformed */
+    }
   }
   return count;
 }
 
-export function detectCluster(toolSeq: string[], tool: string, minSize: number): number {
+export function detectCluster(
+  toolSeq: string[],
+  tool: string,
+  minSize: number,
+): number {
   let clusters = 0;
   let consecutive = 0;
   for (const t of toolSeq) {
@@ -78,13 +94,17 @@ export function evaluatePatterns(
     let count = 0;
 
     switch (def.type) {
-      case 'sequence':
+      case "sequence":
         count = detectSequence(toolSeq, def.before, def.after);
         break;
-      case 'command_sequence':
-        count = detectCommandSequence(lines, def.triggerCommands, def.followedByCommands);
+      case "command_sequence":
+        count = detectCommandSequence(
+          lines,
+          def.triggerCommands,
+          def.followedByCommands,
+        );
         break;
-      case 'cluster':
+      case "cluster":
         count = detectCluster(toolSeq, def.tool, def.minClusterSize);
         break;
     }
@@ -95,6 +115,7 @@ export function evaluatePatterns(
       count,
       threshold: def.threshold,
       triggered: count >= def.threshold,
+      domain: def.domain,
     };
   });
 }
@@ -102,8 +123,9 @@ export function evaluatePatterns(
 // ─── Loader ───
 
 export function loadPatternDefinitions(filePath: string): PatternDefinition[] {
-  const raw = fs.readFileSync(filePath, 'utf-8');
+  const raw = fs.readFileSync(filePath, "utf-8");
   const parsed: unknown = JSON.parse(raw);
-  if (!Array.isArray(parsed)) throw new Error('pattern-definitions.json must be an array');
+  if (!Array.isArray(parsed))
+    throw new Error("pattern-definitions.json must be an array");
   return parsed as PatternDefinition[];
 }

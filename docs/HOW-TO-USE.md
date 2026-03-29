@@ -17,16 +17,11 @@ claude
 # 2. Ver estado del harness
 /dashboard
 
-# 3. Investigar novedades relevantes
-/oren-master-research
-
-# 4. Revisar sesion anterior
+# 3. Revisar sesion anterior
 /sessions
 ```
 
 El `/dashboard` muestra instintos activos, sesiones recientes, costos y salud de hooks. Si algun instinto tiene confianza >= 0.7, considera `/promote` para convertirlo en skill.
-
-El `/oren-master-research` genera un briefing de inteligencia: actualizaciones de Claude Code, Anthropic, Supabase, ElevenLabs y todo lo relevante para los proyectos activos.
 
 ### Trabajo — Implementar con disciplina
 
@@ -187,17 +182,6 @@ async function retrieveWithContext(query: string, sources: string[]) {
 
 > `no_context` — No existe documentacion sobre XION en el harness. Si XION es un componente de ToratNetz o un proyecto separado, se necesita documentar su scope, arquitectura y stack antes de integrarlo al harness.
 
-### 2.5 — Monitoreo con Oren
-
-El agente Oren monitorea actualizaciones relevantes para ToratNetz:
-- Sefaria API updates
-- pgvector releases
-- Supabase features
-
-```bash
-/oren-master-research focus: ToratNetz pgvector
-```
-
 ---
 
 ## 3. Como Usar el Harness en KAIRON
@@ -227,7 +211,7 @@ El agente `architect` (opus) puede disenar la estructura de la app:
 
 ### 3.2 — ElevenLabs voice
 
-Segun la investigacion de Oren (2026-03-24), KAIRON usa:
+KAIRON usa:
 
 | Componente | Tecnologia | Estado |
 |-----------|-----------|--------|
@@ -239,9 +223,6 @@ Segun la investigacion de Oren (2026-03-24), KAIRON usa:
 **Comandos del harness para integracion de voz:**
 
 ```bash
-# Investigar ultimas actualizaciones de ElevenLabs
-/oren-master-research focus: ElevenLabs voice agents
-
 # Buscar docs del SDK
 /docs elevenlabs-sdk websocket streaming
 
@@ -255,7 +236,7 @@ Segun la investigacion de Oren (2026-03-24), KAIRON usa:
 
 ### 3.4 — Action items documentados (Marzo 2026)
 
-Estos son los action items de la investigacion de Oren para KAIRON:
+Action items para KAIRON:
 
 | Prioridad | Accion | Razon |
 |-----------|--------|-------|
@@ -394,17 +375,7 @@ Busca via Context7 MCP. Si no encuentra, fallback a WebSearch. Nunca inventa —
 
 Invoca code-reviewer + typescript-reviewer + security-reviewer (si aplica). Produce findings con severidad BLOCK/WARN/NOTE.
 
-### 8. `/oren-master-research` — Investigacion diaria
-
-```bash
-/oren-master-research
-/oren-master-research focus: ElevenLabs voice agents
-/oren-master-research focus: ToratNetz pgvector
-```
-
-Genera briefing de inteligencia: Claude Code updates, YouTube, GitHub, AI tools, y action items por proyecto.
-
-### 9. `/learn` — Extraer patrones
+### 8. `/learn` — Extraer patrones
 
 ```bash
 /learn
@@ -412,7 +383,7 @@ Genera briefing de inteligencia: Claude Code updates, YouTube, GitHub, AI tools,
 
 Analiza la sesion actual y crea instintos con confianza 0.3. Con refuerzo en sesiones futuras, suben a 0.7+ y se promueven a skills.
 
-### 10. `/evolve` — Auto-optimizacion
+### 9. `/evolve` — Auto-optimizacion
 
 ```bash
 /evolve
@@ -521,5 +492,5 @@ gh pr list
 
 ---
 
-*Kadmon Harness v0.1 — Observe → Remember → Verify → Specialize → Evolve*
+*Kadmon Harness v0.2 — Observe → Remember → Verify → Specialize → Evolve*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

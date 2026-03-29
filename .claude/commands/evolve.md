@@ -31,7 +31,7 @@ Evolution report with 5 categories of actionable recommendations, priority level
 - "Read files before editing" (0.8, 6x) — promote to editing-workflow skill
 
 ### CREATE AGENT — Skills ready to become agents
-- "daily-research" — complex enough for autonomous research agent (already done: oren)
+(none currently)
 
 ### OPTIMIZE — Hooks/agents/skills to improve
 - observe-pre: 45ms avg (target: 50ms) — OK but near limit

@@ -13,6 +13,9 @@ Analyze the current session's observations and create or reinforce instincts bas
    - If exists: reinforce (increase confidence)
    - If new: create instinct (confidence: 0.3)
 4. Show instincts created/updated with confidence scores
+5. Sync instincts to Auto Memory: `npx tsx scripts/sync-instincts-to-memory.ts`
+   - This writes active instincts as topic files to `~/.claude/projects/<project>/memory/`
+   - Auto Memory loads them automatically in the next session
 
 ## Output
 List of instincts with pattern, action, and confidence score.
@@ -23,4 +26,5 @@ Instincts updated:
 - [0.5] "Read files before editing" → reinforced (+0.1)
 - [0.3] "Run tsc after TypeScript edits" → NEW
 Total: 1 reinforced, 1 created
+Synced 2 instinct(s) to Auto Memory
 ```

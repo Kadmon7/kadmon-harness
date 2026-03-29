@@ -15,6 +15,10 @@
           {
             "type": "command",
             "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-format-guard.js"
+          },
+          {
+            "type": "command",
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-quality.js"
           }
         ]
       },

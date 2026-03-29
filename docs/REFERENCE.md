@@ -73,7 +73,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 14 archivos markdown que definen el comportamiento de subagentes especializados.
 
-#### Agentes Opus (6) — decisiones complejas
+#### Agentes Opus (5) — decisiones complejas
 
 | Agente | Que hace | Auto-invoca cuando... | Invocacion manual | Output |
 |--------|----------|----------------------|-------------------|--------|
@@ -81,7 +81,6 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **planner** | Descompone tareas complejas en pasos numerados con verificacion. Identifica dependencias y riesgos. | Nunca auto-invoca | `/kplan` (tareas multi-archivo) | Plan con fases S/M/L |
 | **database-reviewer** | Revisa SQL, schemas, migraciones y codigo Supabase. Valida RLS, pgvector, sql.js patterns. | Al editar archivos SQL, schemas o Supabase | — | Schema/Queries/sql.js review |
 | **security-reviewer** | Detecta vulnerabilidades: inyeccion SQL, XSS, command injection, path traversal. Severidad CRITICAL/HIGH/MEDIUM/LOW. | Al tocar auth, API keys, exec/spawn, SQL | `/code-review` | Reporte por severidad |
-| **oren** | Investigacion diaria: Claude Code updates, YouTube, GitHub, AI tools, tendencias. Genera briefings estructurados. | Cuando se pide investigar algo | `/oren-master-research` | Intelligence brief |
 | **harness-optimizer** | Analiza hook latency, instinct quality, skill gaps, cost trends. Nunca auto-aplica cambios. | Nunca auto-invoca | `/evolve` | Reporte con PROMOTE/CREATE/OPTIMIZE |
 
 #### Agentes Sonnet (8) — implementacion y review
@@ -132,7 +131,6 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | Skill | Que ensena | Cuando se aplica |
 |-------|-----------|-----------------|
 | **search-first** | Buscar en codebase antes de crear codigo nuevo | Antes de cualquier implementacion |
-| **daily-research** | Workflow de investigacion diaria: fuentes, filtros, formato | Con `/oren-master-research` |
 | **documentation-lookup** | Context7 MCP flow, fallback a WebSearch, no_context si falla | Con `/docs` o APIs desconocidas |
 | **architecture-decision-records** | Templates ADR, lifecycle, formato Decision/Context/Options | Al tomar decisiones arquitectonicas |
 
@@ -162,12 +160,11 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 24 archivos markdown que definen slash commands. El usuario los invoca con `/nombre`.
 
-#### Observe (4 comandos)
+#### Observe (3 comandos)
 
 | Comando | Que hace | Cuando usarlo | Ejemplo |
 |---------|----------|--------------|---------|
 | `/dashboard` | Muestra estado del harness: instintos, sesiones, costos, hook health | Al inicio de sesion o para monitorear | `/dashboard` |
-| `/oren-master-research` | Genera briefing diario de inteligencia AI | Diariamente o al investigar tendencias | `/oren-master-research` |
 | `/context-budget` | Audita uso de ventana de contexto | Cuando Claude se pone lento | `/context-budget` |
 | `/sessions` | Lista historial de sesiones recientes | Para ver trabajo previo | `/sessions` |
 
@@ -469,7 +466,6 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 |-----------|----------|
 | **audit/** | Reportes de auditoria. Actualmente: `harness-audit-2026-03-26.md` — auditoria completa con grades A/B/C/F |
 | **decisions/** | 5 Architecture Decision Records (ADRs) |
-| **research/** | Reportes de investigacion diaria generados por Oren. `README.md` + reportes por fecha |
 | **plans/** | Planes de implementacion generados por `/kplan` |
 | **setup/** | Documentacion de fases de setup inicial (prompt-0A a prompt-8) |
 | **design/** | Especificacion de diseno original |
@@ -639,7 +635,6 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | Hacer TDD | `/tdd` → tdd-guide agent (sonnet) |
 | Revisar codigo antes de commit | `/checkpoint` → code-reviewer agent |
 | Ver estado del harness | `/dashboard` |
-| Investigar noticias de AI | `/oren-master-research` → oren agent (opus) |
 | Buscar documentacion de una API | `/docs supabase-js insert` → docs-lookup + Context7 MCP |
 | Arreglar errores de compilacion | `/build-fix` → build-error-resolver agent |
 | Aprender de la sesion | `/learn` |

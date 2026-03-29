@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseStdin } from "./parse-stdin.js";
+import { generateSummary } from "./generate-session-summary.js";
 
 async function main() {
   try {
@@ -32,6 +33,9 @@ async function main() {
       }
     }
 
+    // Generate summary and extract tasks from observations
+    const { summary, tasks: extractedTasks } = generateSummary(obsPath);
+
     try {
       const { openDb } = await import(
         new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
@@ -46,6 +50,8 @@ async function main() {
         filesModified: [...filesModified],
         toolsUsed: [...toolsUsed],
         messageCount,
+        summary: summary || undefined,
+        tasks: extractedTasks.length > 0 ? extractedTasks : undefined,
       });
       if (result) {
         console.log(

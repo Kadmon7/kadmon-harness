@@ -22,9 +22,9 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 
 | Category | Count | Location |
 |----------|-------|----------|
-| Agents | 14 (6 opus, 8 sonnet) | `.claude/agents/` |
-| Skills | 25 | `.claude/skills/` |
-| Commands | 25 | `.claude/commands/` |
+| Agents | 13 (5 opus, 8 sonnet) | `.claude/agents/` |
+| Skills | 24 | `.claude/skills/` |
+| Commands | 24 | `.claude/commands/` |
 | Hooks | 20 | `.claude/hooks/scripts/` |
 | Rules | 14 | `.claude/rules/` |
 | Contexts | 3 | `.claude/contexts/` |
@@ -69,7 +69,7 @@ npx tsx scripts/dashboard.ts
 - **Runtime**: Claude Code CLI on Windows
 - **MCPs**: GitHub, Supabase, Context7
 
-## Agents (14)
+## Agents (13)
 
 | Agent | Model | Trigger |
 |-------|-------|---------|
@@ -85,17 +85,15 @@ npx tsx scripts/dashboard.ts
 | docs-lookup | sonnet | /docs |
 | doc-updater | sonnet | /update-docs |
 | e2e-runner | sonnet | /e2e |
-| oren | opus | /oren-master-research, research tasks |
 | harness-optimizer | opus | /evolve |
 
-## Skills (25)
+## Skills (24)
 
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
 | Skill | Domain |
 |-------|--------|
 | search-first | Research before coding |
-| daily-research | Daily research workflow |
 | safety-guard | no_context enforcement |
 | tdd-workflow | TDD cycle guide |
 | verification-loop | Verify pipeline |
@@ -120,7 +118,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | explore-before-act | Read multiple files before editing |
 | verify-before-commit | Verify before git commit/push |
 
-## Commands (25)
+## Commands (24)
 
 | Command | Phase | Purpose |
 |---------|-------|---------|
@@ -139,7 +137,6 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | /sessions | Remember | List past sessions |
 | /context-budget | Observe | Audit context window |
 | /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
-| /oren-master-research | Observe | Daily intelligence briefing |
 | /refactor-clean | Evolve | Refactor code |
 | /learn | Evolve | Extract session patterns |
 | /learn-eval | Evolve | Evaluate learned patterns |
@@ -164,4 +161,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.2 — Operational (139 tests passing, 20 hooks, 25 skills, 25 commands, 14 agents)
+v0.2 — Operational (146 tests passing, 20 hooks, 24 skills, 24 commands, 13 agents)

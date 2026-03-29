@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 import {
   openDb,
   closeDb,
@@ -14,6 +17,7 @@ import {
   getCostRows,
   renderDashboard,
 } from "../../scripts/lib/dashboard.js";
+import { findActiveSessionDir } from "../../scripts/dashboard.js";
 import type { ObservabilityEvent } from "../../scripts/lib/types.js";
 
 describe("dashboard", () => {
@@ -334,5 +338,131 @@ describe("dashboard", () => {
       expect(output).toContain("HOOK HEALTH");
       expect(output).toContain("No observations");
     });
+
+    it("renders (live) tag for sessions without endedAt", () => {
+      upsertSession({
+        id: "s-live",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-03-29T10:00:00Z",
+        estimatedCostUsd: 0.0,
+      });
+      upsertSession({
+        id: "s-ended",
+        projectHash: "proj1",
+        branch: "feat/x",
+        startedAt: "2026-03-28T10:00:00Z",
+        endedAt: "2026-03-28T11:00:00Z",
+        estimatedCostUsd: 0.5,
+      });
+
+      const output = renderDashboard("proj1", []);
+      expect(output).toContain("(live)");
+      // The ended session line should not have (live)
+      const lines = output.split("\n");
+      const liveLines = lines.filter((l) => l.includes("(live)"));
+      expect(liveLines).toHaveLength(2); // one in sessions, one in costs
+    });
+  });
+
+  // ─── getSessionRows isLive ───
+
+  describe("getSessionRows isLive", () => {
+    it("marks sessions without endedAt as live", () => {
+      upsertSession({
+        id: "s-active",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-03-29T10:00:00Z",
+        estimatedCostUsd: 0.0,
+      });
+
+      const rows = getSessionRows("proj1");
+      expect(rows).toHaveLength(1);
+      expect(rows[0].isLive).toBe(true);
+    });
+
+    it("marks sessions with endedAt as not live", () => {
+      upsertSession({
+        id: "s-done",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-03-29T10:00:00Z",
+        endedAt: "2026-03-29T11:00:00Z",
+        estimatedCostUsd: 0.3,
+      });
+
+      const rows = getSessionRows("proj1");
+      expect(rows).toHaveLength(1);
+      expect(rows[0].isLive).toBe(false);
+    });
+  });
+});
+
+// ─── findActiveSessionDir ───
+
+describe("findActiveSessionDir", () => {
+  let tmpBase: string;
+
+  beforeEach(() => {
+    tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-test-"));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpBase, { recursive: true, force: true });
+  });
+
+  it("returns null when no directories exist", () => {
+    expect(findActiveSessionDir(tmpBase)).toBeNull();
+  });
+
+  it("returns null when directories have no observations.jsonl", () => {
+    fs.mkdirSync(path.join(tmpBase, "test-artifact"));
+    fs.mkdirSync(path.join(tmpBase, "another-dir"));
+    expect(findActiveSessionDir(tmpBase)).toBeNull();
+  });
+
+  it("selects directory with observations.jsonl", () => {
+    const realSession = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+    const artifactDir = "test-session-123";
+
+    fs.mkdirSync(path.join(tmpBase, artifactDir));
+    fs.mkdirSync(path.join(tmpBase, realSession));
+    fs.writeFileSync(
+      path.join(tmpBase, realSession, "observations.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+
+    expect(findActiveSessionDir(tmpBase)).toBe(realSession);
+  });
+
+  it("selects directory with most recent observations.jsonl mtime", () => {
+    const older = "11111111-1111-1111-1111-111111111111";
+    const newer = "22222222-2222-2222-2222-222222222222";
+
+    fs.mkdirSync(path.join(tmpBase, older));
+    fs.mkdirSync(path.join(tmpBase, newer));
+
+    // Write older file first
+    fs.writeFileSync(
+      path.join(tmpBase, older, "observations.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+
+    // Small delay to ensure different mtime
+    const olderMtime = new Date(Date.now() - 5000);
+    fs.utimesSync(
+      path.join(tmpBase, older, "observations.jsonl"),
+      olderMtime,
+      olderMtime,
+    );
+
+    // Write newer file
+    fs.writeFileSync(
+      path.join(tmpBase, newer, "observations.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+
+    expect(findActiveSessionDir(tmpBase)).toBe(newer);
   });
 });

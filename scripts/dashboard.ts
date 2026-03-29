@@ -30,17 +30,23 @@ function loadObservations(sessionId: string): ObservabilityEvent[] {
   return events;
 }
 
-function findLatestSessionDir(): string | null {
-  const kadmonTmp = path.join(os.tmpdir(), "kadmon");
+export function findActiveSessionDir(tmpBase?: string): string | null {
+  const kadmonTmp = tmpBase ?? path.join(os.tmpdir(), "kadmon");
   if (!fs.existsSync(kadmonTmp)) return null;
 
   const entries = fs
     .readdirSync(kadmonTmp, { withFileTypes: true })
     .filter((e) => e.isDirectory())
-    .map((e) => ({
-      name: e.name,
-      mtime: fs.statSync(path.join(kadmonTmp, e.name)).mtimeMs,
-    }))
+    .map((e) => {
+      const obsFile = path.join(kadmonTmp, e.name, "observations.jsonl");
+      const exists = fs.existsSync(obsFile);
+      return {
+        name: e.name,
+        hasObs: exists,
+        mtime: exists ? fs.statSync(obsFile).mtimeMs : 0,
+      };
+    })
+    .filter((e) => e.hasObs)
     .sort((a, b) => b.mtime - a.mtime);
 
   return entries.length > 0 ? entries[0].name : null;
@@ -56,7 +62,7 @@ async function main(): Promise<void> {
   await openDb();
 
   try {
-    const sessionId = findLatestSessionDir();
+    const sessionId = findActiveSessionDir();
     const events = sessionId ? loadObservations(sessionId) : [];
 
     const output = renderDashboard(project.projectHash, events);

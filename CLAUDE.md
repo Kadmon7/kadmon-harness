@@ -32,12 +32,11 @@ Observe → Remember → Verify → Specialize → Evolve
 - **ToratNetz** — Torah RAG system (Supabase + pgvector)
 - **UNIVERSO KAIRON** — AI companion universe
 
-## Agents (14)
+## Agents (13)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | architect | opus | System design, architecture decisions |
 | planner | opus | Implementation planning, task breakdown |
-| oren | opus | Daily intelligence research and trend analysis |
 | code-reviewer | sonnet | Code quality and security review |
 | typescript-reviewer | sonnet | TypeScript-specific review |
 | database-reviewer | opus | PostgreSQL/Supabase review |
@@ -50,10 +49,9 @@ Observe → Remember → Verify → Specialize → Evolve
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (25)
+## Commands (24)
 | Command | Phase | Purpose |
 |---------|-------|---------|
-| /oren-master-research | Observe | Daily intelligence briefing |
 | /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
 | /kompact | Observe | Smart compaction — audit, safety check, summarize, compact, reload |
 | /kplan | Specialize | Invoke for complex multi-file or uncertain tasks |
@@ -79,9 +77,9 @@ Observe → Remember → Verify → Specialize → Evolve
 | /instinct-export | Evolve | Export instincts |
 | /update-docs | Remember | Update documentation |
 
-## Skills (25)
+## Skills (24)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
-Key skills: search-first, explore-before-act, verify-before-commit, daily-research, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, iterative-retrieval-hebrew, mcp-server-patterns, postgres-patterns, strategic-compact.
+Key skills: search-first, explore-before-act, verify-before-commit, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, iterative-retrieval-hebrew, mcp-server-patterns, postgres-patterns, strategic-compact.
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
@@ -130,4 +128,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - evaluate-session.js detects 3 patterns: "Read before Edit", "Verify before commit", "Explore clusters"
 
 ## Status
-v0.2 — Operational (139 tests passing, 20 hooks, 14 agents, 25 skills, 25 commands)
+v0.2 — Operational (146 tests passing, 20 hooks, 13 agents, 24 skills, 24 commands)

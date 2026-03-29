@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   estimated_cost_usd REAL DEFAULT 0,
   instincts_created TEXT DEFAULT '[]',
   compaction_count INTEGER DEFAULT 0,
+  summary TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS instincts (
     CHECK (status IN ('active', 'promoted', 'contradicted', 'archived')),
   scope TEXT NOT NULL DEFAULT 'project'
     CHECK (scope IN ('project', 'global')),
+  domain TEXT,
   promoted_to TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))

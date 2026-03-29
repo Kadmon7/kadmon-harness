@@ -68,7 +68,8 @@ async function main() {
 
       if (sessions.length > 0) {
         const last = sessions[0];
-        context += `\n## Previous Session\n- Date: ${last.startedAt}\n- Branch: ${last.branch}`;
+        context += `\n## Previous Session\n- Date: ${last.startedAt} | Branch: ${last.branch}`;
+        if (last.summary) context += `\n- Summary: ${last.summary}`;
         if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(", ")}`;
         context += `\n- Files modified: ${last.filesModified.length}`;
       }
@@ -76,7 +77,8 @@ async function main() {
       if (instincts.length > 0) {
         context += `\n\n## Active Instincts (${instincts.length})`;
         for (const inst of instincts.slice(0, 5)) {
-          context += `\n- [${inst.confidence.toFixed(1)}] ${inst.pattern}`;
+          const domainTag = inst.domain ? ` (${inst.domain})` : "";
+          context += `\n- [${inst.confidence.toFixed(1)}] ${inst.pattern}${domainTag}`;
         }
       }
 

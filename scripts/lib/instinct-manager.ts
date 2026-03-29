@@ -1,13 +1,19 @@
-import type { Instinct } from './types.js';
-import { upsertInstinct, getInstinct, getActiveInstincts, getDb } from './state-store.js';
-import { generateId, nowISO } from './utils.js';
+import type { Instinct } from "./types.js";
+import {
+  upsertInstinct,
+  getInstinct,
+  getActiveInstincts,
+  getDb,
+} from "./state-store.js";
+import { generateId, nowISO } from "./utils.js";
 
 export function createInstinct(
   projectHash: string,
   pattern: string,
   action: string,
   sourceSessionId: string,
-  scope: 'project' | 'global' = 'project',
+  scope: "project" | "global" = "project",
+  domain?: string,
 ): Instinct {
   const now = nowISO();
   const instinct: Instinct = {
@@ -15,12 +21,13 @@ export function createInstinct(
     projectHash,
     pattern,
     action,
-    confidence: 0.30,
+    confidence: 0.3,
     occurrences: 1,
     contradictions: 0,
     sourceSessions: [sourceSessionId],
-    status: 'active',
+    status: "active",
     scope,
+    domain,
     createdAt: now,
     updatedAt: now,
   };
@@ -28,7 +35,10 @@ export function createInstinct(
   return instinct;
 }
 
-export function reinforceInstinct(id: string, sessionId: string): Instinct | null {
+export function reinforceInstinct(
+  id: string,
+  sessionId: string,
+): Instinct | null {
   const existing = getInstinct(id);
   if (!existing) return null;
 
@@ -38,7 +48,10 @@ export function reinforceInstinct(id: string, sessionId: string): Instinct | nul
 
   const updated: Instinct = {
     ...existing,
-    confidence: Math.min(0.90, Math.round((existing.confidence + 0.10) * 100) / 100),
+    confidence: Math.min(
+      0.9,
+      Math.round((existing.confidence + 0.1) * 100) / 100,
+    ),
     occurrences: existing.occurrences + 1,
     sourceSessions: sessions,
     updatedAt: nowISO(),
@@ -52,7 +65,10 @@ export function contradictInstinct(id: string): Instinct | null {
   if (!existing) return null;
 
   const contradictions = existing.contradictions + 1;
-  const status = contradictions > existing.occurrences ? 'contradicted' as const : existing.status;
+  const status =
+    contradictions > existing.occurrences
+      ? ("contradicted" as const)
+      : existing.status;
 
   const updated: Instinct = {
     ...existing,
@@ -64,14 +80,17 @@ export function contradictInstinct(id: string): Instinct | null {
   return updated;
 }
 
-export function promoteInstinct(id: string, skillName: string): Instinct | null {
+export function promoteInstinct(
+  id: string,
+  skillName: string,
+): Instinct | null {
   const existing = getInstinct(id);
   if (!existing) return null;
   if (existing.confidence < 0.7 || existing.occurrences < 3) return null;
 
   const updated: Instinct = {
     ...existing,
-    status: 'promoted',
+    status: "promoted",
     promotedTo: skillName,
     updatedAt: nowISO(),
   };
@@ -82,35 +101,41 @@ export function promoteInstinct(id: string, skillName: string): Instinct | null 
 export function pruneInstincts(projectHash: string): number {
   const db = getDb();
   const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgo = new Date(
+    now.getTime() - 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
 
   // Archive contradicted instincts older than 7 days
   db.prepare(
-    "UPDATE instincts SET status = 'archived', updated_at = @now WHERE project_hash = @ph AND status = 'contradicted' AND updated_at < @cutoff"
+    "UPDATE instincts SET status = 'archived', updated_at = @now WHERE project_hash = @ph AND status = 'contradicted' AND updated_at < @cutoff",
   ).run({ ph: projectHash, now: nowISO(), cutoff: sevenDaysAgo });
 
   // Archive low-confidence, low-occurrence instincts
   db.prepare(
-    "UPDATE instincts SET status = 'archived', updated_at = @now WHERE project_hash = @ph AND status = 'active' AND confidence < 0.2 AND occurrences < 2"
+    "UPDATE instincts SET status = 'archived', updated_at = @now WHERE project_hash = @ph AND status = 'active' AND confidence < 0.2 AND occurrences < 2",
   ).run({ ph: projectHash, now: nowISO() });
 
   // Count how many were archived (approximate — we count all archived for this project)
-  const row = db.prepare(
-    "SELECT COUNT(*) as cnt FROM instincts WHERE project_hash = ? AND status = 'archived'"
-  ).get(projectHash);
+  const row = db
+    .prepare(
+      "SELECT COUNT(*) as cnt FROM instincts WHERE project_hash = ? AND status = 'archived'",
+    )
+    .get(projectHash);
   return Number(row?.cnt ?? 0);
 }
 
 export function getInstinctSummary(projectHash: string): string {
   const instincts = getActiveInstincts(projectHash);
-  if (instincts.length === 0) return 'No active instincts.';
+  if (instincts.length === 0) return "No active instincts.";
 
   const lines = [`### Active Instincts (${instincts.length})`];
   for (const inst of instincts.slice(0, 5)) {
-    lines.push(`- [${inst.confidence.toFixed(1)}×${inst.occurrences}] ${inst.pattern} → ${inst.action}`);
+    lines.push(
+      `- [${inst.confidence.toFixed(1)}×${inst.occurrences}]${inst.domain ? ` (${inst.domain})` : ""} ${inst.pattern} → ${inst.action}`,
+    );
   }
   if (instincts.length > 5) {
     lines.push(`- ... and ${instincts.length - 5} more`);
   }
-  return lines.join('\n');
+  return lines.join("\n");
 }

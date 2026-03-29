@@ -9,14 +9,15 @@ export interface Instinct {
   projectHash: string;
   pattern: string;
   action: string;
-  confidence: number;       // 0.0-1.0 (starts 0.3, +0.1 per occurrence, max 0.9)
+  confidence: number; // 0.0-1.0 (starts 0.3, +0.1 per occurrence, max 0.9)
   occurrences: number;
   contradictions: number;
   sourceSessions: string[];
-  status: 'active' | 'promoted' | 'contradicted' | 'archived';
-  scope: 'project' | 'global';
-  createdAt: string;        // ISO 8601
-  updatedAt: string;        // ISO 8601
+  status: "active" | "promoted" | "contradicted" | "archived";
+  scope: "project" | "global";
+  domain?: string;
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
   promotedTo?: string;
 }
 
@@ -33,8 +34,8 @@ export interface Instinct {
 export interface SessionSummary {
   id: string;
   projectHash: string;
-  startedAt: string;        // ISO 8601
-  endedAt: string;          // ISO 8601
+  startedAt: string; // ISO 8601
+  endedAt: string; // ISO 8601
   durationMs: number;
   branch: string;
   tasks: string[];
@@ -46,6 +47,7 @@ export interface SessionSummary {
   estimatedCostUsd: number;
   instinctsCreated: string[];
   compactionCount: number;
+  summary?: string;
 }
 
 // ─── Observability Event (ephemeral, per-session JSONL) ───
@@ -53,7 +55,7 @@ export interface SessionSummary {
 export interface ObservabilityEvent {
   timestamp: string;
   sessionId: string;
-  eventType: 'tool_pre' | 'tool_post' | 'tool_fail' | 'compaction' | 'hook';
+  eventType: "tool_pre" | "tool_post" | "tool_fail" | "compaction" | "hook";
   toolName: string;
   filePath?: string;
   success?: boolean;
@@ -79,7 +81,7 @@ export interface SyncQueueEntry {
   id?: number;
   tableName: string;
   recordId: string;
-  operation: 'insert' | 'update' | 'delete';
+  operation: "insert" | "update" | "delete";
   payload: string;
   createdAt: string;
   syncedAt?: string | null;
@@ -110,9 +112,33 @@ export interface CostResult {
 // ─── Pattern Engine ───
 
 export type PatternDefinition =
-  | { type: 'sequence'; name: string; action: string; before: string; after: string; threshold: number }
-  | { type: 'command_sequence'; name: string; action: string; triggerCommands: string[]; followedByCommands: string[]; threshold: number }
-  | { type: 'cluster'; name: string; action: string; tool: string; minClusterSize: number; threshold: number };
+  | {
+      type: "sequence";
+      name: string;
+      action: string;
+      before: string;
+      after: string;
+      threshold: number;
+      domain?: string;
+    }
+  | {
+      type: "command_sequence";
+      name: string;
+      action: string;
+      triggerCommands: string[];
+      followedByCommands: string[];
+      threshold: number;
+      domain?: string;
+    }
+  | {
+      type: "cluster";
+      name: string;
+      action: string;
+      tool: string;
+      minClusterSize: number;
+      threshold: number;
+      domain?: string;
+    };
 
 export interface PatternResult {
   name: string;
@@ -120,4 +146,5 @@ export interface PatternResult {
   count: number;
   threshold: number;
   triggered: boolean;
+  domain?: string;
 }
