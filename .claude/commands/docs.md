@@ -5,6 +5,10 @@ description: Look up live documentation for any library or framework
 ## Purpose
 Fetch current API documentation via Context7 MCP instead of relying on training data.
 
+## Arguments
+- `<library> <topic>` — look up specific API (e.g., `/docs vitest mock function`)
+- `<library>` — browse library documentation (e.g., `/docs sql-js`)
+
 ## Steps
 1. Invoke docs-lookup agent with the query
 2. Agent resolves library ID via Context7

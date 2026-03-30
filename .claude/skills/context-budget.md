@@ -15,7 +15,7 @@ Manage Claude Code's context window to avoid degraded performance in long sessio
 - After completing and committing a feature
 
 ## How It Works
-1. **Monitor** — Use /context-budget to check context usage
+1. **Monitor** — Use /kompact audit to check context usage
 2. **Assess** — Evaluate what is critical vs expendable in current context
 3. **Decide when** — Use the timing guide below
 4. **Compact** — Use /kompact for guided compaction with audit and safety checks

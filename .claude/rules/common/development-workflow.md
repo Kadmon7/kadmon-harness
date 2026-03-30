@@ -11,14 +11,13 @@ alwaysApply: true
 - ALWAYS write test before implementation (/tdd workflow)
 - ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills
 
-## Command Reference (19)
+## Command Reference (17)
 
-### Observe Phase (3)
+### Observe Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /context-budget | Audit context window usage and suggest optimizations | — |
 | /dashboard | Show harness dashboard (instincts, sessions, costs, hook health) | — |
-| /kompact | Smart context compaction with audit and safety checks | — |
+| /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |
@@ -44,11 +43,10 @@ alwaysApply: true
 | /kplan | Smart planning — routes to architect+planner or planner-only based on task signals | planner, architect |
 | /workflow | Show available workflow chains (dev, qa, instinct, evolve) or guide through one | — |
 
-### Evolve Phase (4)
+### Evolve Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /instincts | Show instinct dashboard with status and quality evaluation | — |
-| /instinct | Manage instinct lifecycle — learn, promote, prune, export (subcommands) | — |
+| /instinct | Manage instinct lifecycle — status, eval, learn, promote, prune, export (subcommands) | — |
 | /evolve | Run harness self-optimization analysis | harness-optimizer |
 | /refactor-clean | Invoke refactor-cleaner agent to improve code structure | refactor-cleaner |
 

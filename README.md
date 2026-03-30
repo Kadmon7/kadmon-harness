@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`154 tests` | `22 hooks` | `13 agents` | `24 skills` | `24 commands`
+`154 tests` | `22 hooks` | `14 agents` | `26 skills` | `17 commands`
 
 ## Mantra
 
@@ -10,11 +10,11 @@
 
 | Phase | What It Does | Key Components |
 |-------|-------------|----------------|
-| **Observe** | Watch every tool call, manage context | observe hooks, `/context-budget`, `/kompact` |
+| **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/checkpoint` |
 | **Verify** | Tests first, code review, quality gates | `/tdd`, `/verify`, `/code-review` |
-| **Specialize** | Domain agents, curated skill catalog | 13 agents, 24 skills, `/kplan` |
-| **Evolve** | Learn from sessions, promote patterns to skills | `/learn`, `/evolve`, `/promote` |
+| **Specialize** | Domain agents, curated skill catalog | 14 agents, 26 skills, `/kplan` |
+| **Evolve** | Learn from sessions, promote patterns to skills | `/instinct learn`, `/evolve`, `/instinct promote` |
 
 ## Quick Start
 
@@ -40,7 +40,7 @@ Key commands inside a session:
 /verify             # Typecheck + tests + lint
 /checkpoint         # Verify, commit, push
 /kompact            # Smart context compaction
-/learn              # Extract patterns from current session
+/instinct learn     # Extract patterns from current session
 ```
 
 ## Dashboard
@@ -51,8 +51,8 @@ Key commands inside a session:
 ╚══════════════════════════════════════╝
 
 ── INSTINCTS (10 active | 10 promotable) ──
-  [█████████░] 0.9  Build after editing TypeScript (14x) → /promote
-  [█████████░] 0.9  Re-run tests after fixing failures (14x) → /promote
+  [█████████░] 0.9  Build after editing TypeScript (14x) → /instinct promote
+  [█████████░] 0.9  Re-run tests after fixing failures (14x) → /instinct promote
   [███░░░░░░░] 0.3  Research before building (1x)
 
 ── SESSIONS ──
@@ -95,7 +95,7 @@ Key commands inside a session:
 │  └─────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 13 Agents│  │ 24 Skills│  │ 14 Rules │             │
+│  │ 14 Agents│  │ 26 Skills│  │ 14 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -107,9 +107,9 @@ Key commands inside a session:
 
 | Category | Count | Location |
 |----------|-------|----------|
-| Agents | 13 (5 opus, 8 sonnet) | `.claude/agents/` |
-| Skills | 24 | `.claude/skills/` |
-| Commands | 24 | `.claude/commands/` |
+| Agents | 14 (5 opus, 9 sonnet) | `.claude/agents/` |
+| Skills | 26 | `.claude/skills/` |
+| Commands | 17 | `.claude/commands/` |
 | Hooks | 22 | `.claude/hooks/scripts/` |
 | Rules | 14 (9 common + 5 TS) | `.claude/rules/` |
 
@@ -119,13 +119,14 @@ Key commands inside a session:
 |-------|-------|---------|
 | architect | opus | `/kplan` when design signals detected |
 | planner | opus | `/kplan` always (after architect or directly) |
-| code-reviewer | sonnet | `/code-review`, `/checkpoint` |
-| typescript-reviewer | sonnet | Auto on `.ts`/`.tsx` edits |
+| code-reviewer | sonnet | `/code-review`, `/checkpoint`, auto on `.ts`/`.tsx` edits |
 | database-reviewer | opus | Auto on SQL/Supabase edits |
 | security-reviewer | opus | Auto on auth/keys/input code |
 | tdd-guide | sonnet | `/tdd` |
 | build-error-resolver | sonnet | Auto on build failures |
 | refactor-cleaner | sonnet | `/refactor-clean` |
+| performance-optimizer | sonnet | Auto on O(n^2) loops, slow queries, memory patterns |
+| python-reviewer | sonnet | Auto on `.py` edits |
 | docs-lookup | sonnet | `/docs` |
 | doc-updater | sonnet | `/update-docs` |
 | e2e-runner | sonnet | `/e2e` |
@@ -133,48 +134,41 @@ Key commands inside a session:
 
 ## Commands by Phase
 
-### Observe
+### Observe (2)
 | Command | Purpose |
 |---------|---------|
 | `/dashboard` | System state: instincts, sessions, costs, hook health |
-| `/kompact` | Smart compaction: audit, safety check, summarize, compact |
-| `/context-budget` | Audit context window usage |
+| `/kompact` | Smart compaction with audit (`/kompact audit` for context budget) |
 
-### Remember
+### Remember (3)
 | Command | Purpose |
 |---------|---------|
 | `/checkpoint` | Verify + commit + push |
 | `/docs` | Look up live documentation (Context7) |
 | `/update-docs` | Update project documentation |
-| `/sessions` | List past sessions |
 
-### Verify
+### Verify (7)
 | Command | Purpose |
 |---------|---------|
 | `/tdd` | Test-driven development cycle |
-| `/verify` | Typecheck + tests + lint |
+| `/verify` | Typecheck + tests + lint (use `/verify full` for security scan) |
 | `/build-fix` | Diagnose and fix build errors |
 | `/code-review` | Run code review on changes |
-| `/quality-gate` | All quality checks |
 | `/test-coverage` | Coverage report per file |
 | `/e2e` | End-to-end tests |
 | `/eval` | Evaluate agent/skill quality |
 
-### Specialize
+### Specialize (2)
 | Command | Purpose |
 |---------|---------|
 | `/kplan` | Smart planning (architect + planner routing) |
+| `/workflow` | Show or guide through workflow chains |
 
-### Evolve
+### Evolve (3)
 | Command | Purpose |
 |---------|---------|
-| `/learn` | Extract patterns from current session |
-| `/learn-eval` | Evaluate learned pattern quality |
+| `/instinct` | Manage instinct lifecycle: learn, promote, prune, export, status, eval |
 | `/evolve` | Harness self-optimization analysis |
-| `/instinct-status` | Show learned instincts with confidence bars |
-| `/instinct-export` | Export instincts to JSON |
-| `/promote` | Promote high-confidence instinct to skill |
-| `/prune` | Archive weak instincts |
 | `/refactor-clean` | Invoke refactor-cleaner agent |
 
 ## Session Lifecycle
@@ -214,13 +208,13 @@ Instincts are patterns learned from sessions. They start weak and grow with evid
 Created:    confidence 0.3, occurrences 1
 Reinforced: confidence += 0.1 per matching session
 Promotable: confidence >= 0.7 AND occurrences >= 3
-Promoted:   becomes a permanent skill via /promote
+Promoted:   becomes a permanent skill via /instinct promote
 ```
 
 Example instincts:
 ```
-[█████████░] 0.9  Build after editing TypeScript (14x)  → /promote
-[████████░░] 0.8  Re-run tests after fixing failures (12x) → /promote
+[█████████░] 0.9  Build after editing TypeScript (14x)  → /instinct promote
+[████████░░] 0.8  Re-run tests after fixing failures (12x) → /instinct promote
 [███░░░░░░░] 0.3  Research before building (1x)
 ```
 
@@ -245,4 +239,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.2 — Operational (154 tests passing, 22 hooks, 13 agents, 24 skills, 24 commands)
+v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 26 skills, 17 commands)

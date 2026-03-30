@@ -3,7 +3,11 @@ description: Smart context compaction — audit, summarize, compact, reload esse
 ---
 
 ## Purpose
-Intelligent context compaction that preserves critical state. Replaces the manual flow of /context-budget → think → /compact → re-read files.
+Intelligent context compaction that preserves critical state. Replaces the manual flow of auditing context → thinking → compacting → re-reading files.
+
+## Arguments
+- (none) — full 4-step flow: audit + safety check + summarize + compact guidance
+- `audit` — run context audit only (report usage and recommendations, then stop)
 
 ## Steps
 
@@ -19,7 +23,7 @@ Warn and ask for confirmation if:
 - **Uncommitted changes** exist → "You have uncommitted changes. Consider /checkpoint first."
 - **Last tool was Edit** → "You're mid-edit. Compacting now may lose context about your changes."
 - **Active debugging** → Check observations for recent tool_fail events
-- **Productive session (>30 tool calls) without /learn** → "Consider /learn first to capture patterns before compacting."
+- **Productive session (>30 tool calls) without /instinct learn** → "Consider /instinct learn first to capture patterns before compacting."
 
 If all clear: "Safety: OK — good time to compact."
 

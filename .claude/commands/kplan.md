@@ -5,7 +5,12 @@ description: Smart planning for complex tasks — routes to architect+planner or
 ## Purpose
 Smart planning command that routes to the right agent(s) based on task signals.
 
-## Step 1: Classify the Task
+## Arguments
+- `<task description>` — describe the task to plan (e.g., `/kplan design persistence layer for instinct versioning`)
+
+## Steps
+
+### Step 1: Classify the Task
 
 Scan the user's task description for these signals:
 
@@ -21,7 +26,7 @@ Scan the user's task description for these signals:
 
 Architecture signals take priority when both are present.
 
-## Step 2: Execute the Route
+### Step 2: Execute the Route
 
 ### Route A: Architecture First (architecture signals detected)
 1. Announce: "Architecture signals detected — running architect first, then planner."
@@ -38,7 +43,7 @@ Architecture signals take priority when both are present.
 4. Planner produces plan in `docs/plans/[date]-[slug].md`
 5. Present: plan summary with complexity estimates
 
-## Step 3: Embed /tdd in Plan Steps
+### Step 3: Embed /tdd in Plan Steps
 
 The planner MUST prefix any step that writes new code with `/tdd —`.
 This ensures TDD is part of the plan execution, not a loose suggestion that gets lost.

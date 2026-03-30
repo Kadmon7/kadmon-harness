@@ -1,6 +1,6 @@
 # Kadmon Harness — Referencia Completa
 
-> Version: v0.1 | Fecha: 2026-03-26 | Estado: A-
+> Version: v0.3 | Fecha: 2026-03-30 | Estado: A
 
 Esta es la referencia completa de todo lo que existe en el harness.
 Para aprender a usarlo en proyectos reales, ver `docs/HOW-TO-USE.md`.
@@ -24,11 +24,11 @@ Observe → Remember → Verify → Specialize → Evolve
 
 | Fase | Que hace | Componentes clave |
 |------|----------|-------------------|
-| **Observe** | Registra cada operacion, gestiona contexto | observe hooks, `/context-budget`, `/dashboard` |
-| **Remember** | Persiste sesiones, instintos, decisiones | SQLite, `/checkpoint`, `/docs`, `/learn` |
+| **Observe** | Registra cada operacion, gestiona contexto | observe hooks, `/kompact audit`, `/dashboard` |
+| **Remember** | Persiste sesiones, instintos, decisiones | SQLite, `/checkpoint`, `/docs`, `/instinct learn` |
 | **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 23 skills, `/kplan` |
-| **Evolve** | Aprende de sesiones, extrae patrones | `/learn`, `/evolve`, instinct engine |
+| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 26 skills, `/kplan` |
+| **Evolve** | Aprende de sesiones, extrae patrones | `/instinct learn`, `/evolve`, instinct engine |
 
 ### Stack tecnologico
 
@@ -71,7 +71,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 ### 2.1 — Agentes (.claude/agents/)
 
-14 archivos markdown que definen el comportamiento de subagentes especializados.
+14 archivos markdown que definen el comportamiento de subagentes especializados. Ver `.claude/agents/`.
 
 #### Agentes Opus (5) — decisiones complejas
 
@@ -83,15 +83,16 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **security-reviewer** | Detecta vulnerabilidades: inyeccion SQL, XSS, command injection, path traversal. Severidad CRITICAL/HIGH/MEDIUM/LOW. | Al tocar auth, API keys, exec/spawn, SQL | `/code-review` | Reporte por severidad |
 | **harness-optimizer** | Analiza hook latency, instinct quality, skill gaps, cost trends. Nunca auto-aplica cambios. | Nunca auto-invoca | `/evolve` | Reporte con PROMOTE/CREATE/OPTIMIZE |
 
-#### Agentes Sonnet (8) — implementacion y review
+#### Agentes Sonnet (9) — implementacion y review
 
 | Agente | Que hace | Auto-invoca cuando... | Invocacion manual | Output |
 |--------|----------|----------------------|-------------------|--------|
-| **code-reviewer** | Revisa calidad de codigo. Severidad BLOCK/WARN/NOTE con citaciones file:line. | `/checkpoint` (antes de commit) | `/code-review` | Review markdown |
-| **typescript-reviewer** | Revisa strict mode, type safety, async patterns, Node16 resolution. | Al editar archivos `.ts` o `.tsx` | `/code-review` en archivos TS | Type/Async/Module review |
+| **code-reviewer** | Revisa calidad de codigo, strict mode, type safety, Node16 resolution. Severidad BLOCK/WARN/NOTE. | Al editar `.ts`/`.tsx` (TypeScript specialist mode), `/checkpoint` | `/code-review` | Review markdown |
 | **tdd-guide** | Guia ciclo red-green-refactor. Genera templates de test antes de implementacion. | Nunca auto-invoca | `/tdd` | Test template TypeScript |
 | **build-error-resolver** | Diagnostica errores TS2xxx, module resolution, Vitest, sql.js WASM. Fix minimo. | Al fallar compilacion TypeScript o Vitest | `/build-fix` | Error Report estructurado |
 | **refactor-cleaner** | Identifica codigo muerto, duplicacion, oportunidades de consolidacion. | Nunca auto-invoca | `/refactor-clean` | Refactoring Summary |
+| **performance-optimizer** | Analiza bucles O(n^2), queries lentas, patrones memory-intensive. | Al detectar patrones de baja performance | — | Performance Report |
+| **python-reviewer** | Revisa codigo Python: ML, embeddings, backends. | Al editar archivos `.py` | — | Python Review |
 | **docs-lookup** | Busca documentacion via Context7 MCP. Fallback a WebSearch. Nunca inventa APIs. | Al referenciar APIs desconocidas | `/docs` | Signature + ejemplo + source |
 | **doc-updater** | Actualiza CLAUDE.md, README, counts de componentes. Verifica contra filesystem. | Sugerido tras commits con cambios estructurales | `/update-docs` | Lista de archivos actualizados |
 | **e2e-runner** | Ejecuta tests end-to-end: session lifecycle, instinct lifecycle, hook chains. Costoso. | Nunca auto-invoca | `/e2e` | 5 escenarios de test |
@@ -100,7 +101,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 ### 2.2 — Skills (.claude/skills/)
 
-23 archivos markdown que ensenan a Claude patrones especificos. Claude los consulta durante tareas relevantes.
+26 archivos markdown que ensenan a Claude patrones especificos. Claude los consulta durante tareas relevantes.
 
 #### TypeScript / Calidad de codigo
 
@@ -141,7 +142,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **safety-guard** | 3 layers de proteccion: block-no-verify, config-protection, no-context-guard | Cuando algo es bloqueado por hooks |
 | **context-budget** | Gestion de ventana de contexto, cuando compactar | Sesiones largas |
 | **strategic-compact** | Cuando y como compactar contexto sin perder informacion critica | Antes de compactacion |
-| **continuous-learning-v2** | Instinct lifecycle: create, reinforce, contradict, promote, prune | Con `/learn`, `/evolve` |
+| **continuous-learning-v2** | Instinct lifecycle: create, reinforce, contradict, promote, prune | Con `/instinct learn`, `/evolve` |
 | **cost-aware-llm-pipeline** | Pricing por modelo, estrategias de routing opus/sonnet/haiku | Al disenar pipelines LLM |
 | **agentic-engineering** | Orchestracion multi-agente, delegation patterns | Al disenar sistemas con multiples agentes |
 | **mcp-server-patterns** | Configuracion MCP, health checks, secrets management | Al integrar MCPs |
@@ -158,54 +159,48 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 ### 2.3 — Comandos (.claude/commands/)
 
-24 archivos markdown que definen slash commands. El usuario los invoca con `/nombre`.
+17 archivos markdown que definen slash commands. El usuario los invoca con `/nombre`.
 
-#### Observe (3 comandos)
+#### Observe (2 comandos)
 
 | Comando | Que hace | Cuando usarlo | Ejemplo |
 |---------|----------|--------------|---------|
 | `/dashboard` | Muestra estado del harness: instintos, sesiones, costos, hook health | Al inicio de sesion o para monitorear | `/dashboard` |
-| `/context-budget` | Audita uso de ventana de contexto | Cuando Claude se pone lento | `/context-budget` |
-| `/sessions` | Lista historial de sesiones recientes | Para ver trabajo previo | `/sessions` |
+| `/kompact` | Compactacion inteligente; `/kompact audit` audita uso de ventana de contexto | Cuando Claude se pone lento o para compactar | `/kompact audit` |
 
-#### Remember (5 comandos)
+#### Remember (3 comandos)
 
 | Comando | Que hace | Cuando usarlo | Ejemplo |
 |---------|----------|--------------|---------|
 | `/checkpoint` | Verifica, commitea y pushea en un solo paso | Al completar una unidad de trabajo | `/checkpoint` |
 | `/docs` | Busca documentacion actualizada via Context7 | Antes de usar cualquier API | `/docs supabase-js insert` |
 | `/update-docs` | Actualiza CLAUDE.md y README con counts reales | Tras cambios estructurales | `/update-docs` |
-| `/learn` | Extrae patrones de la sesion actual como instintos | Al final de sesiones productivas | `/learn` |
-| `/learn-eval` | Evalua calidad de instintos aprendidos | Periodicamente | `/learn-eval` |
 
-#### Verify (8 comandos)
+#### Verify (7 comandos)
 
 | Comando | Que hace | Cuando usarlo | Ejemplo |
 |---------|----------|--------------|---------|
-| `/verify` | Typecheck + tests + lint completo | Antes de cada commit | `/verify` |
+| `/verify` | Typecheck + tests + lint completo; `/verify full` agrega security scan | Antes de cada commit | `/verify` |
 | `/tdd` | Inicia ciclo test-first para nueva funcionalidad | Al implementar features nuevas | `/tdd implementar pruneInstincts` |
 | `/build-fix` | Diagnostica y arregla errores de compilacion | Cuando TypeScript no compila | `/build-fix` |
 | `/code-review` | Revisa calidad de cambios staged o recientes | Antes de merge o commit | `/code-review` |
-| `/quality-gate` | Todas las verificaciones + seguridad | Gate formal de calidad | `/quality-gate` |
 | `/test-coverage` | Reporta cobertura por archivo | Para identificar gaps de testing | `/test-coverage` |
 | `/e2e` | Tests end-to-end de workflows completos (costoso) | Para validacion exhaustiva | `/e2e session lifecycle` |
 | `/eval` | Evalua calidad de un agente o skill | Despues de modificar agentes/skills | `/eval security-reviewer` |
 
-#### Specialize (1 comando)
+#### Specialize (2 comandos)
 
 | Comando | Que hace | Cuando usarlo | Ejemplo |
 |---------|----------|--------------|---------|
 | `/kplan` | Planifica tareas complejas multi-archivo | Cuando el enfoque es incierto | `/kplan migrar estado a Supabase` |
+| `/workflow` | Muestra o guia workflows disponibles (dev, qa, instinct, evolve) | Para seguir un workflow estructurado | `/workflow dev` |
 
-#### Evolve (6 comandos)
+#### Evolve (3 comandos)
 
 | Comando | Que hace | Cuando usarlo | Ejemplo |
 |---------|----------|--------------|---------|
+| `/instinct` | Gestiona ciclo de instintos: subcomandos `learn`, `status`, `promote`, `prune`, `export`, `eval` | Para todas las operaciones de instintos | `/instinct learn` |
 | `/evolve` | Analisis de auto-optimizacion del harness | Periodicamente | `/evolve` |
-| `/instinct-status` | Dashboard de instintos activos | Para monitorear aprendizaje | `/instinct-status` |
-| `/instinct-export` | Exporta instintos a JSON para backup | Antes de cambios grandes | `/instinct-export` |
-| `/promote` | Promueve instinto de alta confianza a skill | Cuando instinto alcanza 0.7+ | `/promote` |
-| `/prune` | Archiva instintos debiles o contradichos | Limpieza periodica | `/prune` |
 | `/refactor-clean` | Refactoriza codigo: dead code, duplicacion | Cuando el codigo necesita limpieza | `/refactor-clean state-store.ts` |
 
 ---
@@ -297,9 +292,9 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 | Archivo | Globs | Que impone | Enforced por |
 |---------|-------|-----------|-------------|
-| **typescript/coding-style.md** | `**/*.ts,**/*.tsx` | Strict mode, .js extensions, `import type` | typescript-reviewer |
+| **typescript/coding-style.md** | `**/*.ts,**/*.tsx` | Strict mode, .js extensions, `import type` | code-reviewer (TypeScript specialist mode) |
 | **typescript/hooks.md** | `.claude/hooks/scripts/*.js` | parseStdin(), lifecycle hooks desde dist/, `npm run build` | post-edit-typecheck |
-| **typescript/patterns.md** | `**/*.ts` | Result pattern, Zod schemas, `catch (e: unknown)` | typescript-reviewer |
+| **typescript/patterns.md** | `**/*.ts` | Result pattern, Zod schemas, `catch (e: unknown)` | code-reviewer (TypeScript specialist mode) |
 | **typescript/security.md** | `**/*.ts` | Branded types, path.resolve(), parameterized queries | security-reviewer |
 | **typescript/testing.md** | `tests/**/*.ts` | vi.fn(), mock externals, close DB en afterEach | tdd-guide |
 
@@ -455,7 +450,7 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 
 | Archivo | Que cubre |
 |---------|----------|
-| **GUIDE.md** | Guia de usuario completa: mantra, quick start, 24 comandos, 14 agentes, 23 skills, hooks, instintos, flujo diario |
+| **GUIDE.md** | Guia de usuario completa: mantra, quick start, 17 comandos, 14 agentes, 26 skills, hooks, instintos, flujo diario |
 | **REFERENCE.md** | Este documento — referencia exhaustiva de cada componente |
 
 ### Subdirectorios
@@ -635,32 +630,31 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | Ver estado del harness | `/dashboard` |
 | Buscar documentacion de una API | `/docs supabase-js insert` → docs-lookup + Context7 MCP |
 | Arreglar errores de compilacion | `/build-fix` → build-error-resolver agent |
-| Aprender de la sesion | `/learn` |
+| Aprender de la sesion | `/instinct learn` |
 | Evolucionar el harness | `/evolve` → harness-optimizer agent (opus) |
-| Disenar UI (KAIRON/ToratNetz) | frontend-design plugin |
-| Hacer una feature completa | `/kplan` → feature-dev plugin |
+| Disenar UI (KAIRON/ToratNetz) | `/kplan` con senales de diseno → architect agent |
+| Hacer una feature completa | `/kplan` → planner agent |
 | Auditar seguridad | `/code-review` → security-reviewer agent (opus) |
-| Ver que instintos tiene el harness | `/instinct-status` |
-| Exportar instintos para backup | `/instinct-export` |
+| Ver que instintos tiene el harness | `/instinct status` |
+| Exportar instintos para backup | `/instinct export` |
 | Refactorizar codigo | `/refactor-clean` → refactor-cleaner agent |
 
 ### Numeros clave
 
 | Metrica | Valor |
 |---------|-------|
-| Agentes | 14 (6 opus, 8 sonnet) |
-| Skills | 23 |
-| Comandos | 24 |
-| Hooks | 20 + 1 utility |
+| Agentes | 14 (5 opus, 9 sonnet) |
+| Skills | 26 |
+| Comandos | 17 |
+| Hooks | 22 |
 | Rules | 14 |
 | Contextos | 3 |
-| Tests | 101 passing |
+| Tests | 154 passing |
 | Tablas SQLite | 4 + 8 indexes |
-| Plugins activos | 10 |
-| MCPs | 3 |
+| MCPs | 2 (Supabase, Context7) |
 | ADRs | 5 |
 
 ---
 
-*Kadmon Harness v0.2 — 13 agentes, 24 comandos, 24 skills, 22 hooks*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 26 skills, 22 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

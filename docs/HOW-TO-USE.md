@@ -17,11 +17,11 @@ claude
 # 2. Ver estado del harness
 /dashboard
 
-# 3. Revisar sesion anterior
-/sessions
+# 3. Revisar instintos activos
+/instinct status
 ```
 
-El `/dashboard` muestra instintos activos, sesiones recientes, costos y salud de hooks. Si algun instinto tiene confianza >= 0.7, considera `/promote` para convertirlo en skill.
+El `/dashboard` muestra instintos activos, sesiones recientes, costos y salud de hooks. Si algun instinto tiene confianza >= 0.7, considera `/instinct promote` para convertirlo en skill.
 
 ### Trabajo — Implementar con disciplina
 
@@ -55,7 +55,7 @@ El flujo es siempre: **Plan → Test → Implement → Verify**. Los hooks se en
 /checkpoint
 
 # 12. Extraer patrones aprendidos
-/learn
+/instinct learn
 
 # 13. Si la sesion fue larga, ver costos
 /dashboard
@@ -63,7 +63,7 @@ El flujo es siempre: **Plan → Test → Implement → Verify**. Los hooks se en
 
 El `/checkpoint` ejecuta `/verify` automaticamente antes de commitear. Si falla, no commitea.
 
-El `/learn` analiza la sesion y crea instintos con confianza 0.3. Con el tiempo, los instintos se refuerzan y eventualmente se promueven a skills.
+El `/instinct learn` analiza la sesion y crea instintos con confianza 0.3. Con el tiempo, los instintos se refuerzan y eventualmente se promueven a skills.
 
 ---
 
@@ -373,12 +373,12 @@ Busca via Context7 MCP. Si no encuentra, fallback a WebSearch. Nunca inventa —
 /code-review
 ```
 
-Invoca code-reviewer + typescript-reviewer + security-reviewer (si aplica). Produce findings con severidad BLOCK/WARN/NOTE.
+Invoca code-reviewer (incluye TypeScript specialist mode) + security-reviewer (si aplica). Produce findings con severidad BLOCK/WARN/NOTE.
 
-### 8. `/learn` — Extraer patrones
+### 8. `/instinct learn` — Extraer patrones
 
 ```bash
-/learn
+/instinct learn
 ```
 
 Analiza la sesion actual y crea instintos con confianza 0.3. Con refuerzo en sesiones futuras, suben a 0.7+ y se promueven a skills.
@@ -486,11 +486,11 @@ gh pr list
 **Solucion:** Los instintos inician en 0.3 y suben +0.1 por refuerzo. Se necesitan al menos 4 refuerzos para llegar a 0.7. Esto es por diseno — evita promover patrones prematuros.
 
 ```bash
-/instinct-status   # Ver confianza actual
-/promote           # Promover manualmente si cumple threshold
+/instinct status   # Ver confianza actual
+/instinct promote  # Promover manualmente si cumple threshold
 ```
 
 ---
 
-*Kadmon Harness v0.2 — Observe → Remember → Verify → Specialize → Evolve*
+*Kadmon Harness v0.3 — Observe → Remember → Verify → Specialize → Evolve*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

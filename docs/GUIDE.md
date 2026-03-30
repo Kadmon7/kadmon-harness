@@ -2,17 +2,17 @@
 
 ## 1. ¿Qué es Kadmon Harness?
 
-Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 22 hooks, 13 agentes especializados y un motor de aprendizaje por instintos.
+Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 22 hooks, 14 agentes especializados y un motor de aprendizaje por instintos.
 
 ### El Mantra: Observe → Remember → Verify → Specialize → Evolve
 
 | Fase | Qué hace | Componentes clave |
 |------|----------|-------------------|
-| **Observe** | Registra cada operación, gestiona contexto | observe hooks, `/context-budget`, `/kompact` |
+| **Observe** | Registra cada operación, gestiona contexto | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persiste sesiones, instintos, decisiones | SQLite, sessions, `/checkpoint`, `/docs` |
 | **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 13 agentes, 24 skills, `/kplan` |
-| **Evolve** | Aprende de sesiones, extrae patrones | `/learn`, `/evolve`, instinct engine |
+| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 26 skills, `/kplan` |
+| **Evolve** | Aprende de sesiones, extrae patrones | `/instinct learn`, `/evolve`, instinct engine |
 
 ### ¿Cómo difiere de Claude Code vanilla?
 
@@ -20,7 +20,7 @@ Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Clau
 |--------------------|--------------------|
 | Sin memoria entre sesiones | SQLite persiste sesiones, instintos y costos |
 | Sin verificación automática | Hooks validan tipos, lint y seguridad en cada edit |
-| Agente genérico | 13 agentes especializados (5 opus, 8 sonnet) |
+| Agente genérico | 14 agentes especializados (5 opus, 9 sonnet) |
 | Sin aprendizaje | Motor de instintos con scoring de confianza (0.3→0.9) |
 | Sin observabilidad | JSONL por sesión + dashboard CLI |
 
@@ -52,7 +52,7 @@ claude
 
 3. **Revisar instintos activos**:
    ```
-   /instinct-status
+   /instinct status
    ```
    Muestra confianza, ocurrencias y estado de cada patrón aprendido.
 
@@ -73,7 +73,7 @@ Session start ──→ hooks cargan contexto automáticamente
     │
     ├─ /checkpoint ──→ review + commit + push
     │
-    ├─ /learn ──→ extraer instintos de la sesión
+    ├─ /instinct learn ──→ extraer instintos de la sesión
     │
 Session end ──→ hooks persisten todo a SQLite
 ```
@@ -101,22 +101,21 @@ Session end ──→ hooks persisten todo a SQLite
   → git commit -m "feat(search): add Hebrew text search"
   → git push
 
-> /learn
+> /instinct learn
   → analiza observaciones de la sesión
   → crea/refuerza instintos basados en patrones detectados
 ```
 
 ---
 
-## 4. Los 24 Comandos
+## 4. Los 17 Comandos
 
-### Observe (3)
+### Observe (2)
 
 | Comando | Cuándo usar | Ejemplo |
 |---------|-------------|---------|
 | `/dashboard` | Ver estado del harness: instintos, sesiones, costos, hook health | `/dashboard` |
-| `/context-budget` | Antes de sesiones largas, cuando Claude se pone lento | `/context-budget` |
-| `/sessions` | Ver historial de sesiones pasadas | `/sessions` |
+| `/kompact` | Compactación inteligente de contexto; `/kompact audit` para ver uso de ventana | `/kompact audit` |
 
 ### Remember (3)
 
@@ -126,50 +125,47 @@ Session end ──→ hooks persisten todo a SQLite
 | `/docs` | Buscar documentación actualizada de cualquier librería | `/docs sql.js prepared statements` |
 | `/update-docs` | Actualizar CLAUDE.md y README tras cambios estructurales | `/update-docs` |
 
-### Verify (8)
+### Verify (7)
 
 | Comando | Cuándo usar | Ejemplo |
 |---------|-------------|---------|
 | `/tdd` | Empezar ciclo test-first para nueva funcionalidad | `/tdd Implementar pruneInstincts` |
-| `/verify` | Verificación completa antes de commit | `/verify` |
+| `/verify` | Verificación completa antes de commit; `/verify full` incluye security scan | `/verify` |
 | `/build-fix` | Cuando TypeScript no compila | `/build-fix` |
 | `/code-review` | Revisar calidad de cambios staged | `/code-review` |
-| `/quality-gate` | Todas las verificaciones + seguridad | `/quality-gate` |
 | `/test-coverage` | Ver cobertura por archivo | `/test-coverage` |
 | `/e2e` | Tests end-to-end de workflows completos (costoso) | `/e2e session lifecycle` |
 | `/eval` | Evaluar calidad de un agente o skill | `/eval security-reviewer` |
 
-### Specialize (1)
+### Specialize (2)
 
 | Comando | Cuándo usar | Ejemplo |
 |---------|-------------|---------|
 | `/kplan` | Tareas complejas, multi-archivo, enfoque incierto | `/kplan Migrar estado a Supabase` |
+| `/workflow` | Ver o seguir un workflow guiado (dev, qa, instinct, evolve) | `/workflow dev` |
 
-### Evolve (8)
+### Evolve (3)
 
 | Comando | Cuándo usar | Ejemplo |
 |---------|-------------|---------|
-| `/learn` | Extraer patrones de la sesión actual | `/learn` |
-| `/learn-eval` | Evaluar calidad de instintos aprendidos | `/learn-eval` |
+| `/instinct` | Gestionar ciclo de instintos: `learn`, `status`, `promote`, `prune`, `export`, `eval` | `/instinct learn` |
 | `/evolve` | Análisis de auto-optimización del harness | `/evolve` |
-| `/instinct-status` | Ver dashboard de instintos | `/instinct-status` |
-| `/instinct-export` | Exportar instintos a JSON | `/instinct-export` |
-| `/promote` | Promover instinto a skill permanente | `/promote` |
-| `/prune` | Archivar instintos débiles o contradichos | `/prune` |
 | `/refactor-clean` | Refactorizar código (nunca automático) | `/refactor-clean state-store.ts` |
 
 ---
 
-## 5. Los 13 Agentes
+## 5. Los 14 Agentes
 
 ### Agentes automáticos (Claude los invoca solo)
 
 | Agente | Modelo | Disparador |
 |--------|--------|------------|
-| typescript-reviewer | sonnet | Al editar archivos `.ts` o `.tsx` |
+| code-reviewer | sonnet | Al editar archivos `.ts` o `.tsx` (modo TypeScript specialist) |
 | database-reviewer | opus | Al editar SQL, schemas, migraciones, código Supabase |
 | security-reviewer | opus | Al tocar auth, API keys, input de usuario, exec/spawn, SQL |
 | build-error-resolver | sonnet | Cuando falla compilación TypeScript o Vitest |
+| performance-optimizer | sonnet | Al detectar bucles O(n^2), queries lentas, patrones memory-intensive |
+| python-reviewer | sonnet | Al editar archivos `.py` |
 
 ### Agentes manuales (tú los invocas)
 
@@ -185,7 +181,7 @@ Session end ──→ hooks persisten todo a SQLite
 | e2e-runner | sonnet | `/e2e` | Tests E2E completos (costoso) |
 | harness-optimizer | opus | `/evolve` | Análisis de optimización (solo recomendaciones) |
 
-**Regla de modelo**: opus para decisiones complejas (5 agentes), sonnet para implementación (8 agentes). Nunca haiku para review ni seguridad.
+**Regla de modelo**: opus para decisiones complejas (5 agentes), sonnet para implementación (9 agentes). Nunca haiku para review ni seguridad.
 
 ---
 
@@ -326,7 +322,7 @@ Kadmon opera con **5 capas de memoria**, de más estática a más dinámica:
 - Patrones aprendidos almacenados en `~/.kadmon/kadmon.db`
 - Ciclo de vida: **creación (0.3)** → **refuerzo (+0.1/ocurrencia)** → **promoción (≥0.7)** → **skill permanente**
 - Si las contradicciones superan las ocurrencias → status `contradicted`
-- `/prune` archiva instintos débiles (< 0.2 confianza) o contradichos (> 7 días)
+- `/instinct prune` archiva instintos débiles (< 0.2 confianza) o contradichos (> 7 días)
 
 ### Verificar estado de memoria
 
@@ -335,13 +331,10 @@ Kadmon opera con **5 capas de memoria**, de más estática a más dinámica:
 npx tsx scripts/dashboard.ts
 
 # Solo instintos activos
-/instinct-status
-
-# Historial de sesiones
-/sessions
+/instinct status
 
 # Exportar instintos a JSON
-/instinct-export
+/instinct export
 ```
 
 ---
@@ -389,7 +382,7 @@ npx tsx scripts/dashboard.ts
   git push ✓
 
 # 6. Aprender
-> /learn
+> /instinct learn
   Detecta patrón: "Read instinct-manager.ts before editing"
   Refuerza instinto existente: confidence 0.3 → 0.4
 ```
@@ -439,16 +432,16 @@ claude
 
 ## 10. Tips & Tricks
 
-1. **Usa `/context-budget` al inicio de sesiones largas** — te dice cuánto contexto queda y qué está consumiendo más.
+1. **Usa `/kompact audit` al inicio de sesiones largas** — te dice cuánto contexto queda y qué está consumiendo más.
 
 2. **Compacta en los momentos correctos** — después de commits, entre features, nunca a mitad de implementación. Usa `/kompact` para un flujo guiado de compactación.
 
-3. **Lee las puntuaciones de instintos** — `/instinct-status` muestra barras de confianza:
+3. **Lee las puntuaciones de instintos** — `/instinct status` muestra barras de confianza:
    - `████████░░` (0.8) = patrón muy confiable
    - `███░░░░░░░` (0.3) = recién creado, necesita validación
    - Promotable: confidence ≥ 0.7 + ocurrencias ≥ 3
 
-4. **Fuerza un aprendizaje con `/learn`** — no esperes al cierre de sesión. Después de un workflow exitoso, `/learn` extrae patrones inmediatamente.
+4. **Fuerza un aprendizaje con `/instinct learn`** — no esperes al cierre de sesión. Después de un workflow exitoso, extrae patrones inmediatamente.
 
 5. **Si un hook falla**, revisa stderr — todos los hooks imprimen JSON con el error:
    ```bash
@@ -462,7 +455,7 @@ claude
    ```
    Esto desactiva la validación de "leer antes de editar". Úsalo con precaución.
 
-7. **Revisa costos por sesión** — el cost-tracker registra automáticamente. Usa `/sessions` para ver estimados en USD.
+7. **Revisa costos por sesión** — el cost-tracker registra automáticamente. Usa `/dashboard` para ver estimados en USD por sesión.
 
 8. **Extended Thinking** — Claude puede razonar internamente antes de responder:
    - **Alt+T** — toggle extended thinking on/off
@@ -498,7 +491,7 @@ claude
 
 ### Instintos no se crean
 - **Requisito**: La sesión necesita ≥ 10 tool calls para que `evaluate-session.js` active.
-- **Fix**: Usa `/learn` manualmente para forzar extracción de patrones.
+- **Fix**: Usa `/instinct learn` manualmente para forzar extracción de patrones.
 
 ### Tests fallan en CI pero pasan local
 - **Causa común**: Tests dependen de `~/.kadmon/kadmon.db` en lugar de `:memory:`.
@@ -506,5 +499,5 @@ claude
 
 ---
 
-*Kadmon Harness v0.2 — 13 agentes, 24 comandos, 24 skills, 22 hooks*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 26 skills, 22 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

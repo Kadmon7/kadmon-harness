@@ -39,7 +39,7 @@ For thorough quality validation before merge or release.
 For managing learned patterns after a productive session.
 ```
 /instinct learn   -> Extract patterns from current session
-/instincts eval   -> View instincts with quality recommendations
+/instinct eval    -> View instincts with quality recommendations
 /instinct promote -> Promote high-confidence instincts to skills
 /instinct prune   -> Archive weak or contradicted instincts
 ```
@@ -49,7 +49,7 @@ For periodic harness health checks and improvements.
 ```
 /dashboard        -> Check current harness state
 /evolve           -> Run full optimization analysis
-/instincts eval   -> Review instinct quality
+/instinct eval    -> Review instinct quality
 /instinct promote -> Promote best instincts
 /instinct export  -> Backup instinct state
 ```

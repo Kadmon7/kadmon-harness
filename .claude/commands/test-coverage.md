@@ -1,9 +1,13 @@
 ---
-description: Check and report test coverage per file
+description: Run tests with coverage and flag files below 80% threshold
 ---
 
 ## Purpose
 Run tests with coverage reporting and flag files below 80% threshold.
+
+## Arguments
+- (none) — run full coverage report
+- `<file-path>` — coverage for a specific file or directory
 
 ## Steps
 1. Run: `npx vitest run --coverage`

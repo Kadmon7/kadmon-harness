@@ -1,5 +1,5 @@
 ---
-description: Diagnose and fix build or compilation errors
+description: Diagnose and fix TypeScript compilation or build errors
 ---
 
 ## Purpose

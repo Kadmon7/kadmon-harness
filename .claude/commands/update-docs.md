@@ -1,5 +1,5 @@
 ---
-description: Update CLAUDE.md, README, and project documentation
+description: Sync CLAUDE.md, README, and docs with recent code changes
 ---
 
 ## Purpose

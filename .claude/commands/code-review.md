@@ -5,6 +5,10 @@ description: Run code review on staged or recent changes
 ## Purpose
 Invoke review agents to check code quality, TypeScript patterns, and security.
 
+## Arguments
+- (none) — review staged changes (`git diff --staged`) or last commit (`git diff HEAD~1`)
+- `<file-path>` — review a specific file
+
 ## Steps
 1. Get diff: `git diff --staged` or `git diff HEAD~1`
 2. Invoke code-reviewer agent on the diff (includes TypeScript specialist checks for .ts/.tsx files)

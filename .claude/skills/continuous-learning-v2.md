@@ -1,6 +1,6 @@
 ---
 name: continuous-learning-v2
-description: How the instinct learning system works — observation, confidence scoring (0.3→0.9), promotion to skills. Use this skill whenever working with /learn, /instinct-status, /promote, or /prune commands, when debugging why an instinct was or wasn't created, understanding the evaluate-session hook, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
+description: How the instinct learning system works — observation, confidence scoring (0.3→0.9), promotion to skills. Use this skill whenever working with /instinct subcommands (learn, status, promote, prune), when debugging why an instinct was or wasn't created, understanding the evaluate-session hook, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
 ---
 
 # Continuous Learning v2
@@ -8,9 +8,9 @@ description: How the instinct learning system works — observation, confidence 
 The instinct-based learning system. Observes sessions, creates atomic instincts with confidence scoring, and promotes them into skills.
 
 ## When to Use
-- Understanding how instincts are created (/learn command)
-- Checking instinct status (/instinct-status command)
-- Promoting instincts to skills (/promote command)
+- Understanding how instincts are created (/instinct learn)
+- Checking instinct status (/instinct status)
+- Promoting instincts to skills (/instinct promote)
 - Diagnosing why an instinct was contradicted
 
 ## How It Works
@@ -27,7 +27,7 @@ Create (confidence: 0.3, occurrences: 1)
   ↓ reinforced (+0.1 confidence, +1 occurrence)
   ↓ ... repeated ...
 Promotable (confidence ≥ 0.7, occurrences ≥ 3, status: active)
-  ↓ /promote command
+  ↓ /instinct promote
 Promoted (status: promoted, promotedTo: "skill-name")
 ```
 
@@ -37,13 +37,13 @@ Active instinct
   ↓ contradicted (+1 contradiction)
   ↓ if contradictions > occurrences
 Contradicted (status: contradicted)
-  ↓ after 7 days via /prune
+  ↓ after 7 days via /instinct prune
 Archived (status: archived)
 ```
 
 ### Scoping
 - Instincts are project-scoped by default (projectHash from git remote)
-- /promote can elevate a project instinct to global scope
+- /instinct promote can elevate a project instinct to global scope
 - Global instincts apply across all projects
 
 ## Examples
@@ -69,7 +69,7 @@ Session 5: same pattern → reinforced (0.7) — now promotable!
 ## Rules
 - Observations are ephemeral JSONL — summarized at session end, not kept forever
 - Instincts persist in SQLite across sessions
-- Promotion requires architect approval (/promote is manual, not automatic)
+- Promotion requires architect approval (/instinct promote is manual, not automatic)
 - Contradictions are tracked — instincts can die
 - All skill creation, editing, and optimization MUST use the skill-creator:skill-creator plugin — it handles drafting, testing, benchmarking, and description optimization
 

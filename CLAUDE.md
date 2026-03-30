@@ -20,7 +20,7 @@ Observe → Remember → Verify → Specialize → Evolve
 
 | Phase | Components |
 |-------|-----------|
-| Observe | observe hooks, context-budget, search-first |
+| Observe | observe hooks, /kompact audit, search-first |
 | Remember | session persistence, instinct store, ADRs, /checkpoint, /docs |
 | Verify | TDD, code review, security review, type checking, no-context-guard |
 | Specialize | domain agents, skill catalog, /kplan |
@@ -47,8 +47,8 @@ scripts/
 │   ├── common/         # 9 cross-language rules
 │   └── typescript/     # 5 TS-specific rules
 ├── agents/             # 14 agent definitions
-├── skills/             # 22 skill documents
-└── commands/           # 19 command templates
+├── skills/             # 26 skill documents
+└── commands/           # 17 command templates
 tests/
 ├── lib/                # Unit tests for scripts/lib/
 ├── hooks/              # Hook integration tests
@@ -81,13 +81,13 @@ docs/
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (19)
+## Commands (17)
 Defined in `.claude/commands/` — organized by phase:
-- **Observe** (3): /dashboard, /kompact, /context-budget
+- **Observe** (2): /dashboard, /kompact
 - **Remember** (3): /checkpoint, /docs, /update-docs
 - **Verify** (7): /tdd, /verify, /build-fix, /code-review, /test-coverage, /e2e, /eval
 - **Specialize** (2): /kplan, /workflow
-- **Evolve** (4): /instincts, /instinct, /evolve, /refactor-clean
+- **Evolve** (3): /instinct, /evolve, /refactor-clean
 
 ## Skills (26)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
@@ -153,4 +153,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 26 skills, 19 commands)
+v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 26 skills, 17 commands)
