@@ -6,11 +6,11 @@ alwaysApply: true
 
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
-- MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, docs-lookup, e2e-runner
+- MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, docs-lookup, e2e-runner
 - MUST use sonnet model for doc-updater (documentation generation)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
-## Agent Catalog (12)
+## Agent Catalog (14)
 
 | Agent | Model | Trigger | Command |
 |-------|-------|---------|---------|
@@ -22,6 +22,8 @@ alwaysApply: true
 | tdd-guide | sonnet | /tdd command to enforce red-green-refactor cycle | /tdd |
 | build-error-resolver | sonnet | Auto-invoked on TypeScript compilation failure, Vitest errors, module resolution errors | /build-fix |
 | refactor-cleaner | sonnet | /refactor-clean command only (never auto-triggered) | /refactor-clean |
+| performance-optimizer | sonnet | Auto-invoked for O(n^2) loops, slow queries, memory-intensive patterns, user requests optimization | — |
+| python-reviewer | sonnet | Auto-invoked when editing .py files | — |
 | docs-lookup | sonnet | /docs command, unfamiliar API references, no_context verification | /docs |
 | doc-updater | sonnet | /update-docs command, suggested after commits adding agents/skills/commands | /update-docs |
 | e2e-runner | sonnet | /e2e command only (expensive, on-demand) | /e2e |
@@ -30,8 +32,10 @@ alwaysApply: true
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → security-reviewer
 - Editing .ts/.tsx files → code-reviewer (TypeScript specialist mode)
+- Editing .py files → python-reviewer
 - Editing SQL/schema/migration/Supabase client → database-reviewer
 - TypeScript compilation or Vitest fails → build-error-resolver
+- Performance concerns (O(n^2), slow queries, memory patterns) → performance-optimizer
 - /kplan with architecture signals → architect before planner
 
 ## Manual Rules
