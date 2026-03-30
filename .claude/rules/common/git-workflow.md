@@ -19,6 +19,13 @@ alwaysApply: true
 - NEVER commit secrets, .env files, or .db files (.gitignore enforced)
 - ALWAYS review diff before committing: `git diff --staged`
 
+## PR Workflow
+1. Run /verify before creating PR
+2. Use `gh pr create` (not GitHub MCP)
+3. Analyze ALL commits since divergence: `git diff main...HEAD`
+4. Include test plan in PR body
+5. pr-created hook logs PR URL automatically
+
 ## Enforcement
 - block-no-verify hook blocks any git command with --no-verify flag (PreToolUse on Bash, exit 2)
 - git-push-reminder hook warns before git push without running /verify first (PreToolUse on Bash, exit 1)

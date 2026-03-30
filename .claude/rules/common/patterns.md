@@ -20,7 +20,7 @@ alwaysApply: true
 - MUST use TypeScript interfaces from types.ts as source of truth
 - MUST convert camelCase ↔ snake_case only in state-store.ts
 - NEVER store derived data that can be computed
-- PREFER immutable data structures
+- MUST use immutable data structures — create new objects, never mutate existing ones
 
 ## Enforcement
 - architect agent reviews system design and pattern decisions via /kplan

@@ -21,7 +21,8 @@ alwaysApply: true
 - MUST test hook scripts using execFileSync with input option (Windows-safe)
 
 ## TDD
-- MUST write failing test before implementation (when using /tdd)
+- MUST write failing test before implementation for new features and bug fixes — config changes, docs, and trivial one-liners are exempt
+- MUST fix implementation when tests fail — only modify tests if the test itself is incorrect
 - NEVER mark tests as .skip in committed code without tracking comment
 - MUST run full test suite before committing
 

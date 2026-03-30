@@ -88,7 +88,7 @@ Defined in `.claude/commands/` — organized by phase:
 - **Specialize** (1): /kplan
 - **Evolve** (8): /learn, /learn-eval, /evolve, /instinct-status, /promote, /prune, /instinct-export, /refactor-clean
 
-## Skills (24)
+## Skills (25)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
 | Category | Skills |
@@ -99,6 +99,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 | Architecture | agentic-engineering, architecture-decision-records, api-design |
 | Data | database-migrations, postgres-patterns, iterative-retrieval, iterative-retrieval-hebrew |
 | Integration | claude-api, cost-aware-llm-pipeline, mcp-server-patterns, documentation-lookup |
+| Orchestration | subagent-retrieval |
 | Safety | safety-guard |
 
 ## Development Workflow
@@ -149,4 +150,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.2 — Operational (154 tests passing, 22 hooks, 13 agents, 24 skills, 24 commands)
+v0.2 — Operational (154 tests passing, 22 hooks, 13 agents, 25 skills, 24 commands)

@@ -464,6 +464,14 @@ claude
 
 7. **Revisa costos por sesión** — el cost-tracker registra automáticamente. Usa `/sessions` para ver estimados en USD.
 
+8. **Extended Thinking** — Claude puede razonar internamente antes de responder:
+   - **Alt+T** — toggle extended thinking on/off
+   - **Ctrl+O** — ver output de thinking
+   - **`MAX_THINKING_TOKENS=10000`** — limitar tokens de razonamiento (variable de entorno)
+   - **`alwaysThinkingEnabled`** en `~/.claude/settings.json` — activar/desactivar por defecto
+   - Recomendado para: `/kplan`, decisiones arquitectónicas, debugging complejo
+   - Desactivar para: edits simples, formatting, lookups (ahorra tokens)
+
 ---
 
 ## 11. Troubleshooting

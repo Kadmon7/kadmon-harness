@@ -28,19 +28,32 @@ alwaysApply: true
 | e2e-runner | sonnet | /e2e command only (expensive, on-demand) | /e2e |
 | harness-optimizer | opus | /evolve command only (never auto-applies, produces recommendations) | /evolve |
 
-## When to Invoke
-- ALWAYS invoke security-reviewer for code touching: authentication, encryption, API keys, user input, exec/spawn, file paths, SQL queries
-- ALWAYS invoke code-reviewer before any commit via /checkpoint
-- ALWAYS invoke typescript-reviewer when editing .ts or .tsx files
-- ALWAYS invoke database-reviewer when editing SQL, schema definitions, or Supabase client code
-- ALWAYS invoke planner via /kplan — runs for every /kplan invocation (after architect for Route A, directly for Route B)
-- ALWAYS invoke architect before planner when /kplan task contains architecture signals (see /kplan command for signal list)
-- ALWAYS invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
-- ALWAYS invoke build-error-resolver when TypeScript compilation or Vitest tests fail
+## Auto-Invoke (no prompt needed)
+- Code touches auth/keys/exec/file paths/SQL → security-reviewer
+- Editing .ts/.tsx files → typescript-reviewer
+- Editing SQL/schema/migration/Supabase client → database-reviewer
+- TypeScript compilation or Vitest fails → build-error-resolver
+- /kplan with architecture signals → architect before planner
+
+## Manual Rules
+- MUST invoke code-reviewer before any commit via /checkpoint
+- MUST invoke planner via /kplan — runs for every /kplan invocation
+- MUST invoke architect before planner when /kplan task contains architecture signals
+- SHOULD invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
+- SHOULD invoke build-error-resolver when TypeScript compilation or Vitest tests fail (skip for obvious typos)
 - NEVER invoke architect for routine bug fixes or small features
 - NEVER invoke harness-optimizer without explicit /evolve command
 - NEVER invoke e2e-runner without explicit /e2e command (tests are expensive)
 - NEVER invoke refactor-cleaner without explicit /refactor-clean command
+
+## Parallel Execution
+- SHOULD launch independent agents in parallel (single message, multiple tool calls)
+- NEVER run agents sequentially when their inputs are independent
+
+## Approval Criteria
+- CRITICAL → BLOCK merge, fix immediately
+- HIGH → WARN, should fix before merge
+- MEDIUM/LOW → NOTE, optional
 
 ## Communication
 - Agents return structured output (markdown with sections)

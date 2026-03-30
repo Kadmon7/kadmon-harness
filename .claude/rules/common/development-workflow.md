@@ -63,7 +63,8 @@ alwaysApply: true
 - NEVER commit unrelated changes in the same commit
 
 ## Research
-- ALWAYS search codebase before writing new code (search-first skill)
+- ALWAYS follow search-first skill (5 steps: codebase → dependencies → docs → evaluate → proceed)
+- SHOULD search GitHub for existing implementations: `gh search code <query>`
 - ALWAYS use /docs for API lookups instead of relying on memory
 - MUST read existing code before modifying it (enforced by no-context-guard hook)
 
