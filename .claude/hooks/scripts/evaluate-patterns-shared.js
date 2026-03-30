@@ -5,11 +5,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-function gitExec(cmd, cwd) {
+function gitExec(args, cwd) {
   try {
-    return execSync(cmd, {
+    return execFileSync("git", args, {
       cwd,
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
@@ -33,7 +34,7 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
   const lines = fs.readFileSync(obsPath, "utf8").split("\n").filter(Boolean);
   if (lines.length < minLines) return 0;
 
-  const remoteUrl = gitExec("git remote get-url origin", cwd);
+  const remoteUrl = gitExec(["remote", "get-url", "origin"], cwd);
   if (!remoteUrl) return 0;
 
   const projectHash = crypto
@@ -63,10 +64,8 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
     new URL("../../../dist/scripts/lib/pattern-engine.js", import.meta.url).href
   );
 
-  const defsPath = new URL("../pattern-definitions.json", import.meta.url);
-  const definitions = loadPatternDefinitions(
-    defsPath.pathname.replace(/^\/([A-Z]:)/, "$1"),
-  );
+  const defsUrl = new URL("../pattern-definitions.json", import.meta.url);
+  const definitions = loadPatternDefinitions(fileURLToPath(defsUrl));
   const results = evaluatePatterns(definitions, toolSequences, lines);
 
   const existing = getActiveInstincts(projectHash);

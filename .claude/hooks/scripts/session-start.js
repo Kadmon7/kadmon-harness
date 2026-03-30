@@ -2,15 +2,15 @@
 // Hook: session-start | Trigger: SessionStart (*)
 // Purpose: Load previous context, initialize session
 import fs from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { parseStdin } from "./parse-stdin.js";
 
-function gitExec(cmd, cwd) {
+function gitExec(args, cwd) {
   try {
-    return execSync(cmd, {
+    return execFileSync("git", args, {
       cwd,
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
@@ -28,7 +28,7 @@ async function main() {
     if (!sid) process.exit(0);
 
     // Detect project
-    const remoteUrl = gitExec("git remote get-url origin", cwd);
+    const remoteUrl = gitExec(["remote", "get-url", "origin"], cwd);
     if (!remoteUrl) {
       console.log("Kadmon: Not in a git repo — session tracking disabled.");
       process.exit(0);
@@ -38,7 +38,7 @@ async function main() {
       .update(remoteUrl)
       .digest("hex")
       .slice(0, 16);
-    const branch = gitExec("git branch --show-current", cwd) ?? "unknown";
+    const branch = gitExec(["branch", "--show-current"], cwd) ?? "unknown";
 
     // Initialize session dir
     const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
