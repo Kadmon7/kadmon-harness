@@ -9,13 +9,14 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-## Hook Catalog (20)
+## Hook Catalog (23)
 
-### PreToolUse — Bash matcher (3)
+### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | block-no-verify | block-no-verify.js | Blocks git commands with --no-verify flag | 2 on match |
 | commit-format-guard | commit-format-guard.js | Blocks git commits that don't follow conventional commit format | 2 on violation |
+| commit-quality | commit-quality.js | Validates commit message quality and scope | 2 on violation |
 | git-push-reminder | git-push-reminder.js | Reminds to run /verify before git push | 1 as warning |
 
 ### PreToolUse — Edit|Write matcher (2)
@@ -44,6 +45,11 @@ alwaysApply: true
 | ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts edits without code review in session | 1 as warning |
 | console-log-warn | console-log-warn.js | Warns about console.log() in production code | 1 as warning |
 
+### PostToolUse — Bash matcher (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| pr-created | pr-created.js | Detects PR creation and logs PR URL | 0 always |
+
 ### PostToolUse — all tools (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
@@ -64,12 +70,13 @@ alwaysApply: true
 |------|--------|---------|------|
 | session-start | session-start.js | Initializes session: loads instincts, previous session summary | 0 always |
 
-### Stop — all (3)
+### Stop — all (4)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | session-end-persist | session-end-persist.js | Persists session summary and observations to SQLite | 0 always |
 | evaluate-session | evaluate-session.js | Evaluates session quality and updates instinct confidence | 0 always |
 | cost-tracker | cost-tracker.js | Tracks token usage and cost per session | 0 always |
+| session-end-marker | session-end-marker.js | Marks session end for lifecycle tracking | 0 always |
 
 ## Safety
 - NEVER crash Claude Code — always exit(0) on unexpected errors
@@ -88,6 +95,6 @@ alwaysApply: true
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
 ## Windows Compatibility
-- All 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 23 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

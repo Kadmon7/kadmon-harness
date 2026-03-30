@@ -14,13 +14,15 @@ Invoke harness-optimizer agent to analyze every harness component and propose ev
 6. Analyze: recurring problems — propose new rules for persistent issues
 7. Analyze: agent descriptions — flag weak auto-invoke triggers
 8. Analyze: cost trends across sessions
-9. Produce full evolution report with 5 categories:
+9. Analyze: memory health — count files in project memory dir, flag `updated_at` > 30 days, verify MEMORY.md within budget limits, check for orphaned index entries
+10. Produce full evolution report with 6 categories:
    - PROMOTE: instincts ready to become skills
    - CREATE AGENT: skills ready to become agents
    - CREATE COMMAND: patterns ready to become commands
    - CREATE RULE: problems ready to become rules
    - OPTIMIZE: hooks/agents/skills to improve
-10. NEVER auto-apply — architect approves all changes
+   - MEMORY: stale/orphaned/over-budget memory entries
+11. NEVER auto-apply — architect approves all changes
 
 ## Output
 Evolution report with 5 categories of actionable recommendations, priority levels, and expected impact.

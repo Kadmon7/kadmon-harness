@@ -31,17 +31,17 @@ Observe → Remember → Verify → Specialize → Evolve
 - Persistence: SQLite (local fast cache, v1) — Supabase planned for v2
 - Source of truth: GitHub (Kadmon7/kadmon-harness)
 - Runtime: Claude Code CLI on Windows
-- MCPs: GitHub (source of truth), Supabase (persistence), Context7 (live documentation)
+- MCPs: Supabase (persistence), Context7 (live documentation)
+- GitHub: via `gh` CLI (authenticated as Kadmon7, no MCP plugin)
 
 ## File Structure
 ```
 scripts/
 ├── lib/                # Core library (state-store, session-manager, instinct-manager, etc.)
-├── dashboard.ts        # CLI dashboard entry point
-└── sync-instincts-to-memory.ts
+└── dashboard.ts        # CLI dashboard entry point
 .claude/
 ├── hooks/
-│   ├── scripts/        # 20 hook scripts (JS)
+│   ├── scripts/        # 23 hook scripts (JS)
 │   └── pattern-definitions.json
 ├── rules/
 │   ├── common/         # 9 cross-language rules
@@ -126,7 +126,9 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - **Instincts**: learned patterns with confidence scoring (0.3→0.9), promotable at confidence ≥0.7 + occurrences ≥3 (manual via /promote)
 - **Cost events**: token usage tracked per session
 - **Observations**: ephemeral JSONL per session, summarized at session end
-- **Auto Memory**: Claude Code built-in memory in `~/.claude/memory/` (global) and project memory dir
+- **Auto Memory**: project memory in `~/.claude/projects/<project>/memory/` with typed files (6 types: user, feedback, project, reference, decision, gotcha)
+- **AutoDream**: enabled — consolidates memory automatically every 24h/5+ sessions
+- **MEMORY.md**: index file with budget limits per section (max 200 lines total)
 - **Dashboard**: `npx tsx scripts/dashboard.ts` shows instincts, sessions, hook health
 
 ## Hook Latency Budget
@@ -135,6 +137,9 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - All other hooks: < 500ms
 
 ## Common Pitfalls
+- Database lives at `~/.kadmon/kadmon.db` (NOT `data/harness.db`) — use `path.join(homedir(), '.kadmon', 'kadmon.db')`
+- Sessions table uses `id` column (not `session_id`) — check schema with `PRAGMA table_info(sessions)`
+- Auto-memory directory is `~/.claude/projects/C--Command-Center-Kadmon-Harness/` (with hyphens, not spaces)
 - Lifecycle hooks (session-start, session-end-persist, evaluate-session, cost-tracker) import from `dist/` — run `npm run build` after changing `scripts/lib/` or hooks fail silently
 - Hook latency budgets are for hook LOGIC only — Node.js cold start adds ~236ms on Windows, so absolute times appear higher than budgets
 - ORDER BY queries need `rowid` tiebreaker for deterministic results when timestamps collide
@@ -144,4 +149,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.2 — Operational (146 tests passing, 22 hooks, 13 agents, 24 skills, 24 commands)
+v0.2 — Operational (146 tests passing, 23 hooks, 13 agents, 24 skills, 24 commands)

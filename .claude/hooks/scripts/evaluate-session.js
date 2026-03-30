@@ -28,24 +28,6 @@ async function main() {
       );
     }
 
-    // Sync instincts to Auto Memory for cross-session persistence
-    try {
-      const { syncInstinctsToMemory } = await import(
-        new URL(
-          "../../../dist/scripts/sync-instincts-to-memory.js",
-          import.meta.url,
-        ).href
-      );
-      const { synced } = await syncInstinctsToMemory(cwd);
-      if (synced > 0) {
-        console.log(`\u{1F4BE} Synced ${synced} instinct(s) to Auto Memory`);
-      }
-    } catch (syncErr) {
-      console.error(
-        JSON.stringify({ warn: `evaluate-session sync: ${syncErr.message}` }),
-      );
-    }
-
     // Write instinct count for status line
     if (instinctsUpdated > 0) {
       try {
