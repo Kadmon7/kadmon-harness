@@ -42,6 +42,7 @@
       "Bash(date:*)",
       "Bash(tr:*)",
       "Bash(cut:*)",
+      "Bash(uniq:*)",
       "Bash(python3:*)",
       "Bash(pip:*)",
       "Bash(powershell.exe -NoProfile -Command \"[Console]::Beep:*)",
