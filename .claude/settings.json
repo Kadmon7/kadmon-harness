@@ -69,10 +69,6 @@
           {
             "type": "command",
             "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-pre.js"
-          },
-          {
-            "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/suggest-compact.js"
           }
         ]
       }
