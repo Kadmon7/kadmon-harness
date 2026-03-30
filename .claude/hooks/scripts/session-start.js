@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { parseStdin } from "./parse-stdin.js";
+import { generateSummary } from "./generate-session-summary.js";
 
 function gitExec(args, cwd) {
   try {
@@ -63,11 +64,69 @@ async function main() {
         getRecentSessions,
         getActiveInstincts,
         getPromotableInstincts,
+        getOrphanedSessions,
       } = await import(
         new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
           .href
       );
+      const { startSession, endSession } = await import(
+        new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
+          .href
+      );
       await openDb(process.env.KADMON_TEST_DB || undefined);
+
+      // Recover orphaned sessions (best-effort, most recent only)
+      try {
+        const orphans = getOrphanedSessions(projectHash, sid, 1);
+        if (orphans.length > 0) {
+          const orphan = orphans[0];
+          const orphanObsPath = path.join(
+            os.tmpdir(),
+            "kadmon",
+            orphan.id,
+            "observations.jsonl",
+          );
+          let recoveryData = {};
+
+          if (fs.existsSync(orphanObsPath)) {
+            const { summary, tasks } = generateSummary(orphanObsPath);
+            const obsLines = fs
+              .readFileSync(orphanObsPath, "utf8")
+              .split("\n")
+              .filter(Boolean);
+            let msgCount = 0;
+            const filesSet = new Set();
+            const toolsSet = new Set();
+            for (const line of obsLines) {
+              try {
+                const e = JSON.parse(line);
+                if (e.eventType === "tool_pre") msgCount++;
+                if (e.toolName) toolsSet.add(e.toolName);
+                if (e.filePath && ["Edit", "Write"].includes(e.toolName))
+                  filesSet.add(e.filePath);
+              } catch {}
+            }
+            recoveryData = {
+              messageCount: Math.max(orphan.messageCount, msgCount),
+              filesModified:
+                filesSet.size > 0 ? [...filesSet] : orphan.filesModified,
+              toolsUsed: toolsSet.size > 0 ? [...toolsSet] : orphan.toolsUsed,
+              summary: summary || orphan.summary,
+              tasks: tasks.length > 0 ? tasks : orphan.tasks,
+            };
+          }
+
+          endSession(orphan.id, recoveryData);
+          context += `\n- Recovered orphaned session ${orphan.id.slice(0, 8)}...`;
+        }
+      } catch (orphanErr) {
+        console.error(
+          JSON.stringify({
+            warn: `session-start orphan recovery: ${orphanErr.message}`,
+          }),
+        );
+      }
+
       const sessions = getRecentSessions(projectHash, 1);
       const instincts = getActiveInstincts(projectHash);
       const promotable = getPromotableInstincts(projectHash);
@@ -78,7 +137,16 @@ async function main() {
         context += `\n## Previous Session\n- Date: ${last.startedAt} | Branch: ${last.branch}`;
         if (last.summary) context += `\n- Summary: ${last.summary}`;
         if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(", ")}`;
-        context += `\n- Files modified: ${last.filesModified.length}`;
+        context += `\n- Messages: ${last.messageCount} | Compactions: ${last.compactionCount} | Files: ${last.filesModified.length}`;
+        if (last.filesModified.length > 0) {
+          const topFiles = last.filesModified
+            .slice(0, 3)
+            .map((f) => path.basename(f));
+          let filesLine = `\n- Key files: ${topFiles.join(", ")}`;
+          if (last.filesModified.length > 3)
+            filesLine += ` (+${last.filesModified.length - 3} more)`;
+          context += filesLine;
+        }
 
         // Check if previous session ended cleanly (best-effort, temp dirs may be gone)
         try {
@@ -113,10 +181,6 @@ async function main() {
       statusLine = `\n## Status\n- Instincts: ${instincts.length} active${promoLabel} | Last session: ${lastCost} | ${lastMsgs} msgs`;
 
       // Start new session
-      const { startSession } = await import(
-        new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
-          .href
-      );
       startSession(sid, { projectHash, remoteUrl, branch, rootDir: cwd });
     } catch (dbErr) {
       console.log(

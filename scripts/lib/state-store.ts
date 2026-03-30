@@ -289,6 +289,21 @@ export function getRecentSessions(
     .map(mapSessionRow);
 }
 
+export function getOrphanedSessions(
+  projectHash: string,
+  excludeSessionId: string,
+  limit = 1,
+): SessionSummary[] {
+  return getDb()
+    .prepare(
+      `SELECT * FROM sessions
+       WHERE project_hash = ? AND (ended_at IS NULL OR ended_at = '')
+         AND id != ? ORDER BY started_at DESC, rowid DESC LIMIT ?`,
+    )
+    .all(projectHash, excludeSessionId, limit)
+    .map(mapSessionRow);
+}
+
 // ─── Instinct operations ───
 
 function mapInstinctRow(row: Record<string, unknown>): Instinct {

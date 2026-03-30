@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { parseStdin } from "./parse-stdin.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
+import { generateSummary } from "./generate-session-summary.js";
 
 async function main() {
   try {
@@ -16,6 +17,9 @@ async function main() {
     const obsPath = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
     let fileCount = 0;
     let toolCount = 0;
+    let messageCount = 0;
+    const filesModified = new Set();
+    const toolsUsed = new Set();
 
     if (fs.existsSync(obsPath)) {
       const lines = fs
@@ -27,10 +31,27 @@ async function main() {
       for (const line of lines) {
         try {
           const e = JSON.parse(line);
+          if (e.eventType === "tool_pre") messageCount++;
+          if (e.toolName) toolsUsed.add(e.toolName);
+          if (e.filePath && ["Edit", "Write"].includes(e.toolName))
+            filesModified.add(e.filePath);
           if (e.filePath) files.add(e.filePath);
         } catch {}
       }
       fileCount = files.size;
+    }
+
+    // Generate summary from observations (best-effort)
+    let summary;
+    let tasks = [];
+    try {
+      const result = generateSummary(obsPath);
+      if (result.summary) summary = result.summary;
+      if (result.tasks.length > 0) tasks = result.tasks;
+    } catch (sumErr) {
+      console.error(
+        JSON.stringify({ warn: `pre-compact-save summary: ${sumErr.message}` }),
+      );
     }
 
     try {
@@ -45,6 +66,12 @@ async function main() {
           ...session,
           id: sid,
           compactionCount: (session.compactionCount ?? 0) + 1,
+          messageCount: Math.max(session.messageCount ?? 0, messageCount),
+          filesModified:
+            filesModified.size > 0 ? [...filesModified] : session.filesModified,
+          toolsUsed: toolsUsed.size > 0 ? [...toolsUsed] : session.toolsUsed,
+          summary: summary ?? session.summary,
+          tasks: tasks.length > 0 ? tasks : session.tasks,
         });
       }
     } catch (dbErr) {
