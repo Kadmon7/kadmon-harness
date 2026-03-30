@@ -30,9 +30,8 @@ Read thoroughly, prioritize by severity, suggest fixes. Never implement during r
 - Read — primary tool (read every changed file)
 - Grep — search for patterns across codebase
 - Glob — find related files
-- code-reviewer agent — structured review
+- code-reviewer agent — structured review (includes TypeScript specialist mode for .ts/.tsx)
 - security-reviewer agent — for auth/crypto/input code
-- typescript-reviewer agent — for .ts type safety
 
 ## Output Format
 BLOCK items first, then WARN, then NOTE.

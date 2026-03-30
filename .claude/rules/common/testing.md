@@ -29,8 +29,7 @@ alwaysApply: true
 ## Enforcement
 - tdd-guide agent enforces red-green-refactor cycle via /tdd command
 - e2e-runner agent runs full workflow tests via /e2e command
-- /verify command runs typecheck + tests + lint as verification loop
-- /quality-gate command runs all quality checks including test suite
+- /verify command runs typecheck + tests + lint as verification loop (use `/verify full` for security scan)
 - /test-coverage command reports coverage per file
 - /eval command evaluates agent and skill quality with structured tests
 - post-edit-typecheck hook catches type errors immediately after edits

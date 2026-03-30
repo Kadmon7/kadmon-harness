@@ -32,5 +32,4 @@ Code first, explain after. All safety and quality hooks active.
 ## Agents
 - tdd-guide for new features
 - build-error-resolver when builds fail
-- code-reviewer before commits
-- typescript-reviewer on .ts edits (auto-triggered)
+- code-reviewer before commits and on .ts edits (TypeScript specialist mode)
