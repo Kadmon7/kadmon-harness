@@ -9,8 +9,9 @@ Intelligent context compaction that preserves critical state. Replaces the manua
 
 ### 1. Audit
 Report current context state:
-- Count tool calls this session from observations JSONL: `wc -l /tmp/kadmon/<session>/observations.jsonl`
-- List the 5 most recently Read/Edited files from observations
+- Count tool calls this session from observations JSONL — use pipes to avoid `$()` permission prompts:
+  - `ls -td /tmp/kadmon/*/ 2>/dev/null | head -1 | xargs -I{} wc -l {}observations.jsonl`
+  - `ls -td /tmp/kadmon/*/ 2>/dev/null | head -1 | xargs -I{} grep -o '"file_path":"[^"]*"' {}observations.jsonl | sort | uniq -c | sort -rn | head -5`
 - Run `git diff --stat` to check for uncommitted changes
 
 ### 2. Safety Check
