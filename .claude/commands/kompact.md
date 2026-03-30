@@ -3,7 +3,7 @@ description: Smart context compaction — audit, summarize, compact, reload esse
 ---
 
 ## Purpose
-Intelligent context compaction that preserves critical state and reloads essentials automatically. Replaces the manual flow of /context-budget → think → /compact → re-read files.
+Intelligent context compaction that preserves critical state. Replaces the manual flow of /context-budget → think → /compact → re-read files.
 
 ## Steps
 
@@ -23,25 +23,18 @@ Warn and ask for confirmation if:
 If all clear: "Safety: OK — good time to compact."
 
 ### 3. Summarize Current Work
-Before compacting, write a 2-3 line summary of:
+Before compacting, write a summary that includes:
 - What task is currently in progress
 - Which files are being actively worked on
 - What the next step would be after compaction
+- **Files to reload after compact:** list the 1-2 most important files to re-read (e.g., `scripts/lib/types.ts`, the last edited file)
 
-Display this summary — it will survive compaction as part of the conversation.
+Display this summary — it will survive compaction as part of the conversation and serve as a reload guide.
 
 ### 4. Compact
-Run the built-in `/compact` command. The `pre-compact-save` hook will automatically:
-- Save tool count and file count to SQLite
-- Increment compactionCount on the session
-
-### 5. Reload Essentials
-After compaction, automatically re-read these files:
-- `scripts/lib/types.ts` — the vocabulary (always reload)
-- The most recently edited file from observations (if any)
-- Show compact status line: `Status: N instincts (M promotable) | K sessions | $X.XX total cost`
-  - Get this from: `getInstinctCounts()` + `getRecentSessions()` count + `getCostSummaryByModel()` total
-  - Do NOT run full `/dashboard` — it wastes context after compaction
+Tell the user to run `/compact` — do NOT attempt to execute it (it is a built-in CLI command that cannot be called programmatically).
+Display: `Ready to compact. Run: /compact`
+Then STOP and wait. The `pre-compact-save` hook will automatically save session state to SQLite.
 
 ## Output
 ```
@@ -54,15 +47,12 @@ Audit:
 
 Safety: OK (no uncommitted changes)
 
-Summary: "Optimizing skill descriptions using skill-creator.
-Working on: .claude/skills/*.md (Batch 2+3)
-Next: commit optimized skills, then Phase 2 B-grade skills."
+Summary:
+  Task: Optimizing skill descriptions using skill-creator.
+  Working on: .claude/skills/*.md (Batch 2+3)
+  Next: commit optimized skills, then Phase 2 B-grade skills.
+  Reload after compact: scripts/lib/types.ts, .claude/skills/postgres-patterns.md
 
-Compacting... done.
-
-Reloaded:
-  ✓ scripts/lib/types.ts
-  ✓ .claude/skills/postgres-patterns.md (last edited)
-  Status: 15 instincts (10 promotable) | 5 sessions | $4.05 total
+Ready to compact. Run: /compact
 ━━━━━━━━━━━━━━━━━━━━━━
 ```

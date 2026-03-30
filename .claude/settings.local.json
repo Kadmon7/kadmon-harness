@@ -64,12 +64,7 @@
       "WebFetch(domain:zod.dev)",
       "Read(//tmp/**)",
       "Read(//c/Users/kadmo/.kadmon/**)",
-      "Skill(*:*)",
-      "Bash(PATH=\"$PATH:/c/Program Files/nodejs\" node -e \":*)",
-      "Bash(PATH=\"$PATH:/c/Program Files/nodejs\" npx tsc --noEmit)",
-      "Bash(PATH=\"$PATH:/c/Program Files/nodejs\" npx vitest run)",
-      "Bash(PATH=\"$PATH:/c/Program Files/nodejs\" npx vitest run tests/lib/dashboard.test.ts)",
-      "Bash(PATH=\"$PATH:/c/Program Files/nodejs\" npx tsx scripts/dashboard.ts)"
+      "Skill(*:*)"
     ]
   }
 }
