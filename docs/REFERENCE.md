@@ -212,7 +212,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 ### 2.4 — Hooks (.claude/hooks/scripts/)
 
-20 hook scripts + 1 utilidad. Se ejecutan automaticamente en respuesta a eventos de Claude Code.
+22 hook scripts + 3 utilidades (parse-stdin, generate-session-summary, evaluate-patterns-shared). Se ejecutan automaticamente en respuesta a eventos de Claude Code.
 
 **Codigos de salida:**
 - `exit(0)` = permitir la operacion
@@ -233,8 +233,6 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | Hook | Evento | Matcher | Que hace | Exit |
 |------|--------|---------|----------|------|
 | **git-push-reminder** | PreToolUse | Bash | Recuerda ejecutar `/verify` antes de git push | 1 |
-| **transparency-reminder** | PreToolUse | Agent | Recuerda anunciar invocaciones de agentes con emojis | 1 |
-| **suggest-compact** | PreToolUse | all | Sugiere compactar contexto cuando la ventana es grande | 1 |
 | **ts-review-reminder** | PostToolUse | Edit\|Write | Advierte tras 5+ ediciones .ts sin code review | 1 |
 
 #### Observacion (registran lo que pasa)
@@ -289,9 +287,9 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **common/coding-style.md** | Naming, tipos, imports | MUST camelCase para variables; NEVER usar `any`; MUST `node:` prefix para builtins | post-edit-typecheck, quality-gate |
 | **common/development-workflow.md** | Orden de trabajo | ALWAYS Research→Plan→Test→Implement→Review→Commit; ALWAYS /verify antes de /checkpoint; NEVER commit tests rojos | no-context-guard, block-no-verify |
 | **common/git-workflow.md** | Commits y branches | MUST conventional commits; NEVER force push a main; NEVER --no-verify | block-no-verify, config-protection |
-| **common/hooks.md** | Catalogo de 20 hooks | NEVER crashear Claude Code; MUST try/catch; observe hooks < 50ms | Self-documenting |
+| **common/hooks.md** | Catalogo de 22 hooks | NEVER crashear Claude Code; MUST try/catch; observe hooks < 50ms | Self-documenting |
 | **common/patterns.md** | Patrones de diseno | MUST dependency injection; NEVER global mutable state; MUST context en error messages | no-context-guard |
-| **common/performance.md** | Rendimiento | NEVER cargar archivos > 50KB; MUST batch operations en SQLite; PREFER lazy loading | suggest-compact, cost-tracker |
+| **common/performance.md** | Rendimiento | NEVER cargar archivos > 50KB; MUST batch operations en SQLite; PREFER lazy loading | cost-tracker |
 | **common/security.md** | Seguridad | NEVER commit secrets; ALWAYS validar input con Zod; NEVER string concat para SQL | security-reviewer, config-protection |
 | **common/testing.md** | Testing | MUST 80%+ coverage nuevo codigo; MUST `:memory:` SQLite para tests; MUST Vitest | tdd-guide, post-edit-typecheck |
 
@@ -325,7 +323,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 Archivo central de configuracion del harness. Controla:
 
-**Hooks:** Registra los 20 hooks con su evento, matcher y comando. Cada hook usa el pattern:
+**Hooks:** Registra los 22 hooks con su evento, matcher y comando. Cada hook usa el pattern:
 ```json
 {
   "hooks": {
@@ -664,5 +662,5 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 
 ---
 
-*Kadmon Harness v0.1 — 14 agentes, 24 comandos, 23 skills, 20 hooks*
+*Kadmon Harness v0.2 — 13 agentes, 24 comandos, 24 skills, 22 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

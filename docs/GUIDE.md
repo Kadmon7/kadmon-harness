@@ -2,16 +2,16 @@
 
 ## 1. ¿Qué es Kadmon Harness?
 
-Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 20 hooks, 13 agentes especializados y un motor de aprendizaje por instintos.
+Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 22 hooks, 13 agentes especializados y un motor de aprendizaje por instintos.
 
 ### El Mantra: Observe → Remember → Verify → Specialize → Evolve
 
 | Fase | Qué hace | Componentes clave |
 |------|----------|-------------------|
-| **Observe** | Registra cada operación, gestiona contexto | observe hooks, `/context-budget`, suggest-compact |
+| **Observe** | Registra cada operación, gestiona contexto | observe hooks, `/context-budget`, `/kompact` |
 | **Remember** | Persiste sesiones, instintos, decisiones | SQLite, sessions, `/checkpoint`, `/docs` |
 | **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 13 agentes, 23 skills, `/kplan` |
+| **Specialize** | Agentes de dominio, skills reutilizables | 13 agentes, 24 skills, `/kplan` |
 | **Evolve** | Aprende de sesiones, extrae patrones | `/learn`, `/evolve`, instinct engine |
 
 ### ¿Cómo difiere de Claude Code vanilla?
@@ -108,7 +108,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ---
 
-## 4. Los 23 Comandos
+## 4. Los 24 Comandos
 
 ### Observe (3)
 
@@ -246,7 +246,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ## 7. El Sistema de Hooks
 
-Kadmon tiene **20 hooks** que se ejecutan automáticamente en distintos momentos.
+Kadmon tiene **22 hooks** que se ejecutan automáticamente en distintos momentos.
 
 ### Hooks de seguridad (bloquean operaciones)
 
@@ -262,7 +262,6 @@ Kadmon tiene **20 hooks** que se ejecutan automáticamente en distintos momentos
 |------|-------------|----------|
 | observe-pre | Cada invocación de herramienta (pre-ejecución) | < 50ms |
 | observe-post | Resultado de cada herramienta (post-ejecución) | < 50ms |
-| suggest-compact | Sugiere `/compact` cuando hay > 50 tool calls | — |
 
 ### Hooks post-edición (validan cambios)
 
@@ -442,7 +441,7 @@ claude
 
 1. **Usa `/context-budget` al inicio de sesiones largas** — te dice cuánto contexto queda y qué está consumiendo más.
 
-2. **Compacta en los momentos correctos** — después de commits, entre features, nunca a mitad de implementación. El hook `suggest-compact` te avisa cuando llevas > 50 tool calls.
+2. **Compacta en los momentos correctos** — después de commits, entre features, nunca a mitad de implementación. Usa `/kompact` para un flujo guiado de compactación.
 
 3. **Lee las puntuaciones de instintos** — `/instinct-status` muestra barras de confianza:
    - `████████░░` (0.8) = patrón muy confiable
@@ -499,5 +498,5 @@ claude
 
 ---
 
-*Kadmon Harness v0.2 — 13 agentes, 23 comandos, 23 skills, 20 hooks*
+*Kadmon Harness v0.2 — 13 agentes, 24 comandos, 24 skills, 22 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

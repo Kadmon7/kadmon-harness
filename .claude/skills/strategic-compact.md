@@ -1,6 +1,6 @@
 ---
 name: strategic-compact
-description: Decide the right moment to compact context — after commits, between phases, never mid-task. Use this skill whenever the suggest-compact hook fires, when switching from one major task to another, after completing and committing a feature, or before starting a new area of the codebase. Also use when tempted to compact mid-debugging or mid-implementation — this skill explains why that's dangerous and when to wait.
+description: Decide the right moment to compact context — after commits, between phases, never mid-task. Use this skill when switching from one major task to another, after completing and committing a feature, or before starting a new area of the codebase. Also use when tempted to compact mid-debugging or mid-implementation — this skill explains why that's dangerous and when to wait.
 ---
 
 # Strategic Compact
@@ -8,7 +8,7 @@ description: Decide the right moment to compact context — after commits, betwe
 Compact at the right moment, not arbitrarily.
 
 ## When to Use
-- When suggest-compact hook fires
+- When context feels large or responses degrade
 - Between major implementation phases
 - After completing a self-contained task
 - Before switching to a completely different area of the codebase

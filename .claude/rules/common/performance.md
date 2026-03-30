@@ -23,7 +23,6 @@ alwaysApply: true
 - Sonnet also handles: documentation (doc-updater), formatting, lookups (docs-lookup)
 
 ## Enforcement
-- suggest-compact hook monitors context window size and suggests compaction (PreToolUse on all tools)
 - pre-compact-save hook preserves session state before context compaction (PreCompact)
 - /context-budget command audits current context window usage
 - cost-tracker hook tracks token usage per session (Stop event)

@@ -1,22 +1,107 @@
 # Kadmon Harness
 
-Universal operative layer for Claude Code.
+**Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
+
+`154 tests` | `22 hooks` | `13 agents` | `24 skills` | `24 commands`
 
 ## Mantra
 
-**Observe → Remember → Verify → Specialize → Evolve**
+**Observe &rarr; Remember &rarr; Verify &rarr; Specialize &rarr; Evolve**
 
-| Phase | What It Does |
-|-------|-------------|
-| Observe | Watch tool calls, manage context budget, research before code |
-| Remember | Persist sessions, track instincts (learned patterns), record ADRs |
-| Verify | TDD, code review, security review, quality gates, type checking |
-| Specialize | Domain-specific agents, curated skill catalog |
-| Evolve | Learn from sessions, extract patterns, promote instincts to skills |
+| Phase | What It Does | Key Components |
+|-------|-------------|----------------|
+| **Observe** | Watch every tool call, manage context | observe hooks, `/context-budget`, `/kompact` |
+| **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/checkpoint` |
+| **Verify** | Tests first, code review, quality gates | `/tdd`, `/verify`, `/code-review` |
+| **Specialize** | Domain agents, curated skill catalog | 13 agents, 24 skills, `/kplan` |
+| **Evolve** | Learn from sessions, promote patterns to skills | `/learn`, `/evolve`, `/promote` |
+
+## Quick Start
+
+```bash
+git clone https://github.com/Kadmon7/kadmon-harness.git
+cd kadmon-harness
+npm install
+npm run build
+```
+
+Start a Claude Code session — Kadmon activates automatically via hooks:
+
+```bash
+claude
+```
+
+Key commands inside a session:
+
+```bash
+/dashboard          # System state: instincts, sessions, costs, hook health
+/kplan              # Plan complex tasks (routes to architect + planner)
+/tdd                # Test-driven development cycle
+/verify             # Typecheck + tests + lint
+/checkpoint         # Verify, commit, push
+/kompact            # Smart context compaction
+/learn              # Extract patterns from current session
+```
+
+## Dashboard
+
+```
+╔══════════════════════════════════════╗
+║       KADMON HARNESS DASHBOARD       ║
+╚══════════════════════════════════════╝
+
+── INSTINCTS (10 active | 10 promotable) ──
+  [█████████░] 0.9  Build after editing TypeScript (14x) → /promote
+  [█████████░] 0.9  Re-run tests after fixing failures (14x) → /promote
+  [███░░░░░░░] 0.3  Research before building (1x)
+
+── SESSIONS ──
+  Date        Branch              Files  Msgs  Cmps  Duration  Cost
+  2026-03-30  main                   12   640     2    3h 15m  $4.52  *
+  2026-03-29  main                    6    87     0    1h 30m  $0.45
+
+── COST SUMMARY ──
+  Model              Sessions  Tokens In  Tokens Out   Cost
+  opus                      3      450.2K     125.3K  $3.20
+  sonnet                    8      280.1K      95.4K  $0.85
+  Total                                              $4.05
+
+── HOOK HEALTH ──
+  Tool            Total  Fail  Status
+  Read               62     0  OK
+  Edit               14     0  OK
+  Bash               45     0  OK
+```
 
 ## Architecture
 
-Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, hooks, and contexts that shape how Claude Code behaves during development. It enforces the `no_context` principle — never invent, never hallucinate — at the tool level via a PreToolUse hook that blocks code generation without prior research.
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Claude Code CLI                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │ PreTool  │→ │  Tool    │→ │ PostTool │             │
+│  │ Hooks(8) │  │ Execute  │  │ Hooks(7) │             │
+│  └──────────┘  └──────────┘  └──────────┘             │
+│       │                            │                    │
+│       ▼                            ▼                    │
+│  ┌──────────────────────────────────────┐              │
+│  │        observations.jsonl            │ ← ephemeral  │
+│  └──────────────────────────────────────┘              │
+│       │                                                 │
+│  ┌────┴────┐  ┌──────────┐  ┌──────────┐             │
+│  │Sessions │  │Instincts │  │  Costs   │ ← SQLite    │
+│  └─────────┘  └──────────┘  └──────────┘             │
+│                                                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │ 13 Agents│  │ 24 Skills│  │ 14 Rules │             │
+│  └──────────┘  └──────────┘  └──────────┘             │
+│                                                         │
+│  Lifecycle: SessionStart → PreCompact → Stop            │
+│  Recovery:  Orphan detection on next SessionStart       │
+└─────────────────────────────────────────────────────────┘
+```
 
 ## Components
 
@@ -25,135 +110,134 @@ Kadmon Harness is a Claude Code plugin system: agents, skills, commands, rules, 
 | Agents | 13 (5 opus, 8 sonnet) | `.claude/agents/` |
 | Skills | 24 | `.claude/skills/` |
 | Commands | 24 | `.claude/commands/` |
-| Hooks | 20 | `.claude/hooks/scripts/` |
-| Rules | 14 | `.claude/rules/` |
-| Contexts | 3 | `.claude/contexts/` |
+| Hooks | 22 | `.claude/hooks/scripts/` |
+| Rules | 14 (9 common + 5 TS) | `.claude/rules/` |
 
-## Quick Start
+## Agents
 
-### Prerequisites
-- Node.js 18+
-- Claude Code CLI
-- Git
+| Agent | Model | Trigger |
+|-------|-------|---------|
+| architect | opus | `/kplan` when design signals detected |
+| planner | opus | `/kplan` always (after architect or directly) |
+| code-reviewer | sonnet | `/code-review`, `/checkpoint` |
+| typescript-reviewer | sonnet | Auto on `.ts`/`.tsx` edits |
+| database-reviewer | opus | Auto on SQL/Supabase edits |
+| security-reviewer | opus | Auto on auth/keys/input code |
+| tdd-guide | sonnet | `/tdd` |
+| build-error-resolver | sonnet | Auto on build failures |
+| refactor-cleaner | sonnet | `/refactor-clean` |
+| docs-lookup | sonnet | `/docs` |
+| doc-updater | sonnet | `/update-docs` |
+| e2e-runner | sonnet | `/e2e` |
+| harness-optimizer | opus | `/evolve` |
 
-### Installation
-```bash
-git clone https://github.com/Kadmon7/kadmon-harness.git
-cd kadmon-harness
-npm install
-npm run build
+## Commands by Phase
+
+### Observe
+| Command | Purpose |
+|---------|---------|
+| `/dashboard` | System state: instincts, sessions, costs, hook health |
+| `/kompact` | Smart compaction: audit, safety check, summarize, compact |
+| `/context-budget` | Audit context window usage |
+
+### Remember
+| Command | Purpose |
+|---------|---------|
+| `/checkpoint` | Verify + commit + push |
+| `/docs` | Look up live documentation (Context7) |
+| `/update-docs` | Update project documentation |
+| `/sessions` | List past sessions |
+
+### Verify
+| Command | Purpose |
+|---------|---------|
+| `/tdd` | Test-driven development cycle |
+| `/verify` | Typecheck + tests + lint |
+| `/build-fix` | Diagnose and fix build errors |
+| `/code-review` | Run code review on changes |
+| `/quality-gate` | All quality checks |
+| `/test-coverage` | Coverage report per file |
+| `/e2e` | End-to-end tests |
+| `/eval` | Evaluate agent/skill quality |
+
+### Specialize
+| Command | Purpose |
+|---------|---------|
+| `/kplan` | Smart planning (architect + planner routing) |
+
+### Evolve
+| Command | Purpose |
+|---------|---------|
+| `/learn` | Extract patterns from current session |
+| `/learn-eval` | Evaluate learned pattern quality |
+| `/evolve` | Harness self-optimization analysis |
+| `/instinct-status` | Show learned instincts with confidence bars |
+| `/instinct-export` | Export instincts to JSON |
+| `/promote` | Promote high-confidence instinct to skill |
+| `/prune` | Archive weak instincts |
+| `/refactor-clean` | Invoke refactor-cleaner agent |
+
+## Session Lifecycle
+
+```
+SessionStart hook
+  ├── Back up SQLite database
+  ├── Recover orphaned sessions (crash recovery)
+  ├── Load previous session context + instincts
+  └── Start new session record
+
+During session
+  ├── observe-pre: log every tool call to observations.jsonl
+  └── observe-post: log every tool result
+
+On /compact (PreCompact hook)
+  ├── Persist messageCount, filesModified, toolsUsed
+  ├── Generate session summary
+  ├── Evaluate and reinforce instinct patterns
+  └── Reset tool counter
+
+On clean exit (Stop hooks)
+  ├── Persist final session summary + tasks
+  ├── Evaluate patterns → create/reinforce instincts
+  ├── Track cost (tokens, model, USD)
+  └── Write clean-exit marker
+
+On crash / terminal close
+  └── Next SessionStart recovers the orphaned session
 ```
 
-### Usage
-```bash
-# Start a Claude Code session — Kadmon Harness activates automatically
-claude
+## Instinct System
 
-# Run the dashboard to inspect system state
-npx tsx scripts/dashboard.ts
+Instincts are patterns learned from sessions. They start weak and grow with evidence.
 
-# Key commands
-/kplan          # Plan complex tasks
-/tdd            # Test-driven development
-/verify         # Run verification loop
-/checkpoint     # Commit with quality gates
-/docs <topic>   # Look up documentation
-/instinct-status # Show learned patterns
+```
+Created:    confidence 0.3, occurrences 1
+Reinforced: confidence += 0.1 per matching session
+Promotable: confidence >= 0.7 AND occurrences >= 3
+Promoted:   becomes a permanent skill via /promote
+```
+
+Example instincts:
+```
+[█████████░] 0.9  Build after editing TypeScript (14x)  → /promote
+[████████░░] 0.8  Re-run tests after fixing failures (12x) → /promote
+[███░░░░░░░] 0.3  Research before building (1x)
 ```
 
 ## Stack
 
-- **Language**: TypeScript / JavaScript
-- **Persistence**: SQLite (local, v1) — Supabase planned for v2
-- **Source of truth**: GitHub
-- **Runtime**: Claude Code CLI on Windows
-- **MCPs**: GitHub, Supabase, Context7
-
-## Agents (13)
-
-| Agent | Model | Trigger |
-|-------|-------|---------|
-| architect | opus | /kplan, design review |
-| planner | opus | /kplan, multi-file tasks |
-| code-reviewer | sonnet | /code-review, /checkpoint |
-| typescript-reviewer | sonnet | Auto on .ts/.tsx edits |
-| database-reviewer | opus | Auto on SQL/Supabase edits |
-| security-reviewer | opus | Auto on auth/keys/input code |
-| tdd-guide | sonnet | /tdd |
-| build-error-resolver | sonnet | Auto on build failures |
-| refactor-cleaner | sonnet | /refactor-clean |
-| docs-lookup | sonnet | /docs |
-| doc-updater | sonnet | /update-docs |
-| e2e-runner | sonnet | /e2e |
-| harness-optimizer | opus | /evolve |
-
-## Skills (24)
-
-Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
-
-| Skill | Domain |
-|-------|--------|
-| search-first | Research before coding |
-| safety-guard | no_context enforcement |
-| tdd-workflow | TDD cycle guide |
-| verification-loop | Verify pipeline |
-| context-budget | Context window management |
-| strategic-compact | Context compaction |
-| continuous-learning-v2 | Instinct/learning system |
-| coding-standards | Code style enforcement |
-| security-review | Security audit checklist |
-| e2e-testing | End-to-end test patterns |
-| eval-harness | Evaluation framework |
-| documentation-lookup | Context7 doc lookup |
-| architecture-decision-records | ADR templates |
-| agentic-engineering | Multi-agent orchestration |
-| api-design | REST/RPC design patterns |
-| claude-api | Claude API usage |
-| cost-aware-llm-pipeline | Token cost optimization |
-| database-migrations | Schema migration patterns |
-| iterative-retrieval | RAG retrieval patterns |
-| iterative-retrieval-hebrew | Hebrew-specific RAG retrieval |
-| mcp-server-patterns | MCP integration |
-| postgres-patterns | PostgreSQL/Supabase |
-| explore-before-act | Read multiple files before editing |
-| verify-before-commit | Verify before git commit/push |
-
-## Commands (24)
-
-| Command | Phase | Purpose |
-|---------|-------|---------|
-| /kplan | Specialize | Smart planning — routes to architect+planner or planner-only based on task signals |
-| /tdd | Verify | Test-driven development cycle |
-| /verify | Verify | Run typecheck + tests + lint |
-| /build-fix | Verify | Fix build errors |
-| /code-review | Verify | Run code review |
-| /quality-gate | Verify | Run all quality checks |
-| /test-coverage | Verify | Check test coverage |
-| /e2e | Verify | Generate and run E2E tests |
-| /eval | Verify | Run evaluation harness |
-| /checkpoint | Remember | Save progress + commit + push |
-| /docs | Remember | Lookup documentation |
-| /update-docs | Remember | Update project documentation |
-| /sessions | Remember | List past sessions |
-| /context-budget | Observe | Audit context window |
-| /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
-| /refactor-clean | Evolve | Refactor code |
-| /learn | Evolve | Extract session patterns |
-| /learn-eval | Evolve | Evaluate learned patterns |
-| /evolve | Evolve | Cluster instincts into skills |
-| /instinct-status | Evolve | Show learned instincts |
-| /instinct-export | Evolve | Export instincts |
-| /promote | Evolve | Promote instinct to global |
-| /prune | Evolve | Clean up low-confidence instincts |
-| /kompact | Observe | Smart compaction — audit, safety check, compact, reload |
+- **Language**: TypeScript / Node.js
+- **Persistence**: SQLite via sql.js (local, v1) — Supabase planned for v2
+- **Runtime**: Claude Code CLI
+- **MCPs**: Supabase, Context7
+- **Testing**: Vitest (154 tests)
 
 ## Windows Compatibility
 
-- Hook stdin parsing: shared `parseStdin()` helper sanitizes unescaped backslashes; `wasTruncated()` detects oversized payloads
-- Hook execution: `PATH` prefix ensures Node.js is found in bash
-- Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
-- MCP servers: `cmd /c npx` wrapper for GitHub and Context7
-- `/doctor`: 0 warnings
+- Shared `parseStdin()` helper sanitizes unescaped backslashes in hook stdin
+- `PATH` prefix ensures Node.js resolution in Git Bash
+- Non-critical hooks support `KADMON_DISABLED_HOOKS` env var
+- MCP servers use `cmd /c npx` wrapper
 
 ## Attribution
 
@@ -161,4 +245,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.2 — Operational (146 tests passing, 20 hooks, 24 skills, 24 commands, 13 agents)
+v0.2 — Operational (154 tests passing, 22 hooks, 13 agents, 24 skills, 24 commands)

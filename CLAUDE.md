@@ -20,7 +20,7 @@ Observe → Remember → Verify → Specialize → Evolve
 
 | Phase | Components |
 |-------|-----------|
-| Observe | observe hooks, context-budget, search-first, suggest-compact |
+| Observe | observe hooks, context-budget, search-first |
 | Remember | session persistence, instinct store, ADRs, /checkpoint, /docs |
 | Verify | TDD, code review, security review, quality gates, type checking, no-context-guard |
 | Specialize | domain agents, skill catalog, /kplan |
@@ -41,7 +41,7 @@ scripts/
 └── dashboard.ts        # CLI dashboard entry point
 .claude/
 ├── hooks/
-│   ├── scripts/        # 23 hook scripts (JS)
+│   ├── scripts/        # 22 hook scripts (JS)
 │   └── pattern-definitions.json
 ├── rules/
 │   ├── common/         # 9 cross-language rules
@@ -149,4 +149,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.2 — Operational (146 tests passing, 23 hooks, 13 agents, 24 skills, 24 commands)
+v0.2 — Operational (154 tests passing, 22 hooks, 13 agents, 24 skills, 24 commands)

@@ -91,7 +91,7 @@ async function main() {
       );
     }
 
-    // Reset tool count so suggest-compact starts fresh after compaction
+    // Reset tool count after compaction
     const countFile = path.join(os.tmpdir(), "kadmon", sid, "tool_count.txt");
     try {
       fs.writeFileSync(countFile, "0");

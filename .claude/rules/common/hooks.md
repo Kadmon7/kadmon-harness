@@ -9,7 +9,7 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-## Hook Catalog (23)
+## Hook Catalog (22)
 
 ### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
@@ -30,11 +30,10 @@ alwaysApply: true
 |------|--------|---------|------|
 | mcp-health-check | mcp-health-check.js | Validates MCP server health before MCP tool calls | 1 on unhealthy |
 
-### PreToolUse — all tools (2)
+### PreToolUse — all tools (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | observe-pre | observe-pre.js | Logs tool invocation to observations JSONL (pre-execution) | 0 always |
-| suggest-compact | suggest-compact.js | Suggests context compaction when window is large | 1 as suggestion |
 
 ### PostToolUse — Edit|Write matcher (5)
 | Hook | Script | Purpose | Exit |
@@ -95,6 +94,6 @@ alwaysApply: true
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
 ## Windows Compatibility
-- All 23 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 22 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin
