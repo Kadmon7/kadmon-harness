@@ -3,14 +3,14 @@ description: Show the Kadmon Harness dashboard — instincts, sessions, costs, h
 ---
 
 ## Purpose
-Display a visual dashboard of the harness state: active instincts with confidence bars, recent sessions, cost breakdown, and hook health status.
+Display a visual dashboard of the harness state: active instincts (with promotable markers), recent sessions (filtered, with duration), cost breakdown by model, and hook health status.
 
 ## Steps
 1. Run: `npx tsx scripts/dashboard.ts`
 2. Display the output to the user
 
 ## Output
-ANSI-colored dashboard with 4 sections: Instincts, Sessions, Costs, Hook Health.
+ANSI-colored dashboard with 4 sections: Instincts (with inline promotable markers), Sessions (filtered + duration), Cost Summary (by model), Hook Health.
 
 ## Example
 ```
@@ -18,20 +18,27 @@ ANSI-colored dashboard with 4 sections: Instincts, Sessions, Costs, Hook Health.
 ║       KADMON HARNESS DASHBOARD       ║
 ╚══════════════════════════════════════╝
 
-── INSTINCTS ──
-  [███████░░░] 0.7  Read files before editing (5x)
-  [████░░░░░░] 0.4  Batch related edits (2x)
+── INSTINCTS (15 active | 10 promotable) ──
+  [█████████░] 0.9  Check dashboard for system health (12x) → /promote
+  [█████████░] 0.9  Build after editing TypeScript (15x) → /promote
+  [███░░░░░░░] 0.3  Research before building (1x)
 
 ── SESSIONS ──
-  Date        Branch                 Files  Cost
-  2026-03-26  main                       6  $0.45
+  Date        Branch              Files  Msgs  Cmps  Duration  Cost
+  2026-03-30  main                   12   640     2        —  $4.52  *
+  2026-03-29  main                    6    87     0    1h 30m  $0.45
+  * = live session
 
-── COSTS ──
-  Date        Session          Events  Cost
-  2026-03-26  769d4b01-83e5        2  $0.01
+── COST SUMMARY ──
+  Model              Sessions  Tokens In  Tokens Out   Cost
+  claude-opus-4             3      450.2K     125.3K  $3.20
+  claude-sonnet-4           8      280.1K      95.4K  $0.85
+  ──────────────────────────────────────────────────────────
+  Total                                                $4.05
 
 ── HOOK HEALTH ──
-  Tool       Total  Fail  Status
-  Read          62     0  OK
-  Edit          14     0  OK
+  Tool            Total  Fail  Status
+  Read               62     0  OK
+  Edit               14     0  OK
+  ExitPlanMode        8     0  OK
 ```

@@ -39,7 +39,9 @@ Run the built-in `/compact` command. The `pre-compact-save` hook will automatica
 After compaction, automatically re-read these files:
 - `scripts/lib/types.ts` — the vocabulary (always reload)
 - The most recently edited file from observations (if any)
-- Run `/dashboard` to restore awareness of harness state
+- Show compact status line: `Status: N instincts (M promotable) | K sessions | $X.XX total cost`
+  - Get this from: `getInstinctCounts()` + `getRecentSessions()` count + `getCostSummaryByModel()` total
+  - Do NOT run full `/dashboard` — it wastes context after compaction
 
 ## Output
 ```
@@ -61,6 +63,6 @@ Compacting... done.
 Reloaded:
   ✓ scripts/lib/types.ts
   ✓ .claude/skills/postgres-patterns.md (last edited)
-  ✓ /dashboard
+  Status: 15 instincts (10 promotable) | 5 sessions | $4.05 total
 ━━━━━━━━━━━━━━━━━━━━━━
 ```

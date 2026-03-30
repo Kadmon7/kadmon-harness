@@ -56,14 +56,21 @@ async function main() {
     // Try loading previous session context from SQLite
     let context = "";
     let instinctCount = 0;
+    let statusLine = "";
     try {
-      const { openDb, getRecentSessions, getActiveInstincts } = await import(
+      const {
+        openDb,
+        getRecentSessions,
+        getActiveInstincts,
+        getPromotableInstincts,
+      } = await import(
         new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
           .href
       );
       await openDb(process.env.KADMON_TEST_DB || undefined);
       const sessions = getRecentSessions(projectHash, 1);
       const instincts = getActiveInstincts(projectHash);
+      const promotable = getPromotableInstincts(projectHash);
       instinctCount = instincts.length;
 
       if (sessions.length > 0) {
@@ -95,6 +102,16 @@ async function main() {
         }
       }
 
+      // Build mini-dashboard status line
+      const promoLabel =
+        promotable.length > 0 ? ` (${promotable.length} promotable)` : "";
+      const lastSession = sessions.length > 0 ? sessions[0] : null;
+      const lastCost = lastSession
+        ? `$${lastSession.estimatedCostUsd.toFixed(2)}`
+        : "$0.00";
+      const lastMsgs = lastSession ? lastSession.messageCount : 0;
+      statusLine = `\n## Status\n- Instincts: ${instincts.length} active${promoLabel} | Last session: ${lastCost} | ${lastMsgs} msgs`;
+
       // Start new session
       const { startSession } = await import(
         new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
@@ -116,7 +133,7 @@ async function main() {
     } catch {}
 
     console.log(
-      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}`,
+      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}${statusLine}`,
     );
   } catch (err) {
     console.error(JSON.stringify({ error: `session-start: ${err.message}` }));

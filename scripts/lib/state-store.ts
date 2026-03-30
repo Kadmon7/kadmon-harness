@@ -373,6 +373,28 @@ export function getPromotableInstincts(projectHash: string): Instinct[] {
     .map(mapInstinctRow);
 }
 
+export function getInstinctCounts(projectHash: string): {
+  active: number;
+  promotable: number;
+  archived: number;
+} {
+  const row = getDb()
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+         SUM(CASE WHEN status = 'active' AND confidence >= 0.7 AND occurrences >= 3 THEN 1 ELSE 0 END) as promotable,
+         SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived
+       FROM instincts WHERE project_hash = ?`,
+    )
+    .get(projectHash);
+  if (!row) return { active: 0, promotable: 0, archived: 0 };
+  return {
+    active: Number(row.active ?? 0),
+    promotable: Number(row.promotable ?? 0),
+    archived: Number(row.archived ?? 0),
+  };
+}
+
 // ─── Cost event operations ───
 
 function mapCostRow(row: Record<string, unknown>): CostEvent {
@@ -414,6 +436,38 @@ export function getCostBySession(sessionId: string): CostEvent[] {
     )
     .all(sessionId)
     .map(mapCostRow);
+}
+
+// ─── Cost summary by model ───
+
+export function getCostSummaryByModel(projectHash: string): Array<{
+  model: string;
+  sessionCount: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalCostUsd: number;
+}> {
+  return getDb()
+    .prepare(
+      `SELECT ce.model,
+              COUNT(DISTINCT ce.session_id) as session_count,
+              SUM(ce.input_tokens) as total_input_tokens,
+              SUM(ce.output_tokens) as total_output_tokens,
+              SUM(ce.estimated_cost_usd) as total_cost_usd
+       FROM cost_events ce
+       JOIN sessions s ON ce.session_id = s.id
+       WHERE s.project_hash = ?
+       GROUP BY ce.model
+       ORDER BY total_cost_usd DESC`,
+    )
+    .all(projectHash)
+    .map((row) => ({
+      model: String(row.model),
+      sessionCount: Number(row.session_count),
+      totalInputTokens: Number(row.total_input_tokens),
+      totalOutputTokens: Number(row.total_output_tokens),
+      totalCostUsd: Number(row.total_cost_usd),
+    }));
 }
 
 // ─── Sync queue operations ───
