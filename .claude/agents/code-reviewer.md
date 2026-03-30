@@ -64,13 +64,7 @@ Follow these five steps in order for every review. Do not skip steps.
 ## Review Checklist
 
 ### Security (CRITICAL)
-- Hardcoded credentials: API keys, tokens, passwords committed to source code
-- SQL injection: string concatenation in queries instead of parameterized statements
-- Path traversal: user-controlled file paths without sanitization via path.resolve()
-- Command injection: exec/execSync with user input or string interpolation
-- Prompt injection: unsanitized user input passed directly to AI model calls
-- Exposed secrets in logs: tokens, passwords, or personal data in console output
-- Missing input validation at trust boundaries (API endpoints, file reads, stdin)
+Flag immediately: hardcoded secrets, SQL injection (string concat), path traversal, command injection (exec with user input), prompt injection, secrets in logs, missing input validation. For detailed patterns and severity table, see security-reviewer agent.
 
 ### Code Quality (HIGH)
 - Large functions (>50 lines) -- suggest decomposition into focused helpers

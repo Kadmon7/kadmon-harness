@@ -49,17 +49,7 @@ grep -rn "exec(\`\|exec(\"" scripts/lib/state-store.ts
 - Verify .gitignore covers: .env, .env.*, *.db, credentials files
 
 ### Step 2 -- OWASP Top 10 Check
-Review each category against the code under analysis:
-1. **Injection** -- SQL, command, prompt injection vectors
-2. **Broken Authentication** -- Weak auth, missing session management
-3. **Sensitive Data Exposure** -- Plaintext secrets, missing encryption
-4. **XML External Entities (XXE)** -- Unsafe XML parsing
-5. **Broken Access Control** -- Missing authorization checks, privilege escalation
-6. **Security Misconfiguration** -- Default credentials, verbose errors, open CORS
-7. **Cross-Site Scripting (XSS)** -- Unsanitized output in HTML/templates
-8. **Insecure Deserialization** -- Untrusted data in JSON.parse without validation
-9. **Known Vulnerabilities** -- Outdated dependencies with CVEs
-10. **Insufficient Logging** -- Missing audit trails for security events
+Review code against OWASP Top 10 categories. The Code Pattern Table below covers the most common vectors (injection, auth bypass, data exposure, access control, XSS, deserialization, known vulns). Focus on patterns that apply to the code under review rather than checking all 10 mechanically.
 
 ### Step 3 -- Code Pattern Review
 Flag specific dangerous patterns using the table below. Verify context before flagging to avoid false positives.

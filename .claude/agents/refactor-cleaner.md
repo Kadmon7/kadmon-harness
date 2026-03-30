@@ -22,20 +22,20 @@ Code refactoring specialist focused on removing dead code, consolidating duplica
 Run these before any refactoring to build an evidence-based list of targets:
 
 ```bash
-# Unused files, exports, and dependencies
+# Unused files, exports, and dependencies (comprehensive)
 npx knip
 
 # Unused TypeScript exports
 npx ts-prune
 
-# Unused eslint disable directives
-npx eslint . --report-unused-disable-directives
+# Unused locals and parameters (TypeScript compiler)
+npx tsc --noEmit --noUnusedLocals --noUnusedParameters
 
 # Tech debt markers
-grep -r "// TODO\|// FIXME\|// HACK" scripts/
+grep -rn "// TODO\|// FIXME\|// HACK" scripts/
 ```
 
-Review output critically — detection tools produce false positives. Every item must be verified before removal.
+Review output critically — detection tools produce false positives. Every item must be verified by grepping for all references before removal.
 
 ## Workflow
 

@@ -52,37 +52,13 @@ For each significant decision, document:
 
 ## Architectural Principles
 
-### Modularity
-- Single Responsibility: each module owns one concern
-- High cohesion, low coupling: related logic together, minimal cross-module dependencies
-- Clear interfaces: exported functions with explicit types, no hidden side effects
-- Small files (< 200 lines), one module per file
-
-### Maintainability
-- Clear code organization: predictable file structure (scripts/lib/, tests/, .claude/)
-- Consistent patterns: same problem solved the same way everywhere
-- Easy to test: dependency injection, pure functions, :memory: SQLite for tests
-- Simple to understand: prefer explicit over clever, early returns over nesting
-
-### Security
-- Defense in depth: validate at every boundary, not just the edge
-- Least privilege: hooks and agents get only the tools they need
-- Input validation at boundaries: Zod schemas for all external data
-- Parameterized queries: never concatenate SQL strings
-- Path sanitization: path.resolve() before any file operation
-
-### Performance
-- Efficient algorithms: appropriate data structures for the access pattern
-- Minimal network requests: batch operations, lazy loading
-- Optimized database queries: prepared statements, batch inserts, indexes
-- Caching: avoid recomputing what can be stored (but never store derived data)
-- Hook latency: observe hooks < 50ms, guard hooks < 100ms, all others < 500ms
-
-### Immutability
-- Prefer spread operators and Object.freeze for creating modified copies
-- Never mutate function arguments
-- Use readonly arrays and properties where mutation is not needed
-- Create new objects instead of modifying existing ones
+| Principle | Key Rules |
+|-----------|-----------|
+| **Modularity** | SRP, < 200 line files, one module per file, explicit typed interfaces |
+| **Maintainability** | Predictable structure (scripts/lib/, tests/, .claude/), consistent patterns, :memory: SQLite for tests |
+| **Security** | Defense in depth, Zod at boundaries, parameterized SQL, path.resolve() for file ops, least privilege for hooks/agents |
+| **Performance** | Batch operations, prepared statements, hook latency budgets (observe < 50ms, guard < 100ms, others < 500ms) |
+| **Immutability** | Spread operators, never mutate arguments, readonly properties, create new objects |
 
 ## System Design Checklist
 
