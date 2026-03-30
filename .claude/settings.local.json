@@ -217,7 +217,25 @@
       "Bash(curl -s https://api.github.com/repos/notkurt/ghost/readme)",
       "Bash(curl -s https://api.github.com/repos/Luispitik/sinapsis/readme)",
       "Bash(curl -s https://api.github.com/repos/affaan-m/everything-claude-code)",
-      "Bash(curl -s https://api.github.com/repos/centminmod/my-claude-code-setup/readme)"
+      "Bash(curl -s https://api.github.com/repos/centminmod/my-claude-code-setup/readme)",
+      "Bash(find C:/Users/kadmo/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills -type f -name *.md)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(find 'C:/Command Center/Kadmon-Harness/.claude' -type f -name *.json -o -name *.md)",
+      "Bash(jq \"select\\(.eventType | contains\\(\"\"error\"\"\\)\\) or select\\(.metadata | contains\\(\"\"error\"\"\\)\\)\")",
+      "Bash(git --version)",
+      "Bash(grep -rn \"\\\\.pathname\" .claude/hooks/scripts/*.js)",
+      "Bash(find C:/Users/kadmo/.claude/plugins/cache/claude-plugins-official -maxdepth 5 -name *.md -o -name *.json -o -name *.sh -o -name *.cmd)",
+      "Bash(grep -n \"\\\\.pathname\" .claude/hooks/scripts/*.js)",
+      "Bash(powershell.exe -NoProfile -Command \"[Environment]::GetEnvironmentVariable\\('GITHUB_TOKEN', 'User'\\)\" 2>&1)",
+      "Bash(powershell.exe -NoProfile -Command \"[Environment]::SetEnvironmentVariable\\('GITHUB_PERSONAL_ACCESS_TOKEN', [Environment]::GetEnvironmentVariable\\('GITHUB_TOKEN', 'User'\\), 'User'\\)\" 2>&1)",
+      "Bash(powershell.exe -NoProfile -Command \"[Environment]::GetEnvironmentVariable\\('GITHUB_PERSONAL_ACCESS_TOKEN', 'User'\\)\")",
+      "Bash(export:*)",
+      "Bash(PATH=\"$PATH:/c/Program Files/nodejs\" cmd /c \"npx -y @modelcontextprotocol/server-github --version\")",
+      "Skill(claude-md-management:revise-claude-md)",
+      "Bash(node -e \"console.log\\(JSON.parse\\(require\\(''''fs''''\\).readFileSync\\(''''.claude/hooks/pattern-definitions.json'''',''''utf8''''\\)\\).length\\)\")",
+      "Bash(grep -r \"KADMON_TEST_DB\\\\|KADMON_DISABLED_HOOKS\" scripts/ .claude/hooks/scripts/ --include=*.ts --include=*.js -l)",
+      "Bash(python3 -m json.tool)",
+      "Bash(GITHUB_TOKEN=\"\" gh auth status 2>&1)"
     ]
   }
 }

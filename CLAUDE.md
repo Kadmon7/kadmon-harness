@@ -1,9 +1,14 @@
 # CLAUDE.md — Kadmon Harness
 
-## Identity
-- Architect: Ych118 (final decisions always mine)
-- Implementer: Claude Code (senior, proactive, opinionated)
-- Language: respond in Spanish, write all code and files in English
+> User-level config at `~/.claude/CLAUDE.md` (identity, language, environment)
+
+## Quick Start
+```bash
+npm install                        # Install dependencies
+npm run build                      # Compile TypeScript → dist/
+npx vitest run                     # Run 146+ tests
+npx tsx scripts/dashboard.ts       # Show harness dashboard
+```
 
 ## Core Principle
 no_context — if no evidence exists, respond `no_context` and flag what is missing.
@@ -28,9 +33,35 @@ Observe → Remember → Verify → Specialize → Evolve
 - Runtime: Claude Code CLI on Windows
 - MCPs: GitHub (source of truth), Supabase (persistence), Context7 (live documentation)
 
-## Active Projects
-- **ToratNetz** — Torah RAG system (Supabase + pgvector)
-- **UNIVERSO KAIRON** — AI companion universe
+## File Structure
+```
+scripts/
+├── lib/                # Core library (state-store, session-manager, instinct-manager, etc.)
+├── dashboard.ts        # CLI dashboard entry point
+└── sync-instincts-to-memory.ts
+.claude/
+├── hooks/
+│   ├── scripts/        # 20 hook scripts (JS)
+│   └── pattern-definitions.json
+├── rules/
+│   ├── common/         # 9 cross-language rules
+│   └── typescript/     # 5 TS-specific rules
+├── agents/             # 13 agent definitions
+├── skills/             # 24 skill documents
+└── commands/           # 24 command templates
+tests/
+├── lib/                # Unit tests for scripts/lib/
+├── hooks/              # Hook integration tests
+└── eval/               # E2E evaluation tests
+docs/
+├── GUIDE.md            # User guide (Spanish)
+├── HOW-TO-USE.md       # How-to guide (Spanish)
+└── REFERENCE.md        # Technical reference
+```
+
+## Environment Variables
+- `KADMON_TEST_DB` — Override SQLite DB path (used in tests with `:memory:`)
+- `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip (non-critical only)
 
 ## Agents (13)
 | Agent | Model | Purpose |
@@ -50,36 +81,25 @@ Observe → Remember → Verify → Specialize → Evolve
 | harness-optimizer | opus | Harness configuration analysis |
 
 ## Commands (24)
-| Command | Phase | Purpose |
-|---------|-------|---------|
-| /dashboard | Observe | Show harness dashboard (instincts, sessions, costs, hook health) |
-| /kompact | Observe | Smart compaction — audit, safety check, summarize, compact, reload |
-| /kplan | Specialize | Invoke for complex multi-file or uncertain tasks |
-| /tdd | Verify | Test-driven development cycle |
-| /verify | Verify | Run verification loop |
-| /build-fix | Verify | Fix build errors |
-| /code-review | Verify | Run code review |
-| /quality-gate | Verify | Run quality checks |
-| /test-coverage | Verify | Check test coverage |
-| /e2e | Verify | Generate and run E2E tests |
-| /eval | Verify | Run evaluation harness |
-| /checkpoint | Remember | Save progress + git commit |
-| /docs | Remember | Lookup documentation |
-| /context-budget | Observe | Audit context window |
-| /refactor-clean | Evolve | Refactor code |
-| /learn | Evolve | Extract session patterns |
-| /learn-eval | Evolve | Evaluate learned patterns |
-| /evolve | Evolve | Cluster instincts into skills |
-| /instinct-status | Evolve | Show learned instincts |
-| /promote | Evolve | Promote instinct to global |
-| /prune | Evolve | Clean up low-confidence instincts |
-| /sessions | Remember | List past sessions |
-| /instinct-export | Evolve | Export instincts |
-| /update-docs | Remember | Update documentation |
+Defined in `.claude/commands/` — organized by phase:
+- **Observe** (3): /dashboard, /kompact, /context-budget
+- **Remember** (4): /checkpoint, /docs, /sessions, /update-docs
+- **Verify** (8): /tdd, /verify, /build-fix, /code-review, /quality-gate, /test-coverage, /e2e, /eval
+- **Specialize** (1): /kplan
+- **Evolve** (8): /learn, /learn-eval, /evolve, /instinct-status, /promote, /prune, /instinct-export, /refactor-clean
 
 ## Skills (24)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
-Key skills: search-first, explore-before-act, verify-before-commit, safety-guard, tdd-workflow, verification-loop, context-budget, continuous-learning-v2, coding-standards, security-review, e2e-testing, eval-harness, documentation-lookup, architecture-decision-records, agentic-engineering, api-design, claude-api, cost-aware-llm-pipeline, database-migrations, iterative-retrieval, iterative-retrieval-hebrew, mcp-server-patterns, postgres-patterns, strategic-compact.
+
+| Category | Skills |
+|----------|--------|
+| Workflow | search-first, explore-before-act, verify-before-commit, strategic-compact, context-budget |
+| Quality | coding-standards, security-review, tdd-workflow, verification-loop, e2e-testing |
+| Learning | continuous-learning-v2, eval-harness |
+| Architecture | agentic-engineering, architecture-decision-records, api-design |
+| Data | database-migrations, postgres-patterns, iterative-retrieval, iterative-retrieval-hebrew |
+| Integration | claude-api, cost-aware-llm-pipeline, mcp-server-patterns, documentation-lookup |
+| Safety | safety-guard |
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
@@ -114,18 +134,14 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - no-context-guard: < 100ms (reads observations JSONL)
 - All other hooks: < 500ms
 
-## Windows Compatibility
-- Hook stdin: `parseStdin()` helper sanitizes unescaped Windows backslashes in JSON
-- Hook execution: all 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix
-- Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
-- MCP servers: `cmd /c npx` wrapper for GitHub and Context7
-- /doctor: 0 warnings
-
 ## Common Pitfalls
 - Lifecycle hooks (session-start, session-end-persist, evaluate-session, cost-tracker) import from `dist/` — run `npm run build` after changing `scripts/lib/` or hooks fail silently
 - Hook latency budgets are for hook LOGIC only — Node.js cold start adds ~236ms on Windows, so absolute times appear higher than budgets
 - ORDER BY queries need `rowid` tiebreaker for deterministic results when timestamps collide
-- evaluate-session.js detects 3 patterns: "Read before Edit", "Verify before commit", "Explore clusters"
+- evaluate-session.js evaluates 13 pattern definitions from `.claude/hooks/pattern-definitions.json`
+- `new URL().pathname` encodes spaces as `%20` — ALWAYS use `fileURLToPath()` for file paths derived from URLs
+- Stop hooks only fire on clean session termination — `/kompact`, terminal close, or crashes do NOT trigger them
+- `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.2 — Operational (146 tests passing, 20 hooks, 13 agents, 24 skills, 24 commands)
+v0.2 — Operational (146 tests passing, 22 hooks, 13 agents, 24 skills, 24 commands)
