@@ -1,6 +1,6 @@
 ---
 name: e2e-runner
-description: Invoked via /e2e command to run full workflow tests: session lifecycle, instinct lifecycle, hook chains. Not auto-triggered — E2E tests are expensive and run on demand.
+description: Invoked via /e2e command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Supports Vitest (harness) and Playwright (web apps).
 model: sonnet
 tools: Read, Glob, Bash
 memory: project

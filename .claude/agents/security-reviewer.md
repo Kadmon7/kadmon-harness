@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Automatically invoked when editing code that handles: authentication, API keys, user input validation, exec/spawn calls, file system paths, or SQL queries. Also runs as part of /code-review. Severity: CRITICAL/HIGH/MEDIUM/LOW.
+description: Use PROACTIVELY when editing code that handles authentication, API keys, user input, exec/spawn, file paths, or SQL queries. Also runs as part of /code-review. Severity: CRITICAL/HIGH/MEDIUM/LOW.
 model: opus
 tools: Read, Grep, Glob
 memory: project

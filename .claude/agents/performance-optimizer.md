@@ -1,6 +1,6 @@
 ---
 name: performance-optimizer
-description: Performance analysis and optimization specialist. Auto-invoked when code contains O(n^2) loops, slow queries, or memory-intensive patterns. Also invoked when user asks to optimize, profile, or improve speed. Covers Node.js, TypeScript, React, React Native, sql.js, and Supabase.
+description: Use PROACTIVELY when code contains O(n^2) loops, slow queries, memory-intensive patterns, or user asks to optimize. No dedicated command — auto-invoked. Covers Node.js, React, DB, and hook latency.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project

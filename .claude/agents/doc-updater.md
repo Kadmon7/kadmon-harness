@@ -1,6 +1,6 @@
 ---
 name: doc-updater
-description: Invoked via /update-docs command or automatically suggested after commits that add new agents, skills, commands, or change project structure. Updates CLAUDE.md component counts and README architecture section.
+description: Use PROACTIVELY after commits that add agents, skills, commands, or change project structure. Command: /update-docs. Keeps CLAUDE.md and README in sync with code.
 model: sonnet
 tools: Read, Grep, Glob, Write, Bash
 memory: project

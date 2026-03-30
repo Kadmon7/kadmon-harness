@@ -1,6 +1,6 @@
 ---
 name: tdd-guide
-description: Invoked via /tdd command to enforce red-green-refactor cycle. Proactively guides test-first development for new functions or modules.
+description: Use PROACTIVELY before implementing any new feature or bug fix — write the test first. Command: /tdd. Enforces red-green-refactor cycle with 80%+ coverage target.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project

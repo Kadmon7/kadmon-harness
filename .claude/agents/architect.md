@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Use when designing system architecture, evaluating trade-offs, or making decisions that affect multiple components. Invoked via /kplan for architectural tasks or when user explicitly requests design review.
+description: Use PROACTIVELY when designing system architecture, evaluating trade-offs, or planning multi-component changes. Command: /kplan (Route A — architecture signals). Produces ADRs for every significant decision.
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project

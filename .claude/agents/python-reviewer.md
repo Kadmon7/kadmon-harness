@@ -1,6 +1,6 @@
 ---
 name: python-reviewer
-description: Automatically invoked when editing Python files (.py). Reviews for PEP 8 compliance, type hints, security, Pythonic patterns, ML best practices, and performance. Covers FastAPI, Django, ML/NLP pipelines, and embedding workflows.
+description: Use PROACTIVELY when editing Python files (.py). No dedicated command — auto-invoked. Reviews PEP 8, type hints, security, ML patterns, and framework-specific issues.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project

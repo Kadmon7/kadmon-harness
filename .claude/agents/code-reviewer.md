@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Automatically reviews code when /code-review or /checkpoint is invoked. Also triggered when reviewing PRs and when editing TypeScript files (.ts, .tsx). Checks quality, security, convention compliance, type safety, async patterns, and Node16 module resolution.
+description: Use PROACTIVELY after writing or modifying code — MUST BE USED for all code changes before commit. Command: /code-review, /checkpoint. Checks quality, security, TypeScript patterns, and convention compliance.
 model: sonnet
 tools: Read, Grep, Glob
 memory: project

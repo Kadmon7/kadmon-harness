@@ -1,6 +1,6 @@
 ---
 name: database-reviewer
-description: Automatically invoked when editing files containing SQL queries, schema definitions, migration files, or Supabase client code. Reviews for missing indexes, RLS gaps, and sql.js-specific patterns.
+description: Use PROACTIVELY when editing SQL queries, schema definitions, migration files, or Supabase/sql.js client code. No dedicated command — auto-invoked. Reviews indexes, RLS, and query performance.
 model: opus
 tools: Read, Grep, Glob
 memory: project
