@@ -37,8 +37,7 @@ alwaysApply: true
 - NEVER create circular dependencies
 
 ## Enforcement
-- typescript-reviewer agent auto-checks strict mode, type safety, and Node16 resolution on .ts/.tsx edits
-- code-reviewer agent validates naming conventions and import patterns via /code-review and /checkpoint
+- code-reviewer agent auto-checks strict mode, type safety, Node16 resolution on .ts/.tsx edits, and validates naming conventions and import patterns via /code-review and /checkpoint
 - post-edit-typecheck hook validates TypeScript compilation after every Edit/Write
 - quality-gate hook runs lint/style checks after every Edit/Write
 - coding-standards skill provides reference conventions during implementation

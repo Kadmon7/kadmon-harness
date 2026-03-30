@@ -6,18 +6,17 @@ alwaysApply: true
 
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
-- MUST use sonnet model for: code-reviewer, typescript-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, docs-lookup, e2e-runner
+- MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, docs-lookup, e2e-runner
 - MUST use sonnet model for doc-updater (documentation generation)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
-## Agent Catalog (13)
+## Agent Catalog (12)
 
 | Agent | Model | Trigger | Command |
 |-------|-------|---------|---------|
 | architect | opus | /kplan when architecture signals detected (design, schema, migration, new system, multi-component), explicit design review | /kplan |
 | planner | opus | /kplan always — after architect (Route A) or directly (Route B) | /kplan |
-| code-reviewer | sonnet | /code-review, /checkpoint (auto-invoked before commit) | /code-review, /checkpoint |
-| typescript-reviewer | sonnet | Auto-invoked when editing .ts/.tsx files, /code-review on TS changes | /code-review |
+| code-reviewer | sonnet | /code-review, /checkpoint (auto-invoked before commit), auto-invoked on .ts/.tsx edits (includes TypeScript specialist mode) | /code-review, /checkpoint |
 | database-reviewer | opus | Auto-invoked when editing SQL, schema, migration, or Supabase client files | — |
 | security-reviewer | opus | Auto-invoked for auth, API keys, user input, exec/spawn, file paths, SQL | /code-review |
 | tdd-guide | sonnet | /tdd command to enforce red-green-refactor cycle | /tdd |
@@ -30,7 +29,7 @@ alwaysApply: true
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → security-reviewer
-- Editing .ts/.tsx files → typescript-reviewer
+- Editing .ts/.tsx files → code-reviewer (TypeScript specialist mode)
 - Editing SQL/schema/migration/Supabase client → database-reviewer
 - TypeScript compilation or Vitest fails → build-error-resolver
 - /kplan with architecture signals → architect before planner

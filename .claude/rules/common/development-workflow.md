@@ -11,49 +11,45 @@ alwaysApply: true
 - ALWAYS write test before implementation (/tdd workflow)
 - ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills
 
-## Command Reference (24)
+## Command Reference (19)
 
-### Observe Phase
+### Observe Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /context-budget | Audit context window usage and suggest optimizations | — |
 | /dashboard | Show harness dashboard (instincts, sessions, costs, hook health) | — |
-| /sessions | Show recent session history for the current project | — |
+| /kompact | Smart context compaction with audit and safety checks | — |
 
-### Remember Phase
+### Remember Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /checkpoint | Save progress — run verification then commit and push | code-reviewer |
 | /docs | Look up live documentation for any library or framework | docs-lookup |
 | /update-docs | Update CLAUDE.md, README, and project documentation | doc-updater |
 
-### Verify Phase
+### Verify Phase (7)
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /tdd | Start TDD cycle — write failing test first, then implement | tdd-guide |
-| /verify | Run full verification loop — typecheck, tests, lint | — |
+| /verify | Run full verification loop — typecheck, tests, lint. Use `/verify full` for security scan | — |
 | /build-fix | Diagnose and fix build or compilation errors | build-error-resolver |
 | /code-review | Run code review on staged or recent changes | code-reviewer |
-| /quality-gate | Run all quality checks — typecheck, tests, lint, security | — |
 | /test-coverage | Check and report test coverage per file | — |
 | /e2e | Generate and run E2E tests for full workflow verification | e2e-runner |
 | /eval | Run structured evaluation of agent or skill quality | — |
 
-### Specialize Phase
+### Specialize Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /kplan | Smart planning — routes to architect+planner or planner-only based on task signals | planner, architect |
+| /workflow | Show available workflow chains (dev, qa, instinct, evolve) or guide through one | — |
 
-### Evolve Phase
+### Evolve Phase (4)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /learn | Extract patterns from current session and create instincts | — |
-| /learn-eval | Evaluate quality of learned instincts | — |
+| /instincts | Show instinct dashboard with status and quality evaluation | — |
+| /instinct | Manage instinct lifecycle — learn, promote, prune, export (subcommands) | — |
 | /evolve | Run harness self-optimization analysis | harness-optimizer |
-| /instinct-status | Show current instinct dashboard for this project | — |
-| /instinct-export | Export instincts to JSON file for backup or sharing | — |
-| /promote | Promote a high-confidence instinct to a skill | — |
-| /prune | Archive weak or contradicted instincts | — |
 | /refactor-clean | Invoke refactor-cleaner agent to improve code structure | refactor-cleaner |
 
 ## Commits

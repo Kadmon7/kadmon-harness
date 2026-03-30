@@ -22,9 +22,9 @@ Observe → Remember → Verify → Specialize → Evolve
 |-------|-----------|
 | Observe | observe hooks, context-budget, search-first |
 | Remember | session persistence, instinct store, ADRs, /checkpoint, /docs |
-| Verify | TDD, code review, security review, quality gates, type checking, no-context-guard |
+| Verify | TDD, code review, security review, type checking, no-context-guard |
 | Specialize | domain agents, skill catalog, /kplan |
-| Evolve | instinct learning, /learn, /refactor-clean, pattern extraction, skill-creator (for all skill work) |
+| Evolve | instinct learning, /instinct, /refactor-clean, pattern extraction, skill-creator (for all skill work) |
 
 ## Stack
 - Language: TypeScript / JavaScript (primary)
@@ -46,9 +46,9 @@ scripts/
 ├── rules/
 │   ├── common/         # 9 cross-language rules
 │   └── typescript/     # 5 TS-specific rules
-├── agents/             # 13 agent definitions
-├── skills/             # 24 skill documents
-└── commands/           # 24 command templates
+├── agents/             # 12 agent definitions
+├── skills/             # 22 skill documents
+└── commands/           # 19 command templates
 tests/
 ├── lib/                # Unit tests for scripts/lib/
 ├── hooks/              # Hook integration tests
@@ -63,13 +63,12 @@ docs/
 - `KADMON_TEST_DB` — Override SQLite DB path (used in tests with `:memory:`)
 - `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip (non-critical only)
 
-## Agents (13)
+## Agents (12)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | architect | opus | System design, architecture decisions |
 | planner | opus | Implementation planning, task breakdown |
-| code-reviewer | sonnet | Code quality and security review |
-| typescript-reviewer | sonnet | TypeScript-specific review |
+| code-reviewer | sonnet | Code quality, TypeScript, and security review |
 | database-reviewer | opus | PostgreSQL/Supabase review |
 | security-reviewer | opus | Security vulnerability detection |
 | tdd-guide | sonnet | Test-driven development workflow |
@@ -80,20 +79,20 @@ docs/
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (24)
+## Commands (19)
 Defined in `.claude/commands/` — organized by phase:
 - **Observe** (3): /dashboard, /kompact, /context-budget
-- **Remember** (4): /checkpoint, /docs, /sessions, /update-docs
-- **Verify** (8): /tdd, /verify, /build-fix, /code-review, /quality-gate, /test-coverage, /e2e, /eval
-- **Specialize** (1): /kplan
-- **Evolve** (8): /learn, /learn-eval, /evolve, /instinct-status, /promote, /prune, /instinct-export, /refactor-clean
+- **Remember** (3): /checkpoint, /docs, /update-docs
+- **Verify** (7): /tdd, /verify, /build-fix, /code-review, /test-coverage, /e2e, /eval
+- **Specialize** (2): /kplan, /workflow
+- **Evolve** (4): /instincts, /instinct, /evolve, /refactor-clean
 
-## Skills (25)
+## Skills (22)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
 | Category | Skills |
 |----------|--------|
-| Workflow | search-first, explore-before-act, verify-before-commit, strategic-compact, context-budget |
+| Workflow | search-first, context-budget |
 | Quality | coding-standards, security-review, tdd-workflow, verification-loop, e2e-testing |
 | Learning | continuous-learning-v2, eval-harness |
 | Architecture | agentic-engineering, architecture-decision-records, api-design |
@@ -124,7 +123,7 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 
 ## Memory
 - **Sessions**: summaries persist to SQLite
-- **Instincts**: learned patterns with confidence scoring (0.3→0.9), promotable at confidence ≥0.7 + occurrences ≥3 (manual via /promote)
+- **Instincts**: learned patterns with confidence scoring (0.3->0.9), promotable at confidence >=0.7 + occurrences >=3 (manual via /instinct promote)
 - **Cost events**: token usage tracked per session
 - **Observations**: ephemeral JSONL per session, summarized at session end
 - **Auto Memory**: project memory in `~/.claude/projects/<project>/memory/` with typed files (6 types: user, feedback, project, reference, decision, gotcha)
@@ -150,4 +149,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.2 — Operational (154 tests passing, 22 hooks, 13 agents, 25 skills, 24 commands)
+v0.3 — Consolidated (154 tests passing, 22 hooks, 12 agents, 22 skills, 19 commands)
