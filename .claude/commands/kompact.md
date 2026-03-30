@@ -18,6 +18,7 @@ Warn and ask for confirmation if:
 - **Uncommitted changes** exist → "You have uncommitted changes. Consider /checkpoint first."
 - **Last tool was Edit** → "You're mid-edit. Compacting now may lose context about your changes."
 - **Active debugging** → Check observations for recent tool_fail events
+- **Productive session (>30 tool calls) without /learn** → "Consider /learn first to capture patterns before compacting."
 
 If all clear: "Safety: OK — good time to compact."
 
