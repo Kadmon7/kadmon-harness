@@ -2,7 +2,7 @@
 
 ## 1. ¿Qué es Kadmon Harness?
 
-Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 22 hooks, 14 agentes especializados y un motor de aprendizaje por instintos.
+Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 23 hooks, 14 agentes especializados y un motor de aprendizaje por instintos.
 
 ### El Mantra: Observe → Remember → Verify → Specialize → Evolve
 
@@ -241,7 +241,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ## 7. El Sistema de Hooks
 
-Kadmon tiene **22 hooks** que se ejecutan automáticamente en distintos momentos.
+Kadmon tiene **23 hooks** que se ejecutan automáticamente en distintos momentos.
 
 ### Hooks de bloqueo (exit 2 — operaciones bloqueadas)
 
@@ -510,5 +510,5 @@ claude
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks, 154 tests*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 23 hooks, 154 tests*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

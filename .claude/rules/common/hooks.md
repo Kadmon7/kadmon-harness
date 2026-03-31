@@ -35,7 +35,7 @@ alwaysApply: true
 |------|--------|---------|------|
 | observe-pre | observe-pre.js | Logs tool invocation to observations JSONL; captures Agent, TaskCreate, and TaskUpdate metadata | 0 always |
 
-### PostToolUse — Edit|Write matcher (5)
+### PostToolUse — Edit|Write matcher (6)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
@@ -43,6 +43,7 @@ alwaysApply: true
 | quality-gate | quality-gate.js | Runs quality checks (lint, style) on edited files | 1 on issues |
 | ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts edits without code review in session | 1 as warning |
 | console-log-warn | console-log-warn.js | Warns about console.log() in production code | 1 as warning |
+| deps-change-reminder | deps-change-reminder.js | Reminds to run /docs when package.json dependencies change | 1 as warning |
 
 ### PostToolUse — Bash matcher (1)
 | Hook | Script | Purpose | Exit |
@@ -94,6 +95,6 @@ alwaysApply: true
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
 ## Windows Compatibility
-- All 22 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 23 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

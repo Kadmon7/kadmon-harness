@@ -280,7 +280,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **common/coding-style.md** | Naming, tipos, imports | MUST camelCase para variables; NEVER usar `any`; MUST `node:` prefix para builtins | post-edit-typecheck, quality-gate |
 | **common/development-workflow.md** | Orden de trabajo | ALWAYS Research→Plan→Test→Implement→Review→Commit; ALWAYS /verify antes de /checkpoint; NEVER commit tests rojos | no-context-guard, block-no-verify |
 | **common/git-workflow.md** | Commits y branches | MUST conventional commits; NEVER force push a main; NEVER --no-verify | block-no-verify, config-protection |
-| **common/hooks.md** | Catalogo de 22 hooks | NEVER crashear Claude Code; MUST try/catch; observe hooks < 50ms | Self-documenting |
+| **common/hooks.md** | Catalogo de 23 hooks | NEVER crashear Claude Code; MUST try/catch; observe hooks < 50ms | Self-documenting |
 | **common/patterns.md** | Patrones de diseno | MUST dependency injection; NEVER global mutable state; MUST context en error messages | no-context-guard |
 | **common/performance.md** | Rendimiento | NEVER cargar archivos > 50KB; MUST batch operations en SQLite; PREFER lazy loading | cost-tracker |
 | **common/security.md** | Seguridad | NEVER commit secrets; ALWAYS validar input con Zod; NEVER string concat para SQL | security-reviewer, config-protection |
@@ -317,7 +317,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 Archivo central de configuracion del harness. Controla:
 
-**Hooks:** Registra los 22 hooks con su evento, matcher y comando. Cada hook usa el pattern:
+**Hooks:** Registra los 23 hooks con su evento, matcher y comando. Cada hook usa el pattern:
 ```json
 {
   "hooks": {
@@ -662,5 +662,5 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks, 154 tests*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 23 hooks, 154 tests*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

@@ -154,4 +154,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 20 skills, 17 commands)
+v0.3 — Consolidated (154 tests passing, 23 hooks, 14 agents, 20 skills, 17 commands)

@@ -6,7 +6,7 @@
 
 El Kadmon Harness es un **template operativo para Claude Code**. Le da a Claude:
 - **Memoria** — tracking de sesiones, instincts que aprenden tus patrones
-- **Calidad** — 22 hooks que validan codigo, previenen errores, y hacen enforce de convenciones
+- **Calidad** — 23 hooks que validan codigo, previenen errores, y hacen enforce de convenciones
 - **Agentes** — 14 agentes especializados (code-reviewer, planner, tdd-guide, etc.)
 - **Skills** — 20 documentos de conocimiento que los agentes consultan
 - **Comandos** — 17 slash commands (/kplan, /tdd, /verify, /checkpoint, etc.)
@@ -197,7 +197,7 @@ mi-proyecto/
     skills/             ← 20 universales + tus skills de dominio
     commands/           ← 17 universales + tus comandos
     hooks/
-      scripts/          ← 22 hooks (no tocar, funcionan para cualquier proyecto)
+      scripts/          ← 23 hooks (no tocar, funcionan para cualquier proyecto)
       pattern-definitions.json  ← personalizado con tus patrones
     rules/
       common/           ← 9 reglas universales (no tocar)
@@ -219,7 +219,7 @@ mi-proyecto/
 | Sin Harness | Con Harness |
 |-------------|-------------|
 | Claude no recuerda sesiones anteriores | Session tracking con summary, files, costs |
-| No hay quality gates | 22 hooks: typecheck, lint, no-context-guard, commit format |
+| No hay quality gates | 23 hooks: typecheck, lint, no-context-guard, commit format |
 | Code review manual | code-reviewer agent auto-invocado en .ts/.tsx |
 | No hay patrones aprendidos | Instincts que aprenden tus workflows |
 | Comandos basicos de Claude Code | 17 comandos especializados (/kplan, /tdd, /verify...) |

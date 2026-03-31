@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`154 tests` | `22 hooks` | `14 agents` | `20 skills` | `17 commands`
+`154 tests` | `23 hooks` | `14 agents` | `20 skills` | `17 commands`
 
 ## Mantra
 
@@ -239,4 +239,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 20 skills, 17 commands)
+v0.3 — Consolidated (154 tests passing, 23 hooks, 14 agents, 20 skills, 17 commands)
