@@ -30,7 +30,7 @@ Read widely, ask questions, document findings. Do not code until the problem is 
 - Read — primary tool for understanding code
 - Grep, Glob — searching patterns across codebase
 - WebSearch, WebFetch — external research
-- docs-lookup agent — API documentation via Context7
+- almanak agent — API documentation via Context7
 
 ## Output
 - Findings first, recommendations second

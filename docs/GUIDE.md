@@ -176,7 +176,7 @@ Session end ──→ hooks persisten todo a SQLite
 | code-reviewer | sonnet | `/code-review`, `/checkpoint` | Antes de cada commit |
 | tdd-guide | sonnet | `/tdd` | Desarrollo test-first |
 | refactor-cleaner | sonnet | `/refactor-clean` | Limpiar código, eliminar duplicación |
-| docs-lookup | sonnet | `/docs` | Buscar API docs actualizadas vía Context7 |
+| almanak | sonnet | `/docs` | Buscar API docs actualizadas vía Context7 |
 | doktor | opus | `/update-docs` | Actualizar CLAUDE.md y README |
 | e2e-runner | sonnet | `/e2e` | Tests E2E completos (costoso) |
 | harness-optimizer | opus | `/evolve` | Análisis de optimización (solo recomendaciones) |
@@ -498,7 +498,7 @@ claude
 ### Context7 MCP caído
 - **Síntoma**: `/docs` no retorna resultados.
 - **Verificar**: El hook `mcp-health-check` muestra warnings si hay > 2 fallos en 5 minutos.
-- **Fallback**: docs-lookup agent usa WebSearch como respaldo automático.
+- **Fallback**: almanak agent usa WebSearch como respaldo automático.
 
 ### Instintos no se crean
 - **Requisito**: La sesión necesita ≥ 10 tool calls para que `evaluate-session.js` active.

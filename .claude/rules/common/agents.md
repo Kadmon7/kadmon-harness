@@ -21,7 +21,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
-- MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, docs-lookup, e2e-runner
+- MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, almanak, e2e-runner
 - MUST use opus model for doktor (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
@@ -39,7 +39,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | refactor-cleaner | sonnet | /refactor-clean only | /refactor-clean | coding-standards |
 | performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | — |
 | python-reviewer | sonnet | Auto on .py edits | — | — |
-| docs-lookup | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
+| almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
 | doktor | opus | /update-docs, after feature/structural commits | /update-docs | — |
 | e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
 | harness-optimizer | opus | /evolve only | /evolve | — |
@@ -52,13 +52,13 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - TypeScript compilation or Vitest fails → build-error-resolver
 - Performance concerns (O(n^2), slow queries, memory patterns) → performance-optimizer
 - /kplan with architecture signals → architect before planner
-- Encountering unfamiliar external API or library → docs-lookup (via /docs)
+- Encountering unfamiliar external API or library → almanak (via /docs)
 
 ## Manual Rules
 - MUST invoke code-reviewer before any commit via /checkpoint
 - MUST invoke planner via /kplan — runs for every /kplan invocation
 - MUST invoke architect before planner when /kplan task contains architecture signals
-- MUST invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
+- MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification
 - MUST invoke build-error-resolver when TypeScript compilation or Vitest tests fail (skip for obvious typos)
 - MUST invoke doktor after commits that add/remove agents, skills, or commands
 - MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation

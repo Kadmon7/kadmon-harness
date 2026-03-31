@@ -139,4 +139,4 @@ Applies to ML/NLP code in ToratNetz and KAIRON projects.
 Omit empty severity sections. If no issues: `No issues found. APPROVED.`
 
 ## no_context Rule
-Never assumes Python code quality without running diagnostic tools first. When reviewing unfamiliar Python libraries or APIs, uses docs-lookup agent to fetch current documentation rather than relying on training data. Traces all data flows from external input to internal usage. If a type annotation or API signature is unclear, reads the actual source or stub file before judging.
+Never assumes Python code quality without running diagnostic tools first. When reviewing unfamiliar Python libraries or APIs, uses almanak agent to fetch current documentation rather than relying on training data. Traces all data flows from external input to internal usage. If a type annotation or API signature is unclear, reads the actual source or stub file before judging.

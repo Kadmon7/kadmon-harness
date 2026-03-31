@@ -93,7 +93,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **refactor-cleaner** | Identifica codigo muerto, duplicacion, oportunidades de consolidacion. | Nunca auto-invoca | `/refactor-clean` | Refactoring Summary |
 | **performance-optimizer** | Analiza bucles O(n^2), queries lentas, patrones memory-intensive. | Al detectar patrones de baja performance | — | Performance Report |
 | **python-reviewer** | Revisa codigo Python: ML, embeddings, backends. | Al editar archivos `.py` | — | Python Review |
-| **docs-lookup** | Busca documentacion via Context7 MCP. Fallback a WebSearch. Nunca inventa APIs. | Al referenciar APIs desconocidas | `/docs` | Signature + ejemplo + source |
+| **almanak** | Busca documentacion via Context7 MCP. Fallback a WebSearch. Nunca inventa APIs. | Al referenciar APIs desconocidas | `/docs` | Signature + ejemplo + source |
 | **doktor** | Actualiza CLAUDE.md, README, counts de componentes. Verifica contra filesystem. | Sugerido tras commits con cambios estructurales | `/update-docs` | Lista de archivos actualizados |
 | **e2e-runner** | Ejecuta tests end-to-end: session lifecycle, instinct lifecycle, hook chains. Costoso. | Nunca auto-invoca | `/e2e` | 5 escenarios de test |
 
@@ -602,7 +602,7 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | MCP | Tipo | Que habilita | Usado por |
 |-----|------|-------------|----------|
 | **GitHub** | HTTP (`api.githubcopilot.com/mcp/`) | Buscar codigo, crear PRs/issues, leer archivos, commits, reviews | code-reviewer, doktor |
-| **Context7** | Comando (`npx -y @upstash/context7-mcp`) | Documentacion actualizada de cualquier libreria: resolve library → fetch docs | docs-lookup agent, `/docs` |
+| **Context7** | Comando (`npx -y @upstash/context7-mcp`) | Documentacion actualizada de cualquier libreria: resolve library → fetch docs | almanak agent, `/docs` |
 | **Supabase** | HTTP (`mcp.supabase.com/mcp`) | DB operations, auth, storage, edge functions, migrations, SQL execution | database-reviewer, architect |
 
 **Health monitoring:** Los hooks `mcp-health-check` (PreToolUse) y `mcp-health-failure` (PostToolUseFailure) monitorean la salud de los MCPs. Resultados en `$TMPDIR/kadmon/mcp-health.json`.
@@ -634,7 +634,7 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | Hacer TDD | `/tdd` → tdd-guide agent (sonnet) |
 | Revisar codigo antes de commit | `/checkpoint` → code-reviewer agent |
 | Ver estado del harness | `/dashboard` |
-| Buscar documentacion de una API | `/docs supabase-js insert` → docs-lookup + Context7 MCP |
+| Buscar documentacion de una API | `/docs supabase-js insert` → almanak + Context7 MCP |
 | Arreglar errores de compilacion | `/build-fix` → build-error-resolver agent |
 | Aprender de la sesion | `/instinct learn` |
 | Evolucionar el harness | `/evolve` → harness-optimizer agent (opus) |

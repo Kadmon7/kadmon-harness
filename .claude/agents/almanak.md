@@ -1,5 +1,5 @@
 ---
-name: docs-lookup
+name: almanak
 description: Use PROACTIVELY when code references unfamiliar APIs or when no_context principle requires verification. Command: /docs. Fetches live documentation via Context7 MCP.
 model: sonnet
 tools: Read, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
@@ -106,7 +106,7 @@ User asks: "How does obscure-lib work?"
 ## Output Format
 
 ```
-## Documentation: [library/topic] [docs-lookup]
+## Documentation: [library/topic] [almanak]
 
 ### Signature
 [exact API signature from documentation]
@@ -120,7 +120,7 @@ User asks: "How does obscure-lib work?"
 
 - No emoji in headers or body text
 - Use "Documentation:" prefix, not library icon emoji
-- Include [docs-lookup] tag for transparency layer
+- Include [almanak] tag for transparency layer
 
 ## no_context Rule
 

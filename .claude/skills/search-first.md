@@ -20,7 +20,7 @@ Find what already exists.
 
 1. **Search the codebase** — Grep/Glob for existing implementations
 2. **Search dependencies** — Check if a library already solves this
-3. **Search documentation** — Use /docs or docs-lookup agent for API details
+3. **Search documentation** — Use /docs or almanak agent for API details
 4. **Evaluate** — Can you reuse? Adapt? Or must you build new?
 
 ## Phase 2: Explore
@@ -69,7 +69,7 @@ Phase 3 (Act): Write the new hook following the pattern
 - Always search before coding — enforced by the no-context-guard hook
 - If you find existing code that does 80% of what you need, adapt it
 - If no existing solution: document why in a comment
-- Never assume a library API — use docs-lookup agent
+- Never assume a library API — use almanak agent
 - Read the target file AND its neighbors before editing
 
 ## Automatic Detection

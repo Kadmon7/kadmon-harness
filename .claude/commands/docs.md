@@ -1,6 +1,6 @@
 ---
 description: Look up live documentation for any library or framework
-agent: docs-lookup
+agent: almanak
 ---
 
 ## Purpose
@@ -11,7 +11,7 @@ Fetch current API documentation via Context7 MCP instead of relying on training 
 - `<library>` — browse library documentation (e.g., `/docs sql-js`)
 
 ## Steps
-1. Invoke docs-lookup agent with the query
+1. Invoke almanak agent with the query
 2. Agent resolves library ID via Context7
 3. Agent fetches documentation for the specific topic
 4. If Context7 unavailable: fallback to WebSearch

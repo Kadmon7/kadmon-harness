@@ -77,7 +77,7 @@ docs/
 | refactor-cleaner | sonnet | Code refactoring |
 | performance-optimizer | sonnet | Performance analysis and optimization |
 | python-reviewer | sonnet | Python code review (ML, embeddings, backends) |
-| docs-lookup | sonnet | Documentation lookup via Context7 |
+| almanak | sonnet | Documentation lookup via Context7 |
 | doktor | opus | Codemap and documentation generation |
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |

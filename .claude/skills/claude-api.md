@@ -56,4 +56,4 @@ const response = await client.messages.create({
 - Use streaming for long responses
 
 ## no_context Application
-Always fetch current API documentation via docs-lookup agent before using new API features. The Claude API evolves — do not rely on training data.
+Always fetch current API documentation via almanak agent before using new API features. The Claude API evolves — do not rely on training data.

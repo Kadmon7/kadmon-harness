@@ -105,11 +105,11 @@ const instinctPromotionEval: EvalCase = {
 };
 ```
 
-### Case 3 — docs-lookup accuracy (Context7)
+### Case 3 — almanak accuracy (Context7)
 
 ```typescript
 const docsLookupEval: EvalCase = {
-  name: "docs-lookup: Context7 usage and source citation",
+  name: "almanak: Context7 usage and source citation",
   input: {
     prompt: "How do I use Zod .safeParse() with discriminated unions?",
     context: "no prior context loaded"
@@ -135,9 +135,9 @@ Results are rendered as a markdown table per eval run:
 |------|-------|--------|--------------|-------------|--------|
 | code-reviewer: severity levels | 4/5 | yes | 3/4 | markdown_structure (0.15) | 2026-03-26T10:00Z |
 | instinct promotion: confidence | 5/5 | yes | 4/4 | — | 2026-03-26T10:01Z |
-| docs-lookup: Context7 accuracy | 3/5 | yes | 2/4 | cites_library_version (0.25) | 2026-03-26T10:02Z |
+| almanak: Context7 accuracy | 3/5 | yes | 2/4 | cites_library_version (0.25) | 2026-03-26T10:02Z |
 
-**Run summary:** 3/3 passed | Avg score: 4.0 | Lowest: docs-lookup (3/5)
+**Run summary:** 3/3 passed | Avg score: 4.0 | Lowest: almanak (3/5)
 
 ## Rules
 

@@ -452,7 +452,7 @@ Tipos validos: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `per
 # Verificar conectividad
 /docs test-connection
 
-# Si Context7 falla, el agente docs-lookup usa WebSearch como fallback
+# Si Context7 falla, el agente almanak usa WebSearch como fallback
 # Si GitHub MCP falla, usar gh CLI directamente
 gh pr list
 ```
