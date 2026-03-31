@@ -14,8 +14,8 @@ Fetch current API documentation via Context7 MCP instead of relying on training 
 1. Invoke almanak agent with the query
 2. Agent resolves library ID via Context7
 3. Agent fetches documentation for the specific topic
-4. If Context7 unavailable: fallback to WebSearch
-5. Return: exact API signature + working example + source URL
+4. If Context7 returns no results: respond with no_context
+5. Return: exact API signature + working example + source citation
 
 ## Output
 API signature, minimal example, and documentation source.
