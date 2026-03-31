@@ -67,18 +67,26 @@ git remote add origin https://github.com/tu-usuario/mi-proyecto.git
 
 ### 4. Adaptar CLAUDE.md
 
-Reescribir `CLAUDE.md` para tu proyecto. Mantener las secciones de estructura pero cambiar:
-- **Stack**: tu stack real (ej: "Supabase + pgvector + React" para ToratNetz)
-- **File Structure**: tu estructura de archivos
-- **Common Pitfalls**: tus gotchas (ej: "Hebrew text needs RTL handling")
-- **Status**: version de tu proyecto
+El CLAUDE.md del harness tiene ~156 lineas. Tu proyecto tendra ~200 (las mismas + contexto de tu dominio). Esto es ~3K tokens extra — nada preocupante.
 
-Lo que NO cambiar (viene del harness y sigue aplicando):
+**Que AGREGAR** (contexto de tu proyecto):
+- **Stack**: tu stack real (ej: "Supabase + pgvector + React" para ToratNetz)
+- **File Structure**: tu estructura de archivos real
+- **Common Pitfalls**: gotchas de tu dominio (ej: "Hebrew text needs RTL handling", "Embeddings requieren modelo X")
+- **Reglas de dominio**: convenciones especificas (ej: "Nombres de tablas en singular", "API responses siempre en JSON envelope")
+- **Status**: version de tu proyecto
+- **Environment Variables**: las que usa tu proyecto (ej: SUPABASE_URL, OPENAI_API_KEY)
+
+**Que MANTENER** (viene del harness y sigue aplicando):
 - Core Principle (no_context)
 - Mantra (Observe → Remember → Verify → Specialize → Evolve)
-- Agents, Commands, Skills tables (siguen siendo las mismas)
+- Agents, Commands, Skills tables (actualizar si agregas nuevos)
 - Hook System description
 - Development Workflow
+- Memory section
+- Hook Latency Budget
+
+**El CLAUDE.md crece con tu proyecto** — y eso esta bien. Cada gotcha que descubras, cada convencion que establezcas, cada pitfall que te muerda va ahi. Es la memoria permanente del proyecto.
 
 ### 5. Personalizar agentes
 
@@ -217,6 +225,60 @@ mi-proyecto/
 | Comandos basicos de Claude Code | 17 comandos especializados (/kplan, /tdd, /verify...) |
 | Sin presupuesto de contexto | Monitoring de contexto, /kompact inteligente |
 | Sin dashboard | `/dashboard` con instincts, sesiones, costos, hook health |
+
+## Flujo Real de Trabajo
+
+Asi se ve trabajar en un proyecto con el harness. Ejemplo: crear un endpoint de ingesta de texto hebreo para ToratNetz.
+
+### 1. Planificar
+```
+/kplan Disenar el endpoint de ingesta de texto hebreo:
+  - Recibe texto en formato JSON (titulo, cuerpo, fuente, idioma)
+  - Genera embeddings con OpenAI
+  - Guarda en Supabase con pgvector
+  - Retorna ID del documento creado
+```
+El agente **architect** evalua si hay decisiones arquitectonicas. El agente **planner** genera un plan paso a paso.
+
+### 2. Testear primero
+```
+/tdd Crear tests para el endpoint de ingesta
+```
+El agente **tdd-guide** te guia en el ciclo RED → GREEN → REFACTOR. Escribes el test que falla, luego implementas.
+
+### 3. Implementar
+Escribes el codigo. Mientras editas archivos `.ts`:
+- **post-edit-typecheck** valida TypeScript automaticamente
+- **quality-gate** corre lint
+- **no-context-guard** asegura que leiste el archivo antes de editarlo
+- **console-log-warn** avisa si dejas console.log
+
+### 4. Revisar
+```
+/code-review
+```
+El agente **code-reviewer** revisa calidad, TypeScript, y convenciones.
+El agente **security-reviewer** busca vulnerabilidades (SQL injection, API keys expuestas).
+
+### 5. Verificar
+```
+/verify
+```
+Corre typecheck + tests + lint. Si algo falla, no se puede commitear.
+
+### 6. Commitear
+```
+/checkpoint
+```
+Verifica todo, corre code-review, commitea con formato convencional, y pushea.
+
+### 7. El harness aprende
+Al final de la sesion, los hooks evaluan patrones:
+- "Este desarrollador siempre corre tests antes de commitear" → instinct reforzado
+- "Este desarrollador usa /kplan para features grandes" → instinct creado
+- Estos patrones se muestran en la proxima sesion como contexto.
+
+---
 
 ## Actualizaciones del Harness
 
