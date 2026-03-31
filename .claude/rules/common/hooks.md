@@ -16,7 +16,7 @@ alwaysApply: true
 |------|--------|---------|------|
 | block-no-verify | block-no-verify.js | Blocks git commands with --no-verify flag | 2 on match |
 | commit-format-guard | commit-format-guard.js | Blocks git commits that don't follow conventional commit format | 2 on violation |
-| commit-quality | commit-quality.js | Validates commit message quality and scope | 2 on violation |
+| commit-quality | commit-quality.js | Scans staged changes for console.log, debugger, secrets (skips .md, test, and hook files) | 2 on violation |
 | git-push-reminder | git-push-reminder.js | Reminds to run /verify before git push | 1 as warning |
 
 ### PreToolUse — Edit|Write matcher (2)
@@ -33,7 +33,7 @@ alwaysApply: true
 ### PreToolUse — all tools (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| observe-pre | observe-pre.js | Logs tool invocation to observations JSONL (pre-execution) | 0 always |
+| observe-pre | observe-pre.js | Logs tool invocation to observations JSONL; captures Agent, TaskCreate, and TaskUpdate metadata | 0 always |
 
 ### PostToolUse — Edit|Write matcher (5)
 | Hook | Script | Purpose | Exit |
@@ -52,7 +52,7 @@ alwaysApply: true
 ### PostToolUse — all tools (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| observe-post | observe-post.js | Logs tool result to observations JSONL (post-execution) | 0 always |
+| observe-post | observe-post.js | Logs tool result to observations JSONL; captures error messages on failures (truncated to 200 chars) | 0 always |
 
 ### PostToolUseFailure — mcp__ matcher (1)
 | Hook | Script | Purpose | Exit |
@@ -62,19 +62,19 @@ alwaysApply: true
 ### PreCompact — all (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| pre-compact-save | pre-compact-save.js | Saves session state before context compaction | 0 always |
+| pre-compact-save | pre-compact-save.js | Saves session state and pending tasks before context compaction | 0 always |
 
 ### SessionStart — all (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| session-start | session-start.js | Initializes session: loads instincts, previous session summary | 0 always |
+| session-start | session-start.js | Loads 3 recent sessions, shows history trajectory, Pending Work carry-forward, recovers orphaned sessions | 0 always |
 
 ### Stop — all (4)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| session-end-persist | session-end-persist.js | Persists session summary and observations to SQLite | 0 always |
+| session-end-persist | session-end-persist.js | Persists session summary, task lifecycle, and error context to SQLite | 0 always |
 | evaluate-session | evaluate-session.js | Evaluates session quality and updates instinct confidence | 0 always |
-| cost-tracker | cost-tracker.js | Tracks token usage and cost per session | 0 always |
+| cost-tracker | cost-tracker.js | Tracks token usage and cost per session (observations-based fallback when transcript unavailable) | 0 always |
 | session-end-marker | session-end-marker.js | Marks session end for lifecycle tracking | 0 always |
 
 ## Safety

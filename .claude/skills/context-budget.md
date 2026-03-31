@@ -119,8 +119,8 @@ Fix -> test -> commit -> THEN compact safely
 ## Integration
 - **/kompact** command implements this skill (full flow: audit + safety + summarize + compact guidance)
 - **/kompact audit** subcommand for quick context usage checks without compacting
-- **pre-compact-save** hook automatically saves session state before compaction
-- **session-start** hook restores previous session summary when a new session begins
+- **pre-compact-save** hook automatically saves session state and pending tasks before compaction
+- **session-start** hook restores 3 recent sessions with history trajectory and pending work carry-forward
 - **/context-budget** command audits current context window usage
 
 ## Rules
@@ -132,4 +132,4 @@ Fix -> test -> commit -> THEN compact safely
 - Plan context usage before starting complex multi-file tasks
 
 ## no_context Application
-Context budget management prevents the scenario where Claude "forgets" earlier context and starts inventing. By compacting strategically and re-reading critical files, the no_context principle is maintained even in long sessions. The pre-compact-save hook preserves state, and the session-start hook restores it in the next session.
+Context budget management prevents the scenario where Claude "forgets" earlier context and starts inventing. By compacting strategically and re-reading critical files, the no_context principle is maintained even in long sessions. The pre-compact-save hook preserves state and pending tasks, and the session-start hook restores 3 recent sessions with trajectory and pending work in the next session.

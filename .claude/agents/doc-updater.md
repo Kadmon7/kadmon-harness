@@ -20,12 +20,34 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 
 | File | Language | Purpose | What to check |
 |------|----------|---------|---------------|
-| **CLAUDE.md** | English | Claude reads this every session. Primary reference. | Component counts, file structure, Memory section, Hook catalog, Status line |
-| **README.md** | English | GitHub overview for humans | Architecture, features, quick start, component summary |
-| **docs/GUIDE.md** | Spanish | User guide for the harness | Hook descriptions, workflow explanations, layer descriptions |
-| **docs/HOW-TO-USE.md** | Spanish | How-to guide with recipes | Workflow steps, troubleshooting, config examples |
-| **docs/REFERENCE.md** | Spanish | Technical reference (most detailed) | Hook tables with descriptions, schema docs, test counts, root file descriptions, utility scripts |
-| **.claude/rules/**/*.md** | English | Rules for Claude behavior | Agent catalog, hook catalog, enforcement descriptions |
+### Layer 1 — Public docs (users + Claude)
+| File | Language | What to check |
+|------|----------|---------------|
+| **CLAUDE.md** | English | Component counts, file structure, Memory section, Hook catalog, Status line |
+| **README.md** | English | Architecture, features, quick start, component summary |
+| **docs/GUIDE.md** | Spanish | Hook descriptions, workflow explanations, layer descriptions |
+| **docs/HOW-TO-USE.md** | Spanish | Workflow steps, troubleshooting, config examples |
+| **docs/REFERENCE.md** | Spanish | Hook tables with descriptions, schema docs, test counts, root file descriptions |
+
+### Layer 2 — Rules (Claude reads every session)
+| File | What to check |
+|------|---------------|
+| **.claude/rules/common/hooks.md** | Hook catalog (22 entries) — descriptions MUST match actual hook behavior |
+| **.claude/rules/common/agents.md** | Agent catalog — triggers, model routing, auto-invoke rules |
+| **.claude/rules/common/development-workflow.md** | Command reference table — if commands change, update here |
+| Other rules | Only if the change affects enforcement descriptions |
+
+### Layer 3 — Commands (workflow definitions)
+| File | What to check |
+|------|---------------|
+| **.claude/commands/update-docs.md** | This agent's own workflow — keep in sync with agent changes |
+| Other commands | Only if their workflow steps reference changed components |
+
+### Layer 4 — Skills (domain knowledge)
+| File | What to check |
+|------|---------------|
+| Skills referencing hooks or sessions | grep for hook names in `.claude/skills/` — update stale descriptions |
+| Skills referencing changed APIs | If state-store or session-manager API changed, check skills that reference them |
 
 ## Workflow
 
@@ -74,25 +96,44 @@ For each behavioral change found in Step 1:
 - Fix "No existe" or "planned" markers for things that now exist
 
 ### 4. Self-Verify (NON-NEGOTIABLE)
-After making all edits, run these checks:
+After making all edits, run ALL of these checks. Do not skip any.
 
+**A. Feature coverage** — for each behavioral change from Step 1:
 ```bash
-# Check that new features are actually mentioned in docs
-grep -r "feature_keyword" docs/ CLAUDE.md README.md
+# Search for feature keywords across ALL documentation layers
+grep -rn "feature_keyword" docs/ CLAUDE.md README.md .claude/rules/ .claude/commands/ .claude/skills/
+```
+Verify:
+- [ ] CLAUDE.md mentions it
+- [ ] At least one docs/ file describes it in detail
+- [ ] .claude/rules/common/hooks.md description matches code (if hook changed)
+- [ ] No stale description remains that contradicts the change
 
-# Check no "No existe" remains for things that exist
-grep -rn "No existe" docs/ | while read line; do
-  # verify the referenced file actually doesn't exist
-done
-
-# Check counts match
-# Compare documented counts vs actual file counts
+**B. Stale references** — catch things that no longer exist:
+```bash
+grep -rn "No existe" docs/
+# For each match, verify the file actually doesn't exist on disk
 ```
 
-For each behavioral change from Step 1, verify:
-- [ ] CLAUDE.md mentions it (Claude reads this every session)
-- [ ] At least one docs/ file describes it in detail
-- [ ] No stale description remains that contradicts the change
+**C. Rules sync** — for each hook modified in the diff:
+```bash
+# Verify hook description in rules matches actual behavior
+grep -n "hook_name" .claude/rules/common/hooks.md
+# Compare with actual code in .claude/hooks/scripts/hook_name.js
+```
+
+**D. Skills sync** — check skills for stale hook references:
+```bash
+grep -rn "observe-pre\|observe-post\|session-start\|cost-tracker" .claude/skills/
+# Any match → verify description is still accurate
+```
+
+**E. Counts** — compare documented vs actual:
+```bash
+ls .claude/agents/*.md | wc -l       # vs CLAUDE.md agent count
+ls .claude/skills/*.md | wc -l       # vs CLAUDE.md skill count
+npx vitest run 2>&1 | tail -3        # vs documented test count
+```
 
 ## Key Principles
 

@@ -1,17 +1,21 @@
 ---
-description: Sync CLAUDE.md, README, and docs with recent code changes
+description: Sync ALL project documentation with recent code changes — docs, rules, commands, skills
 agent: doc-updater
 ---
 
 ## Purpose
-Keep documentation in sync with code after implementation changes.
+Keep all 4 layers of documentation in sync with code after implementation changes.
+Not just counts — behavioral descriptions must match what the code actually does.
 
 ## Steps
 1. Invoke doc-updater agent (sonnet)
-2. Scan recent git commits for structural changes
-3. Update CLAUDE.md: agent table, command table, status, component counts
-4. Update README.md: architecture section, component counts
-5. Commit documentation updates separately from code
+2. Scan recent git commits for behavioral AND structural changes
+3. **Layer 1 — Public docs**: Update CLAUDE.md, README.md, docs/GUIDE.md, docs/HOW-TO-USE.md, docs/REFERENCE.md
+4. **Layer 2 — Rules**: Update .claude/rules/common/hooks.md, agents.md, development-workflow.md if affected
+5. **Layer 3 — Commands**: Update command .md files if their workflows changed
+6. **Layer 4 — Skills**: Check skills that reference changed hooks/features
+7. Self-verify: grep for feature keywords, check for stale references, validate counts
+8. Commit documentation updates separately from code
 
 ## Output
-List of docs updated + commit hash.
+List of docs updated across all layers + verification results + commit hash.

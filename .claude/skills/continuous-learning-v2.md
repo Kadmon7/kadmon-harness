@@ -18,8 +18,8 @@ The instinct-based learning system. Observes sessions, creates atomic instincts 
 ## How It Works
 
 ### Observation Flow
-1. **observe-pre hook** logs every tool call to JSONL (file append, <50ms)
-2. **observe-post hook** logs tool results to the same JSONL
+1. **observe-pre hook** logs every tool call to JSONL (file append, <50ms); captures Agent, TaskCreate, and TaskUpdate metadata
+2. **observe-post hook** logs tool results to the same JSONL; captures error messages on failures
 3. **evaluate-session hook** (at Stop) analyzes observations against 13 pattern definitions in `.claude/hooks/pattern-definitions.json`
 4. Matched patterns become instincts in SQLite via instinct-manager.ts
 
@@ -106,10 +106,10 @@ After 7 days: /instinct prune archives it
 ## Integration
 - **/instinct** command — 6 subcommands: status (default), eval, learn, promote, prune, export
 - **evaluate-session** hook — fires at Stop, analyzes observations against pattern-definitions.json
-- **observe-pre / observe-post** hooks — log tool calls and results to JSONL for evaluate-session to analyze
+- **observe-pre / observe-post** hooks — log tool calls, results, errors, and task metadata to JSONL for evaluate-session to analyze
 - **pattern-definitions.json** — 13 pattern definitions (sequence, cluster, command_sequence types) that evaluate-session matches against
 - **/evolve** command — harness-optimizer agent also analyzes instinct quality, contradiction rates, and promotion candidates as part of its holistic harness review
-- **session-start** hook — loads active instincts at session start so they influence behavior from the beginning
+- **session-start** hook — loads 3 recent sessions with history trajectory, pending work carry-forward, and active instincts at session start
 - **skill-creator:skill-creator** plugin — required for /instinct promote (handles skill drafting and validation)
 
 ## Rules
