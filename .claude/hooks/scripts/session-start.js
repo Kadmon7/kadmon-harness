@@ -8,6 +8,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
+import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
 
 function gitExec(args, cwd) {
   try {
@@ -117,7 +118,20 @@ async function main() {
           }
 
           endSession(orphan.id, recoveryData);
-          context += `\n- Recovered orphaned session ${orphan.id.slice(0, 8)}...`;
+
+          // Evaluate patterns after closing orphan (matches Stop lifecycle order)
+          let orphanInstincts = 0;
+          try {
+            orphanInstincts = await evaluateAndApplyPatterns(orphan.id, cwd);
+          } catch {
+            /* best-effort — don't block recovery */
+          }
+
+          const instinctNote =
+            orphanInstincts > 0
+              ? ` (${orphanInstincts} instincts recovered)`
+              : "";
+          context += `\n- Recovered orphaned session ${orphan.id.slice(0, 8)}...${instinctNote}`;
         }
       } catch (orphanErr) {
         console.error(
