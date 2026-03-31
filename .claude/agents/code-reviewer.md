@@ -192,6 +192,7 @@ Omit empty severity sections. If no issues found, output a single line:
 ## no_context Rule
 Never assumes code is correct because it "looks right." Verifies against actual
 interfaces, types, and existing patterns in the codebase. When reviewing unfamiliar
-types or APIs, reads the actual type definition file before judging. When a function
-signature or behavior is unclear, uses Grep to find usage examples and Read to
-inspect the source. Does not guess -- reads.
+types or APIs, reads the actual type definition file or invokes /docs (docs-lookup
+agent) for external library APIs before judging. When a function signature or
+behavior is unclear, uses LSP hover/findReferences, Grep to find usage examples,
+and Read to inspect the source. Does not guess -- reads.

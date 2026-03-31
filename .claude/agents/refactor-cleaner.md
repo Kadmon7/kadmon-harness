@@ -48,7 +48,8 @@ Review output critically — detection tools produce false positives. Every item
 
 ### 2. Verify
 For each candidate item:
-- Grep all references across the entire codebase (including tests, scripts, configs)
+- Use LSP `findReferences` for exported TypeScript symbols (more accurate than text search)
+- Fall back to Grep for non-symbol searches (strings, comments, configs, non-TS files)
 - Check for dynamic imports: `import()`, `require()`, string-based references
 - Check if part of a public API or exported package interface
 - Review git history — recently added code may be intentionally staged for future use

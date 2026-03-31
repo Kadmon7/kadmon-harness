@@ -26,7 +26,7 @@ The LSP tool provides precise code intelligence. Prefer it over Grep/Glob for Ty
 
 ## Proactive Usage
 
-- SHOULD use `findReferences` before renaming or removing any exported function
-- SHOULD use `incomingCalls` before modifying a function's signature
+- MUST use `findReferences` before renaming or removing any exported function
+- MUST use `incomingCalls` before modifying a function's signature
 - SHOULD use `hover` when unsure about a variable's type instead of guessing
 - SHOULD use `documentSymbol` when exploring an unfamiliar file for the first time

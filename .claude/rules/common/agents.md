@@ -52,6 +52,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - TypeScript compilation or Vitest fails → build-error-resolver
 - Performance concerns (O(n^2), slow queries, memory patterns) → performance-optimizer
 - /kplan with architecture signals → architect before planner
+- Encountering unfamiliar external API or library → docs-lookup (via /docs)
 
 ## Manual Rules
 - MUST invoke code-reviewer before any commit via /checkpoint
