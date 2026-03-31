@@ -59,9 +59,14 @@ async function main() {
         new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
           .href
       );
+      const { endSession } = await import(
+        new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
+          .href
+      );
       await openDb(process.env.KADMON_TEST_DB || undefined);
       const session = getSession(sid);
       if (session) {
+        // First update compaction count and session data
         upsertSession({
           ...session,
           id: sid,
@@ -73,6 +78,8 @@ async function main() {
           summary: summary ?? session.summary,
           tasks: tasks.length > 0 ? tasks : session.tasks,
         });
+        // Then close the session cleanly — next session-start won't find an orphan
+        endSession(sid, {});
       }
     } catch (dbErr) {
       console.error(
