@@ -37,5 +37,5 @@ alwaysApply: true
 - config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)
 - block-no-verify hook prevents bypassing git safety hooks (PreToolUse on Bash, exit 2)
 - safety-guard skill provides runtime security guardrails
-- security-review skill provides structured security analysis during /code-review
+- security-reviewer agent provides structured security analysis during /code-review
 - permissions.deny in settings.json blocks Read access to .env, .env.*, and secrets/ files

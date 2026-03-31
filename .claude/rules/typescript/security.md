@@ -26,4 +26,4 @@ globs: ["**/*.ts"]
 - config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)
 - permissions.deny in settings.json blocks Read access to .env, .env.*, and secrets/ files
 - safety-guard skill provides runtime security guardrails
-- security-review skill provides structured security analysis
+- security-reviewer agent provides structured security analysis

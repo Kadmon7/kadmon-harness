@@ -27,7 +27,7 @@ Observe → Remember → Verify → Specialize → Evolve
 | **Observe** | Registra cada operacion, gestiona contexto | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persiste sesiones, instintos, decisiones | SQLite, `/checkpoint`, `/docs`, `/instinct learn` |
 | **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 26 skills, `/kplan` |
+| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 20 skills, `/kplan` |
 | **Evolve** | Aprende de sesiones, extrae patrones | `/instinct learn`, `/evolve`, instinct engine |
 
 ### Stack tecnologico
@@ -132,7 +132,6 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | Skill | Que ensena | Cuando se aplica |
 |-------|-----------|-----------------|
 | **search-first** | Buscar en codebase antes de crear codigo nuevo | Antes de cualquier implementacion |
-| **documentation-lookup** | Context7 MCP flow, fallback a WebSearch, no_context si falla | Con `/docs` o APIs desconocidas |
 | **architecture-decision-records** | Templates ADR, lifecycle, formato Decision/Context/Options | Al tomar decisiones arquitectonicas |
 
 #### Harness meta-skills
@@ -143,10 +142,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **context-budget** | Gestion de ventana de contexto, cuando compactar | Sesiones largas |
 | **strategic-compact** | Cuando y como compactar contexto sin perder informacion critica | Antes de compactacion |
 | **continuous-learning-v2** | Instinct lifecycle: create, reinforce, contradict, promote, prune | Con `/instinct learn`, `/evolve` |
-| **cost-aware-llm-pipeline** | Pricing por modelo, estrategias de routing opus/sonnet/haiku | Al disenar pipelines LLM |
-| **agentic-engineering** | Orchestracion multi-agente, delegation patterns | Al disenar sistemas con multiples agentes |
 | **mcp-server-patterns** | Configuracion MCP, health checks, secrets management | Al integrar MCPs |
-| **security-review** | Checklist de 8 puntos: SQL injection, XSS, path traversal, etc. | Con `/code-review` (parte de seguridad) |
 
 #### ToratNetz-especificos
 
@@ -450,7 +446,7 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 
 | Archivo | Que cubre |
 |---------|----------|
-| **GUIDE.md** | Guia de usuario completa: mantra, quick start, 17 comandos, 14 agentes, 26 skills, hooks, instintos, flujo diario |
+| **GUIDE.md** | Guia de usuario completa: mantra, quick start, 17 comandos, 14 agentes, 20 skills, hooks, instintos, flujo diario |
 | **REFERENCE.md** | Este documento — referencia exhaustiva de cada componente |
 
 ### Subdirectorios
@@ -644,7 +640,7 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | Metrica | Valor |
 |---------|-------|
 | Agentes | 14 (5 opus, 9 sonnet) |
-| Skills | 26 |
+| Skills | 20 |
 | Comandos | 17 |
 | Hooks | 22 |
 | Rules | 14 |
@@ -656,5 +652,5 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 26 skills, 22 hooks*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

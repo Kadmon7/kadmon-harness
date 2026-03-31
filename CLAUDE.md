@@ -47,7 +47,7 @@ scripts/
 │   ├── common/         # 9 cross-language rules
 │   └── typescript/     # 5 TS-specific rules
 ├── agents/             # 14 agent definitions
-├── skills/             # 26 skill documents
+├── skills/             # 20 skill documents
 └── commands/           # 17 command templates
 tests/
 ├── lib/                # Unit tests for scripts/lib/
@@ -89,18 +89,18 @@ Defined in `.claude/commands/` — organized by phase:
 - **Specialize** (2): /kplan, /workflow
 - **Evolve** (3): /instinct, /evolve, /refactor-clean
 
-## Skills (26)
+## Skills (20)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
 
 | Category | Skills |
 |----------|--------|
 | Workflow | search-first, context-budget |
-| Quality | coding-standards, security-review, tdd-workflow, verification-loop, e2e-testing |
+| Quality | coding-standards, tdd-workflow, verification-loop, e2e-testing |
 | Learning | continuous-learning-v2, eval-harness |
-| Architecture | agentic-engineering, architecture-decision-records, api-design |
+| Architecture | architecture-decision-records, api-design |
 | Data | database-migrations, postgres-patterns, iterative-retrieval, iterative-retrieval-hebrew |
-| Integration | claude-api, cost-aware-llm-pipeline, mcp-server-patterns, documentation-lookup |
-| Orchestration | subagent-retrieval, subagent-driven-development, dispatching-parallel-agents |
+| Integration | claude-api, mcp-server-patterns |
+| Orchestration | orchestration-patterns |
 | Debugging | systematic-debugging |
 | Review | receiving-code-review |
 | Safety | safety-guard |
@@ -153,4 +153,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 26 skills, 17 commands)
+v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 20 skills, 17 commands)

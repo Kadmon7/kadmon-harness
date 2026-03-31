@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`154 tests` | `22 hooks` | `14 agents` | `26 skills` | `17 commands`
+`154 tests` | `22 hooks` | `14 agents` | `20 skills` | `17 commands`
 
 ## Mantra
 
@@ -13,7 +13,7 @@
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/checkpoint` |
 | **Verify** | Tests first, code review, quality gates | `/tdd`, `/verify`, `/code-review` |
-| **Specialize** | Domain agents, curated skill catalog | 14 agents, 26 skills, `/kplan` |
+| **Specialize** | Domain agents, curated skill catalog | 14 agents, 20 skills, `/kplan` |
 | **Evolve** | Learn from sessions, promote patterns to skills | `/instinct learn`, `/evolve`, `/instinct promote` |
 
 ## Quick Start
@@ -95,7 +95,7 @@ Key commands inside a session:
 │  └─────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 14 Agents│  │ 26 Skills│  │ 14 Rules │             │
+│  │ 14 Agents│  │ 20 Skills│  │ 14 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -108,7 +108,7 @@ Key commands inside a session:
 | Category | Count | Location |
 |----------|-------|----------|
 | Agents | 14 (5 opus, 9 sonnet) | `.claude/agents/` |
-| Skills | 26 | `.claude/skills/` |
+| Skills | 20 | `.claude/skills/` |
 | Commands | 17 | `.claude/commands/` |
 | Hooks | 22 | `.claude/hooks/scripts/` |
 | Rules | 14 (9 common + 5 TS) | `.claude/rules/` |
@@ -239,4 +239,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 26 skills, 17 commands)
+v0.3 — Consolidated (154 tests passing, 22 hooks, 14 agents, 20 skills, 17 commands)

@@ -11,7 +11,7 @@ Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Clau
 | **Observe** | Registra cada operación, gestiona contexto | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persiste sesiones, instintos, decisiones | SQLite, sessions, `/checkpoint`, `/docs` |
 | **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 26 skills, `/kplan` |
+| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 20 skills, `/kplan` |
 | **Evolve** | Aprende de sesiones, extrae patrones | `/instinct learn`, `/evolve`, instinct engine |
 
 ### ¿Cómo difiere de Claude Code vanilla?
@@ -185,7 +185,7 @@ Session end ──→ hooks persisten todo a SQLite
 
 ---
 
-## 6. Los 23 Skills
+## 6. Los 20 Skills
 
 ### Observe
 
@@ -201,7 +201,6 @@ Session end ──→ hooks persisten todo a SQLite
 | architecture-decision-records | Capturar decisiones arquitectónicas como ADRs |
 | strategic-compact | Compactar en el momento correcto (después de commits, entre fases) |
 | continuous-learning-v2 | Cómo funciona el sistema de instintos: observación → confianza → promoción |
-| documentation-lookup | Fetch de docs actualizados vía Context7 en lugar de datos de entrenamiento |
 
 ### Verify
 
@@ -210,14 +209,12 @@ Session end ──→ hooks persisten todo a SQLite
 | tdd-workflow | RED → GREEN → REFACTOR para cada feature |
 | verification-loop | Pipeline completo: build → typecheck → lint → tests → diff |
 | safety-guard | Prevenir operaciones destructivas (hooks de bloqueo) |
-| security-review | Checklist de seguridad: secrets, injection, path traversal |
 
 ### Specialize
 
 | Skill | Descripción |
 |-------|-------------|
 | coding-standards | Convenciones TypeScript/JS del ecosistema Kadmon |
-| agentic-engineering | Metodología AI-first para desarrollo con Claude Code |
 | api-design | Patrones de diseño REST/RPC para servicios TypeScript |
 
 ### Evolve
@@ -226,7 +223,6 @@ Session end ──→ hooks persisten todo a SQLite
 |-------|-------------|
 | eval-harness | Framework de evaluación estructurada para agentes/skills |
 | e2e-testing | Patrones para tests de workflows completos |
-| cost-aware-llm-pipeline | Optimizar uso de tokens y costos por modelo |
 
 ### Dominios técnicos
 
@@ -499,5 +495,5 @@ claude
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 26 skills, 22 hooks*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

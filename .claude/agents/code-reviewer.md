@@ -135,7 +135,7 @@ When reviewing code, verify compliance against the relevant skills catalog:
   (every exported function needs at least one test)
 - API endpoints -> check api-design skill
   (Zod validation, response envelope, correct status codes)
-- File operations -> check security-review skill
+- File operations -> check security-reviewer agent patterns
   (path traversal prevention, input sanitization, path.resolve)
 - Hook scripts -> check hook latency budgets
   (observe hooks < 50ms, no-context-guard < 100ms, others < 500ms)

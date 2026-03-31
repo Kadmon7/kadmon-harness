@@ -21,5 +21,12 @@ Commands reduced from 19 to 17 as of 2026-03-30.
 - /sessions → removed (use /dashboard)
 - /learn-eval → /instinct eval
 
-Current state: 17 commands, 14 agents (typescript-reviewer deleted, merged into code-reviewer as TypeScript Specialist Mode), 26 skills.
+Current state: 17 commands, 14 agents (typescript-reviewer deleted, merged into code-reviewer as TypeScript Specialist Mode), 20 skills.
 Counts: 5 opus agents, 9 sonnet agents.
+
+Skill consolidation (2026-03-30):
+- documentation-lookup skill → absorbed into docs-lookup agent
+- security-review skill → absorbed into security-reviewer agent
+- cost-aware-llm-pipeline skill → absorbed into harness-optimizer agent
+- agentic-engineering skill → absorbed into planner agent
+- subagent-retrieval + subagent-driven-development + dispatching-parallel-agents → consolidated into orchestration-patterns skill
