@@ -17,6 +17,15 @@ try {
     metadata.agentType = input.tool_input?.subagent_type ?? null;
     metadata.agentDescription = input.tool_input?.description ?? null;
   }
+  if (toolName === "TaskCreate") {
+    metadata.taskSubject = input.tool_input?.subject ?? null;
+    metadata.taskDescription = input.tool_input?.description ?? null;
+  }
+  if (toolName === "TaskUpdate") {
+    metadata.taskId = input.tool_input?.taskId ?? null;
+    metadata.taskStatus = input.tool_input?.status ?? null;
+    metadata.taskSubject = input.tool_input?.subject ?? null;
+  }
   const event = {
     timestamp: new Date().toISOString(),
     sessionId: sid,

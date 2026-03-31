@@ -164,7 +164,14 @@ async function main() {
         context += `\n## Previous Session`;
         context += `\n- Date: ${last.startedAt} | Branch: ${last.branch}`;
         if (last.summary) context += `\n- Summary: ${last.summary}`;
-        if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(", ")}`;
+        const pendingTasks = last.tasks.filter((t) =>
+          t.startsWith("[pending] "),
+        );
+        const completedTasks = last.tasks.filter(
+          (t) => !t.startsWith("[pending] "),
+        );
+        if (completedTasks.length)
+          context += `\n- Tasks: ${completedTasks.join(", ")}`;
         context += `\n- Messages: ${last.messageCount} | Compactions: ${last.compactionCount} | Files: ${last.filesModified.length}`;
         if (last.filesModified.length > 0) {
           const topFiles = last.filesModified
@@ -184,6 +191,17 @@ async function main() {
             const date = s.startedAt ? s.startedAt.slice(0, 10) : "unknown";
             const sum = s.summary ? s.summary.slice(0, 120) : "(no summary)";
             context += `\n- [${date}] ${sum}`;
+          }
+        }
+
+        // Show pending tasks from previous session for carry-forward
+        if (pendingTasks.length > 0) {
+          context += `\n\n## Pending Work (from last session)`;
+          for (const t of pendingTasks.slice(0, 5)) {
+            context += `\n- ${t.replace("[pending] ", "")}`;
+          }
+          if (pendingTasks.length > 5) {
+            context += `\n- (+${pendingTasks.length - 5} more)`;
           }
         }
       }

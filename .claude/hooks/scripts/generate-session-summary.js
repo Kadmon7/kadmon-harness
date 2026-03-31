@@ -25,6 +25,8 @@ export function generateSummary(obsPath) {
   const toolCounts = new Map();
   const tasks = new Set();
   const agentTypes = new Set();
+  const trackedTasks = new Map(); // taskId → { subject, status }
+  let taskCreateSeq = 0;
   let hadTests = false;
   let hadCommit = false;
   let hadTypecheck = false;
@@ -92,6 +94,30 @@ export function generateSummary(obsPath) {
       if (skillName) tasks.add(`/${skillName}`);
     }
 
+    // Track TaskCreate/TaskUpdate lifecycle
+    if (
+      e.eventType === "tool_pre" &&
+      tool === "TaskCreate" &&
+      meta.taskSubject
+    ) {
+      taskCreateSeq++;
+      const id = `auto-${taskCreateSeq}`;
+      trackedTasks.set(id, { subject: meta.taskSubject, status: "pending" });
+    }
+    if (e.eventType === "tool_pre" && tool === "TaskUpdate" && meta.taskId) {
+      const existing = trackedTasks.get(meta.taskId);
+      if (existing) {
+        if (meta.taskStatus) existing.status = meta.taskStatus;
+        if (meta.taskSubject) existing.subject = meta.taskSubject;
+      } else if (meta.taskStatus) {
+        // TaskUpdate for a task we didn't see created (e.g., from before compaction)
+        trackedTasks.set(meta.taskId, {
+          subject: meta.taskSubject ?? `Task #${meta.taskId}`,
+          status: meta.taskStatus,
+        });
+      }
+    }
+
     // Track failures and errors
     if (e.eventType === "tool_post" && e.success === false) {
       failedTools++;
@@ -139,6 +165,22 @@ export function generateSummary(obsPath) {
     if (errors.length > 0) {
       parts.push(`Errors: ${errors.join("; ")}`);
     }
+  }
+
+  // Merge tracked tasks into tasks array
+  // Pending tasks get [pending] prefix for carry-forward detection
+  const pendingTasks = [];
+  for (const [, t] of trackedTasks) {
+    if (t.status === "completed" || t.status === "deleted") {
+      tasks.add(t.subject);
+    } else {
+      pendingTasks.push(t.subject);
+      tasks.add(`[pending] ${t.subject}`);
+    }
+  }
+
+  if (pendingTasks.length > 0) {
+    parts.push(`${pendingTasks.length} pending task(s)`);
   }
 
   // Tool usage summary
