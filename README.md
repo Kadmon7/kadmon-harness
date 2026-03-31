@@ -95,7 +95,7 @@ Key commands inside a session:
 │  └─────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 14 Agents│  │ 20 Skills│  │ 14 Rules │             │
+│  │ 14 Agents│  │ 20 Skills│  │ 15 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -111,7 +111,7 @@ Key commands inside a session:
 | Skills | 20 | `.claude/skills/` |
 | Commands | 17 | `.claude/commands/` |
 | Hooks | 22 | `.claude/hooks/scripts/` |
-| Rules | 14 (9 common + 5 TS) | `.claude/rules/` |
+| Rules | 15 (9 common + 6 TS) | `.claude/rules/` |
 
 ## Agents
 

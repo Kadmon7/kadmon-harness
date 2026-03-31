@@ -101,7 +101,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 ### 2.2 — Skills (.claude/skills/)
 
-26 archivos markdown que ensenan a Claude patrones especificos. Claude los consulta durante tareas relevantes.
+20 archivos markdown que ensenan a Claude patrones especificos. Claude los consulta durante tareas relevantes.
 
 #### TypeScript / Calidad de codigo
 
@@ -140,9 +140,11 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 |-------|-----------|-----------------|
 | **safety-guard** | 3 layers de proteccion: block-no-verify, config-protection, no-context-guard | Cuando algo es bloqueado por hooks |
 | **context-budget** | Gestion de ventana de contexto, cuando compactar | Sesiones largas |
-| **strategic-compact** | Cuando y como compactar contexto sin perder informacion critica | Antes de compactacion |
 | **continuous-learning-v2** | Instinct lifecycle: create, reinforce, contradict, promote, prune | Con `/instinct learn`, `/evolve` |
 | **mcp-server-patterns** | Configuracion MCP, health checks, secrets management | Al integrar MCPs |
+| **orchestration-patterns** | Context-rich dispatch, parallel agents, plan execution via subagents | Al orquestar multiples agentes |
+| **systematic-debugging** | Diagnostico estructurado: reproduce, isolate, hypothesize, verify | Con `/build-fix` o debugging |
+| **receiving-code-review** | Como recibir y aplicar feedback de code review, priorizar findings | Con `/code-review`, `/checkpoint` |
 
 #### ToratNetz-especificos
 
@@ -268,7 +270,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 ### 2.5 — Rules (.claude/rules/)
 
-14 archivos markdown que definen reglas imperativas. Claude los lee automaticamente segun globs y `alwaysApply`.
+15 archivos markdown que definen reglas imperativas. Claude los lee automaticamente segun globs y `alwaysApply`.
 
 #### Rules comunes (9 archivos, `alwaysApply: true`)
 
@@ -284,12 +286,13 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **common/security.md** | Seguridad | NEVER commit secrets; ALWAYS validar input con Zod; NEVER string concat para SQL | security-reviewer, config-protection |
 | **common/testing.md** | Testing | MUST 80%+ coverage nuevo codigo; MUST `:memory:` SQLite para tests; MUST Vitest | tdd-guide, post-edit-typecheck |
 
-#### Rules TypeScript (5 archivos, `alwaysApply: false`, globs especificos)
+#### Rules TypeScript (6 archivos, `alwaysApply: false`, globs especificos)
 
 | Archivo | Globs | Que impone | Enforced por |
 |---------|-------|-----------|-------------|
 | **typescript/coding-style.md** | `**/*.ts,**/*.tsx` | Strict mode, .js extensions, `import type` | code-reviewer (TypeScript specialist mode) |
 | **typescript/hooks.md** | `.claude/hooks/scripts/*.js` | parseStdin(), lifecycle hooks desde dist/, `npm run build` | post-edit-typecheck |
+| **typescript/lsp-usage.md** | `**/*.ts,**/*.tsx` | Prefer LSP over Grep para navegacion TypeScript, findReferences antes de refactor | code-reviewer |
 | **typescript/patterns.md** | `**/*.ts` | Result pattern, Zod schemas, `catch (e: unknown)` | code-reviewer (TypeScript specialist mode) |
 | **typescript/security.md** | `**/*.ts` | Branded types, path.resolve(), parameterized queries | security-reviewer |
 | **typescript/testing.md** | `tests/**/*.ts` | vi.fn(), mock externals, close DB en afterEach | tdd-guide |
@@ -474,7 +477,7 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 
 ## Seccion 8 — Plugins
 
-### Plugins activos (7)
+### Plugins activos (6)
 
 | Plugin | Tipo | Valor | Que agrega |
 |--------|------|-------|-----------|
@@ -482,11 +485,10 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 | **skill-creator** | Skill Plugin | CRITICAL | Crear, modificar, evaluar y benchmarkear skills |
 | **typescript-lsp** | LSP Plugin | HIGH | TypeScript Language Server: goToDefinition, findReferences, hover, documentSymbol |
 | **supabase** | MCP Server | MEDIUM | Integracion Supabase: DB, auth, storage, edge functions, migrations (standby para v2) |
-| **claude-md-management** | Skill Plugin | LOW | Auditoria y mejora de CLAUDE.md (revise-claude-md, claude-md-improver) |
 | **frontend-design** | Skill Plugin | LOW | Interfaces frontend production-grade con diseno distintivo |
 | **ralph-loop** | Skill Plugin | LOW | Loop de ejecucion recurrente (ralph-loop, cancel-ralph, help) |
 
-### Plugins removidos (5)
+### Plugins removidos (6)
 
 | Plugin | Razon |
 |--------|-------|
@@ -495,6 +497,7 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 | **code-simplifier** | Removido 2026-03-30 — reinstalable desde marketplace |
 | **claude-code-setup** | Removido 2026-03-30 — reinstalable desde marketplace |
 | **github** | No habilitado — el harness usa `gh` CLI autenticado como Kadmon7 |
+| **claude-md-management** | Removido 2026-03-30 — redundante con /update-docs + doc-updater agent. Reinstalable para bootstrap de proyectos nuevos |
 
 ---
 
@@ -642,7 +645,7 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | Skills | 20 |
 | Comandos | 17 |
 | Hooks | 22 |
-| Rules | 14 |
+| Rules | 15 |
 | Contextos | 3 |
 | Tests | 154 passing |
 | Tablas SQLite | 4 + 8 indexes |

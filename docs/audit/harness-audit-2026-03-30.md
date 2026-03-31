@@ -5,10 +5,10 @@
 | Metric | Count | Status |
 |--------|-------|--------|
 | Hooks | 22 | OK |
-| Agents | 13 (5 opus, 8 sonnet) | OK |
-| Skills | 24 | OK |
-| Commands | 24 | OK |
-| Rules | 14 (9 common + 5 TS) | OK |
+| Agents | 14 (5 opus, 9 sonnet) | OK |
+| Skills | 20 | OK |
+| Commands | 17 | OK |
+| Rules | 15 (9 common + 6 TS) | OK |
 | Tests | 154 (16 files) | All passing |
 | ADRs | 5 | Current |
 
@@ -80,37 +80,38 @@
 
 Key improvement this session: pre-compact-save now persists summary/tasks/counts, and session-start recovers orphaned sessions.
 
-## Agents (13)
+## Agents (14)
 
 | Agent | Model | Status |
 |-------|-------|--------|
 | architect | opus | OK |
 | planner | opus | OK |
 | code-reviewer | sonnet | OK |
-| typescript-reviewer | sonnet | OK |
 | database-reviewer | opus | OK |
 | security-reviewer | opus | OK |
 | tdd-guide | sonnet | OK |
 | build-error-resolver | sonnet | OK |
 | refactor-cleaner | sonnet | OK |
+| performance-optimizer | sonnet | OK |
+| python-reviewer | sonnet | OK |
 | docs-lookup | sonnet | OK |
 | doc-updater | sonnet | OK |
 | e2e-runner | sonnet | OK |
 | harness-optimizer | opus | OK |
 
-## Commands (24)
+## Commands (17)
 
 | Phase | Commands | Count |
 |-------|----------|-------|
-| Observe | /dashboard, /kompact, /context-budget | 3 |
-| Remember | /checkpoint, /docs, /sessions, /update-docs | 4 |
-| Verify | /tdd, /verify, /build-fix, /code-review, /quality-gate, /test-coverage, /e2e, /eval | 8 |
-| Specialize | /kplan | 1 |
-| Evolve | /learn, /learn-eval, /evolve, /instinct-status, /instinct-export, /promote, /prune, /refactor-clean | 8 |
+| Observe | /dashboard, /kompact | 2 |
+| Remember | /checkpoint, /docs, /update-docs | 3 |
+| Verify | /tdd, /verify, /build-fix, /code-review, /test-coverage, /e2e, /eval | 7 |
+| Specialize | /kplan, /workflow | 2 |
+| Evolve | /instinct, /evolve, /refactor-clean | 3 |
 
-## Skills (24)
+## Skills (20)
 
-All 24 skills present in .claude/skills/. Categories: Workflow (5), Quality (5), Learning (2), Architecture (3), Data (4), Integration (4), Safety (1).
+All 20 skills present in .claude/skills/. Categories: Workflow (2), Quality (4), Learning (2), Architecture (2), Data (4), Integration (2), Orchestration (1), Debugging (1), Review (1), Safety (1).
 
 ## Known Gaps
 

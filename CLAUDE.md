@@ -45,7 +45,7 @@ scripts/
 │   └── pattern-definitions.json
 ├── rules/
 │   ├── common/         # 9 cross-language rules
-│   └── typescript/     # 5 TS-specific rules
+│   └── typescript/     # 6 TS-specific rules
 ├── agents/             # 14 agent definitions
 ├── skills/             # 20 skill documents
 └── commands/           # 17 command templates

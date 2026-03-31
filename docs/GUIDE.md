@@ -199,7 +199,6 @@ Session end ──→ hooks persisten todo a SQLite
 | Skill | Descripción |
 |-------|-------------|
 | architecture-decision-records | Capturar decisiones arquitectónicas como ADRs |
-| strategic-compact | Compactar en el momento correcto (después de commits, entre fases) |
 | continuous-learning-v2 | Cómo funciona el sistema de instintos: observación → confianza → promoción |
 
 ### Verify
@@ -209,6 +208,8 @@ Session end ──→ hooks persisten todo a SQLite
 | tdd-workflow | RED → GREEN → REFACTOR para cada feature |
 | verification-loop | Pipeline completo: build → typecheck → lint → tests → diff |
 | safety-guard | Prevenir operaciones destructivas (hooks de bloqueo) |
+| receiving-code-review | Recibir y aplicar feedback de code review, priorizar findings |
+| systematic-debugging | Diagnóstico estructurado: reproduce, isolate, hypothesize, verify |
 
 ### Specialize
 
@@ -216,6 +217,7 @@ Session end ──→ hooks persisten todo a SQLite
 |-------|-------------|
 | coding-standards | Convenciones TypeScript/JS del ecosistema Kadmon |
 | api-design | Patrones de diseño REST/RPC para servicios TypeScript |
+| orchestration-patterns | Dispatch de agentes, ejecución paralela, plan via subagents |
 
 ### Evolve
 
@@ -230,7 +232,8 @@ Session end ──→ hooks persisten todo a SQLite
 |-------|-------------|
 | database-migrations | Evolución segura de schemas SQLite y Supabase |
 | postgres-patterns | Best practices PostgreSQL, pgvector, RLS |
-| iterative-retrieval | RAG progresivo para ToratNetz (hebreo, pgvector) |
+| iterative-retrieval | RAG progresivo (pgvector, multi-step retrieval) |
+| iterative-retrieval-hebrew | RAG hebreo/arameo: Pesukim, Sugya, embeddings multilingüe |
 | mcp-server-patterns | Construir y consumir servidores MCP |
 | claude-api | Patrones para Claude API y Anthropic TypeScript SDK |
 
