@@ -94,7 +94,7 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 | **performance-optimizer** | Analiza bucles O(n^2), queries lentas, patrones memory-intensive. | Al detectar patrones de baja performance | — | Performance Report |
 | **python-reviewer** | Revisa codigo Python: ML, embeddings, backends. | Al editar archivos `.py` | — | Python Review |
 | **docs-lookup** | Busca documentacion via Context7 MCP. Fallback a WebSearch. Nunca inventa APIs. | Al referenciar APIs desconocidas | `/docs` | Signature + ejemplo + source |
-| **doc-updater** | Actualiza CLAUDE.md, README, counts de componentes. Verifica contra filesystem. | Sugerido tras commits con cambios estructurales | `/update-docs` | Lista de archivos actualizados |
+| **doktor** | Actualiza CLAUDE.md, README, counts de componentes. Verifica contra filesystem. | Sugerido tras commits con cambios estructurales | `/update-docs` | Lista de archivos actualizados |
 | **e2e-runner** | Ejecuta tests end-to-end: session lifecycle, instinct lifecycle, hook chains. Costoso. | Nunca auto-invoca | `/e2e` | 5 escenarios de test |
 
 ---
@@ -505,7 +505,7 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 | **code-simplifier** | Removido 2026-03-30 — reinstalable desde marketplace |
 | **claude-code-setup** | Removido 2026-03-30 — reinstalable desde marketplace |
 | **github** | No habilitado — el harness usa `gh` CLI autenticado como Kadmon7 |
-| **claude-md-management** | Removido 2026-03-30 — redundante con /update-docs + doc-updater agent. Reinstalable para bootstrap de proyectos nuevos |
+| **claude-md-management** | Removido 2026-03-30 — redundante con /update-docs + doktor agent. Reinstalable para bootstrap de proyectos nuevos |
 
 ---
 
@@ -601,7 +601,7 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 
 | MCP | Tipo | Que habilita | Usado por |
 |-----|------|-------------|----------|
-| **GitHub** | HTTP (`api.githubcopilot.com/mcp/`) | Buscar codigo, crear PRs/issues, leer archivos, commits, reviews | code-reviewer, doc-updater |
+| **GitHub** | HTTP (`api.githubcopilot.com/mcp/`) | Buscar codigo, crear PRs/issues, leer archivos, commits, reviews | code-reviewer, doktor |
 | **Context7** | Comando (`npx -y @upstash/context7-mcp`) | Documentacion actualizada de cualquier libreria: resolve library → fetch docs | docs-lookup agent, `/docs` |
 | **Supabase** | HTTP (`mcp.supabase.com/mcp`) | DB operations, auth, storage, edge functions, migrations, SQL execution | database-reviewer, architect |
 

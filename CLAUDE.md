@@ -78,7 +78,7 @@ docs/
 | performance-optimizer | sonnet | Performance analysis and optimization |
 | python-reviewer | sonnet | Python code review (ML, embeddings, backends) |
 | docs-lookup | sonnet | Documentation lookup via Context7 |
-| doc-updater | sonnet | Codemap and documentation generation |
+| doktor | sonnet | Codemap and documentation generation |
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 

@@ -177,7 +177,7 @@ Session end ──→ hooks persisten todo a SQLite
 | tdd-guide | sonnet | `/tdd` | Desarrollo test-first |
 | refactor-cleaner | sonnet | `/refactor-clean` | Limpiar código, eliminar duplicación |
 | docs-lookup | sonnet | `/docs` | Buscar API docs actualizadas vía Context7 |
-| doc-updater | sonnet | `/update-docs` | Actualizar CLAUDE.md y README |
+| doktor | sonnet | `/update-docs` | Actualizar CLAUDE.md y README |
 | e2e-runner | sonnet | `/e2e` | Tests E2E completos (costoso) |
 | harness-optimizer | opus | `/evolve` | Análisis de optimización (solo recomendaciones) |
 

@@ -22,7 +22,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
 - MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, docs-lookup, e2e-runner
-- MUST use sonnet model for doc-updater (documentation generation)
+- MUST use sonnet model for doktor (documentation generation)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
 ## Agent Catalog (14)
@@ -40,7 +40,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | — |
 | python-reviewer | sonnet | Auto on .py edits | — | — |
 | docs-lookup | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
-| doc-updater | sonnet | /update-docs, after feature/structural commits | /update-docs | — |
+| doktor | sonnet | /update-docs, after feature/structural commits | /update-docs | — |
 | e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
 | harness-optimizer | opus | /evolve only | /evolve | — |
 
@@ -60,7 +60,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - MUST invoke architect before planner when /kplan task contains architecture signals
 - MUST invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
 - MUST invoke build-error-resolver when TypeScript compilation or Vitest tests fail (skip for obvious typos)
-- MUST invoke doc-updater after commits that add/remove agents, skills, or commands
+- MUST invoke doktor after commits that add/remove agents, skills, or commands
 - MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation
 - NEVER invoke architect for routine bug fixes or small features
 - NEVER invoke harness-optimizer without explicit /evolve command

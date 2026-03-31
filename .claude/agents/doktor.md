@@ -1,5 +1,5 @@
 ---
-name: doc-updater
+name: doktor
 description: Use PROACTIVELY after commits that add features, change behavior, or modify project structure. Command: /update-docs. Keeps ALL documentation in sync with code — not just counts, but descriptions of what the system actually does.
 model: sonnet
 tools: Read, Grep, Glob, Write, Bash, Edit
@@ -155,7 +155,7 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 
 ## Output Format
 ```markdown
-## Documentation Updates [doc-updater]
+## Documentation Updates [doktor]
 
 ### Behavioral Changes Found
 - session-start.js: now loads 3 sessions (was 1), shows "Pending Work"

@@ -94,7 +94,7 @@ En `.claude/agents/`, tienes 14 agentes universales. Puedes:
 
 **Mantener tal cual** (funcionan para cualquier proyecto):
 - code-reviewer, planner, architect, tdd-guide, build-error-resolver
-- security-reviewer, refactor-cleaner, docs-lookup, doc-updater
+- security-reviewer, refactor-cleaner, docs-lookup, doktor
 
 **Adaptar** (agregar contexto de tu dominio):
 - database-reviewer → agregar patrones de tu schema

@@ -24,7 +24,7 @@ alwaysApply: true
 |---------|---------|-------|
 | /checkpoint | Save progress — run verification then commit and push | code-reviewer |
 | /docs | Look up live documentation for any library or framework | docs-lookup |
-| /update-docs | Update CLAUDE.md, README, and project documentation | doc-updater |
+| /update-docs | Update CLAUDE.md, README, and project documentation | doktor |
 
 ### Verify Phase (7)
 | Command | Purpose | Agent |

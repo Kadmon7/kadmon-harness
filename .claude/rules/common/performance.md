@@ -20,7 +20,7 @@ alwaysApply: true
 - MUST use appropriate model tier for task complexity
 - Opus: architecture, complex planning (expensive but thorough)
 - Sonnet: implementation, review, testing (balanced)
-- Sonnet also handles: documentation (doc-updater), formatting, lookups (docs-lookup)
+- Sonnet also handles: documentation (doktor), formatting, lookups (docs-lookup)
 
 ## Enforcement
 - pre-compact-save hook preserves session state before context compaction (PreCompact)

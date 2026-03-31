@@ -128,7 +128,7 @@ Key commands inside a session:
 | performance-optimizer | sonnet | Auto on O(n^2) loops, slow queries, memory patterns |
 | python-reviewer | sonnet | Auto on `.py` edits |
 | docs-lookup | sonnet | `/docs` |
-| doc-updater | sonnet | `/update-docs` |
+| doktor | sonnet | `/update-docs` |
 | e2e-runner | sonnet | `/e2e` |
 | harness-optimizer | opus | `/evolve` |
 
