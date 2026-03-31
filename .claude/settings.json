@@ -161,19 +161,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-end-persist.js"
-          },
-          {
-            "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/evaluate-session.js"
-          },
-          {
-            "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/cost-tracker.js"
-          },
-          {
-            "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-end-marker.js"
+            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-end-all.js"
           }
         ]
       }

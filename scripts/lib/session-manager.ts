@@ -14,11 +14,27 @@ export function startSession(
   const now = nowISO();
   ensureDir(sessionDir(sessionId));
 
+  // Check if session already exists (e.g., after /compact → SessionStart)
+  const existing = getSession(sessionId);
+  if (existing) {
+    // MERGE: keep accumulated data, increment compactionCount, clear endedAt
+    const merged: SessionSummary = {
+      ...existing,
+      startedAt: now,
+      endedAt: undefined as unknown as string, // null in DB → COALESCE preserves
+      branch: projectInfo.branch,
+      compactionCount: (existing.compactionCount ?? 0) + 1,
+    };
+    upsertSession(merged);
+    return merged;
+  }
+
+  // NEW session: fresh start
   const session: SessionSummary = {
     id: sessionId,
     projectHash: projectInfo.projectHash,
     startedAt: now,
-    endedAt: "",
+    endedAt: undefined as unknown as string, // null in DB, not empty string
     durationMs: 0,
     branch: projectInfo.branch,
     tasks: [],
