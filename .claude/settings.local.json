@@ -52,7 +52,12 @@
       "WebFetch(domain:elevenlabs.io)",
       "Bash(xargs grep:*)",
       "Bash(sqlite3 ~/.kadmon/kadmon.db \"SELECT COUNT\\(*\\) FROM instincts;\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find . -name *.md -path */.claude/sessions/*)",
+      "Bash(find ./.claude/sessions -name *.md -type f)",
+      "Bash(find C:/Command-Center/Kadmon-Harness -name *.test.ts -o -name *.spec.ts)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs"
     ]
   }
 }
