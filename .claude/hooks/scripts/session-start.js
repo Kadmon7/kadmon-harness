@@ -141,6 +141,19 @@ async function main() {
         );
       }
 
+      // Prune stale instincts before loading (best-effort)
+      try {
+        const { pruneInstincts } = await import(
+          new URL(
+            "../../../dist/scripts/lib/instinct-manager.js",
+            import.meta.url,
+          ).href
+        );
+        pruneInstincts(projectHash);
+      } catch {
+        /* best-effort — don't block session start */
+      }
+
       const sessions = getRecentSessions(projectHash, 1);
       const instincts = getActiveInstincts(projectHash);
       const promotable = getPromotableInstincts(projectHash);
@@ -161,18 +174,19 @@ async function main() {
             filesLine += ` (+${last.filesModified.length - 3} more)`;
           context += filesLine;
         }
+      }
 
-        // Check if previous session ended cleanly (best-effort, temp dirs may be gone)
-        try {
-          const prevDir = path.join(os.tmpdir(), "kadmon", last.id);
-          if (
-            fs.existsSync(prevDir) &&
-            !fs.existsSync(path.join(prevDir, "clean-exit.marker"))
-          ) {
-            context += `\n- \u{26A0}\u{FE0F} Previous session may not have ended cleanly`;
-          }
-        } catch {
-          /* ignore — marker check is best-effort */
+      // Git context for session continuity
+      const gitStatus = gitExec(["status", "--short"], cwd);
+      const lastCommit = gitExec(["log", "--oneline", "-1"], cwd);
+      if (gitStatus || lastCommit) {
+        context += "\n\n## Git Context";
+        if (lastCommit) context += `\n- Last commit: ${lastCommit}`;
+        if (gitStatus) {
+          const changedCount = gitStatus.split("\n").filter(Boolean).length;
+          context += `\n- Uncommitted changes: ${changedCount} file(s)`;
+        } else {
+          context += "\n- Working tree clean";
         }
       }
 
@@ -209,6 +223,32 @@ async function main() {
         String(instinctCount),
       );
     } catch {}
+
+    // Cleanup old session dirs in /tmp/kadmon/ (> 7 days, not current, not test dirs)
+    try {
+      const kadmonTmp = path.join(os.tmpdir(), "kadmon");
+      if (fs.existsSync(kadmonTmp)) {
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const uuidPattern =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        for (const entry of fs.readdirSync(kadmonTmp)) {
+          if (entry === sid || entry.startsWith("test-isolation-")) continue;
+          if (!uuidPattern.test(entry)) continue; // only delete UUID-shaped session dirs
+          const dirPath = path.join(kadmonTmp, entry);
+          try {
+            const stat = fs.statSync(dirPath);
+            if (stat.isDirectory() && now - stat.mtimeMs > sevenDaysMs) {
+              fs.rmSync(dirPath, { recursive: true, force: true });
+            }
+          } catch {
+            /* skip unreadable dirs */
+          }
+        }
+      }
+    } catch {
+      /* never block session start for cleanup failure */
+    }
 
     console.log(
       `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}${statusLine}`,

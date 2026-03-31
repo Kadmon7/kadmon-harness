@@ -69,6 +69,25 @@ async function main() {
         JSON.stringify({ warn: `session-end-persist db: ${dbErr.message}` }),
       );
     }
+    // Cleanup session temp files after persistence (observations already processed)
+    try {
+      const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
+      // < 10 tool calls = likely a quick restart; leave obs for potential recovery
+      if (fs.existsSync(sessionDir) && messageCount >= 10) {
+        for (const file of [
+          "observations.jsonl",
+          "tool_count.txt",
+          "instinct_count.txt",
+        ]) {
+          const filePath = path.join(sessionDir, file);
+          try {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          } catch {}
+        }
+      }
+    } catch {
+      /* never block session end for cleanup failure */
+    }
   } catch (err) {
     console.error(
       JSON.stringify({ error: `session-end-persist: ${err.message}` }),
