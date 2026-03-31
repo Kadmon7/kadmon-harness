@@ -22,7 +22,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
 - MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, docs-lookup, e2e-runner
-- MUST use sonnet model for doktor (documentation generation)
+- MUST use opus model for doktor (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
 ## Agent Catalog (14)
@@ -40,7 +40,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | — |
 | python-reviewer | sonnet | Auto on .py edits | — | — |
 | docs-lookup | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
-| doktor | sonnet | /update-docs, after feature/structural commits | /update-docs | — |
+| doktor | opus | /update-docs, after feature/structural commits | /update-docs | — |
 | e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
 | harness-optimizer | opus | /evolve only | /evolve | — |
 

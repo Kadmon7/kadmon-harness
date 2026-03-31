@@ -1,7 +1,7 @@
 ---
 name: doktor
 description: Use PROACTIVELY after commits that add features, change behavior, or modify project structure. Command: /update-docs. Keeps ALL documentation in sync with code — not just counts, but descriptions of what the system actually does.
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Write, Bash, Edit
 memory: project
 ---

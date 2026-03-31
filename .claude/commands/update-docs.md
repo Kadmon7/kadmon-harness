@@ -8,7 +8,7 @@ Keep all 4 layers of documentation in sync with code after implementation change
 Not just counts — behavioral descriptions must match what the code actually does.
 
 ## Steps
-1. Invoke doktor agent (sonnet)
+1. Invoke doktor agent (opus)
 2. Scan recent git commits for behavioral AND structural changes
 3. **Layer 1 — Public docs**: Update CLAUDE.md, README.md, docs/GUIDE.md, docs/HOW-TO-USE.md, docs/REFERENCE.md
 4. **Layer 2 — Rules**: Update .claude/rules/common/hooks.md, agents.md, development-workflow.md if affected
