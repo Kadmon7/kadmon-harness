@@ -40,7 +40,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | — |
 | python-reviewer | sonnet | Auto on .py edits | — | — |
 | docs-lookup | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
-| doc-updater | sonnet | /update-docs, after structural commits | /update-docs | — |
+| doc-updater | sonnet | /update-docs, after feature/structural commits | /update-docs | — |
 | e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
 | harness-optimizer | opus | /evolve only | /evolve | — |
 
