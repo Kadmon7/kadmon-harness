@@ -154,14 +154,15 @@ async function main() {
         /* best-effort — don't block session start */
       }
 
-      const sessions = getRecentSessions(projectHash, 1);
+      const sessions = getRecentSessions(projectHash, 3);
       const instincts = getActiveInstincts(projectHash);
       const promotable = getPromotableInstincts(projectHash);
       instinctCount = instincts.length;
 
       if (sessions.length > 0) {
         const last = sessions[0];
-        context += `\n## Previous Session\n- Date: ${last.startedAt} | Branch: ${last.branch}`;
+        context += `\n## Previous Session`;
+        context += `\n- Date: ${last.startedAt} | Branch: ${last.branch}`;
         if (last.summary) context += `\n- Summary: ${last.summary}`;
         if (last.tasks.length) context += `\n- Tasks: ${last.tasks.join(", ")}`;
         context += `\n- Messages: ${last.messageCount} | Compactions: ${last.compactionCount} | Files: ${last.filesModified.length}`;
@@ -173,6 +174,17 @@ async function main() {
           if (last.filesModified.length > 3)
             filesLine += ` (+${last.filesModified.length - 3} more)`;
           context += filesLine;
+        }
+
+        // Show older sessions as trajectory (compact format)
+        if (sessions.length > 1) {
+          context += `\n\n## Session History (${sessions.length} recent)`;
+          for (let i = 1; i < sessions.length; i++) {
+            const s = sessions[i];
+            const date = s.startedAt ? s.startedAt.slice(0, 10) : "unknown";
+            const sum = s.summary ? s.summary.slice(0, 120) : "(no summary)";
+            context += `\n- [${date}] ${sum}`;
+          }
         }
       }
 

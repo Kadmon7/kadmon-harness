@@ -11,13 +11,15 @@ try {
   if (!sid) process.exit(0);
   const dir = path.join(os.tmpdir(), "kadmon", sid);
   fs.mkdirSync(dir, { recursive: true });
+  const toolError = input.tool_error ?? null;
   const event = {
     timestamp: new Date().toISOString(),
     sessionId: sid,
     eventType: "tool_post",
     toolName: input.tool_name ?? "",
     filePath: input.tool_input?.file_path ?? input.tool_input?.path ?? null,
-    success: !input.tool_error,
+    success: !toolError,
+    ...(toolError ? { error: String(toolError).slice(0, 200) } : {}),
   };
   fs.appendFileSync(
     path.join(dir, "observations.jsonl"),

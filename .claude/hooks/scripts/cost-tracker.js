@@ -4,6 +4,8 @@
 // Note: Claude Code Stop hook does NOT send token data (GitHub Issue #24459).
 // Workaround: estimate tokens from transcript_path JSONL (~4 chars per token).
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { parseStdin } from "./parse-stdin.js";
 
 function estimateTokensFromTranscript(transcriptPath) {
@@ -62,13 +64,40 @@ async function main() {
     let model = input.model ?? input.display_name ?? "opus";
     let estimated = false;
 
-    // Fallback: estimate from transcript if no token data
+    // Fallback 1: estimate from transcript if no token data
     if (!inputTokens && !outputTokens && input.transcript_path) {
       const estimate = estimateTokensFromTranscript(input.transcript_path);
       if (estimate) {
         inputTokens = estimate.inputTokens;
         outputTokens = estimate.outputTokens;
         estimated = true;
+      }
+    }
+
+    // Fallback 2: estimate from our own observations.jsonl
+    // Average per tool call: ~1200 input tokens, ~600 output tokens (empirical)
+    if (!inputTokens && !outputTokens) {
+      try {
+        const obsPath = path.join(
+          os.tmpdir(),
+          "kadmon",
+          sid,
+          "observations.jsonl",
+        );
+        if (fs.existsSync(obsPath)) {
+          const lineCount = fs
+            .readFileSync(obsPath, "utf8")
+            .split("\n")
+            .filter(Boolean).length;
+          const toolCalls = Math.ceil(lineCount / 2); // pre + post per call
+          if (toolCalls > 0) {
+            inputTokens = toolCalls * 1200;
+            outputTokens = toolCalls * 600;
+            estimated = true;
+          }
+        }
+      } catch {
+        /* best-effort */
       }
     }
 

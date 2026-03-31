@@ -29,6 +29,8 @@ export function generateSummary(obsPath) {
   let hadCommit = false;
   let hadTypecheck = false;
   let lastCommitMsg = "";
+  let failedTools = 0;
+  const errors = [];
 
   for (const line of lines) {
     let e;
@@ -89,6 +91,14 @@ export function generateSummary(obsPath) {
       const skillName = meta.skill ?? "";
       if (skillName) tasks.add(`/${skillName}`);
     }
+
+    // Track failures and errors
+    if (e.eventType === "tool_post" && e.success === false) {
+      failedTools++;
+      if (e.error && errors.length < 3) {
+        errors.push(`${tool}: ${String(e.error).slice(0, 80)}`);
+      }
+    }
   }
 
   // Build top edited files
@@ -121,6 +131,14 @@ export function generateSummary(obsPath) {
     parts.push(`Committed: ${lastCommitMsg}`);
   } else if (hadCommit) {
     parts.push("Committed changes");
+  }
+
+  // Failures and errors
+  if (failedTools > 0) {
+    parts.push(`${failedTools} tool failure(s)`);
+    if (errors.length > 0) {
+      parts.push(`Errors: ${errors.join("; ")}`);
+    }
   }
 
   // Tool usage summary
