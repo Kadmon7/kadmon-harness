@@ -4,6 +4,21 @@ alwaysApply: true
 
 # Agent Usage Rules
 
+## Orchestration Chain
+When a command is invoked, follow the chain defined in its frontmatter:
+- `agent:` field → MUST invoke that agent (or agents) by subagent_type name
+- `skills:` field → MUST load those skills before/during agent work
+- Commands without agent/skills fields → execute steps directly
+
+This chain exists so skills are ACTUALLY USED, not just documented.
+If you skip the chain, the user's investment in agents and skills is wasted.
+
+## Skill Loading
+- MUST read skill files listed in command frontmatter when executing the command
+- MUST use skill-creator:skill-creator plugin for ALL skill work (create, edit, optimize, evaluate)
+- Skills are domain knowledge — agents are the executors that USE that knowledge
+- When auto-invoking an agent, also load the skills associated with its command (see catalog below)
+
 ## Routing
 - MUST use opus model for: architect, planner, security-reviewer, database-reviewer, harness-optimizer
 - MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, docs-lookup, e2e-runner
@@ -12,22 +27,22 @@ alwaysApply: true
 
 ## Agent Catalog (14)
 
-| Agent | Model | Trigger | Command |
-|-------|-------|---------|---------|
-| architect | opus | /kplan when architecture signals detected (design, schema, migration, new system, multi-component), explicit design review | /kplan |
-| planner | opus | /kplan always — after architect (Route A) or directly (Route B) | /kplan |
-| code-reviewer | sonnet | /code-review, /checkpoint (auto-invoked before commit), auto-invoked on .ts/.tsx edits (includes TypeScript specialist mode) | /code-review, /checkpoint |
-| database-reviewer | opus | Auto-invoked when editing SQL, schema, migration, or Supabase client files | — |
-| security-reviewer | opus | Auto-invoked for auth, API keys, user input, exec/spawn, file paths, SQL | /code-review |
-| tdd-guide | sonnet | /tdd command to enforce red-green-refactor cycle | /tdd |
-| build-error-resolver | sonnet | Auto-invoked on TypeScript compilation failure, Vitest errors, module resolution errors | /build-fix |
-| refactor-cleaner | sonnet | /refactor-clean command only (never auto-triggered) | /refactor-clean |
-| performance-optimizer | sonnet | Auto-invoked for O(n^2) loops, slow queries, memory-intensive patterns, user requests optimization | — |
-| python-reviewer | sonnet | Auto-invoked when editing .py files | — |
-| docs-lookup | sonnet | /docs command, unfamiliar API references, no_context verification | /docs |
-| doc-updater | sonnet | /update-docs command, suggested after commits adding agents/skills/commands | /update-docs |
-| e2e-runner | sonnet | /e2e command only (expensive, on-demand) | /e2e |
-| harness-optimizer | opus | /evolve command only (never auto-applies, produces recommendations) | /evolve |
+| Agent | Model | Trigger | Command | Skills |
+|-------|-------|---------|---------|--------|
+| architect | opus | /kplan with architecture signals | /kplan | architecture-decision-records |
+| planner | opus | /kplan always | /kplan | architecture-decision-records |
+| code-reviewer | sonnet | /code-review, /checkpoint, auto on .ts/.tsx | /code-review | coding-standards, receiving-code-review |
+| database-reviewer | opus | Auto on SQL/schema/migration/Supabase | — | database-migrations, postgres-patterns |
+| security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /code-review | safety-guard |
+| tdd-guide | sonnet | /tdd command | /tdd | tdd-workflow |
+| build-error-resolver | sonnet | Auto on TS compilation/Vitest failures | /build-fix | systematic-debugging |
+| refactor-cleaner | sonnet | /refactor-clean only | /refactor-clean | coding-standards |
+| performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | — |
+| python-reviewer | sonnet | Auto on .py edits | — | — |
+| docs-lookup | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
+| doc-updater | sonnet | /update-docs, after structural commits | /update-docs | — |
+| e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
+| harness-optimizer | opus | /evolve only | /evolve | — |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → security-reviewer
@@ -42,8 +57,10 @@ alwaysApply: true
 - MUST invoke code-reviewer before any commit via /checkpoint
 - MUST invoke planner via /kplan — runs for every /kplan invocation
 - MUST invoke architect before planner when /kplan task contains architecture signals
-- SHOULD invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
-- SHOULD invoke build-error-resolver when TypeScript compilation or Vitest tests fail (skip for obvious typos)
+- MUST invoke docs-lookup when referencing unfamiliar APIs or when no_context principle requires verification
+- MUST invoke build-error-resolver when TypeScript compilation or Vitest tests fail (skip for obvious typos)
+- MUST invoke doc-updater after commits that add/remove agents, skills, or commands
+- MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation
 - NEVER invoke architect for routine bug fixes or small features
 - NEVER invoke harness-optimizer without explicit /evolve command
 - NEVER invoke e2e-runner without explicit /e2e command (tests are expensive)
