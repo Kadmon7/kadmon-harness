@@ -1,5 +1,7 @@
 ---
 description: Smart planning for complex tasks — routes to architect+planner or planner-only based on task signals, then suggests TDD. Invoke for multi-file, uncertain, or cross-system changes. Skip for simple single-file edits.
+agent: architect, planner
+skills: [architecture-decision-records]
 ---
 
 ## Purpose

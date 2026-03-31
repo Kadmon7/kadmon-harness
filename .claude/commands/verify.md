@@ -1,5 +1,6 @@
 ---
 description: Run full verification loop — typecheck, tests, lint, and optionally security scan
+skills: [verification-loop]
 ---
 
 ## Purpose

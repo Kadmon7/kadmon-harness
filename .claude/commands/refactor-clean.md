@@ -1,5 +1,7 @@
 ---
 description: Remove dead code, reduce duplication, and improve structure without behavior changes
+agent: refactor-cleaner
+skills: [coding-standards]
 ---
 
 ## Purpose

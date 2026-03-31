@@ -1,5 +1,7 @@
 ---
 description: Save progress — run verification then commit and push
+agent: code-reviewer
+skills: [verification-loop, coding-standards]
 ---
 
 ## Purpose

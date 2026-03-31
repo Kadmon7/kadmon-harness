@@ -1,5 +1,6 @@
 ---
 description: Smart context compaction — audit, summarize, compact, reload essentials
+skills: [context-budget]
 ---
 
 ## Purpose

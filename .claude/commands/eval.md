@@ -1,5 +1,6 @@
 ---
 description: Evaluate agent or skill quality with structured test cases and scoring
+skills: [eval-harness]
 ---
 
 ## Purpose

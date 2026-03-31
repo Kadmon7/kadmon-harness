@@ -1,5 +1,7 @@
 ---
 description: Run end-to-end tests for full workflow verification (expensive, on-demand)
+agent: e2e-runner
+skills: [e2e-testing]
 ---
 
 ## Purpose

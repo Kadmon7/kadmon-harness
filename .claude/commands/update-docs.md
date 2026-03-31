@@ -1,5 +1,6 @@
 ---
 description: Sync CLAUDE.md, README, and docs with recent code changes
+agent: doc-updater
 ---
 
 ## Purpose

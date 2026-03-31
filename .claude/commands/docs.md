@@ -1,5 +1,6 @@
 ---
 description: Look up live documentation for any library or framework
+agent: docs-lookup
 ---
 
 ## Purpose

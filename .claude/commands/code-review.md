@@ -1,5 +1,7 @@
 ---
 description: Run code review on staged or recent changes
+agent: code-reviewer, security-reviewer
+skills: [coding-standards, receiving-code-review]
 ---
 
 ## Purpose

@@ -1,5 +1,6 @@
 ---
 description: Run tests with coverage and flag files below 80% threshold
+skills: [tdd-workflow]
 ---
 
 ## Purpose

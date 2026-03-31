@@ -1,5 +1,6 @@
 ---
 description: Manage instinct lifecycle — status, eval, learn, promote, prune, or export
+skills: [continuous-learning-v2]
 ---
 
 ## Purpose

@@ -1,5 +1,7 @@
 ---
 description: Start TDD cycle — write failing test first, then implement
+agent: tdd-guide
+skills: [tdd-workflow]
 ---
 
 ## Purpose

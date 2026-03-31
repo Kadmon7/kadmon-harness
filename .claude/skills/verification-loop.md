@@ -5,7 +5,7 @@ description: Run build + typecheck + lint + tests in sequence after any code cha
 
 # Verification Loop
 
-Multi-step verification that catches issues before they reach production or git.
+Multi-step verification that catches issues before they reach production or git. Each step targets a different class of defect, and the order matters because later steps depend on earlier ones succeeding.
 
 ## When to Use
 - After implementing any feature or fix
@@ -13,9 +13,10 @@ Multi-step verification that catches issues before they reach production or git.
 - When /verify or /checkpoint is invoked
 - After resolving merge conflicts
 - Before creating a PR
+- After any refactoring, even "safe" renames (they break imports more often than you think)
 
 ## How It Works
-Run in order. Stop at first failure.
+Run in order. Stop at first failure. Fix, then restart from that step.
 
 1. **Build** — `npm run build`
 2. **Typecheck** — `npx tsc --noEmit`
@@ -23,6 +24,45 @@ Run in order. Stop at first failure.
 4. **Unit tests** — `npx vitest run tests/lib/`
 5. **Hook tests** — `npx vitest run tests/hooks/`
 6. **Diff review** — `git diff`
+
+## Why This Order Matters
+- **Build first** because typecheck and tests import compiled output. Running tests on stale dist/ gives false results.
+- **Typecheck before lint** because type errors often cause cascading lint failures (unused variables from broken imports). Fix types first, and many lint issues disappear.
+- **Tests after lint** because running a 2-minute test suite only to discover a syntax error wastes time.
+- **Diff review last** because you want to confirm the final state of all changes, including any fixes made during the loop.
+
+## Failure Recovery
+When a step fails, diagnose systematically before retrying.
+
+| Step | Common Causes | Recovery |
+|------|--------------|----------|
+| Build | Missing import, deleted file, circular dependency | Check recent renames with `git diff --name-status`. Verify import paths use `.js` extension. |
+| Typecheck | Type mismatch, strict mode violation, missing return type | Read the exact error line. Fix the type, do not cast with `as` unless justified. |
+| Lint | Unused variable, style violation, console.log in production | Fix lint issues after types are clean. The post-edit-format hook auto-formats on save. |
+| Unit tests | Logic error, stale mock, missing test fixture | Read the full test output. Check if the test or the code is wrong — fix the code first. |
+| Hook tests | stdin parsing error, exit code mismatch | Run the hook manually: `echo '{}' | node .claude/hooks/scripts/hook-name.js` |
+
+## Partial Verification
+During active development, run focused checks to get fast feedback. Save the full loop for pre-commit.
+
+```bash
+# Run a single test file during development
+npx vitest run tests/lib/instinct-manager.test.ts
+
+# Typecheck only (faster than full build)
+npx tsc --noEmit
+
+# Run only hook tests after editing a hook
+npx vitest run tests/hooks/
+```
+
+Partial verification speeds up the red-green-refactor cycle. But ALWAYS run the full loop before any git operation.
+
+## When to Skip Steps
+Almost never. But there are narrow exceptions:
+- **Doc-only changes** (*.md files): skip lint and tests, but still review the diff
+- **Config changes** (settings.json, tsconfig.json): skip tests but run build + typecheck to verify config is valid
+- **NEVER skip tests** for any .ts or .js change, no matter how trivial the edit seems
 
 ## Git Commit Gate
 
@@ -39,21 +79,26 @@ Committing broken code and "fixing it in the next commit" creates noise in git h
 
 The `/checkpoint` command automates this entire flow: verify -> review -> commit -> push. Use it instead of manual git commands when possible.
 
-## Why Each Step Matters
-- **Build** catches compilation errors and missing files
-- **Typecheck** catches strict mode violations and type errors the build might miss
-- **Lint** catches style violations and potential bugs
-- **Tests** catch logic errors, regressions, and broken contracts
-- **Diff review** confirms only intended changes are staged
+## Anti-Patterns
+- **Committing without verifying** — "It's a small change, it'll be fine." Small changes break builds. The verification loop exists precisely for this overconfidence.
+- **Fixing lint before fixing types** — Lint errors caused by type failures disappear when types are fixed. Fix in order.
+- **Running tests before building** — Tests import from dist/. Stale dist/ means tests validate old code, not your changes.
+- **Skipping diff review** — Accidentally staged files, leftover debug code, and unintended changes only show up in the diff.
+- **Re-running the whole loop after fixing one step** — Restart from the failed step, not from the beginning. Build does not need to re-run if you only fixed a type error.
 
-## Automatic Detection
-The `evaluate-session.js` hook tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` appearing before `git commit` or `git push`. When this cycle appears in a session, the pattern instinct is reinforced.
+## Integration
+- **/verify** command runs this loop (use `/verify full` to add security scan)
+- **/checkpoint** depends on this loop passing before commit
+- **build-error-resolver** agent handles failures in the build and typecheck steps
+- **post-edit-typecheck** hook runs a quick typecheck after every Edit/Write as early warning
+- **evaluate-session** hook tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` before `git commit` or `git push`
 
 ## Rules
-- Never skip steps — each catches different bug classes
+- Never skip steps — each catches a different bug class
 - Fix failures before moving to the next step
-- Run full loop before every commit
+- Run the full loop before every commit
+- Use partial verification during development for speed, full loop for commits
 - Skipping any step is like removing a link from a chain — the whole thing weakens
 
 ## no_context Application
-The verification loop ensures no invented or incorrect code reaches the repository.
+The verification loop ensures no invented or incorrect code reaches the repository. Each step independently validates that the code does what it claims. If you cannot verify it, you cannot commit it.

@@ -1,5 +1,6 @@
 ---
 description: Run harness self-optimization analysis — full evolution coverage across hooks, instincts, skills, agents, commands, and rules
+agent: harness-optimizer
 ---
 
 ## Purpose

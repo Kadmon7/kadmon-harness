@@ -1,5 +1,7 @@
 ---
 description: Diagnose and fix TypeScript compilation or build errors
+agent: build-error-resolver
+skills: [systematic-debugging]
 ---
 
 ## Purpose
