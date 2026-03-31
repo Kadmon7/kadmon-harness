@@ -474,28 +474,27 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 
 ## Seccion 8 — Plugins
 
-### Plugins activos (10)
+### Plugins activos (7)
 
-| Plugin | Version | Que agrega | Comandos clave |
-|--------|---------|-----------|---------------|
-| **superpowers** | 5.0.6 | Brainstorming, plan writing/execution, TDD, debugging, code review, worktrees | Multiples skills: brainstorming, writing-plans, executing-plans, systematic-debugging |
-| **skill-creator** | — | Crear, modificar y evaluar skills | Crear skills, correr evals, benchmark variance |
-| **feature-dev** | — | Desarrollo guiado de features con comprension de codebase | code-architect, code-explorer, code-reviewer subagentes |
-| **frontend-design** | — | Interfaces frontend production-grade con alto diseno | Genera componentes web, paginas, aplicaciones |
-| **claude-md-management** | 1.0.0 | Auditoria y mejora de archivos CLAUDE.md | revise-claude-md, claude-md-improver |
-| **claude-code-setup** | 1.0.0 | Analisis de codebase y recomendaciones de automations | claude-automation-recommender |
-| **code-simplifier** | 1.0.0 | Simplifica y refina codigo para claridad y mantenibilidad | Revisa codigo modificado recientemente |
-| **ralph-loop** | — | Loop de ejecucion recurrente | ralph-loop, cancel-ralph, help |
-| **typescript-lsp** | 1.0.0 | TypeScript Language Server Protocol support | Diagnosticos, completions |
-| **supabase** | — | Integracion Supabase: DB, auth, storage, edge functions | Via MCP tools |
+| Plugin | Tipo | Valor | Que agrega |
+|--------|------|-------|-----------|
+| **context7** | MCP Server | CRITICAL | Documentacion live de librerias via `resolve-library-id` + `query-docs` |
+| **skill-creator** | Skill Plugin | CRITICAL | Crear, modificar, evaluar y benchmarkear skills |
+| **typescript-lsp** | LSP Plugin | HIGH | TypeScript Language Server: goToDefinition, findReferences, hover, documentSymbol |
+| **supabase** | MCP Server | MEDIUM | Integracion Supabase: DB, auth, storage, edge functions, migrations (standby para v2) |
+| **claude-md-management** | Skill Plugin | LOW | Auditoria y mejora de CLAUDE.md (revise-claude-md, claude-md-improver) |
+| **frontend-design** | Skill Plugin | LOW | Interfaces frontend production-grade con diseno distintivo |
+| **ralph-loop** | Skill Plugin | LOW | Loop de ejecucion recurrente (ralph-loop, cancel-ralph, help) |
 
-### Plugins deshabilitados (3)
+### Plugins removidos (5)
 
 | Plugin | Razon |
 |--------|-------|
-| **commit-commands** | Deshabilitado explicitamente — el harness usa commit-format-guard hook y `/checkpoint` en su lugar |
-| **hookify** | No instalado — Python/Windows incompatible; el harness implementa hooks nativos en Node.js |
-| **security-guidance** | No instalado — duplica funcionalidad del security-reviewer agent |
+| **superpowers** | Reemplazado por 4 skills in-house (subagent-driven-development, systematic-debugging, receiving-code-review, dispatching-parallel-agents) |
+| **feature-dev** | Removido 2026-03-30 — reinstalable desde marketplace |
+| **code-simplifier** | Removido 2026-03-30 — reinstalable desde marketplace |
+| **claude-code-setup** | Removido 2026-03-30 — reinstalable desde marketplace |
+| **github** | No habilitado — el harness usa `gh` CLI autenticado como Kadmon7 |
 
 ---
 

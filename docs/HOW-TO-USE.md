@@ -190,7 +190,7 @@ UNIVERSO KAIRON es un AI companion universe. Stack documentado: **React Native +
 
 ### 3.1 — React Native app
 
-El harness soporta desarrollo React Native a traves del plugin **frontend-design** para componentes UI y **feature-dev** para features completas.
+El harness soporta desarrollo React Native a traves del plugin **frontend-design** para componentes UI production-grade.
 
 ```bash
 # Planificar una nueva pantalla

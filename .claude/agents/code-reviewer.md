@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Use PROACTIVELY after writing or modifying code — MUST BE USED for all code changes before commit. Command: /code-review, /checkpoint. Checks quality, security, TypeScript patterns, and convention compliance.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, LSP
 memory: project
 ---
 
