@@ -1,6 +1,6 @@
 # Kadmon Harness — Referencia Completa
 
-> Version: v0.3 | Fecha: 2026-03-30 | Estado: A
+> Version: v0.3 | Fecha: 2026-03-31 | Estado: A
 
 Esta es la referencia completa de todo lo que existe en el harness.
 Para aprender a usarlo en proyectos reales, ver `docs/HOW-TO-USE.md`.
@@ -232,8 +232,8 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 | Hook | Evento | Matcher | Que hace | Exit |
 |------|--------|---------|----------|------|
-| **observe-pre** | PreToolUse | all | Registra invocacion de herramienta a JSONL (pre-ejecucion) | 0 |
-| **observe-post** | PostToolUse | all | Registra resultado de herramienta a JSONL (post-ejecucion) | 0 |
+| **observe-pre** | PreToolUse | all | Registra invocacion de herramienta a JSONL (pre-ejecucion), captura metadata de Agent, TaskCreate y TaskUpdate | 0 |
+| **observe-post** | PostToolUse | all | Registra resultado de herramienta a JSONL (post-ejecucion), captura mensajes de error en fallos | 0 |
 
 #### Post-edicion (verifican despues de cambios)
 
@@ -247,11 +247,11 @@ Al cerrar sesion: hooks Stop persisten a SQLite
 
 | Hook | Evento | Matcher | Que hace | Exit |
 |------|--------|---------|----------|------|
-| **session-start** | SessionStart | all | Inicializa sesion: carga instintos y resumen de sesion anterior | 0 |
-| **session-end-persist** | Stop | all | Persiste resumen de sesion y observaciones a SQLite | 0 |
+| **session-start** | SessionStart | all | Inicializa sesion: carga 3 sesiones recientes, muestra historial, "Pending Work" de tasks incompletas, recupera sesiones huerfanas | 0 |
+| **session-end-persist** | Stop | all | Persiste resumen de sesion (summary, tasks con lifecycle, errores) a SQLite | 0 |
 | **evaluate-session** | Stop | all | Evalua calidad de sesion, actualiza confianza de instintos | 0 |
-| **cost-tracker** | Stop | all | Registra uso de tokens y costo por sesion | 0 |
-| **pre-compact-save** | PreCompact | all | Guarda estado antes de compactacion de contexto | 0 |
+| **cost-tracker** | Stop | all | Registra uso de tokens y costo por sesion (fallback: estimacion desde observaciones) | 0 |
+| **pre-compact-save** | PreCompact | all | Guarda estado y tasks antes de compactacion de contexto | 0 |
 
 #### MCP (monitorean servidores externos)
 
@@ -397,7 +397,7 @@ Directorio principal de codigo ejecutable. Todo el TypeScript del harness vive a
 
 ## Seccion 6 — tests/
 
-**101 tests en 14 archivos.** Framework: Vitest.
+**154 tests en 16 archivos.** Framework: Vitest.
 
 ### Como ejecutar
 
@@ -409,29 +409,36 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 
 ### Tests por categoria
 
-#### Hook tests (7 archivos, ~40 tests)
+#### Hook tests (7 archivos)
 
-| Archivo | Tests | Que verifica |
-|---------|-------|-------------|
-| **block-no-verify.test.ts** | 4 | Bloquea --no-verify, permite comandos normales |
-| **commit-format-guard.test.ts** | 8 | Valida formato convencional, soporta HEREDOC y scope |
-| **no-context-guard.test.ts** | 6 | Bloquea edicion sin Read previo |
-| **observe-pre.test.ts** | 6 | Registra eventos tool_pre a JSONL correctamente |
-| **transparency-reminder.test.ts** | 4 | Recuerda anunciar agentes con emojis |
-| **ts-review-reminder.test.ts** | 5 | Advierte tras 5+ ediciones .ts sin review |
-| **session-start.test.ts** | 0 (skip) | Placeholder — pendiente de implementacion |
+| Archivo | Que verifica |
+|---------|-------------|
+| **block-no-verify.test.ts** | Bloquea --no-verify, permite comandos normales |
+| **commit-format-guard.test.ts** | Valida formato convencional, soporta HEREDOC y scope |
+| **console-log-warn.test.ts** | Detecta console.log() en codigo de produccion |
+| **no-context-guard.test.ts** | Bloquea edicion sin Read previo |
+| **observe-pre.test.ts** | Registra eventos tool_pre a JSONL correctamente |
+| **ts-review-reminder.test.ts** | Advierte tras 5+ ediciones .ts sin review |
+| **session-start.test.ts** | Inicializacion de sesion, project hash, banner de inicio |
 
-#### Library tests (7 archivos, ~61 tests)
+#### Library tests (8 archivos)
 
-| Archivo | Tests | Que verifica |
-|---------|-------|-------------|
-| **dashboard.test.ts** | 16 | Renderizado de instincts, sessions, hook health, costs |
-| **utils.test.ts** | 14 | ID generation, hashing, timestamps, formatDuration |
-| **instinct-manager.test.ts** | 11 | Lifecycle completo: create→reinforce→contradict→promote→prune |
-| **state-store.test.ts** | 11 | CRUD de sessions, instincts, cost events, sync queue |
-| **cost-calculator.test.ts** | 7 | Pricing por modelo, edge cases (zero tokens) |
-| **session-manager.test.ts** | 6 | Start/end session, context loading, duracion |
-| **project-detect.test.ts** | 3 | Deteccion git, project hashing |
+| Archivo | Que verifica |
+|---------|-------------|
+| **dashboard.test.ts** | Renderizado de instincts, sessions, hook health, costs |
+| **utils.test.ts** | ID generation, hashing, timestamps, formatDuration |
+| **instinct-manager.test.ts** | Lifecycle completo: create→reinforce→contradict→promote→prune |
+| **state-store.test.ts** | CRUD de sessions, instincts, cost events, sync queue |
+| **cost-calculator.test.ts** | Pricing por modelo, edge cases (zero tokens) |
+| **session-manager.test.ts** | Start/end session, context loading, duracion |
+| **project-detect.test.ts** | Deteccion git, project hashing |
+| **pattern-engine.test.ts** | Evaluacion de pattern definitions contra observaciones |
+
+#### E2E tests (1 archivo)
+
+| Archivo | Que verifica |
+|---------|-------------|
+| **instinct-lifecycle-e2e.test.ts** | Lifecycle completo de instintos de principio a fin |
 
 ### Como agregar un nuevo test
 
@@ -472,6 +479,7 @@ npx vitest run tests/lib/state-store.test.ts  # Un archivo especifico
 | **ADR-003** | Single hook profile — un settings.json centralizado |
 | **ADR-004** | no-context-guard como hook obligatorio |
 | **ADR-005** | Observaciones efimeras en JSONL (temp), persistentes en SQLite |
+| **ADR-006** | Estrategia de gestion de contexto (compaction, presupuesto, /kompact) |
 
 ---
 
@@ -610,7 +618,7 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | **package.json** | ES Module. Dependencies: sql.js, zod. Scripts: build (tsc + copy schema), test (vitest), typecheck (tsc --noEmit), lint (eslint). Node >= 18. |
 | **tsconfig.json** | Target ES2022, module Node16, strict mode. Compila scripts/ y tests/ a dist/. Declaration files habilitados. |
 | **eslint.config.js** | ESLint 9 con TypeScript plugin. Aplica a scripts/ y tests/. Ignora dist/, .claude/, node_modules/. Errors en `any`, warns en unused vars. |
-| **vitest.config.ts** | **No existe** — usa defaults de Vitest. |
+| **vitest.config.ts** | Config de Vitest. Define `KADMON_TEST_DB=:memory:` como safety net global para que ningun test in-process escriba en la DB de produccion. Hook tests (procesos separados) deben pasar `KADMON_TEST_DB` explicitamente via env. |
 | **.gitignore** | Excluye: node_modules, dist, .env*, .db, logs, OS artifacts. |
 | **install.ps1 / install.sh** | **No existen** — la instalacion usa `npm install` (postinstall ejecuta build). |
 
@@ -644,15 +652,15 @@ npx tsx scripts/dashboard.ts  # Vista rapida con dashboard CLI
 | Agentes | 14 (5 opus, 9 sonnet) |
 | Skills | 20 |
 | Comandos | 17 |
-| Hooks | 22 |
-| Rules | 15 |
-| Contextos | 3 |
-| Tests | 154 passing |
+| Hooks | 22 (+ 3 helpers: parse-stdin, evaluate-patterns-shared, generate-session-summary) |
+| Rules | 15 (9 common + 6 typescript) |
+| Contextos | 3 (.claude/contexts/) |
+| Tests | 154 passing (16 archivos) |
 | Tablas SQLite | 4 + 8 indexes |
-| MCPs | 2 (Supabase, Context7) |
-| ADRs | 5 |
+| MCPs | 3 (GitHub, Context7, Supabase) |
+| ADRs | 6 |
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks, 154 tests*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

@@ -6,7 +6,7 @@
 ```bash
 npm install                        # Install dependencies
 npm run build                      # Compile TypeScript → dist/
-npx vitest run                     # Run 146+ tests
+npx vitest run                     # Run 154 tests
 npx tsx scripts/dashboard.ts       # Show harness dashboard
 ```
 
@@ -49,6 +49,7 @@ scripts/
 ├── agents/             # 14 agent definitions
 ├── skills/             # 20 skill documents
 └── commands/           # 17 command templates
+vitest.config.ts          # Test config: KADMON_TEST_DB=:memory: safety net
 tests/
 ├── lib/                # Unit tests for scripts/lib/
 ├── hooks/              # Hook integration tests
@@ -126,10 +127,10 @@ Three-layer observability — no manual discipline required.
 Each agent defines its own labeled output format in `.claude/agents/*.md`.
 
 ## Memory
-- **Sessions**: summaries persist to SQLite
+- **Sessions**: summaries persist to SQLite; session-start loads 3 recent sessions as trajectory + "Pending Work" carry-forward from incomplete tasks
 - **Instincts**: learned patterns with confidence scoring (0.3->0.9), promotable at confidence >=0.7 + occurrences >=3 (manual via /instinct promote)
-- **Cost events**: token usage tracked per session
-- **Observations**: ephemeral JSONL per session, summarized at session end
+- **Cost events**: token usage tracked per session (transcript estimation + observations-based fallback)
+- **Observations**: ephemeral JSONL per session, summarized at session end; captures tool errors and TaskCreate/TaskUpdate lifecycle
 - **Auto Memory**: project memory in `~/.claude/projects/<project>/memory/` with typed files (6 types: user, feedback, project, reference, decision, gotcha)
 - **AutoDream**: enabled — consolidates memory automatically every 24h/5+ sessions
 - **MEMORY.md**: index file with budget limits per section (max 200 lines total)

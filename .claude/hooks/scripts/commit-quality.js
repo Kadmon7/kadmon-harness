@@ -45,6 +45,7 @@ try {
   const fileHeaders = diff.split("\n").filter((l) => l.startsWith("+++ b/"));
   const isTestFile = (filePath) =>
     /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filePath);
+  const isDocFile = (filePath) => filePath.endsWith(".md");
   const isScriptOrHook = (filePath) =>
     filePath.startsWith(".claude/hooks/scripts/") ||
     filePath.startsWith("scripts/") ||
@@ -62,8 +63,8 @@ try {
 
     const content = line.slice(1); // Remove leading +
 
-    // Skip console.log/debugger checks for hook scripts and CLI scripts
-    if (!isScriptOrHook(currentFile)) {
+    // Skip console.log/debugger checks for hook scripts, CLI scripts, and docs
+    if (!isScriptOrHook(currentFile) && !isDocFile(currentFile)) {
       // Check for console.log
       if (/console\.log\s*\(/.test(content)) {
         issues.push(`console.log() found in ${currentFile}`);

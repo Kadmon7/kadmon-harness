@@ -243,13 +243,25 @@ Session end ──→ hooks persisten todo a SQLite
 
 Kadmon tiene **22 hooks** que se ejecutan automáticamente en distintos momentos.
 
-### Hooks de seguridad (bloquean operaciones)
+### Hooks de bloqueo (exit 2 — operaciones bloqueadas)
 
-| Hook | Qué bloquea | Exit |
-|------|-------------|------|
-| block-no-verify | `git commit --no-verify` y similares | exit(2) |
-| config-protection | Editar tsconfig.json strict mode, eslint rules | exit(2) |
-| no-context-guard | Editar sin haber leído el archivo primero | exit(2) |
+| Hook | Qué bloquea |
+|------|-------------|
+| block-no-verify | `git commit --no-verify` y similares |
+| commit-format-guard | Commits sin formato convencional (`type(scope): desc`) |
+| commit-quality | Commits con scope o descripción de baja calidad |
+| config-protection | Editar tsconfig.json strict mode, eslint rules |
+| no-context-guard | Editar sin haber leído el archivo primero |
+
+### Hooks de advertencia (exit 1 — sugieren pero permiten)
+
+| Hook | Qué advierte |
+|------|-------------|
+| git-push-reminder | Recuerda ejecutar `/verify` antes de git push |
+| ts-review-reminder | Advierte tras 5+ ediciones .ts sin code review |
+| console-log-warn | Detecta `console.log()` en código de producción |
+| post-edit-typecheck | Corre `tsc --noEmit` en archivos .ts editados |
+| quality-gate | Corre ESLint en archivos editados |
 
 ### Hooks de observación (registran todo)
 
@@ -258,23 +270,23 @@ Kadmon tiene **22 hooks** que se ejecutan automáticamente en distintos momentos
 | observe-pre | Cada invocación de herramienta (pre-ejecución) | < 50ms |
 | observe-post | Resultado de cada herramienta (post-ejecución) | < 50ms |
 
-### Hooks post-edición (validan cambios)
+### Hooks post-edición (transforman archivos)
 
-| Hook | Qué valida |
-|------|-----------|
+| Hook | Qué hace |
+|------|----------|
 | post-edit-format | Auto-formatea con Prettier después de editar |
-| post-edit-typecheck | Corre `tsc --noEmit` en archivos .ts editados |
-| quality-gate | Corre ESLint en archivos editados |
+| pr-created | Detecta creación de PR y registra la URL |
 
 ### Hooks de sesión (persisten estado)
 
 | Hook | Evento | Qué hace |
 |------|--------|----------|
-| session-start | SessionStart | Inicializa sesión, carga instintos y contexto previo |
-| pre-compact-save | PreCompact | Guarda estado antes de compactación de contexto |
-| session-end-persist | Stop | Persiste resumen de sesión a SQLite |
+| session-start | SessionStart | Inicializa sesion: carga 3 sesiones recientes, muestra historial como trayectoria, "Pending Work" de tasks incompletas, recupera sesiones huerfanas |
+| pre-compact-save | PreCompact | Guarda estado y tasks pendientes antes de compactacion de contexto |
+| session-end-persist | Stop | Persiste resumen de sesion (summary, task lifecycle, errores) a SQLite |
 | evaluate-session | Stop | Extrae patrones, actualiza confianza de instintos |
-| cost-tracker | Stop | Calcula y registra costo en tokens por modelo |
+| cost-tracker | Stop | Calcula y registra costo en tokens por modelo (fallback: estimacion desde observaciones) |
+| session-end-marker | Stop | Marca fin limpio de sesion para lifecycle tracking |
 
 ### Hooks MCP
 
@@ -301,13 +313,13 @@ Kadmon opera con **5 capas de memoria**, de más estática a más dinámica:
 - Archivo: `CLAUDE.md` en raíz del proyecto
 
 ### Capa 2: Rules (siempre cargadas)
-- 14 archivos de reglas en `.claude/rules/`
+- 15 archivos de reglas en `.claude/rules/`
 - Gobiernan: coding style, seguridad, testing, hooks, git, patterns, performance
 - Se cargan automáticamente según contexto
 
 ### Capa 3: Auto Memory (Claude lo escribe)
 - Claude Code guarda memorias en `~/.claude/projects/{project}/memory/`
-- Tipos: user, feedback, project, reference
+- Tipos: user, feedback, project, reference, decision, gotcha (6 tipos)
 - Índice en `MEMORY.md`
 - Persiste entre conversaciones automáticamente
 
@@ -498,5 +510,5 @@ claude
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks*
+*Kadmon Harness v0.3 — 14 agentes, 17 comandos, 20 skills, 22 hooks, 154 tests*
 *Principio: `no_context` — si no hay evidencia, no inventar.*

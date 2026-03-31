@@ -49,7 +49,10 @@
       "WebFetch(domain:zod.dev)",
       "WebFetch(domain:developer.mozilla.org)",
       "WebFetch(domain:reactnative.dev)",
-      "WebFetch(domain:elevenlabs.io)"
+      "WebFetch(domain:elevenlabs.io)",
+      "Bash(xargs grep:*)",
+      "Bash(sqlite3 ~/.kadmon/kadmon.db \"SELECT COUNT\\(*\\) FROM instincts;\")",
+      "Bash(grep:*)"
     ]
   }
 }
