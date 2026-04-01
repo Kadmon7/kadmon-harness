@@ -219,11 +219,7 @@ async function main() {
     try {
       const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
       if (fs.existsSync(sessionDir) && messageCount >= 10) {
-        for (const file of [
-          "observations.jsonl",
-          "tool_count.txt",
-          "instinct_count.txt",
-        ]) {
+        for (const file of ["observations.jsonl", "tool_count.txt"]) {
           const filePath = path.join(sessionDir, file);
           try {
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);

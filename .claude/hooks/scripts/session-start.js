@@ -246,14 +246,6 @@ async function main() {
       );
     }
 
-    // Write instinct count for status line
-    try {
-      fs.writeFileSync(
-        path.join(sessionDir, "instinct_count.txt"),
-        String(instinctCount),
-      );
-    } catch {}
-
     // Cleanup old session dirs in /tmp/kadmon/ (> 7 days, not current, not test dirs)
     try {
       const kadmonTmp = path.join(os.tmpdir(), "kadmon");

@@ -98,23 +98,6 @@ async function main() {
       fs.writeFileSync(countFile, "0");
     } catch {}
 
-    // Write instinct count for status line
-    if (instinctsUpdated > 0) {
-      try {
-        const icFile = path.join(
-          os.tmpdir(),
-          "kadmon",
-          sid,
-          "instinct_count.txt",
-        );
-        let prev = 0;
-        try {
-          prev = parseInt(fs.readFileSync(icFile, "utf8"), 10) || 0;
-        } catch {}
-        fs.writeFileSync(icFile, String(prev + instinctsUpdated));
-      } catch {}
-    }
-
     const instinctMsg =
       instinctsUpdated > 0
         ? ` | \u{1F9E0} ${instinctsUpdated} instincts updated`
