@@ -57,7 +57,10 @@
       "Bash(find ./.claude/sessions -name *.md -type f)",
       "Bash(find C:/Command-Center/Kadmon-Harness -name *.test.ts -o -name *.spec.ts)",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(xargs -I{} wc -l {}observations.jsonl)",
+      "Bash(xargs -I{} grep -o \"\"filePath\"\":\"\"[^\"\"]*\"\" {}observations.jsonl)",
+      "Bash(bash ~/.claude/statusline.sh)"
     ]
   }
 }
