@@ -1,6 +1,6 @@
 ---
 alwaysApply: false
-globs: ["tests/**/*.ts"]
+globs: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 ---
 
 # TypeScript Testing Rules
@@ -23,6 +23,11 @@ globs: ["tests/**/*.ts"]
 - MUST test hooks via execFileSync with input option
 - MUST verify both exit code AND stderr/stdout content
 - MUST test both blocking (exit 2) and allowing (exit 0) scenarios
+
+## E2E Testing
+- USE Playwright as the E2E testing framework for critical user flows
+- e2e-runner agent specializes in Playwright test generation and execution
+- PREFER Vitest for harness E2E tests, Playwright for web app E2E tests
 
 ## Enforcement
 - tdd-guide agent enforces red-green-refactor cycle via /tdd command

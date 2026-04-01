@@ -1,6 +1,6 @@
 ---
 alwaysApply: false
-globs: ["**/*.ts"]
+globs: ["**/*.ts", "**/*.tsx"]
 ---
 
 # TypeScript Security Rules
@@ -9,6 +9,22 @@ globs: ["**/*.ts"]
 - NEVER cast user input to a type without Zod validation first
 - MUST use branded types or newtypes for security-sensitive values (e.g., ProjectHash)
 - NEVER expose internal error details in user-facing output
+
+## Secret Management
+- NEVER hardcode secrets, API keys, or tokens in source code
+- MUST use environment variables for all credentials
+- MUST validate required env vars at startup and fail fast
+
+```typescript
+// NEVER: Hardcoded secrets
+const apiKey = "sk-proj-xxxxx"
+
+// ALWAYS: Environment variables with validation
+const apiKey = process.env.API_KEY
+if (!apiKey) {
+  throw new Error('API_KEY not configured')
+}
+```
 
 ## File Operations
 - MUST sanitize file paths before any fs operation
