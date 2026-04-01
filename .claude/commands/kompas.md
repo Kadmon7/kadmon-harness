@@ -11,65 +11,76 @@ On-demand deep context recovery. Searches git, SQLite, memory, docs, and harness
 - When you feel "lost" mid-session and need to re-orient
 - NOT needed for quick sessions or simple tasks (session-start hook provides basics)
 
-## Steps
+## Steps — 18 MANDATORY sources (do NOT skip any)
 
-### Group 1: Git State
-1. Run: `git log --oneline -15` (recent commits)
-2. Run: `git diff --stat` (uncommitted changes)
-3. Run: `git stash list` (forgotten stashed work)
-4. Run: `git branch` (active branches, detect feature work)
+IMPORTANT: Every source below is MANDATORY. Execute ALL 18. Mark each [x] in the output.
+Run independent steps in PARALLEL where marked.
 
-### Group 2: Project State (SQLite + temp)
-5. Run: `npx tsx scripts/dashboard.ts` (sessions, instincts, costs, hook health)
-6. Check for active tasks via TaskList
-7. Check for active plans in `~/.claude/plans/`
+### PARALLEL BLOCK A — Git State (run all 4 simultaneously)
+1. **Git log**: Run `git log --oneline -15`
+2. **Git diff**: Run `git diff --stat`
+3. **Git stash**: Run `git stash list`
+4. **Git branches**: Run `git branch`
 
-### Group 3: Memory Deep Read
-8. Read `~/.claude/projects/C--Command-Center-Kadmon-Harness/memory/MEMORY.md` (index)
-9. Read any memory files flagged as CRITICAL in the feedback section
-10. Note memories older than 7 days that may be stale
+### PARALLEL BLOCK B — Project State (run all 3 simultaneously)
+5. **Dashboard**: Run `npx tsx scripts/dashboard.ts` (sessions, instincts, costs, hook health)
+6. **Active tasks**: Call TaskList tool to check pending tasks
+7. **Active plans**: Run `ls ~/.claude/plans/` and read any plan file names
 
-### Group 4: Documentation
-11. List ADR titles: `ls docs/decisions/`
-12. Read roadmap current milestone: `docs/roadmap/` (scan for pending items)
-13. Check GitHub: `gh pr list --limit 5` and `gh issue list --limit 5`
+### PARALLEL BLOCK C — Memory Deep Read (run all 3 simultaneously)
+8. **Memory index**: Read `~/.claude/projects/C--Command-Center-Kadmon-Harness/memory/MEMORY.md`
+9. **Feedback memories**: Read ALL `feedback_*.md` files in memory directory (behavioral corrections)
+10. **Project + Gotcha memories**: Read ALL `project_*.md` files in memory directory (state + gotchas)
 
-### Group 5: Harness Health
-14. Read `package.json` for version
-15. Count test files: `find tests/ -name "*.test.ts" | wc -l`
-16. Check current observations for errors: scan `/tmp/kadmon/{session_id}/observations.jsonl` for failures
+### PARALLEL BLOCK D — Documentation (run all 3 simultaneously)
+11. **ADRs**: Run `ls docs/decisions/` and list titles
+12. **Roadmap**: Read `docs/roadmap/v1.0-production.md` — scan for pending items in current milestone
+13. **GitHub**: Run `gh pr list --limit 5` and `gh issue list --limit 5`
+
+### PARALLEL BLOCK E — Harness Health (run all 5 simultaneously)
+14. **Version**: Read `package.json` — extract version field
+15. **Tests**: Run `npx vitest run --reporter=dot 2>&1 | tail -5` — get pass/fail count
+16. **Observations errors**: Read `/tmp/kadmon/{session_id}/observations.jsonl` — count lines with `"error"`
+17. **Component counts**: Run `ls .claude/agents/*.md | wc -l` and `ls .claude/skills/*.md | wc -l` and `ls .claude/commands/*.md | wc -l`
+18. **Hook count**: Run `grep -c '"command"' .claude/settings.json` — count registered hooks
 
 ## Output Format
-Present results as a structured report:
+Present results as a structured checklist report:
 
 ```
 ## Kompas — Full Context Rebuild
 
-### Git (recent activity)
-{15 recent commits}
-Uncommitted: {count} files | Stashes: {count} | Branches: {list}
+### Checklist (18/18)
+- [x] Git log — {N} recent commits, latest: {hash} {message}
+- [x] Git diff — {N} uncommitted files
+- [x] Git stash — {N} stashes
+- [x] Git branches — {list}
+- [x] Dashboard — {N} sessions, {N} instincts ({N} promotable), ${cost}
+- [x] Tasks — {list or "none"}
+- [x] Plans — {list or "none"}
+- [x] Memory index — {N} files across {N} sections
+- [x] Feedback memories — {N} files, critical: {list key reminders}
+- [x] Project memories — {N} files, current state: {summary}
+- [x] ADRs — {N} decisions, latest: {title}
+- [x] Roadmap — {current milestone}, {N} pending items
+- [x] GitHub — {N} PRs, {N} issues
+- [x] Version — v{version}
+- [x] Tests — {N} passing, {N} failing
+- [x] Observations — {N} errors this session
+- [x] Components — {N} agents, {N} skills, {N} commands
+- [x] Hooks — {N} registered
 
-### Project State
-{dashboard summary: sessions, instincts, costs}
-Active tasks: {list or "none"}
-Active plans: {list or "none"}
+### Key Findings
+{List anything surprising, stale, or requiring attention}
 
-### Memory
-{total files} memories | Critical reminders: {list}
-Potentially stale (>7d): {list or "none"}
-
-### Documentation
-ADRs: {count} ({latest title})
-Roadmap: {current milestone} — {N pending items}
-GitHub: {N open PRs} | {N open issues}
-
-### Harness Health
-v{version} | {N} test files | Hook errors: {count}
+### Critical Reminders (from feedback memories)
+{Top 3 behavioral corrections to keep in mind}
 ```
 
 ## Rules
 - This command is READ-ONLY — never modify files, commit, or write
-- Run all 5 groups — do not skip any
-- If a source is unavailable (no GitHub, no SQLite), note it and continue
-- Keep output concise — summaries, not full file contents
+- ALL 18 sources are MANDATORY — if one fails, note the error and continue
+- Use PARALLEL BLOCKS to minimize token and time cost
+- Keep output concise — summaries and counts, not full file contents
 - Total context cost: ~10-15K tokens (acceptable for full rebuild)
+- If checklist shows fewer than 18 [x] marks, something was skipped — go back and fix it
