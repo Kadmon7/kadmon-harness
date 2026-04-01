@@ -9,7 +9,7 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-## Hook Catalog (22)
+## Hook Catalog (20 registered)
 
 ### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
@@ -70,13 +70,10 @@ alwaysApply: true
 |------|--------|---------|------|
 | session-start | session-start.js | Loads 3 recent sessions, shows history trajectory, Pending Work carry-forward, recovers orphaned sessions | 0 always |
 
-### Stop — all (4)
+### Stop — all (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| session-end-persist | session-end-persist.js | Persists session summary, task lifecycle, and error context to SQLite | 0 always |
-| evaluate-session | evaluate-session.js | Evaluates session quality and updates instinct confidence | 0 always |
-| cost-tracker | cost-tracker.js | Tracks token usage and cost per session (observations-based fallback when transcript unavailable) | 0 always |
-| session-end-marker | session-end-marker.js | Marks session end for lifecycle tracking | 0 always |
+| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + evaluate patterns + track cost + write marker + daily log (replaces 4 separate hooks to avoid sql.js race condition) | 0 always |
 
 ## Safety
 - NEVER crash Claude Code — always exit(0) on unexpected errors
@@ -91,10 +88,10 @@ alwaysApply: true
 ## Data
 - Hooks read input from stdin as JSON
 - observe hooks write to JSONL files (file append, no DB)
-- Lifecycle hooks (session-start, session-end-persist, evaluate-session, cost-tracker) may access SQLite via compiled TypeScript in dist/
+- Lifecycle hooks (session-start, session-end-all) may access SQLite via compiled TypeScript in dist/
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
 ## Windows Compatibility
-- All 23 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

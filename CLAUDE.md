@@ -6,7 +6,7 @@
 ```bash
 npm install                        # Install dependencies
 npm run build                      # Compile TypeScript → dist/
-npx vitest run                     # Run 154 tests
+npx vitest run                     # Run 161 tests
 npx tsx scripts/dashboard.ts       # Show harness dashboard
 ```
 
@@ -41,7 +41,7 @@ scripts/
 └── dashboard.ts        # CLI dashboard entry point
 .claude/
 ├── hooks/
-│   ├── scripts/        # 22 hook scripts (JS)
+│   ├── scripts/        # 20 registered hooks + 4 shared modules (JS)
 │   └── pattern-definitions.json
 ├── rules/
 │   ├── common/         # 9 cross-language rules
@@ -154,4 +154,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (154 tests passing, 23 hooks, 14 agents, 20 skills, 17 commands)
+v0.3 — Consolidated (161 tests passing, 20 hooks, 14 agents, 20 skills, 18 commands)
