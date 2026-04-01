@@ -10,7 +10,7 @@ Not just counts — behavioral descriptions must match what the code actually do
 ## Steps
 1. Invoke doktor agent (opus)
 2. Scan recent git commits for behavioral AND structural changes
-3. **Layer 1 — Public docs**: Update CLAUDE.md, README.md, docs/GUIDE.md, docs/HOW-TO-USE.md, docs/REFERENCE.md
+3. **Layer 1 — Public docs**: Update CLAUDE.md, README.md, docs/GUIDE.md
 4. **Layer 2 — Rules**: Update .claude/rules/common/hooks.md, agents.md, development-workflow.md if affected
 5. **Layer 3 — Commands**: Update command .md files if their workflows changed
 6. **Layer 4 — Skills**: Check skills that reference changed hooks/features

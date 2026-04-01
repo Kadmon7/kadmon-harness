@@ -55,9 +55,7 @@ tests/
 ├── hooks/              # Hook integration tests
 └── eval/               # E2E evaluation tests
 docs/
-├── GUIDE.md            # User guide (Spanish)
-├── HOW-TO-USE.md       # How-to guide (Spanish)
-└── REFERENCE.md        # Technical reference
+└── GUIDE.md            # Usage guide (Spanish)
 ```
 
 ## Environment Variables

@@ -24,10 +24,8 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 | File | Language | What to check |
 |------|----------|---------------|
 | **CLAUDE.md** | English | Component counts, file structure, Memory section, Hook catalog, Status line |
-| **README.md** | English | Architecture, features, quick start, component summary |
-| **docs/GUIDE.md** | Spanish | Hook descriptions, workflow explanations, layer descriptions |
-| **docs/HOW-TO-USE.md** | Spanish | Workflow steps, troubleshooting, config examples |
-| **docs/REFERENCE.md** | Spanish | Hook tables with descriptions, schema docs, test counts, root file descriptions |
+| **README.md** | English | Complete reference: architecture, agents, skills, commands, hooks, rules, database, tests, plugins |
+| **docs/GUIDE.md** | Spanish | Usage guide: daily workflow, examples, troubleshooting, project-specific usage |
 
 ### Layer 2 — Rules (Claude reads every session)
 | File | What to check |
@@ -141,14 +139,14 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 - **All files, every time**: Check ALL 6+ documentation files, not just CLAUDE.md and README
 - **Language preservation**: Spanish files stay Spanish, English files stay English
 - **Generate from code**: Read the actual source before writing descriptions. Never invent.
-- **Root file awareness**: New config files (vitest.config.ts, eslint.config.js, etc.) must be documented in REFERENCE.md root files section AND CLAUDE.md file structure
+- **Root file awareness**: New config files (vitest.config.ts, eslint.config.js, etc.) must be documented in README.md root files section AND CLAUDE.md file structure
 - **no_context**: If a component is referenced but cannot be found on disk, flag it and remove the reference
 
 ## Anti-Patterns (things this agent has done wrong before)
 
 - Updating test count from 146 to 154 but NOT documenting the 3 new features that caused those tests
 - Leaving "No existe" for vitest.config.ts after it was created
-- Updating CLAUDE.md but forgetting to update REFERENCE.md hook descriptions
+- Updating CLAUDE.md but forgetting to update README.md hook descriptions
 - Treating documentation as "count tables" instead of "feature descriptions"
 - Stopping after counts are correct without checking behavioral descriptions
 - Only reading 2 files when 6+ need checking
@@ -163,17 +161,14 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 
 ### Files Updated
 - CLAUDE.md: Memory section updated with carry-forward description
-- docs/REFERENCE.md: hook table descriptions updated, vitest.config.ts documented
+- README.md: hook table descriptions updated, vitest.config.ts documented
 - docs/GUIDE.md: session hook table rewritten with new behaviors
 
 ### Verification
 - [x] All behavioral changes documented in at least 2 files
 - [x] Counts match filesystem
-- [x] No stale "No existe" references
+- [x] No stale references
 - [x] grep confirms new features mentioned in docs
-
-### Not Changed (verified accurate)
-- docs/HOW-TO-USE.md: workflows unaffected by these changes
 ```
 
 ## Interaction with Other Agents

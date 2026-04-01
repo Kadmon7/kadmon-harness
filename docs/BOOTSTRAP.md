@@ -168,8 +168,8 @@ rm -rf tests/
 # Borrar agent-memory del harness
 rm -rf .claude/agent-memory/
 
-# Mantener docs/GUIDE.md y docs/REFERENCE.md como referencia
-# (o borrarlos si ya los conoces de memoria)
+# Mantener docs/GUIDE.md como referencia de uso
+# (o borrarlo si ya lo conoces de memoria)
 ```
 
 ### 10. Primera sesion
