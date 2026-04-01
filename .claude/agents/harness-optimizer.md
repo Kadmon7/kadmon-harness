@@ -1,6 +1,6 @@
 ---
 name: harness-optimizer
-description: Invoked exclusively via /evolve command. Never auto-triggered. Analyzes all harness components and produces evolution recommendations for architect review.
+description: Invoked exclusively via /evolve command. Never auto-triggered. Analyzes all harness components and produces evolution recommendations for arkitect review.
 model: opus
 tools: Read, Grep, Glob, Bash
 memory: project
@@ -52,7 +52,7 @@ Follow these five steps in order for every /evolve invocation.
 5. **Report** -- Present before/after deltas with risk assessment:
    - Use the output format defined below
    - Include confidence level (HIGH/MEDIUM/LOW) per recommendation
-   - Flag any proposals that require architect review before implementation
+   - Flag any proposals that require arkitect review before implementation
 
 ## Analysis Dimensions
 
@@ -94,7 +94,7 @@ Follow these five steps in order for every /evolve invocation.
 
 ## Constraints
 - Prefer small changes with measurable effect over large rewrites
-- Never auto-apply -- all changes require architect approval before implementation
+- Never auto-apply -- all changes require arkitect approval before implementation
 - Preserve cross-platform behavior (Windows Git Bash compatibility)
 - Avoid introducing fragile shell quoting or path concatenation
 - Changes must be reversible -- every proposal includes a rollback path
@@ -149,7 +149,7 @@ Follow these five steps in order for every /evolve invocation.
 - Trend: [increasing/stable/decreasing]
 
 ### Risk Assessment
-- [proposal]: confidence [HIGH/MEDIUM/LOW], reversible [yes/no], requires architect [yes/no]
+- [proposal]: confidence [HIGH/MEDIUM/LOW], reversible [yes/no], requires arkitect [yes/no]
 ```
 
 ## no_context Rule

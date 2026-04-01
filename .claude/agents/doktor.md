@@ -178,6 +178,6 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 
 ## Interaction with Other Agents
 - Invoked after commits via /update-docs or /checkpoint
-- Works alongside architect when /kplan produces structural changes
+- Works alongside arkitect when /kplan produces structural changes
 - Consumes output from harness-optimizer (/evolve)
 - Coordinates with skill-creator when new skills are added
