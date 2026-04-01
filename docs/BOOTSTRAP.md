@@ -6,10 +6,10 @@
 
 El Kadmon Harness es un **template operativo para Claude Code**. Le da a Claude:
 - **Memoria** — tracking de sesiones, instincts que aprenden tus patrones
-- **Calidad** — 23 hooks que validan codigo, previenen errores, y hacen enforce de convenciones
-- **Agentes** — 14 agentes especializados (code-reviewer, planner, tdd-guide, etc.)
+- **Calidad** — 20 hooks que validan codigo, previenen errores, y hacen enforce de convenciones
+- **Agentes** — 14 agentes especializados (code-reviewer, konstruct, tdd-guide, etc.)
 - **Skills** — 20 documentos de conocimiento que los agentes consultan
-- **Comandos** — 17 slash commands (/kplan, /tdd, /verify, /checkpoint, etc.)
+- **Comandos** — 18 slash commands (/kplan, /tdd, /verify, /checkpoint, etc.)
 
 Sin el harness, Claude Code opera "crudo" — sin memoria entre sesiones, sin quality gates, sin agentes especializados.
 
@@ -93,7 +93,7 @@ El CLAUDE.md del harness tiene ~156 lineas. Tu proyecto tendra ~200 (las mismas 
 En `.claude/agents/`, tienes 14 agentes universales. Puedes:
 
 **Mantener tal cual** (funcionan para cualquier proyecto):
-- code-reviewer, planner, architect, tdd-guide, build-error-resolver
+- code-reviewer, konstruct, arkitect, tdd-guide, build-error-resolver
 - security-reviewer, refactor-cleaner, almanak, doktor
 
 **Adaptar** (agregar contexto de tu dominio):
@@ -130,7 +130,7 @@ En `.claude/skills/`, tienes 20 skills. Mantener todos los universales y agregar
 
 ### 7. Personalizar comandos
 
-Los 17 comandos funcionan tal cual. Si necesitas comandos nuevos, crealos en `.claude/commands/`:
+Los 18 comandos funcionan tal cual. Si necesitas comandos nuevos, crealos en `.claude/commands/`:
 
 ```markdown
 ---
@@ -195,9 +195,9 @@ mi-proyecto/
   .claude/
     agents/             ← 14 universales + tus agentes de dominio
     skills/             ← 20 universales + tus skills de dominio
-    commands/           ← 17 universales + tus comandos
+    commands/           ← 18 universales + tus comandos
     hooks/
-      scripts/          ← 23 hooks (no tocar, funcionan para cualquier proyecto)
+      scripts/          ← 20 hooks (no tocar, funcionan para cualquier proyecto)
       pattern-definitions.json  ← personalizado con tus patrones
     rules/
       common/           ← 9 reglas universales (no tocar)
@@ -219,10 +219,10 @@ mi-proyecto/
 | Sin Harness | Con Harness |
 |-------------|-------------|
 | Claude no recuerda sesiones anteriores | Session tracking con summary, files, costs |
-| No hay quality gates | 23 hooks: typecheck, lint, no-context-guard, commit format |
+| No hay quality gates | 20 hooks: typecheck, lint, no-context-guard, commit format |
 | Code review manual | code-reviewer agent auto-invocado en .ts/.tsx |
 | No hay patrones aprendidos | Instincts que aprenden tus workflows |
-| Comandos basicos de Claude Code | 17 comandos especializados (/kplan, /tdd, /verify...) |
+| Comandos basicos de Claude Code | 18 comandos especializados (/kplan, /tdd, /verify...) |
 | Sin presupuesto de contexto | Monitoring de contexto, /kompact inteligente |
 | Sin dashboard | `/dashboard` con instincts, sesiones, costos, hook health |
 
@@ -238,7 +238,7 @@ Asi se ve trabajar en un proyecto con el harness. Ejemplo: crear un endpoint de 
   - Guarda en Supabase con pgvector
   - Retorna ID del documento creado
 ```
-El agente **architect** evalua si hay decisiones arquitectonicas. El agente **planner** genera un plan paso a paso.
+El agente **arkitect** evalua si hay decisiones arquitectonicas. El agente **konstruct** genera un plan paso a paso.
 
 ### 2. Testear primero
 ```

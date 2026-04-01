@@ -6,7 +6,7 @@
 ```bash
 npm install                        # Install dependencies
 npm run build                      # Compile TypeScript → dist/
-npx vitest run                     # Run 161 tests
+npx vitest run                     # Run 180 tests
 npx tsx scripts/dashboard.ts       # Show harness dashboard
 ```
 
@@ -145,13 +145,13 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - Database lives at `~/.kadmon/kadmon.db` (NOT `data/harness.db`) — use `path.join(homedir(), '.kadmon', 'kadmon.db')`
 - Sessions table uses `id` column (not `session_id`) — check schema with `PRAGMA table_info(sessions)`
 - Auto-memory directory is `~/.claude/projects/C--Command-Center-Kadmon-Harness/` (with hyphens, not spaces)
-- Lifecycle hooks (session-start, session-end-persist, evaluate-session, cost-tracker) import from `dist/` — run `npm run build` after changing `scripts/lib/` or hooks fail silently
+- Lifecycle hooks (session-start, session-end-all, pre-compact-save) import from `dist/` — run `npm run build` after changing `scripts/lib/` or hooks fail silently
 - Hook latency budgets are for hook LOGIC only — Node.js cold start adds ~236ms on Windows, so absolute times appear higher than budgets
 - ORDER BY queries need `rowid` tiebreaker for deterministic results when timestamps collide
-- evaluate-session.js evaluates 13 pattern definitions from `.claude/hooks/pattern-definitions.json`
+- Pattern evaluation (via session-end-all.js and pre-compact-save.js) uses 13 pattern definitions from `.claude/hooks/pattern-definitions.json`
 - `new URL().pathname` encodes spaces as `%20` — ALWAYS use `fileURLToPath()` for file paths derived from URLs
 - Stop hooks only fire on clean session termination — `/kompact`, terminal close, or crashes do NOT trigger them
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (161 tests passing, 20 hooks, 14 agents, 20 skills, 18 commands)
+v0.3 — Consolidated (180 tests passing, 20 hooks, 14 agents, 20 skills, 18 commands)

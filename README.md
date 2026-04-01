@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`154 tests` | `23 hooks` | `14 agents` | `20 skills` | `17 commands`
+`180 tests` | `20 hooks` | `14 agents` | `20 skills` | `18 commands`
 
 ## Mantra
 
@@ -35,7 +35,7 @@ Key commands inside a session:
 
 ```bash
 /dashboard          # System state: instincts, sessions, costs, hook health
-/kplan              # Plan complex tasks (routes to architect + planner)
+/kplan              # Plan complex tasks (routes to arkitect + konstruct)
 /tdd                # Test-driven development cycle
 /verify             # Typecheck + tests + lint
 /checkpoint         # Verify, commit, push
@@ -82,7 +82,7 @@ Key commands inside a session:
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
 │  │ PreTool  │→ │  Tool    │→ │ PostTool │             │
-│  │ Hooks(8) │  │ Execute  │  │ Hooks(7) │             │
+│  │ Hooks(8) │  │ Execute  │  │ Hooks(8) │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │       │                            │                    │
 │       ▼                            ▼                    │
@@ -109,16 +109,16 @@ Key commands inside a session:
 |----------|-------|----------|
 | Agents | 14 (5 opus, 9 sonnet) | `.claude/agents/` |
 | Skills | 20 | `.claude/skills/` |
-| Commands | 17 | `.claude/commands/` |
-| Hooks | 22 | `.claude/hooks/scripts/` |
+| Commands | 18 | `.claude/commands/` |
+| Hooks | 20 | `.claude/hooks/scripts/` |
 | Rules | 15 (9 common + 6 TS) | `.claude/rules/` |
 
 ## Agents
 
 | Agent | Model | Trigger |
 |-------|-------|---------|
-| architect | opus | `/kplan` when design signals detected |
-| planner | opus | `/kplan` always (after architect or directly) |
+| arkitect | opus | `/kplan` when design signals detected |
+| konstruct | opus | `/kplan` always (after arkitect or directly) |
 | code-reviewer | sonnet | `/code-review`, `/checkpoint`, auto on `.ts`/`.tsx` edits |
 | database-reviewer | opus | Auto on SQL/Supabase edits |
 | security-reviewer | opus | Auto on auth/keys/input code |
@@ -134,11 +134,12 @@ Key commands inside a session:
 
 ## Commands by Phase
 
-### Observe (2)
+### Observe (3)
 | Command | Purpose |
 |---------|---------|
 | `/dashboard` | System state: instincts, sessions, costs, hook health |
 | `/kompact` | Smart compaction with audit (`/kompact audit` for context budget) |
+| `/kompas` | Full context rebuild -- search git, memory, SQLite, docs, harness state |
 
 ### Remember (3)
 | Command | Purpose |
@@ -161,7 +162,7 @@ Key commands inside a session:
 ### Specialize (2)
 | Command | Purpose |
 |---------|---------|
-| `/kplan` | Smart planning (architect + planner routing) |
+| `/kplan` | Smart planning (arkitect + konstruct routing) |
 | `/workflow` | Show or guide through workflow chains |
 
 ### Evolve (3)
@@ -224,7 +225,7 @@ Example instincts:
 - **Persistence**: SQLite via sql.js (local, v1) — Supabase planned for v2
 - **Runtime**: Claude Code CLI
 - **MCPs**: Supabase, Context7
-- **Testing**: Vitest (154 tests)
+- **Testing**: Vitest (180 tests)
 
 ## Windows Compatibility
 
@@ -239,4 +240,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3 — Consolidated (154 tests passing, 23 hooks, 14 agents, 20 skills, 17 commands)
+v0.3 — Consolidated (180 tests passing, 20 hooks, 14 agents, 20 skills, 18 commands)

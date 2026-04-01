@@ -25,7 +25,7 @@ alwaysApply: true
 ## Enforcement
 - pre-compact-save hook preserves session state before context compaction (PreCompact)
 - /kompact audit subcommand audits current context window usage
-- cost-tracker hook tracks token usage per session (Stop event)
+- session-end-all hook tracks token usage per session (Stop event, via cost-tracker sub-module)
 - observe-pre and observe-post hooks enforce < 50ms latency budget
 - harness-optimizer agent analyzes hook latency and cost trends via /evolve
 - database-reviewer agent validates sql.js query patterns when editing database code

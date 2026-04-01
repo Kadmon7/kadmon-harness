@@ -26,11 +26,10 @@ globs: [".claude/hooks/scripts/*.js"]
 - All 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - MUST use `cmd /c npx` wrapper for MCP servers (GitHub, Context7)
 
-## Lifecycle Hooks (4)
-- session-start.js — initializes session, loads instincts and previous session summary
-- session-end-persist.js — persists session summary and observations to SQLite
-- evaluate-session.js — evaluates session quality, updates instinct confidence scores
-- cost-tracker.js — tracks token usage and cost per session
+## Lifecycle Hooks (3 registered + sub-modules)
+- session-start.js — initializes session, loads instincts and previous session summary, recovers orphaned sessions
+- session-end-all.js — consolidated Stop hook: persist session + evaluate patterns + track cost + write marker + daily log (imports cost-tracker, evaluate-session, session-end-persist, session-end-marker as sub-modules)
+- pre-compact-save.js — saves session state, generates summary, evaluates patterns before context compaction
 
 ## Enforcement
 - post-edit-typecheck hook validates hook script changes compile correctly
