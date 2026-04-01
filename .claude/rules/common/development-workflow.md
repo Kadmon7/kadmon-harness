@@ -11,13 +11,14 @@ alwaysApply: true
 - ALWAYS write test before implementation (/tdd workflow)
 - ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills
 
-## Command Reference (17)
+## Command Reference (18)
 
-### Observe Phase (2)
+### Observe Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /dashboard | Show harness dashboard (instincts, sessions, costs, hook health) | — |
 | /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
+| /kompas | Full context rebuild — search git, memory, SQLite, docs, harness state. Use after compact or at session start | — |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |

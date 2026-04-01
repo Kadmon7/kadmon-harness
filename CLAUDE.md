@@ -48,7 +48,7 @@ scripts/
 │   └── typescript/     # 6 TS-specific rules
 ├── agents/             # 14 agent definitions
 ├── skills/             # 20 skill documents
-└── commands/           # 17 command templates
+└── commands/           # 18 command templates
 vitest.config.ts          # Test config: KADMON_TEST_DB=:memory: safety net
 tests/
 ├── lib/                # Unit tests for scripts/lib/
@@ -82,9 +82,9 @@ docs/
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (17)
+## Commands (18)
 Defined in `.claude/commands/` — organized by phase:
-- **Observe** (2): /dashboard, /kompact
+- **Observe** (3): /dashboard, /kompact, /kompas
 - **Remember** (3): /checkpoint, /docs, /update-docs
 - **Verify** (7): /tdd, /verify, /build-fix, /code-review, /test-coverage, /e2e, /eval
 - **Specialize** (2): /kplan, /workflow
