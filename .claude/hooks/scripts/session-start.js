@@ -9,6 +9,7 @@ import crypto from "node:crypto";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
+import { readTodayLog } from "./daily-log.js";
 
 function gitExec(args, cwd) {
   try {
@@ -238,8 +239,90 @@ async function main() {
       const lastMsgs = lastSession ? lastSession.messageCount : 0;
       statusLine = `\n## Status\n- Instincts: ${instincts.length} active${promoLabel} | Last session: ${lastCost} | ${lastMsgs} msgs`;
 
-      // Start new session
-      startSession(sid, { projectHash, remoteUrl, branch, rootDir: cwd });
+      // Start new session (returns session with compactionCount)
+      const currentSession = startSession(sid, {
+        projectHash,
+        remoteUrl,
+        branch,
+        rootDir: cwd,
+      });
+
+      // Post-compact context reinjection
+      if (currentSession.compactionCount > 0) {
+        context += "\n\n## Post-Compact Context Recovery";
+        context += `\n- Compaction #${currentSession.compactionCount}`;
+        if (currentSession.summary)
+          context += `\n- Current work: ${currentSession.summary}`;
+        if (
+          currentSession.filesModified &&
+          currentSession.filesModified.length > 0
+        ) {
+          context += `\n- Files in progress: ${currentSession.filesModified
+            .slice(0, 5)
+            .map((f) => path.basename(f))
+            .join(", ")}`;
+        }
+        const pendingTasks = (currentSession.tasks || []).filter((t) =>
+          t.startsWith("[pending] "),
+        );
+        if (pendingTasks.length > 0) {
+          context += "\n- Pending tasks:";
+          for (const t of pendingTasks.slice(0, 5))
+            context += `\n  - ${t.replace("[pending] ", "")}`;
+        }
+
+        // Load today's daily log
+        try {
+          const memoryDir = path.join(
+            os.homedir(),
+            ".claude",
+            "projects",
+            "C--Command-Center-Kadmon-Harness",
+            "memory",
+          );
+          const todayLog = readTodayLog(memoryDir);
+          if (todayLog) {
+            context += "\n\n## Today's Session Log";
+            context += `\n${todayLog}`;
+          }
+        } catch {}
+
+        // Load feedback memories (behavioral corrections)
+        try {
+          const memoryDir = path.join(
+            os.homedir(),
+            ".claude",
+            "projects",
+            "C--Command-Center-Kadmon-Harness",
+            "memory",
+          );
+          const files = fs
+            .readdirSync(memoryDir)
+            .filter((f) => f.startsWith("feedback_") && f.endsWith(".md"));
+          if (files.length > 0) {
+            context += "\n\n## Behavioral Corrections (from memory)";
+            for (const f of files.slice(0, 10)) {
+              try {
+                const content = fs.readFileSync(
+                  path.join(memoryDir, f),
+                  "utf8",
+                );
+                const firstLine = content
+                  .split("\n")
+                  .find(
+                    (l) =>
+                      l.trim() &&
+                      !l.startsWith("---") &&
+                      !l.startsWith("name:") &&
+                      !l.startsWith("description:") &&
+                      !l.startsWith("type:"),
+                  );
+                if (firstLine) context += `\n- ${firstLine.trim()}`;
+              } catch {}
+            }
+          }
+        } catch {}
+      }
     } catch (dbErr) {
       console.log(
         `WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`,

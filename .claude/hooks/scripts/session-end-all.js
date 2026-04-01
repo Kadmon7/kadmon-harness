@@ -5,9 +5,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
+import { appendDailyLog } from "./daily-log.js";
 
 function estimateTokensFromTranscript(transcriptPath) {
   try {
@@ -110,6 +112,39 @@ async function main() {
         output.push(
           `\u{26A0}\u{FE0F} Session ${sid.slice(0, 8)} not found in DB`,
         );
+      }
+
+      // --- Phase 1b: Write daily log ---
+      try {
+        const memoryDir = path.join(
+          os.homedir(),
+          ".claude",
+          "projects",
+          "C--Command-Center-Kadmon-Harness",
+          "memory",
+        );
+        let lastCommit = "";
+        try {
+          lastCommit = execFileSync("git", ["log", "--oneline", "-1"], {
+            cwd,
+            encoding: "utf8",
+            stdio: ["pipe", "pipe", "pipe"],
+          }).trim();
+        } catch {}
+        appendDailyLog(
+          {
+            sessionId: sid,
+            summary: summary || "(session end — no summary)",
+            tasks: extractedTasks,
+            topFiles: [...filesModified]
+              .slice(0, 5)
+              .map((f) => path.basename(f)),
+            commits: lastCommit ? [lastCommit] : [],
+          },
+          memoryDir,
+        );
+      } catch {
+        /* never block session end for log failure */
       }
 
       // --- Phase 2: Evaluate patterns (was evaluate-session.js) ---

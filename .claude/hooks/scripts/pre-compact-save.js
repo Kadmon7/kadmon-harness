@@ -4,9 +4,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { parseStdin } from "./parse-stdin.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
 import { generateSummary } from "./generate-session-summary.js";
+import { appendDailyLog } from "./daily-log.js";
 
 async function main() {
   try {
@@ -90,6 +92,37 @@ async function main() {
       console.error(
         JSON.stringify({ warn: `pre-compact-save eval: ${evalErr.message}` }),
       );
+    }
+
+    // Write daily log entry before compaction
+    try {
+      const memoryDir = path.join(
+        os.homedir(),
+        ".claude",
+        "projects",
+        "C--Command-Center-Kadmon-Harness",
+        "memory",
+      );
+      let lastCommit = "";
+      try {
+        lastCommit = execFileSync("git", ["log", "--oneline", "-1"], {
+          cwd: input.cwd ?? process.cwd(),
+          encoding: "utf8",
+          stdio: ["pipe", "pipe", "pipe"],
+        }).trim();
+      } catch {}
+      appendDailyLog(
+        {
+          sessionId: sid,
+          summary: summary || "(compact — no summary)",
+          tasks: tasks,
+          topFiles: [...filesModified].slice(0, 5).map((f) => path.basename(f)),
+          commits: lastCommit ? [lastCommit] : [],
+        },
+        memoryDir,
+      );
+    } catch {
+      /* never block compaction for log failure */
     }
 
     // Reset tool count after compaction
