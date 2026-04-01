@@ -67,8 +67,8 @@ docs/
 ## Agents (14)
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| architect | opus | System design, architecture decisions |
-| planner | opus | Implementation planning, task breakdown |
+| arkitect | opus | System design, architecture decisions |
+| konstruct | opus | Implementation planning, task breakdown |
 | code-reviewer | sonnet | Code quality, TypeScript, and security review |
 | database-reviewer | opus | PostgreSQL/Supabase review |
 | security-reviewer | opus | Security vulnerability detection |
@@ -108,7 +108,7 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
-2. Plan (/kplan command, planner agent)
+2. Plan (/kplan command, konstruct agent)
 3. Test first (/tdd command, tdd-guide agent)
 4. Implement (build-error-resolver if needed)
 5. Review (/code-review, /verify)
@@ -120,7 +120,7 @@ Three-layer observability — no manual discipline required.
 
 | Layer | Mechanism | Visibility |
 |-------|-----------|------------|
-| Output | Agent emoji+text labels in output headers (e.g., `## 🏗️ Decision [architect]`) | Always visible |
+| Output | Agent emoji+text labels in output headers (e.g., `## Decision [arkitect]`) | Always visible |
 | Dashboard | `/dashboard` command — instincts, sessions, costs, hook health | On demand |
 | Traces | `observations.jsonl` via observe-pre/post hooks | Deep dive |
 

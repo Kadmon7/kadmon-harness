@@ -18,7 +18,7 @@ Read widely, ask questions, document findings. Do not code until the problem is 
 - PREFER reading over writing
 - PREFER Grep/Glob for codebase exploration
 - Document findings in markdown before proposing code
-- Use architect agent for design decisions
+- Use arkitect agent for design decisions
 
 ## Hooks
 - no-context-guard: DISABLED (set KADMON_NO_CONTEXT_GUARD=off)

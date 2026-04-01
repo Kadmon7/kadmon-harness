@@ -41,7 +41,7 @@ alwaysApply: true
 ### Specialize Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kplan | Smart planning — routes to architect+planner or planner-only based on task signals | planner, architect |
+| /kplan | Smart planning — routes to arkitect+konstruct or konstruct-only based on task signals | konstruct, arkitect |
 | /workflow | Show available workflow chains (dev, qa, instinct, evolve) or guide through one | — |
 
 ### Evolve Phase (3)

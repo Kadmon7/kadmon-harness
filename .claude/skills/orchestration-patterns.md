@@ -210,4 +210,4 @@ This skill enforces the no_context principle at the orchestration layer. When di
 **Project agents used:**
 - code-reviewer -- dispatched for code quality stage
 - tdd-guide -- referenced by subagents for test-first discipline
-- architect / planner -- produce the plans that this skill executes
+- arkitect / konstruct -- produce the plans that this skill executes

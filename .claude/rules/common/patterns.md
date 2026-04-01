@@ -23,7 +23,7 @@ alwaysApply: true
 - MUST use immutable data structures — create new objects, never mutate existing ones
 
 ## Enforcement
-- architect agent reviews system design and pattern decisions via /kplan
+- arkitect agent reviews system design and pattern decisions via /kplan
 - code-reviewer agent validates pattern adherence via /code-review and /checkpoint
 - code-reviewer agent checks type safety and immutability patterns on .ts/.tsx edits (TypeScript specialist mode)
 - database-reviewer agent validates data layer patterns when editing SQL or Supabase code

@@ -66,8 +66,8 @@ silently lower standards (e.g., disabling strict mode) without being caught by t
 {"block":true,"message":"config-protection: tsconfig.json is a protected config file"}
 ```
 
-**Override:** No automatic override. To edit a protected file, the architect must
-explicitly approve the change. Invoke the `architect` agent via `/kplan` to review
+**Override:** No automatic override. To edit a protected file, the arkitect must
+explicitly approve the change. Invoke the `arkitect` agent via `/kplan` to review
 and authorize the edit.
 
 ---
@@ -120,7 +120,7 @@ without reading them first — it does NOT exist for interactive development ses
 - MUST wrap all hook logic in try/catch — NEVER crash Claude Code on unexpected input
 - MUST log errors to stderr as JSON: `{ "error": "..." }`
 - NEVER add an override mechanism for block-no-verify — this is an intentional design constraint
-- MUST document every override mechanism clearly (env var, architect approval, or none)
+- MUST document every override mechanism clearly (env var, arkitect approval, or none)
 - MUST complete within < 100ms for no-context-guard; < 500ms for config-protection and block-no-verify
 
 ---
@@ -137,7 +137,7 @@ and security scans. Bypassing them means commits can silently violate quality ga
 If the hooks are failing, fix the root cause — use `/build-fix` or `/verify`.
 
 **How do I edit a protected config file?**
-Ask the architect to temporarily allow the change via `/kplan`, or follow the `update-config`
+Ask the arkitect to temporarily allow the change via `/kplan`, or follow the `update-config`
 skill process. Never attempt to disable config-protection unilaterally.
 
 **How do I disable no-context-guard?**
@@ -156,8 +156,8 @@ corresponds to a failure mode the principle guards against:
 | Hook | no_context violation it prevents |
 |------|----------------------------------|
 | block-no-verify | Bypassing verification without evidence quality gates passed |
-| config-protection | Editing quality standards without architectural review |
+| config-protection | Editing quality standards without arkitectural review |
 | no-context-guard | Modifying code without evidence it was read and understood |
 
 When a hook blocks an operation, the correct response is to acquire context — read the file,
-run the verification, or consult the architect — not to find a workaround.
+run the verification, or consult the arkitect — not to find a workaround.

@@ -17,7 +17,7 @@ Make workflow chains discoverable. Instead of remembering which commands to run 
 ### dev — Full Development Cycle
 For implementing features or fixing bugs from planning through commit.
 ```
-/kplan        -> Plan the implementation (architect + planner)
+/kplan        -> Plan the implementation (arkitect + konstruct)
 /tdd          -> Write failing test, then implement
 /verify       -> Run build, typecheck, tests, lint
 /code-review  -> Review code quality and security

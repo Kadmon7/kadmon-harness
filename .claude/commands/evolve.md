@@ -23,7 +23,7 @@ Invoke harness-optimizer agent to analyze every harness component and propose ev
    - CREATE RULE: problems ready to become rules
    - OPTIMIZE: hooks/agents/skills to improve
    - MEMORY: stale/orphaned/over-budget memory entries
-11. NEVER auto-apply — architect approves all changes
+11. NEVER auto-apply — arkitect approves all changes
 
 ## Output
 Evolution report with 5 categories of actionable recommendations, priority levels, and expected impact.

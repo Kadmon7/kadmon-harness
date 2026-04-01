@@ -61,7 +61,7 @@ Proposed | Accepted | Deprecated | Superseded by ADR-XXX
 ## Rules
 - Every ADR gets a sequential number (ADR-001, ADR-002, ...)
 - Once accepted, an ADR is never edited — only superseded by a new ADR
-- The architect agent produces ADRs automatically
+- The arkitect agent produces ADRs automatically
 - ADRs are committed and pushed alongside the code they affect
 
 ## no_context Application
