@@ -116,8 +116,8 @@ npm run build
 | Situation | Use Instead |
 |-----------|-------------|
 | Code needs structural refactoring | refactor-cleaner agent |
-| Architecture changes needed | architect agent |
-| New features required | planner agent |
+| Architecture changes needed | arkitect agent |
+| New features required | konstruct agent |
 | Tests failing due to logic errors | tdd-guide agent |
 | Security issues detected | security-reviewer agent |
 

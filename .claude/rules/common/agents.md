@@ -29,8 +29,8 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
-| arkitect | opus | /kplan with arkitecture signals | /kplan | arkitecture-decision-records |
-| konstruct | opus | /kplan always | /kplan | arkitecture-decision-records |
+| arkitect | opus | /kplan with architecture signals | /kplan | architecture-decision-records |
+| konstruct | opus | /kplan always | /kplan | architecture-decision-records |
 | code-reviewer | sonnet | /code-review, /checkpoint, auto on .ts/.tsx | /code-review | coding-standards, receiving-code-review |
 | database-reviewer | opus | Auto on SQL/schema/migration/Supabase | — | database-migrations, postgres-patterns |
 | security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /code-review | safety-guard |
@@ -51,13 +51,13 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - Editing SQL/schema/migration/Supabase client → database-reviewer
 - TypeScript compilation or Vitest fails → build-error-resolver
 - Performance concerns (O(n^2), slow queries, memory patterns) → performance-optimizer
-- /kplan with arkitecture signals → arkitect before konstruct
+- /kplan with architecture signals → arkitect before konstruct
 - Encountering unfamiliar external API or library → almanak (via /docs)
 
 ## Manual Rules
 - MUST invoke code-reviewer before any commit via /checkpoint
 - MUST invoke konstruct via /kplan — runs for every /kplan invocation
-- MUST invoke arkitect before konstruct when /kplan task contains arkitecture signals
+- MUST invoke arkitect before konstruct when /kplan task contains architecture signals
 - MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification
 - MUST invoke build-error-resolver when TypeScript compilation or Vitest tests fail (skip for obvious typos)
 - MUST invoke doktor after commits that add/remove agents, skills, or commands

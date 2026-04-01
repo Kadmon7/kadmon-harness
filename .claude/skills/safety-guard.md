@@ -156,7 +156,7 @@ corresponds to a failure mode the principle guards against:
 | Hook | no_context violation it prevents |
 |------|----------------------------------|
 | block-no-verify | Bypassing verification without evidence quality gates passed |
-| config-protection | Editing quality standards without arkitectural review |
+| config-protection | Editing quality standards without architectural review |
 | no-context-guard | Modifying code without evidence it was read and understood |
 
 When a hook blocks an operation, the correct response is to acquire context — read the file,
