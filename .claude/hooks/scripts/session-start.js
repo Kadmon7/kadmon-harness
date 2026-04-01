@@ -338,7 +338,23 @@ async function main() {
         const uuidPattern =
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         for (const entry of fs.readdirSync(kadmonTmp)) {
-          if (entry === sid || entry.startsWith("test-isolation-")) continue;
+          if (entry === sid) continue;
+          // Clean test-* dirs older than 24h (safety net for interrupted test runs)
+          if (entry.startsWith("test-")) {
+            const testDirPath = path.join(kadmonTmp, entry);
+            try {
+              const testStat = fs.statSync(testDirPath);
+              if (
+                testStat.isDirectory() &&
+                now - testStat.mtimeMs > 24 * 60 * 60 * 1000
+              ) {
+                fs.rmSync(testDirPath, { recursive: true, force: true });
+              }
+            } catch {
+              /* skip */
+            }
+            continue;
+          }
           if (!uuidPattern.test(entry)) continue; // only delete UUID-shaped session dirs
           const dirPath = path.join(kadmonTmp, entry);
           try {

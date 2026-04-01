@@ -8,5 +8,6 @@ export default defineConfig({
       // via execFileSync env, but this catches in-process imports of state-store.
       KADMON_TEST_DB: ":memory:",
     },
+    globalTeardown: ["tests/global-teardown.ts"],
   },
 });
