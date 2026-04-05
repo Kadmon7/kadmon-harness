@@ -4,7 +4,12 @@ description: Use PROACTIVELY when editing code that handles authentication, API 
 model: opus
 tools: Read, Grep, Glob
 memory: project
+skills: safety-guard
 ---
+
+## Skill Reference
+
+When reviewing security-sensitive code, read `.claude/skills/safety-guard.md` for the three-layer safety system (block-no-verify, config-protection, no-context-guard).
 
 # Security Reviewer
 

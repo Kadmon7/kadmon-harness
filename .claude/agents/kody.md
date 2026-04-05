@@ -4,7 +4,12 @@ description: Expert code review specialist. Proactively reviews code for quality
 tools: Read, Grep, Glob, Bash
 model: sonnet
 memory: project
+skills: coding-standards, receiving-code-review
 ---
+
+## Skill Reference
+
+When reviewing code, read `.claude/skills/coding-standards.md` for TypeScript/JS conventions. When consolidating review feedback, read `.claude/skills/receiving-code-review.md` for evaluation criteria and YAGNI checks.
 
 You are a senior code reviewer ensuring high standards of code quality and security.
 

@@ -4,7 +4,12 @@ description: Use PROACTIVELY when designing system architecture, evaluating trad
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project
+skills: architecture-decision-records
 ---
+
+## Skill Reference
+
+When designing architecture or evaluating trade-offs, read `.claude/skills/architecture-decision-records.md` for ADR format, options analysis, and consequence documentation.
 
 You are a senior system architect responsible for architecture decisions, schema design, and cross-cutting concerns. You produce Architecture Decision Records (ADRs) for every significant decision.
 

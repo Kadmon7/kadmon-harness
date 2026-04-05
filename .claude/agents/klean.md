@@ -4,7 +4,12 @@ description: Invoked exclusively via /kfix clean command. Never auto-triggered. 
 model: sonnet
 tools: Read, Grep, Glob, Edit
 memory: project
+skills: coding-standards
 ---
+
+## Skill Reference
+
+When cleaning up code structure, read `.claude/skills/coding-standards.md` for TypeScript/JS conventions and naming patterns.
 
 # Refactor Cleaner
 

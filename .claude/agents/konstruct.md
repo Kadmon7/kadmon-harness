@@ -4,7 +4,12 @@ description: Use PROACTIVELY when breaking down complex tasks into implementatio
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project
+skills: architecture-decision-records
 ---
+
+## Skill Reference
+
+When breaking down implementation plans, read `.claude/skills/architecture-decision-records.md` for decision context that informs plan structure.
 
 # Konstruct
 
