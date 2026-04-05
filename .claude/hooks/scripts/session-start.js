@@ -6,10 +6,14 @@ import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
 import { readTodayLog } from "./daily-log.js";
+import { ensureDist, isDistStale } from "./ensure-dist.js";
+import { logHookError } from "./hook-logger.js";
+import { rotateBackup } from "./backup-rotate.js";
 
 function gitExec(args, cwd) {
   try {
@@ -47,13 +51,32 @@ async function main() {
     const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
     fs.mkdirSync(sessionDir, { recursive: true });
 
-    // Backup DB before opening (prevents data loss from silent failures)
+    // Backup DB with rotation before opening (prevents data loss)
     try {
       const dbFile = path.join(os.homedir(), ".kadmon", "kadmon.db");
-      const backupFile = path.join(os.homedir(), ".kadmon", "kadmon.db.bak");
-      if (fs.existsSync(dbFile)) fs.copyFileSync(dbFile, backupFile);
+      if (fs.existsSync(dbFile)) rotateBackup(dbFile, 3);
     } catch {
       /* never block session start for backup failure */
+    }
+
+    // Auto-build dist/ if stale (prevents silent lifecycle hook failures)
+    const rootDir = path.resolve(
+      fileURLToPath(new URL(".", import.meta.url)),
+      "..",
+      "..",
+      "..",
+    );
+    let distRebuilt = false;
+    try {
+      const buildResult = ensureDist(rootDir);
+      distRebuilt = buildResult.rebuilt;
+      if (buildResult.error) {
+        logHookError("session-start", buildResult.error, {
+          phase: "ensure-dist",
+        });
+      }
+    } catch (buildErr) {
+      logHookError("session-start", buildErr, { phase: "ensure-dist" });
     }
 
     // Try loading previous session context from SQLite
@@ -135,6 +158,7 @@ async function main() {
           context += `\n- Recovered orphaned session ${orphan.id.slice(0, 8)}...${instinctNote}`;
         }
       } catch (orphanErr) {
+        logHookError("session-start", orphanErr, { phase: "orphan-recovery" });
         console.error(
           JSON.stringify({
             warn: `session-start orphan recovery: ${orphanErr.message}`,
@@ -324,6 +348,7 @@ async function main() {
         } catch {}
       }
     } catch (dbErr) {
+      logHookError("session-start", dbErr, { phase: "db-init" });
       console.log(
         `WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`,
       );
@@ -371,10 +396,22 @@ async function main() {
       /* never block session start for cleanup failure */
     }
 
+    // Health check: warn if dist/ is still stale after auto-build attempt
+    let distNote = "";
+    try {
+      const distCheck = isDistStale(rootDir);
+      if (distCheck.stale) {
+        distNote = `\nWARNING: dist/ is ${distCheck.reason}. Lifecycle hooks may not persist data. Run 'npm run build' to fix.`;
+      } else if (distRebuilt) {
+        distNote = "\n(auto-rebuilt dist/)";
+      }
+    } catch {}
+
     console.log(
-      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}${statusLine}`,
+      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}${statusLine}${distNote}`,
     );
   } catch (err) {
+    logHookError("session-start", err, { phase: "main" });
     console.error(JSON.stringify({ error: `session-start: ${err.message}` }));
   }
   process.exit(0);

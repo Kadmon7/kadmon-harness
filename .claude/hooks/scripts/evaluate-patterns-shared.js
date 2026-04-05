@@ -7,6 +7,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { logHookError } from "./hook-logger.js";
 
 function gitExec(args, cwd) {
   try {

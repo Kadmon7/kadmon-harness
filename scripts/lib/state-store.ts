@@ -304,6 +304,42 @@ export function getOrphanedSessions(
     .map(mapSessionRow);
 }
 
+export function deleteSession(id: string): boolean {
+  const db = getDb();
+  const session = db.prepare("SELECT id FROM sessions WHERE id = ?").get(id);
+  if (!session) return false;
+  const txn = db.transaction(() => {
+    db.prepare("DELETE FROM cost_events WHERE session_id = @id").run({ id });
+    db.prepare("DELETE FROM sessions WHERE id = @id").run({ id });
+  });
+  txn();
+  return true;
+}
+
+export function cleanupTestSessions(projectHash?: string): number {
+  const db = getDb();
+  const baseQuery = `SELECT id FROM sessions
+    WHERE id LIKE 'test-%' AND message_count = 0
+      AND (ended_at IS NOT NULL AND ended_at != '')`;
+  const rows = projectHash
+    ? db.prepare(`${baseQuery} AND project_hash = ?`).all(projectHash)
+    : db.prepare(baseQuery).all();
+
+  let deleted = 0;
+  const txn = db.transaction(() => {
+    for (const row of rows) {
+      const sid = String(row.id);
+      db.prepare("DELETE FROM cost_events WHERE session_id = @id").run({
+        id: sid,
+      });
+      db.prepare("DELETE FROM sessions WHERE id = @id").run({ id: sid });
+      deleted++;
+    }
+  });
+  txn();
+  return deleted;
+}
+
 // ─── Instinct operations ───
 
 function mapInstinctRow(row: Record<string, unknown>): Instinct {

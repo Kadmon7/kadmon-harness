@@ -5,10 +5,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
 import { generateSummary } from "./generate-session-summary.js";
 import { appendDailyLog } from "./daily-log.js";
+import { ensureDist } from "./ensure-dist.js";
+import { logHookError } from "./hook-logger.js";
 
 async function main() {
   try {
@@ -56,6 +59,24 @@ async function main() {
       );
     }
 
+    // Auto-build dist/ if stale
+    const rootDir = path.resolve(
+      fileURLToPath(new URL(".", import.meta.url)),
+      "..",
+      "..",
+      "..",
+    );
+    try {
+      const buildResult = ensureDist(rootDir);
+      if (buildResult.error) {
+        logHookError("pre-compact-save", buildResult.error, {
+          phase: "ensure-dist",
+        });
+      }
+    } catch (buildErr) {
+      logHookError("pre-compact-save", buildErr, { phase: "ensure-dist" });
+    }
+
     try {
       const { openDb, upsertSession, getSession } = await import(
         new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
@@ -78,6 +99,7 @@ async function main() {
         });
       }
     } catch (dbErr) {
+      logHookError("pre-compact-save", dbErr, { phase: "db-persist" });
       console.error(
         JSON.stringify({ warn: `pre-compact-save db: ${dbErr.message}` }),
       );
@@ -89,6 +111,7 @@ async function main() {
       const cwd = input.cwd ?? process.cwd();
       instinctsUpdated = await evaluateAndApplyPatterns(sid, cwd);
     } catch (evalErr) {
+      logHookError("pre-compact-save", evalErr, { phase: "pattern-eval" });
       console.error(
         JSON.stringify({ warn: `pre-compact-save eval: ${evalErr.message}` }),
       );

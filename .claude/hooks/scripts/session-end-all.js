@@ -6,10 +6,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
 import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
 import { appendDailyLog } from "./daily-log.js";
+import { ensureDist } from "./ensure-dist.js";
+import { logHookError } from "./hook-logger.js";
 
 function estimateTokensFromTranscript(transcriptPath) {
   try {
@@ -77,6 +80,24 @@ async function main() {
             filesModified.add(e.filePath);
         } catch {}
       }
+    }
+
+    // Auto-build dist/ if stale (prevents silent data loss)
+    const rootDir = path.resolve(
+      fileURLToPath(new URL(".", import.meta.url)),
+      "..",
+      "..",
+      "..",
+    );
+    try {
+      const buildResult = ensureDist(rootDir);
+      if (buildResult.error) {
+        logHookError("session-end-all", buildResult.error, {
+          phase: "ensure-dist",
+        });
+      }
+    } catch (buildErr) {
+      logHookError("session-end-all", buildErr, { phase: "ensure-dist" });
     }
 
     // --- Phase 1: Persist session (was session-end-persist.js) ---
@@ -154,6 +175,7 @@ async function main() {
           output.push(`\u{1F9E0} ${instinctsUpdated} instincts updated`);
         }
       } catch (evalErr) {
+        logHookError("session-end-all", evalErr, { phase: "pattern-eval" });
         console.error(
           JSON.stringify({ warn: `session-end-all eval: ${evalErr.message}` }),
         );
@@ -226,11 +248,13 @@ async function main() {
           );
         }
       } catch (costErr) {
+        logHookError("session-end-all", costErr, { phase: "cost-tracking" });
         console.error(
           JSON.stringify({ warn: `session-end-all cost: ${costErr.message}` }),
         );
       }
     } catch (dbErr) {
+      logHookError("session-end-all", dbErr, { phase: "db-init" });
       console.error(
         JSON.stringify({ warn: `session-end-all db: ${dbErr.message}` }),
       );
