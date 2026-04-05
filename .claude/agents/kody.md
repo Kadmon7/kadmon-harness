@@ -230,7 +230,7 @@ Adapt your review to the project's established patterns. When in doubt, match wh
 - **Timing**: runs ONLY after code exists — never during planning phase
 - **Role**: final consolidator of the full /kplan pipeline
 
-## v1.8 AI-Generated Code Review Addendum
+## AI-Generated Code Review Addendum
 
 When reviewing AI-generated changes, prioritize:
 
