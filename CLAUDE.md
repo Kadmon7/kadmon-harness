@@ -52,13 +52,17 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - **Remember** (3): /checkpoint, /docs, /kdocs
 - **Evolve** (3): /eval, /instinct, /evolve
 
-## Skills (20)
+## Skills (25)
 - **Workflow**: search-first, context-budget
 - **Quality**: coding-standards, tdd-workflow, verification-loop, e2e-testing
 - **Learning**: continuous-learning-v2, eval-harness
 - **Architecture**: architecture-decision-records, api-design
 - **Data**: database-migrations, postgres-patterns, iterative-retrieval, iterative-retrieval-hebrew
 - **Integration**: claude-api, mcp-server-patterns
+- **Python**: python-patterns, python-testing
+- **Frontend**: frontend-patterns
+- **Research**: deep-research
+- **Documentation**: docs-sync
 - **Other**: orchestration-patterns, systematic-debugging, receiving-code-review, safety-guard
 
 ## Hooks
@@ -84,4 +88,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v0.3.3 — Python stack (260 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])
+v0.3.4 — Skill adoption (260 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])

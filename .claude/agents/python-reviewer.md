@@ -4,14 +4,14 @@ description: Use PROACTIVELY when editing Python files (.py). No dedicated comma
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project
-skills: claude-api
+skills: python-patterns, python-testing
 ---
 
 # Python Reviewer
 
 ## Skill Reference
 
-When reviewing Python code that imports `anthropic` or `@anthropic-ai/sdk`, read `.claude/skills/claude-api.md` for API patterns, tool use conventions, and cost tracking.
+When reviewing Python code, read `.claude/skills/python-patterns.md` for Pythonic idioms, type hints, error handling, and concurrency patterns. When reviewing Python tests, read `.claude/skills/python-testing.md` for pytest fixtures, async testing, and mocking patterns. When reviewing code that imports `anthropic` or `@anthropic-ai/sdk`, also consult `.claude/skills/claude-api.md` for API patterns and cost tracking.
 
 ## Role
 Senior Python code reviewer ensuring Pythonic quality, type safety, security, and ML best practices across all Python projects (ToratNetz embeddings, KAIRON AI backend, future services).

@@ -35,13 +35,13 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /checkpoint, /kreview | coding-standards |
 | database-reviewer | opus | Auto on SQL/schema/migration/Supabase | /checkpoint | database-migrations, postgres-patterns |
 | security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /checkpoint | safety-guard |
-| feniks | sonnet | /ktest command | /ktest | tdd-workflow |
+| feniks | sonnet | /ktest command | /ktest | tdd-workflow, python-testing |
 | mekanik | sonnet | Auto on TS compilation/Vitest failures | /kfix | systematic-debugging |
 | klean | sonnet | /kfix clean only | /kfix | coding-standards |
 | kronos | sonnet | Auto on O(n^2)/slow queries/memory | /kperf | context-budget |
-| python-reviewer | sonnet | Auto on .py edits | /checkpoint, /kreview | claude-api |
-| almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns |
-| doktor | opus | /kdocs, after feature/structural commits | /kdocs | — |
+| python-reviewer | sonnet | Auto on .py edits | /checkpoint, /kreview | python-patterns, python-testing |
+| almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns, deep-research |
+| doktor | opus | /kdocs, after feature/structural commits | /kdocs | docs-sync |
 | kartograf | sonnet | /ktest e2e only (expensive) | /ktest | e2e-testing |
 | alchemik | opus | /evolve only | /evolve | search-first |
 
