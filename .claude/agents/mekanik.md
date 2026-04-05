@@ -115,7 +115,7 @@ npm run build
 
 | Situation | Use Instead |
 |-----------|-------------|
-| Code needs structural refactoring | klean agent |
+| Code needs structural refactoring | kurator agent |
 | Architecture changes needed | arkitect agent |
 | New features required | konstruct agent |
 | Tests failing due to logic errors | feniks agent |

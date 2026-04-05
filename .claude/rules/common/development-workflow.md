@@ -28,8 +28,8 @@ alwaysApply: true
 ### Build Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kfix | Diagnose build errors + refactor cleanup. Use `/kfix build` or `/kfix clean` for single phase | mekanik, klean |
-| /kperf | Performance analysis and optimization. Use `/kperf hooks` for hook latency | kronos |
+| /kfix | Diagnose build errors + refactor cleanup. Use `/kfix build` or `/kfix clean` for single phase | mekanik, kurator |
+| /kperf | Performance analysis and optimization. Use `/kperf hooks` for hook latency | arkonte |
 
 ### Test Phase (1)
 | Command | Purpose | Agent |
@@ -46,7 +46,7 @@ alwaysApply: true
 |---------|---------|-------|
 | /checkpoint | Full verification + intelligent review + commit and push (5 reviewers) | kody + specialists |
 | /docs | Look up live documentation for any library or framework | almanak |
-| /kdocs | Sync project documentation with code changes (4-layer sync) | doktor |
+| /kdocs | Sync project documentation with code changes (4-layer sync) | doks |
 
 ### Evolve Phase (3)
 | Command | Purpose | Agent |

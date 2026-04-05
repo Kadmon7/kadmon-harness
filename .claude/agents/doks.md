@@ -1,5 +1,5 @@
 ---
-name: doktor
+name: doks
 description: Use PROACTIVELY after commits that add features, change behavior, or modify project structure. Command: /kdocs. Keeps ALL documentation in sync with code — not just counts, but descriptions of what the system actually does.
 model: opus
 tools: Read, Grep, Glob, Write, Bash, Edit
@@ -154,7 +154,7 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 
 ## Output Format
 ```markdown
-## Documentation Updates [doktor]
+## Documentation Updates [doks]
 
 ### Behavioral Changes Found
 - session-start.js: now loads 3 sessions (was 1), shows "Pending Work"

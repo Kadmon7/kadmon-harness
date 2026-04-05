@@ -1,6 +1,6 @@
 ---
-description: Diagnose and fix build errors, then clean up code structure — sequential mekanik -> klean
-agent: mekanik, klean
+description: Diagnose and fix build errors, then clean up code structure — sequential mekanik -> kurator
+agent: mekanik, kurator
 skills: [systematic-debugging, coding-standards]
 ---
 
@@ -10,7 +10,7 @@ Two-phase fix: first resolve compilation/build errors, then clean up the resulti
 ## Arguments
 - (none) — run build fix, then refactor recently changed files
 - `build` — only Phase 1 (mekanik), skip refactoring
-- `clean` — only Phase 2 (klean), skip build fix
+- `clean` — only Phase 2 (kurator), skip build fix
 - `<file-path>` — target specific file for both phases
 
 ## Steps
@@ -26,7 +26,7 @@ Two-phase fix: first resolve compilation/build errors, then clean up the resulti
 
 ### Phase 2: Refactor Clean
 1. Run tests BEFORE any changes: `npx vitest run`
-2. Invoke **klean agent** (sonnet) on target files
+2. Invoke **kurator agent** (sonnet) on target files
 3. Agent identifies: unused imports, dead functions, duplicated code
 4. Apply refactoring changes
 5. Run tests AFTER to verify no behavior change: `npx vitest run`

@@ -4,7 +4,7 @@ description: Expert TypeScript/JavaScript code reviewer specializing in type saf
 tools: Read, Grep, Glob, Bash
 model: sonnet
 memory: project
-skills: coding-standards
+skills: coding-standards, frontend-patterns
 ---
 
 You are a senior TypeScript engineer ensuring high standards of type-safe, idiomatic TypeScript and JavaScript.
@@ -111,7 +111,7 @@ jest --ci                           # Tests (Jest)
 
 ## Reference
 
-This repo does not yet ship a dedicated `typescript-patterns` skill. For detailed TypeScript and JavaScript patterns, use `coding-standards` plus `frontend-patterns` or `backend-patterns` based on the code being reviewed.
+For detailed TypeScript and JavaScript patterns, use `coding-standards` for conventions and `frontend-patterns` for React/Next.js component patterns.
 
 ---
 

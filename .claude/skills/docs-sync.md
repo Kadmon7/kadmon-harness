@@ -5,7 +5,7 @@ description: Documentation synchronization principles — 4-layer model (public 
 
 # Documentation Synchronization
 
-Principles for keeping all documentation layers accurate and in sync with code behavior. This skill teaches the methodology; doktor agent executes the workflow.
+Principles for keeping all documentation layers accurate and in sync with code behavior. This skill teaches the methodology; doks agent executes the workflow.
 
 ## When to Use
 
@@ -101,8 +101,8 @@ After making documentation updates, verify ALL of these:
 
 ## Integration
 
-- **Agent**: doktor (primary executor of this methodology)
-- **Command**: /kdocs (triggers doktor with this skill)
+- **Agent**: doks (primary executor of this methodology)
+- **Command**: /kdocs (triggers doks with this skill)
 - **Also useful for**: any agent that needs to update documentation as a side effect
 
 ## no_context Application

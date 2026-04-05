@@ -1,11 +1,11 @@
 ---
 description: Analyze and optimize code performance — O(n^2) loops, slow queries, memory patterns, hook latency
-agent: kronos
+agent: arkonte
 skills: [context-budget]
 ---
 
 ## Purpose
-Invoke kronos agent to analyze code for performance issues and suggest optimizations. Covers Node.js, TypeScript, React, database queries, and hook latency.
+Invoke arkonte agent to analyze code for performance issues and suggest optimizations. Covers Node.js, TypeScript, React, database queries, and hook latency.
 
 ## Arguments
 - (none) — analyze recently modified files
@@ -13,7 +13,7 @@ Invoke kronos agent to analyze code for performance issues and suggest optimizat
 - `hooks` — analyze hook latency against budgets (observe: 50ms, no-context-guard: 100ms, others: 500ms)
 
 ## Steps
-1. Invoke **kronos agent** (sonnet) on specified target
+1. Invoke **arkonte agent** (sonnet) on specified target
 2. Agent profiles and scans for:
    - O(n^2) or worse algorithmic complexity
    - Slow or unindexed database queries

@@ -21,8 +21,8 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Routing
 - MUST use opus model for: arkitect, konstruct, security-reviewer, database-reviewer, alchemik
-- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, klean, kronos, python-reviewer, almanak, kartograf
-- MUST use opus model for doktor (documentation requires critical analysis across 4 layers)
+- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf
+- MUST use opus model for doks (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
 ## Agent Catalog (15)
@@ -32,16 +32,16 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | arkitect | opus | /kplan with architecture signals | /kplan | architecture-decision-records |
 | konstruct | opus | /kplan always | /kplan | architecture-decision-records |
 | kody | sonnet | /checkpoint, /kreview | /checkpoint, /kreview | coding-standards, receiving-code-review |
-| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /checkpoint, /kreview | coding-standards |
+| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /checkpoint, /kreview | coding-standards, frontend-patterns |
 | database-reviewer | opus | Auto on SQL/schema/migration/Supabase | /checkpoint | database-migrations, postgres-patterns |
 | security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /checkpoint | safety-guard |
 | feniks | sonnet | /ktest command | /ktest | tdd-workflow, python-testing |
 | mekanik | sonnet | Auto on TS compilation/Vitest failures | /kfix | systematic-debugging |
-| klean | sonnet | /kfix clean only | /kfix | coding-standards |
-| kronos | sonnet | Auto on O(n^2)/slow queries/memory | /kperf | context-budget |
+| kurator | sonnet | /kfix clean only | /kfix | coding-standards |
+| arkonte | sonnet | Auto on O(n^2)/slow queries/memory | /kperf | context-budget |
 | python-reviewer | sonnet | Auto on .py edits | /checkpoint, /kreview | python-patterns, python-testing |
 | almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns, deep-research |
-| doktor | opus | /kdocs, after feature/structural commits | /kdocs | docs-sync |
+| doks | opus | /kdocs, after feature/structural commits | /kdocs | docs-sync |
 | kartograf | sonnet | /ktest e2e only (expensive) | /ktest | e2e-testing |
 | alchemik | opus | /evolve only | /evolve | search-first |
 
@@ -51,7 +51,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - Editing .py files → python-reviewer
 - Editing SQL/schema/migration/Supabase client → database-reviewer
 - TypeScript compilation or Vitest fails → mekanik
-- Performance concerns (O(n^2), slow queries, memory patterns) → kronos
+- Performance concerns (O(n^2), slow queries, memory patterns) → arkonte
 - /kplan with architecture signals → arkitect before konstruct
 - Encountering unfamiliar external API or library → almanak (via /docs)
 
@@ -62,12 +62,12 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - MUST invoke arkitect before konstruct when /kplan task contains architecture signals
 - MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification
 - MUST invoke mekanik when TypeScript compilation or Vitest tests fail (skip for obvious typos)
-- MUST invoke doktor after commits that add/remove agents, skills, or commands
+- MUST invoke doks after commits that add/remove agents, skills, or commands
 - MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation
 - NEVER invoke arkitect for routine bug fixes or small features
 - NEVER invoke alchemik without explicit /evolve command
 - NEVER invoke kartograf without explicit /ktest e2e command (tests are expensive)
-- NEVER invoke klean without explicit /kfix clean command
+- NEVER invoke kurator without explicit /kfix clean command
 
 ## Parallel Execution
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)

@@ -35,11 +35,11 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | security-reviewer | opus |
 | feniks | sonnet |
 | mekanik | sonnet |
-| klean | sonnet |
-| kronos | sonnet |
+| kurator | sonnet |
+| arkonte | sonnet |
 | python-reviewer | sonnet |
 | almanak | sonnet |
-| doktor | opus |
+| doks | opus |
 | kartograf | sonnet |
 | alchemik | opus |
 
@@ -88,4 +88,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v0.3.4 — Skill adoption (260 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])
+v0.3.4 — Skill adoption + agent updates (260 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])

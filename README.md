@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`260 tests` | `20 hooks` | `15 agents` | `20 skills` | `14 commands` | `19 rules`
+`260 tests` | `20 hooks` | `15 agents` | `25 skills` | `14 commands` | `19 rules`
 
 ## Mantra
 
@@ -13,7 +13,7 @@
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/checkpoint` |
 | **Verify** | Tests first, code review, quality gates | `/ktest`, `/checkpoint`, `/kreview` |
-| **Specialize** | Domain agents, curated skill catalog | 15 agents, 20 skills, `/kplan` |
+| **Specialize** | Domain agents, curated skill catalog | 15 agents, 25 skills, `/kplan` |
 | **Evolve** | Learn from sessions, promote patterns to skills | `/instinct learn`, `/evolve`, `/instinct promote` |
 
 ## Quick Start
@@ -88,7 +88,7 @@ On session end: Stop hooks persist to SQLite
 │  └─────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 15 Agents│  │ 20 Skills│  │ 19 Rules │             │
+│  │ 15 Agents│  │ 25 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -118,9 +118,9 @@ On session end: Stop hooks persist to SQLite
 | **arkitect** | System design, architecture decisions. Produces ADRs. | Never | `/kplan` (architectural tasks) | ADR markdown |
 | **konstruct** | Breaks down complex tasks into numbered steps with verification. | Never | `/kplan` (multi-file tasks) | Phased plan S/M/L |
 | **database-reviewer** | Reviews SQL, schemas, migrations, Supabase code. Validates RLS, pgvector, sql.js. | On SQL/schema/Supabase edits | -- | Schema/Queries review |
-| **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/checkpoint` | Severity report |
+| **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Runs security scans via Bash. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/checkpoint` | Severity report |
 | **alchemik** | Analyzes hook latency, instinct quality, skill gaps, cost trends. Never auto-applies. | Never | `/evolve` | PROMOTE/CREATE/OPTIMIZE report |
-| **doktor** | Updates CLAUDE.md, README, component counts. Verifies against filesystem. | Suggested after structural commits | `/kdocs` | Updated file list |
+| **doks** | Syncs all 4 documentation layers with code changes. Behavior-over-counts. | Suggested after structural commits | `/kdocs` | Updated file list |
 
 ### Sonnet Agents (9) — implementation and review
 
@@ -128,17 +128,17 @@ On session end: Stop hooks persist to SQLite
 |-------|---------|---------------------|--------|--------|
 | **kody** | Code quality, strict mode, type safety, Node16 resolution. Severity BLOCK/WARN/NOTE. | On `.ts`/`.tsx` edits, `/checkpoint` | `/kreview`, `/checkpoint` | Review markdown |
 | **typescript-reviewer** | TypeScript/JavaScript type safety, async correctness, Node/web security. | On `.ts`/`.tsx`/`.js`/`.jsx` edits | `/kreview`, `/checkpoint` | TypeScript review |
-| **feniks** | Guides red-green-refactor cycle. Generates test templates before implementation. | Never | `/ktest` | TypeScript test template |
+| **feniks** | Guides red-green-refactor cycle. Writes test files and implementation. TS + Python. | Never | `/ktest` | Test file + implementation |
 | **mekanik** | Diagnoses TS2xxx, module resolution, Vitest, sql.js WASM errors. Minimal fix. | On TypeScript/Vitest failures | `/kfix` | Error report |
-| **klean** | Identifies dead code, duplication, consolidation opportunities. | Never | `/kfix clean` | Refactoring summary |
-| **kronos** | Analyzes O(n^2) loops, slow queries, memory-intensive patterns. | On performance pattern detection | `/kperf` | Performance report |
+| **kurator** | Identifies dead code, duplication, consolidation. Runs cleanup via Bash. | Never | `/kfix clean` | Refactoring summary |
+| **arkonte** | Analyzes O(n^2) loops, slow queries, memory, Web Vitals, Lighthouse. | On performance pattern detection | `/kperf` | Performance report |
 | **python-reviewer** | Reviews Python code: ML, embeddings, backends. | On `.py` edits | `/kreview`, `/checkpoint` | Python review |
 | **almanak** | Searches documentation via Context7 MCP. Fallback to WebSearch. Never invents APIs. | On unfamiliar API references | `/docs` | Signature + example + source |
-| **kartograf** | Runs end-to-end tests: session lifecycle, instinct lifecycle, hook chains. Expensive. | Never | `/ktest e2e` | 5 test scenarios |
+| **kartograf** | Writes and runs E2E tests: Vitest (harness), Playwright (web), Agent Browser (Stagehand). | Never | `/ktest e2e` | E2E test suite |
 
 ---
 
-## Skills (20)
+## Skills (25)
 
 ### TypeScript / Code Quality
 
@@ -147,6 +147,12 @@ On session end: Stop hooks persist to SQLite
 | **coding-standards** | Naming (camelCase/PascalCase/kebab-case), `node:` prefix imports, .js extensions |
 | **api-design** | REST/RPC patterns with Zod schemas, error handling, versioning |
 | **claude-api** | Correct Anthropic SDK usage: Messages, Tool Use, streaming |
+
+### Frontend
+
+| Skill | What It Teaches |
+|-------|----------------|
+| **frontend-patterns** | React/React Native: component composition, compound components, custom hooks, Context+Reducer state, performance (memo/lazy/Suspense), accessibility |
 
 ### Database / Supabase
 
@@ -164,12 +170,21 @@ On session end: Stop hooks persist to SQLite
 | **verification-loop** | 6-step pipeline: build, typecheck, test, lint, format, review |
 | **eval-harness** | Evaluation framework: EvalCase interface, scoring rubric 1-5, criteria |
 
+### Python
+
+| Skill | What It Teaches |
+|-------|----------------|
+| **python-patterns** | Advanced Python: type hints (3.9+, Protocol, TypeVar), error handling, context managers, dataclasses, generators, concurrency |
+| **python-testing** | pytest: fixtures (scopes, autouse, parameterized), async testing, advanced mocking (autospec, PropertyMock), coverage |
+
 ### Research / Documentation
 
 | Skill | What It Teaches |
 |-------|----------------|
 | **search-first** | Search existing codebase before writing new code |
 | **architecture-decision-records** | ADR templates, lifecycle, Decision/Context/Options format |
+| **deep-research** | Multi-source research methodology: plan sub-questions, search (WebSearch/Context7), deep-read key sources, synthesize cited reports |
+| **docs-sync** | 4-layer documentation synchronization: behavior-over-counts, staleness detection, verification checklists |
 
 ### Harness Meta-Skills
 
@@ -509,7 +524,7 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 | MCP | Type | What It Enables | Used By |
 |-----|------|----------------|---------|
-| **GitHub** | HTTP | Search code, create PRs/issues, read files, commits, reviews | kody, doktor |
+| **GitHub** | HTTP | Search code, create PRs/issues, read files, commits, reviews | kody, doks |
 | **Context7** | Command (`npx -y @upstash/context7-mcp`) | Live documentation for any library | almanak agent, `/docs` |
 | **Supabase** | HTTP | DB operations, auth, storage, edge functions, migrations, SQL | database-reviewer, arkitect |
 
@@ -591,14 +606,14 @@ Central configuration file. Controls:
 | Audit security | `/checkpoint` -> security-reviewer agent (opus) |
 | Check instincts | `/instinct status` |
 | Export instincts | `/instinct export` |
-| Refactor code | `/kfix clean` -> klean agent (sonnet) |
+| Refactor code | `/kfix clean` -> kurator agent (sonnet) |
 
 ### Key Numbers
 
 | Metric | Value |
 |--------|-------|
 | Agents | 15 (6 opus, 9 sonnet) |
-| Skills | 20 |
+| Skills | 25 |
 | Commands | 14 |
 | Hooks | 20 |
 | Rules | 19 (9 common + 5 TypeScript + 5 Python) |
@@ -652,4 +667,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3.3 — Python stack (260 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands, 19 rules)
+v0.3.4 — Skill adoption + agent updates (260 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules)
