@@ -113,6 +113,46 @@ import { openDb, saveToDisk } from './state-store.js';
 - Small files under 200 lines preferred — if a file grows past 200, look for extraction opportunities
 - Co-locate tests: `scripts/lib/foo.ts` -> `tests/lib/foo.test.ts`
 
+### Code Smells
+
+| Smell | Threshold | Fix |
+|-------|-----------|-----|
+| Long functions | > 50 lines | Extract helpers with descriptive names |
+| Deep nesting | > 3 levels | Use early returns to flatten |
+| Magic numbers | Any unlabeled literal | Use named constants |
+
+### JSDoc (for .js files)
+
+In `.js`/`.jsx` files where TypeScript types are not available, use JSDoc to convey intent:
+
+```javascript
+/** @param {{ firstName: string, lastName: string }} user @returns {string} */
+export function formatUser(user) {
+  return `${user.firstName} ${user.lastName}`
+}
+```
+
+Keep JSDoc aligned with runtime behavior. Do not use JSDoc in `.ts` files -- TypeScript types are authoritative.
+
+### Testing (AAA Pattern)
+
+Structure tests as Arrange-Act-Assert for clarity:
+
+```typescript
+it('should return active instincts sorted by confidence', async () => {
+  // Arrange
+  await openDb(':memory:');
+  upsertInstinct({ id: 'a', confidence: 0.3 });
+  upsertInstinct({ id: 'b', confidence: 0.8 });
+
+  // Act
+  const result = getActiveInstincts('p');
+
+  // Assert
+  expect(result[0].confidence).toBe(0.8);
+});
+```
+
 ## Anti-Patterns
 
 | Anti-Pattern | Why It Fails | Fix |
@@ -138,5 +178,11 @@ import { openDb, saveToDisk } from './state-store.js';
 - Prefer early returns over nested conditionals
 - Prefer `const` over `let` — use `let` only when reassignment is truly needed
 
+## Gotchas
+- `.js` extension in imports is required for Node16 module resolution -- without it, TypeScript compiles fine but runtime fails with MODULE_NOT_FOUND
+- `import type` is not cosmetic -- it prevents circular dependency issues at runtime by ensuring the import is erased
+- snake_case to camelCase conversion happens ONLY in state-store.ts mapping functions -- do not convert anywhere else
+- console.log in production code triggers the console-log-warn hook. Use structured stderr JSON instead: `{ ts, level, msg }`
+
 ## no_context Application
-Coding standards are derived from the actual codebase patterns in types.ts, state-store.ts, and utils.ts — not from generic best practices. When in doubt, read the existing code in the module you are editing. The kody agent validates compliance, but understanding WHY a convention exists matters more than memorizing the rule.
+Coding standards are derived from the actual codebase patterns in types.ts, state-store.ts, and utils.ts -- not from generic best practices. When in doubt, read the existing code in the module you are editing. The kody agent validates compliance, but understanding WHY a convention exists matters more than memorizing the rule.

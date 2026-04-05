@@ -54,7 +54,9 @@
       "WebFetch(domain:elevenlabs.io)",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs",
-      "Bash([ ! -f \".claude/skills/$skill.md\" ])"
+      "Bash([ ! -f \".claude/skills/$skill.md\" ])",
+      "Read(//c/tmp/ecc/skills/**)",
+      "Read(//c/tmp/ecc/.claude/skills/**)"
     ]
   },
   "prefersReducedMotion": true

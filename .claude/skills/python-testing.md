@@ -200,6 +200,80 @@ def test_exception_with_details():
     assert "error" in str(exc_info.value)
 ```
 
+## Markers and Test Selection
+
+```python
+import pytest
+
+@pytest.mark.unit
+def test_fast_function():
+    assert calculate(1, 2) == 3
+
+@pytest.mark.integration
+def test_database_connection():
+    db = connect_to_test_db()
+    assert db.is_connected()
+
+@pytest.mark.slow
+def test_embedding_generation():
+    result = generate_embedding("long text...")
+    assert len(result) == 1536
+```
+
+Configure in `pytest.ini` or `pyproject.toml`:
+```ini
+[pytest]
+markers =
+    unit: Fast, isolated tests
+    integration: Tests requiring external services
+    slow: Tests that take > 1s
+```
+
+Run selectively:
+```bash
+pytest -m unit                    # Only unit tests
+pytest -m "not slow"             # Skip slow tests
+pytest -k "test_embedding"      # Match by name pattern
+pytest --co -q                   # List test names without running
+```
+
+## Test Organization
+
+```
+tests/
++-- conftest.py          # Shared fixtures
++-- unit/
+|   +-- test_utils.py
+|   +-- test_parser.py
++-- integration/
+|   +-- test_database.py
+|   +-- test_api.py
++-- e2e/
+    +-- test_pipeline.py
+```
+
+## Parametrize
+
+```python
+@pytest.mark.parametrize("input,expected", [
+    ("hello", "HELLO"),
+    ("world", "WORLD"),
+    ("", ""),
+    ("123", "123"),
+])
+def test_uppercase(input, expected):
+    assert input.upper() == expected
+
+# Multiple parameters with IDs
+@pytest.mark.parametrize("a,b,expected", [
+    pytest.param(1, 2, 3, id="positive"),
+    pytest.param(-1, 1, 0, id="mixed"),
+    pytest.param(0, 0, 0, id="zeros"),
+])
+def test_add(a, b, expected):
+    assert add(a, b) == expected
+```
+
 ## DO / DON'T
 
 | DO | DON'T |
@@ -232,6 +306,27 @@ def test_exception_with_details():
 - **Agent**: python-reviewer (review), feniks (TDD execution on Python projects)
 - **Rules**: `rules/python/testing.md` (basics: markers, parametrize, coverage)
 - **Companion skill**: `python-patterns.md` for coding patterns
+
+## CLI Quick Reference
+
+```bash
+pytest                           # Run all tests
+pytest tests/unit/               # Run directory
+pytest -x                        # Stop on first failure
+pytest -s                        # Show print output
+pytest -v                        # Verbose output
+pytest --tb=short                # Short tracebacks
+pytest --cov=src --cov-report=term-missing  # Coverage
+pytest --durations=10            # Show 10 slowest tests
+pytest -p no:warnings            # Suppress warnings
+```
+
+## Gotchas
+- `pytest-asyncio` requires `@pytest.mark.asyncio` decorator -- without it, async tests silently pass without running
+- Mutable default arguments in fixtures (`def fix(data=[])`) are shared across tests -- use `None` default and create inside
+- `tmp_path` is automatically cleaned up by pytest -- no manual cleanup needed
+- Use `conftest.py` for shared fixtures -- never duplicate across test files
+- `assert_awaited_once()` (not `assert_called_once()`) for verifying async mock calls
 
 ## no_context Application
 

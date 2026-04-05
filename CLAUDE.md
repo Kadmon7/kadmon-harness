@@ -65,6 +65,14 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - **Documentation**: docs-sync
 - **Other**: orchestration-patterns, systematic-debugging, receiving-code-review, safety-guard
 
+## Plugins (4)
+| Plugin | Invocation | Use |
+|--------|-----------|-----|
+| skill-creator | `skill-creator:skill-creator` | REQUIRED for all skill work (create/edit/evaluate). Handles interview, drafting, test cases, eval loop, description optimization |
+| context7 | Via almanak agent (`/docs`) | Live library docs. Auto-invokes on unfamiliar APIs |
+| frontend-design | `frontend-design:frontend-design` | Production-grade frontend interfaces (KAIRON, web apps) |
+| ralph-loop | `ralph-loop:ralph-loop` | Recurring execution loops. Cancel: `ralph-loop:cancel-ralph` |
+
 ## Hooks
 20 registered hooks + 4 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
 

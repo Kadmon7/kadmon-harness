@@ -511,12 +511,12 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 ## Plugins (4 active)
 
-| Plugin | Type | Value | What It Adds |
-|--------|------|-------|-------------|
-| **context7** | MCP Server | CRITICAL | Live library documentation via `resolve-library-id` + `query-docs` |
-| **skill-creator** | Skill Plugin | CRITICAL | Create, modify, evaluate, and benchmark skills |
-| **frontend-design** | Skill Plugin | LOW | Production-grade frontend interfaces with distinctive design |
-| **ralph-loop** | Skill Plugin | LOW | Recurring execution loop (ralph-loop, cancel-ralph, help) |
+| Plugin | Type | Invocation | What It Adds |
+|--------|------|-----------|-------------|
+| **skill-creator** | Skill Plugin | `skill: "skill-creator:skill-creator"` | REQUIRED for all skill work — create, edit, evaluate, benchmark. Handles interview, drafting, test cases, eval loop, description optimization. Never create skill files manually. |
+| **context7** | MCP Server | Via almanak agent (`/docs`) | Live library documentation via `resolve-library-id` + `query-docs`. Auto-invokes on unfamiliar APIs. |
+| **frontend-design** | Skill Plugin | `skill: "frontend-design:frontend-design"` | Production-grade frontend interfaces with distinctive design (KAIRON, web apps) |
+| **ralph-loop** | Skill Plugin | `skill: "ralph-loop:ralph-loop"` | Recurring execution loop. Cancel: `skill: "ralph-loop:cancel-ralph"`. Help: `skill: "ralph-loop:help"` |
 
 ---
 

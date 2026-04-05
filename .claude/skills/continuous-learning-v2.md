@@ -25,6 +25,10 @@ The instinct-based learning system. Observes sessions, creates atomic instincts 
 
 The session-end-all hook (pattern evaluation phase) is the brain of the system. It reads observation logs, matches them against pattern definitions (sequence patterns, cluster patterns, command sequences), and creates or reinforces instincts. Without it, no learning happens — and it only fires on clean session termination.
 
+### Why Hooks, Not Skills?
+
+Skills fire probabilistically (~50-80% based on Claude's judgment). Hooks fire 100% of the time, deterministically. This means every tool call is observed, no patterns are missed, and learning is comprehensive. This is why v2 moved observation from skills (v1) to hooks.
+
 ### Instinct Lifecycle
 ```
 Create (confidence: 0.3, occurrences: 1)
@@ -45,12 +49,39 @@ Contradicted (status: contradicted)
 Archived (status: archived)
 ```
 
-### Scoping
-- Instincts are **project-scoped** by default (projectHash derived from git remote)
-- /instinct promote can elevate a project instinct to **global scope**
-- Global instincts apply across all projects (harness, ToratNetz, KAIRON, future projects)
-- Keep instincts project-scoped when they reflect project-specific conventions (e.g., "use sql.js for Kadmon Harness")
-- Promote to global when the pattern is universally good practice (e.g., "read before edit", "verify before commit")
+### Confidence Scoring
+
+| Score | Meaning | Behavior |
+|-------|---------|----------|
+| 0.3 | Tentative | Suggested but not enforced |
+| 0.5 | Moderate | Applied when relevant |
+| 0.7 | Strong | Promotable, auto-approved for application |
+| 0.9 | Near-certain | Core behavior |
+
+**Confidence increases** when:
+- Pattern is repeatedly observed across sessions
+- User doesn't correct the suggested behavior
+- Similar instincts from other sources agree
+
+**Confidence decreases** when:
+- User explicitly corrects the behavior
+- Pattern isn't observed for extended periods
+- Contradicting evidence appears
+
+### Scope Decision Guide
+
+Instincts are **project-scoped** by default (projectHash derived from git remote). Promote to global when the pattern is universally good practice.
+
+| Pattern Type | Scope | Examples |
+|-------------|-------|---------|
+| Language/framework conventions | **project** | "Use React hooks", "Follow Django patterns" |
+| File structure preferences | **project** | "Tests in tests/", "Components in src/components/" |
+| Code style choices | **project** | "Use functional style", "Prefer dataclasses" |
+| Error handling strategies | **project** | "Use Result type for errors" |
+| Security practices | **global** | "Validate user input", "Sanitize SQL" |
+| General best practices | **global** | "Write tests first", "Always handle errors" |
+| Tool workflow preferences | **global** | "Grep before Edit", "Read before Write" |
+| Git practices | **global** | "Conventional commits", "Small focused commits" |
 
 ## Promotion Workflow
 When an instinct reaches promotable status (confidence >= 0.7, occurrences >= 3):
@@ -82,7 +113,7 @@ Session 1: instinct created (0.3)
 Session 2: same pattern observed -> reinforced (0.4)
 Session 3: same pattern observed -> reinforced (0.5)
 Session 4: same pattern observed -> reinforced (0.6)
-Session 5: same pattern observed -> reinforced (0.7) — now promotable
+Session 5: same pattern observed -> reinforced (0.7) -- now promotable
 ```
 
 ### Example 3: Contradiction
@@ -97,26 +128,39 @@ After 7 days: /instinct prune archives it
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| Pattern not detected | No matching definition in pattern-definitions.json | Check the 13 patterns in `.claude/hooks/pattern-definitions.json`. If your pattern type is not there, add a new definition. |
-| Confidence dropped | Contradictions observed | Run `/instinct eval` to see contradiction counts. If the pattern is genuinely wrong, let it die. If it was a one-off, it will recover. |
-| Instinct not created after session | Stop hooks did not fire | Stop hooks only fire on clean termination. Crashes, terminal close, and /kompact do NOT trigger them. End sessions cleanly. |
-| session-end-all (pattern evaluation) throws errors | dist/ is stale | Run `npm run build` — lifecycle hooks import from compiled dist/. |
-| Instinct stuck at low confidence | Pattern occurs rarely | The pattern needs to appear in multiple sessions. One session with 10 occurrences is still just 1 reinforcement. |
+| Pattern not detected | No matching definition in pattern-definitions.json | Check the 13 patterns. If your pattern type is not there, add a new definition. |
+| Confidence dropped | Contradictions observed | Run `/instinct eval` to see contradiction counts. If genuinely wrong, let it die. |
+| Instinct not created after session | Stop hooks did not fire | Stop hooks only fire on clean termination. Crashes, terminal close, and /kompact do NOT trigger them. |
+| session-end-all throws errors | dist/ is stale | Run `npm run build` -- lifecycle hooks import from compiled dist/. |
+| Instinct stuck at low confidence | Pattern occurs rarely | Needs to appear in multiple sessions. One session with 10 occurrences is still just 1 reinforcement. |
+
+## Privacy
+- Observations stay **local** on your machine
+- Project-scoped instincts are isolated per project
+- Only **instincts** (patterns) can be exported -- not raw observations
+- No actual code or conversation content is shared
+- You control what gets exported and promoted
+
+## Gotchas
+- One session with 10 occurrences of a pattern is still just 1 reinforcement. Confidence grows across sessions, not within a single session.
+- Stop hooks only fire on clean termination. If you close the terminal or Claude Code crashes, session-end-all never runs and patterns are lost.
+- `npm run build` must be run before lifecycle hooks work -- they import from `dist/`, not `scripts/lib/` directly.
+- Pattern-definitions.json has 13 definitions. If you expect a pattern to be detected but it isn't, the definition might not cover that specific sequence type.
 
 ## Integration
-- **/instinct** command — 6 subcommands: status (default), eval, learn, promote, prune, export
-- **session-end-all** hook (pattern evaluation phase) — fires at Stop, analyzes observations against pattern-definitions.json
-- **observe-pre / observe-post** hooks — log tool calls, results, errors, and task metadata to JSONL for session-end-all to analyze
-- **pattern-definitions.json** — 13 pattern definitions (sequence, cluster, command_sequence types) that session-end-all (pattern evaluation phase) matches against
-- **/evolve** command — alchemik agent also analyzes instinct quality, contradiction rates, and promotion candidates as part of its holistic harness review
-- **session-start** hook — loads 3 recent sessions with history trajectory, pending work carry-forward, and active instincts at session start
-- **skill-creator:skill-creator** plugin — required for /instinct promote (handles skill drafting and validation)
+- **/instinct** command -- 6 subcommands: status (default), eval, learn, promote, prune, export
+- **session-end-all** hook (pattern evaluation phase) -- fires at Stop, analyzes observations against pattern-definitions.json
+- **observe-pre / observe-post** hooks -- log tool calls and results to JSONL
+- **pattern-definitions.json** -- 13 pattern definitions (sequence, cluster, command_sequence types)
+- **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates
+- **session-start** hook -- loads 3 recent sessions with history trajectory and active instincts
+- **skill-creator:skill-creator** plugin -- required for /instinct promote
 
 ## Rules
-- Observations are ephemeral JSONL — summarized at session end, not kept forever
+- Observations are ephemeral JSONL -- summarized at session end, not kept forever
 - Instincts persist in SQLite across sessions
 - Promotion requires user approval (/instinct promote is manual, never automatic)
-- Contradictions are tracked — instincts can and should die when they are wrong
+- Contradictions are tracked -- instincts can and should die when they are wrong
 - All skill creation from instincts MUST use the skill-creator:skill-creator plugin
 - End sessions cleanly to ensure session-end-all fires and patterns are captured
 

@@ -123,6 +123,53 @@ Response meta: { total: 85 }
 
 Use cursor-based when rows are frequently inserted or deleted (sessions, observations). Use offset-based when the dataset is stable and the client needs random page access (instincts, cost reports).
 
+## Rate Limiting
+
+Protect endpoints from abuse and cascade failures:
+
+```typescript
+// Response headers
+res.setHeader('X-RateLimit-Limit', '100');
+res.setHeader('X-RateLimit-Remaining', String(remaining));
+res.setHeader('X-RateLimit-Reset', String(resetTimestamp));
+
+// Return 429 when exceeded
+if (remaining <= 0) {
+  return { status: 429, body: {
+    data: null,
+    error: { code: 'RATE_LIMITED', message: 'Too many requests. Retry after reset.' },
+  }};
+}
+```
+
+| Tier | Limit | Use Case |
+|------|-------|----------|
+| Anonymous | 10 req/min | Public endpoints |
+| Authenticated | 100 req/min | Standard API users |
+| Premium | 1000 req/min | Paid tier |
+
+## Filtering, Sorting, and Search
+
+List endpoints should support filtering and sorting:
+
+```
+GET /instincts?status=active&confidence[gte]=0.7&sort=-confidence&limit=20
+```
+
+- Bracket notation for operators: `[gte]`, `[lte]`, `[ne]`
+- Comma-separated for multi-value: `status=active,promoted`
+- Prefix `-` for descending sort: `sort=-confidence`
+- Full-text search via `q=` parameter: `q=testing`
+
+## Deprecation Strategy
+
+When retiring endpoints, follow a 6-month sunset:
+
+1. Add `Deprecation: true` and `Sunset: <date>` headers to the old endpoint
+2. Log usage of deprecated endpoints to track migration progress
+3. Return `410 Gone` after the sunset date
+4. Never remove an endpoint without the deprecation period
+
 ## Anti-Patterns
 
 | Anti-Pattern | Why It Fails | Do This Instead |
@@ -154,5 +201,12 @@ Use cursor-based when rows are frequently inserted or deleted (sessions, observa
 - Select only needed columns — never SELECT * in API-facing queries
 - Use `z.infer<typeof Schema>` to derive types from Zod schemas (single source of truth)
 
+## Gotchas
+- 201 for creation, not 200 -- it tells the client something was created, not just acknowledged
+- 422 for Zod validation failures, not 400 -- 400 is too vague for structured validation errors
+- Every list endpoint needs pagination from day one. It works with 10 rows and crashes at 10,000
+- Never return internal error details (stack traces, SQL errors) in API responses -- log details server-side
+- Rate limiting headers should be present on every response, not just when limits are exceeded
+
 ## no_context Application
-API design must reference actual data types from types.ts — never invent request/response shapes. Before designing an endpoint, read the existing interfaces, state-store.ts query functions, and any existing endpoints to ensure consistency with established patterns.
+API design must reference actual data types from types.ts -- never invent request/response shapes. Before designing an endpoint, read the existing interfaces, state-store.ts query functions, and any existing endpoints to ensure consistency with established patterns.

@@ -9,7 +9,7 @@ alwaysApply: true
 - ALWAYS run /checkpoint (includes full verification + review gate)
 - NEVER commit failing tests (red tests)
 - ALWAYS write test before implementation (/ktest workflow)
-- ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills
+- ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills. Invoke: `skill: "skill-creator:skill-creator"`. Never create skill files manually — the plugin handles structure, frontmatter, description optimization, and eval setup.
 
 ## Command Reference (14)
 

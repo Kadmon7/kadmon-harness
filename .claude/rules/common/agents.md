@@ -15,7 +15,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Skill Loading
 - MUST read skill files listed in command frontmatter when executing the command
-- MUST use skill-creator:skill-creator plugin for ALL skill work (create, edit, optimize, evaluate)
+- MUST use skill-creator:skill-creator plugin for ALL skill work (create, edit, optimize, evaluate). Invoke via Skill tool: `skill: "skill-creator:skill-creator"`. The plugin handles: interview, drafting, test cases, evaluation loop, and description optimization. Never create skill files manually.
 - Skills are domain knowledge — agents are the executors that USE that knowledge
 - When auto-invoking an agent, also load the skills associated with its command (see catalog below)
 
@@ -63,7 +63,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification
 - MUST invoke mekanik when TypeScript compilation or Vitest tests fail (skip for obvious typos)
 - MUST invoke doks after commits that add/remove agents, skills, or commands
-- MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation
+- MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation. Invoke: `skill: "skill-creator:skill-creator"`. Never create skill files manually — the plugin handles structure, frontmatter, and description optimization.
 - NEVER invoke arkitect for routine bug fixes or small features
 - NEVER invoke alchemik without explicit /evolve command
 - NEVER invoke kartograf without explicit /ktest e2e command (tests are expensive)
