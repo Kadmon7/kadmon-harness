@@ -113,28 +113,28 @@ On session end: Stop hooks persist to SQLite
 
 ### Opus Agents (6) — complex decisions
 
-| Agent | Purpose | Auto-invokes when... | Manual | Output |
-|-------|---------|---------------------|--------|--------|
-| **arkitect** | System design, architecture decisions. Produces ADRs. | Never | `/kplan` (architectural tasks) | ADR markdown |
-| **konstruct** | Breaks down complex tasks into numbered steps with verification. | Never | `/kplan` (multi-file tasks) | Phased plan S/M/L |
-| **database-reviewer** | Reviews SQL, schemas, migrations, Supabase code. Validates RLS, pgvector, sql.js. | On SQL/schema/Supabase edits | -- | Schema/Queries review |
-| **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Runs security scans via Bash. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/checkpoint` | Severity report |
-| **alchemik** | Analyzes hook latency, instinct quality, skill gaps, cost trends. Never auto-applies. | Never | `/evolve` | PROMOTE/CREATE/OPTIMIZE report |
-| **doks** | Syncs all 4 documentation layers with code changes. Behavior-over-counts. | Suggested after structural commits | `/kdocs` | Updated file list |
+| Agent | Role | Purpose | Auto-invokes when... | Manual |
+|-------|------|---------|---------------------|--------|
+| **arkitect** | Architect | System design, architecture decisions. Produces ADRs. | Never | `/kplan` |
+| **konstruct** | Planner | Breaks down complex tasks into ordered, verifiable steps. | Never | `/kplan` |
+| **database-reviewer** | DB Specialist | Reviews SQL, schemas, migrations, Supabase, sql.js. | On SQL/schema edits | `/checkpoint` |
+| **security-reviewer** | Security Specialist | Detects injection, XSS, path traversal, secrets. | On auth/keys/exec/SQL | `/checkpoint` |
+| **alchemik** | Evolution Analyst | Analyzes hook latency, instinct quality, skill gaps. | Never | `/evolve` |
+| **doks** | Doc Sync | Syncs all 4 documentation layers. Behavior-over-counts. | After structural commits | `/kdocs` |
 
 ### Sonnet Agents (9) — implementation and review
 
-| Agent | Purpose | Auto-invokes when... | Manual | Output |
-|-------|---------|---------------------|--------|--------|
-| **kody** | Code quality, strict mode, type safety, Node16 resolution. Severity BLOCK/WARN/NOTE. | On `.ts`/`.tsx` edits, `/checkpoint` | `/kreview`, `/checkpoint` | Review markdown |
-| **typescript-reviewer** | TypeScript/JavaScript type safety, async correctness, Node/web security. | On `.ts`/`.tsx`/`.js`/`.jsx` edits | `/kreview`, `/checkpoint` | TypeScript review |
-| **feniks** | Guides red-green-refactor cycle. Writes test files and implementation. TS + Python. | Never | `/ktest` | Test file + implementation |
-| **mekanik** | Diagnoses TS2xxx, module resolution, Vitest, sql.js WASM errors. Minimal fix. | On TypeScript/Vitest failures | `/kfix` | Error report |
-| **kurator** | Identifies dead code, duplication, consolidation. Runs cleanup via Bash. | Never | `/kfix clean` | Refactoring summary |
-| **arkonte** | Analyzes O(n^2) loops, slow queries, memory, Web Vitals, Lighthouse. | On performance pattern detection | `/kperf` | Performance report |
-| **python-reviewer** | Reviews Python code: ML, embeddings, backends. | On `.py` edits | `/kreview`, `/checkpoint` | Python review |
-| **almanak** | Searches documentation via Context7 MCP. Fallback to WebSearch. Never invents APIs. | On unfamiliar API references | `/docs` | Signature + example + source |
-| **kartograf** | Writes and runs E2E tests: Vitest (harness), Playwright (web), Agent Browser (Stagehand). | Never | `/ktest e2e` | E2E test suite |
+| Agent | Role | Purpose | Auto-invokes when... | Manual |
+|-------|------|---------|---------------------|--------|
+| **kody** | Lead Reviewer | Code quality, strict mode, type safety, Node16 resolution. | On `.ts`/`.tsx` edits | `/kreview`, `/checkpoint` |
+| **typescript-reviewer** | TS Specialist | TypeScript/JavaScript type safety, async correctness. | On `.ts`/`.tsx`/`.js`/`.jsx` edits | `/kreview`, `/checkpoint` |
+| **feniks** | TDD Enforcer | Red-green-refactor cycle. Writes tests + implementation. TS + Python. | Never | `/ktest` |
+| **mekanik** | Build Fixer | Diagnoses TS2xxx, module resolution, Vitest, sql.js errors. | On TypeScript/Vitest failures | `/kfix` |
+| **kurator** | Refactoring | Identifies dead code, duplication, consolidation. | Never | `/kfix clean` |
+| **arkonte** | Performance | Analyzes O(n^2) loops, slow queries, memory patterns. | On performance patterns | `/kperf` |
+| **python-reviewer** | Python Specialist | Reviews Python: PEP 8, type hints, ML, security. | On `.py` edits | `/kreview`, `/checkpoint` |
+| **almanak** | Docs Lookup | Searches live documentation via Context7 MCP. | On unfamiliar APIs | `/docs` |
+| **kartograf** | E2E Testing | Writes and runs E2E tests: Vitest (harness), Playwright (web). | Never | `/ktest e2e` |
 
 ---
 
