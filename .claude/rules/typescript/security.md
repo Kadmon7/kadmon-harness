@@ -37,9 +37,9 @@ if (!apiKey) {
 - MUST use parameterized queries for all SQL operations
 
 ## Enforcement
-- security-reviewer agent auto-invoked for code touching auth, API keys, user input, exec/spawn, file paths, SQL queries
-- database-reviewer agent validates parameterized queries and data sanitization in SQL/Supabase code
+- spektr agent auto-invoked for code touching auth, API keys, user input, exec/spawn, file paths, SQL queries
+- orakle agent validates parameterized queries and data sanitization in SQL/Supabase code
 - config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)
 - permissions.deny in settings.json blocks Read access to .env, .env.*, and secrets/ files
 - safety-guard skill provides runtime security guardrails
-- security-reviewer agent provides structured security analysis
+- spektr agent provides structured security analysis

@@ -139,7 +139,7 @@ Use cursor-based when rows are frequently inserted or deleted (sessions, observa
 ## Integration
 - **kody agent** checks API patterns, response consistency, and Zod validation usage via /kreview and /checkpoint
 - **arkitect agent** designs API boundaries and service interfaces during /kplan for multi-component systems
-- **security-reviewer agent** auto-invokes for endpoints handling auth, user input, or API keys
+- **spektr agent** auto-invokes for endpoints handling auth, user input, or API keys
 - **types.ts** defines the TypeScript interfaces that API responses must reference — never invent ad-hoc shapes
 - **Zod schemas** serve double duty: runtime validation at the boundary and `z.infer<>` for static type inference
 

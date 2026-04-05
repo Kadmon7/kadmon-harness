@@ -117,8 +117,8 @@ On session end: Stop hooks persist to SQLite
 |-------|------|---------|---------------------|--------|
 | **arkitect** | Architect | System design, architecture decisions. Produces ADRs. | Never | `/kplan` |
 | **konstruct** | Planner | Breaks down complex tasks into ordered, verifiable steps. | Never | `/kplan` |
-| **database-reviewer** | DB Specialist | Reviews SQL, schemas, migrations, Supabase, sql.js. | On SQL/schema edits | `/checkpoint` |
-| **security-reviewer** | Security Specialist | Detects injection, XSS, path traversal, secrets. | On auth/keys/exec/SQL | `/checkpoint` |
+| **orakle** | DB Specialist | Reviews SQL, schemas, migrations, Supabase, sql.js. | On SQL/schema edits | `/checkpoint` |
+| **spektr** | Security Specialist | Detects injection, XSS, path traversal, secrets. | On auth/keys/exec/SQL | `/checkpoint` |
 | **alchemik** | Evolution Analyst | Analyzes hook latency, instinct quality, skill gaps. | Never | `/evolve` |
 | **doks** | Doc Sync | Syncs all 4 documentation layers. Behavior-over-counts. | After structural commits | `/kdocs` |
 
@@ -233,7 +233,7 @@ On session end: Stop hooks persist to SQLite
 | `/kfix` | Diagnose build errors + refactor cleanup | `/kfix` |
 | `/kreview` | Quick language-aware code review | `/kreview` |
 | `/kperf` | Performance analysis and optimization | `/kperf hooks` |
-| `/eval` | Evaluate agent/skill quality with structured tests | `/eval security-reviewer` |
+| `/eval` | Evaluate agent/skill quality with structured tests | `/eval spektr` |
 
 ### Specialize (1)
 
@@ -317,7 +317,7 @@ On session end: Stop hooks persist to SQLite
 | **hooks.md** | Hook catalog (20 entries), exit codes, latency budgets | Self-documenting |
 | **patterns.md** | Dependency injection, no global state, context in errors | no-context-guard |
 | **performance.md** | No files > 50KB, batch SQLite ops, lazy loading | cost-tracker |
-| **security.md** | No secrets in git, Zod for input, parameterized SQL | security-reviewer, config-protection |
+| **security.md** | No secrets in git, Zod for input, parameterized SQL | spektr, config-protection |
 | **testing.md** | 80%+ coverage, `:memory:` SQLite, Vitest, TDD | feniks, post-edit-typecheck |
 
 ### TypeScript Rules (5) — loaded on `.ts`/`.tsx` files
@@ -327,7 +327,7 @@ On session end: Stop hooks persist to SQLite
 | **coding-style.md** | Strict mode, .js extensions, `import type` | kody |
 | **hooks.md** | parseStdin(), lifecycle hooks from dist/, `npm run build` | post-edit-typecheck |
 | **patterns.md** | Result pattern, Zod schemas, `catch (e: unknown)` | kody |
-| **security.md** | Branded types, path.resolve(), parameterized queries | security-reviewer |
+| **security.md** | Branded types, path.resolve(), parameterized queries | spektr |
 | **testing.md** | vi.fn(), mock externals, close DB in afterEach | feniks |
 
 ### Python Rules (5) — loaded on `.py`/`.pyi` files
@@ -337,7 +337,7 @@ On session end: Stop hooks persist to SQLite
 | **coding-style.md** | PEP 8, naming, type annotations, black/ruff/isort | python-reviewer |
 | **hooks.md** | Python PostToolUse hooks (black/ruff, mypy/pyright) | python-reviewer |
 | **patterns.md** | Protocol, dataclasses, context managers, error handling | python-reviewer |
-| **security.md** | Secret management, subprocess safety, deserialization | python-reviewer, security-reviewer |
+| **security.md** | Secret management, subprocess safety, deserialization | python-reviewer, spektr |
 | **testing.md** | pytest, fixtures, parametrize, 80%+ coverage | python-reviewer, feniks |
 
 ---
@@ -526,7 +526,7 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 |-----|------|----------------|---------|
 | **GitHub** | HTTP | Search code, create PRs/issues, read files, commits, reviews | kody, doks |
 | **Context7** | Command (`npx -y @upstash/context7-mcp`) | Live documentation for any library | almanak agent, `/docs` |
-| **Supabase** | HTTP | DB operations, auth, storage, edge functions, migrations, SQL | database-reviewer, arkitect |
+| **Supabase** | HTTP | DB operations, auth, storage, edge functions, migrations, SQL | orakle, arkitect |
 
 Health monitored by `mcp-health-check` (PreToolUse) and `mcp-health-failure` (PostToolUseFailure).
 
@@ -603,7 +603,7 @@ Central configuration file. Controls:
 | Learn from session | `/instinct learn` |
 | Evolve the harness | `/evolve` -> alchemik agent (opus) |
 | Design UI | `/kplan` with design signals -> arkitect agent |
-| Audit security | `/checkpoint` -> security-reviewer agent (opus) |
+| Audit security | `/checkpoint` -> spektr agent (opus) |
 | Check instincts | `/instinct status` |
 | Export instincts | `/instinct export` |
 | Refactor code | `/kfix clean` -> kurator agent (sonnet) |

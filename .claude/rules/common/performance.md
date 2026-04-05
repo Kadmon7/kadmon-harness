@@ -28,4 +28,4 @@ alwaysApply: true
 - session-end-all hook tracks token usage per session (Stop event, via cost-tracker sub-module)
 - observe-pre and observe-post hooks enforce < 50ms latency budget
 - alchemik agent analyzes hook latency and cost trends via /evolve
-- database-reviewer agent validates sql.js query patterns when editing database code
+- orakle agent validates sql.js query patterns when editing database code

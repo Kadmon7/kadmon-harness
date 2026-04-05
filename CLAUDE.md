@@ -31,8 +31,8 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | konstruct | opus |
 | kody | sonnet |
 | typescript-reviewer | sonnet |
-| database-reviewer | opus |
-| security-reviewer | opus |
+| orakle | opus |
+| spektr | opus |
 | feniks | sonnet |
 | mekanik | sonnet |
 | kurator | sonnet |

@@ -1,5 +1,5 @@
 ---
-name: security-reviewer
+name: spektr
 description: Use PROACTIVELY when editing code that handles authentication, API keys, user input, exec/spawn, file paths, or SQL queries. Also runs as part of /checkpoint and /kreview. Severity: CRITICAL/HIGH/MEDIUM/LOW.
 model: opus
 tools: Read, Grep, Glob, Bash
@@ -120,7 +120,7 @@ When a CRITICAL vulnerability is found:
 
 ## Output Format
 ```markdown
-## Security Review: [scope] [security-reviewer]
+## Security Review: [scope] [spektr]
 
 ### CRITICAL
 - [file:line] [vulnerability]. Remediation: [fix]

@@ -1,6 +1,6 @@
 ---
 name: postgres-patterns
-description: PostgreSQL, Supabase, and pgvector best practices — indexes, RLS, upserts, vector search, JSONB. Use this skill whenever writing SQL queries, designing schemas, adding indexes, configuring Row Level Security, implementing similarity search with pgvector, or working on ToratNetz embeddings. Also use when the user mentions "query", "index", "RLS", "vector", "embedding", "Supabase", or "postgres". Covers the patterns that database-reviewer agent checks for.
+description: PostgreSQL, Supabase, and pgvector best practices — indexes, RLS, upserts, vector search, JSONB. Use this skill whenever writing SQL queries, designing schemas, adding indexes, configuring Row Level Security, implementing similarity search with pgvector, or working on ToratNetz embeddings. Also use when the user mentions "query", "index", "RLS", "vector", "embedding", "Supabase", or "postgres". Covers the patterns that orakle agent checks for.
 ---
 
 # PostgreSQL Patterns

@@ -119,7 +119,7 @@ npm run build
 | Architecture changes needed | arkitect agent |
 | New features required | konstruct agent |
 | Tests failing due to logic errors | feniks agent |
-| Security issues detected | security-reviewer agent |
+| Security issues detected | spektr agent |
 
 ## Output Format
 

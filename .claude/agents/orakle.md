@@ -1,5 +1,5 @@
 ---
-name: database-reviewer
+name: orakle
 description: Use PROACTIVELY when editing SQL queries, schema definitions, migration files, or Supabase/sql.js client code. No dedicated command — auto-invoked. Reviews indexes, RLS, and query performance.
 model: opus
 tools: Read, Grep, Glob
@@ -125,7 +125,7 @@ You are an expert PostgreSQL, Supabase, and SQLite specialist reviewing schemas,
 ## Output Format
 
 ```
-## Database Review: [file/migration] [database-reviewer]
+## Database Review: [file/migration] [orakle]
 
 ### Schema
 - SEVERITY: [issue description] -- [recommendation]

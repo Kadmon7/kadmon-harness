@@ -1,6 +1,6 @@
 ---
 description: Save progress — full verification + intelligent review + commit and push
-agent: kody, typescript-reviewer, python-reviewer, security-reviewer, database-reviewer
+agent: kody, typescript-reviewer, python-reviewer, spektr, orakle
 skills: [verification-loop, coding-standards, receiving-code-review, safety-guard]
 ---
 
@@ -23,8 +23,8 @@ All-in-one quality gate and commit. Runs mechanical checks, invokes language-awa
    - TypeScript (.ts/.tsx/.js/.jsx) present -> invoke **typescript-reviewer** (sonnet)
    - Python (.py) present -> invoke **python-reviewer** (sonnet)
    - Both present -> both in parallel
-   - **Always**: invoke **security-reviewer** (opus) in parallel
-   - **Always**: invoke **database-reviewer** (opus) in parallel
+   - **Always**: invoke **spektr** (opus) in parallel
+   - **Always**: invoke **orakle** (opus) in parallel
 4. **kody** (sonnet) consolidates all findings with BLOCK / WARN / NOTE severity
 
 ### Phase 3: Gate Decision
@@ -52,8 +52,8 @@ Lint:      PASS
 
 ## Phase 2: Review (3 reviewers)
 typescript-reviewer: 1 NOTE
-security-reviewer:   0 issues
-database-reviewer:   0 issues
+spektr:   0 issues
+orakle:   0 issues
 
 ## Phase 3: Gate
 0 BLOCK, 0 WARN, 1 NOTE — APPROVED

@@ -106,7 +106,7 @@ CREATE INDEX idx_instincts_tags ON instincts USING GIN (tags);
 | Skipping `npm run build` after schema changes | Lifecycle hooks import from dist/ and will use stale compiled code | Run build after every schema-related change |
 
 ## Integration
-- **database-reviewer agent** auto-invokes when editing SQL, schema, or Supabase client files and checks migration safety
+- **orakle agent** auto-invokes when editing SQL, schema, or Supabase client files and checks migration safety
 - **state-store.ts** is the primary consumer — all schema changes must be reflected in its CRUD functions and row-mapping functions (mapSessionRow, mapInstinctRow)
 - **types.ts** defines the TypeScript interfaces that must stay in sync with SQL columns (camelCase in TS, snake_case in SQL)
 - **post-edit-typecheck hook** catches type mismatches between interfaces and state-store after edits

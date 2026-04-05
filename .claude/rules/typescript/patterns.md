@@ -97,6 +97,6 @@ export function useDebounce<T>(value: T, delay: number): T {
 
 ## Enforcement
 - kody agent validates pattern compliance on .ts/.tsx edits (TypeScript specialist mode)
-- database-reviewer agent validates sql.js typing and Zod validation patterns when editing database code
+- orakle agent validates sql.js typing and Zod validation patterns when editing database code
 - kody agent checks error handling and immutability patterns via /kreview and /checkpoint
 - post-edit-typecheck hook catches type errors from pattern violations immediately

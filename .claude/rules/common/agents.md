@@ -20,7 +20,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - When auto-invoking an agent, also load the skills associated with its command (see catalog below)
 
 ## Routing
-- MUST use opus model for: arkitect, konstruct, security-reviewer, database-reviewer, alchemik
+- MUST use opus model for: arkitect, konstruct, spektr, orakle, alchemik
 - MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf
 - MUST use opus model for doks (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
@@ -33,8 +33,8 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | konstruct | opus | /kplan always | /kplan | architecture-decision-records |
 | kody | sonnet | /checkpoint, /kreview | /checkpoint, /kreview | coding-standards, receiving-code-review |
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /checkpoint, /kreview | coding-standards, frontend-patterns |
-| database-reviewer | opus | Auto on SQL/schema/migration/Supabase | /checkpoint | database-migrations, postgres-patterns |
-| security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /checkpoint | safety-guard |
+| orakle | opus | Auto on SQL/schema/migration/Supabase | /checkpoint | database-migrations, postgres-patterns |
+| spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /checkpoint | safety-guard |
 | feniks | sonnet | /ktest command | /ktest | tdd-workflow, python-testing |
 | mekanik | sonnet | Auto on TS compilation/Vitest failures | /kfix | systematic-debugging |
 | kurator | sonnet | /kfix clean only | /kfix | coding-standards |
@@ -46,10 +46,10 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | alchemik | opus | /evolve only | /evolve | search-first |
 
 ## Auto-Invoke (no prompt needed)
-- Code touches auth/keys/exec/file paths/SQL → security-reviewer
+- Code touches auth/keys/exec/file paths/SQL → spektr
 - Editing .ts/.tsx/.js/.jsx files → typescript-reviewer
 - Editing .py files → python-reviewer
-- Editing SQL/schema/migration/Supabase client → database-reviewer
+- Editing SQL/schema/migration/Supabase client → orakle
 - TypeScript compilation or Vitest fails → mekanik
 - Performance concerns (O(n^2), slow queries, memory patterns) → arkonte
 - /kplan with architecture signals → arkitect before konstruct

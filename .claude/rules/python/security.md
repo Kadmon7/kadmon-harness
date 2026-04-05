@@ -48,5 +48,5 @@ NEVER hardcode secrets in source code. MUST fail fast on missing required env va
 ## Enforcement
 
 - python-reviewer agent checks Security (CRITICAL) items on all .py edits
-- security-reviewer agent auto-invoked for code touching auth, API keys, user input, exec/spawn
+- spektr agent auto-invoked for code touching auth, API keys, user input, exec/spawn
 - bandit runs as part of python-reviewer diagnostic workflow

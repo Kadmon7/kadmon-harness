@@ -31,7 +31,7 @@ Read thoroughly, prioritize by severity, suggest fixes. Never implement during r
 - Grep — search for patterns across codebase
 - Glob — find related files
 - kody agent — structured review (includes TypeScript specialist mode for .ts/.tsx)
-- security-reviewer agent — for auth/crypto/input code
+- spektr agent — for auth/crypto/input code
 
 ## Output Format
 BLOCK items first, then WARN, then NOTE.
