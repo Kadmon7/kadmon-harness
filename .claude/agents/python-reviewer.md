@@ -32,6 +32,8 @@ ruff check .                             # Fast linting (PEP 8 + more)
 black --check .                          # Format verification
 bandit -r . -ll                          # Security scan (low+ severity)
 pytest --cov=. --cov-report=term-missing # Test coverage
+pip check                                # Verify installed package compatibility
+python -c "import <module>"             # Quick import smoke test
 ```
 
 ## Review Workflow
@@ -81,6 +83,16 @@ pytest --cov=. --cov-report=term-missing # Test coverage
 - Mixing sync/async incorrectly (running sync in async loop)
 - N+1 queries in loops -- batch query or use `asyncio.gather`
 
+### Dependencies & Imports (HIGH)
+- Missing or incorrect entries in requirements.txt / pyproject.toml -- all runtime imports MUST be declared
+- Version pinning: production deps MUST pin exact versions or compatible ranges (`package==1.2.3` or `package~=1.2`)
+- Import organization: stdlib, third-party, local (isort order) with blank line separators
+- Circular imports -- restructure with lazy imports or extract shared module
+- Conditional imports missing fallback: `try: import X except ImportError: X = None` with runtime guard
+- `from __future__ import annotations` for forward references (Python 3.7+)
+- Virtual environment isolation -- NEVER install packages globally for project deps
+- ModuleNotFoundError / ImportError -- verify package is installed and import path is correct
+
 ### Best Practices (MEDIUM)
 - PEP 8: import order (stdlib, third-party, local), naming, spacing
 - Missing docstrings on public functions/classes
@@ -88,6 +100,14 @@ pytest --cov=. --cov-report=term-missing # Test coverage
 - `from module import *` -- namespace pollution
 - `value == None` -- use `value is None`
 - Shadowing builtins (`list`, `dict`, `str`, `type` as variable names)
+
+### Test Quality (MEDIUM)
+- pytest fixtures preferred over setUp/tearDown methods
+- Parametrized tests (`@pytest.mark.parametrize`) for input variations
+- Assertions use pytest idioms (`assert x == y`, not `self.assertEqual`)
+- Test isolation: no shared mutable state between tests
+- conftest.py for shared fixtures -- not duplicated across test files
+- `pytest.raises` for exception testing, `pytest.approx` for float comparisons
 
 ## ML-Specific Checks
 
