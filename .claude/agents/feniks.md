@@ -134,7 +134,7 @@ describe('featureName', () => {
 ```
 
 ## Pipeline Contract (/kplan)
-- **Input**: reads `docs/plans/[date]-[slug].md` when invoked via /kplan with `needs_tdd: true`
+- **Input**: reads `docs/plans/plan-NNN-[slug].md` when invoked via /kplan with `needs_tdd: true`
 - **Mode**: guides TDD inline during implementation — does NOT write a separate document
 - **Scope**: enforces red-green-refactor for each code-writing step in the plan
 

@@ -35,14 +35,14 @@ Architecture signals take priority when both are present.
 2. Invoke **arkitect agent** (opus) with full task context
 3. Arkitect writes ADR to `docs/decisions/ADR-NNN-[slug].md`
 4. THEN invoke **konstruct agent** (opus) with task context + ADR reference
-5. Konstruct reads the ADR, produces plan in `docs/plans/[date]-[slug].md`
+5. Konstruct reads the ADR, produces plan in `docs/plans/plan-NNN-[slug].md`
 6. Konstruct sets `needs_tdd: true` or `needs_tdd: false` in plan frontmatter based on whether new code will be written
 
 **Route B: Implementation Direct (no architecture signals)**
 1. Announce: "Implementation task — running konstruct directly."
 2. Invoke **konstruct agent** (opus) with full task context
 3. Konstruct reads relevant code via Grep/Glob
-4. Konstruct produces plan in `docs/plans/[date]-[slug].md` with `needs_tdd: true/false`
+4. Konstruct produces plan in `docs/plans/plan-NNN-[slug].md` with `needs_tdd: true/false`
 
 ### Step 3: STOP — User Approval Gate
 
@@ -78,7 +78,7 @@ Invoke **kody agent** (sonnet) ONLY after implementation is complete.
 
 ## Shared Memory Bus
 - `docs/decisions/ADR-NNN-[slug].md` — arkitect's architecture decision record (Route A only)
-- `docs/plans/[date]-[slug].md` — konstruct's implementation plan (always)
+- `docs/plans/plan-NNN-[slug].md` — konstruct's implementation plan (always)
 - Agents read/write these files as their handoff mechanism
 - Each plan run creates new files — previous plans/ADRs are preserved as history
 

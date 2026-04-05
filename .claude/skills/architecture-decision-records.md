@@ -33,10 +33,10 @@ Watch for these patterns in conversation:
 
 ## ADR Template
 ```markdown
-# ADR-NNNN: [Decision Title]
+# ADR-NNN: [Decision Title]
 
 **Date**: YYYY-MM-DD
-**Status**: proposed | accepted | deprecated | superseded by ADR-NNNN
+**Status**: proposed | accepted | deprecated | superseded by ADR-NNN
 **Deciders**: [who was involved]
 
 ## Context
@@ -73,7 +73,7 @@ What did we decide and why? [1-3 sentences]
 2. **Gather context** -- what problem prompted this? What constraints exist?
 3. **Document alternatives** -- what other options were considered? Why rejected?
 4. **State consequences** -- what are the trade-offs? What becomes easier/harder?
-5. **Assign number** -- scan existing ADRs in `docs/decisions/` and increment (4-digit: 0001)
+5. **Assign number** -- scan existing ADRs in `docs/decisions/` and increment (3-digit: 001)
 6. **Confirm and write** -- present the draft to the user. Only write after explicit approval
 7. **Update index** -- append to `docs/decisions/README.md` if it exists
 
@@ -86,7 +86,7 @@ When a user asks "why did we choose X?":
 ## ADR Lifecycle
 
 ```
-proposed -> accepted -> [deprecated | superseded by ADR-NNNN]
+proposed -> accepted -> [deprecated | superseded by ADR-NNN]
 ```
 
 - **proposed**: under discussion, not yet committed
@@ -127,7 +127,7 @@ Once accepted, an ADR is never edited -- only superseded by a new ADR.
 | Process | Branching strategy, review process, release cadence |
 
 ## File Location
-`docs/decisions/ADR-NNNN-short-title.md`
+`docs/decisions/ADR-NNN-short-title.md`
 
 ## Examples
 
@@ -155,11 +155,11 @@ Once accepted, an ADR is never edited -- only superseded by a new ADR.
 ## Gotchas
 - ADRs are committed and pushed alongside the code they affect -- they are not separate documentation deliverables
 - The arkitect agent produces ADRs automatically during /kplan (Route A). Ensure it follows this format
-- ADR numbering uses 4-digit format (0001-0999+) for consistent sorting
+- ADR numbering uses 3-digit format (001-999) for consistent sorting
 - An ADR directory must exist before writing. If `docs/decisions/` does not exist, ask user before creating it
 
 ## Rules
-- Every ADR gets a sequential 4-digit number (ADR-0001, ADR-0002, ...)
+- Every ADR gets a sequential 3-digit number (ADR-001, ADR-002, ...)
 - Once accepted, an ADR is never edited -- only superseded by a new ADR
 - The arkitect agent produces ADRs automatically
 - ADRs are committed and pushed alongside the code they affect

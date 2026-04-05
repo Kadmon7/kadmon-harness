@@ -25,19 +25,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/block-no-verify.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/block-no-verify.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/git-push-reminder.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/git-push-reminder.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-format-guard.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-format-guard.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-quality.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/commit-quality.js"
           }
         ]
       },
@@ -46,11 +46,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/config-protection.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/config-protection.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/no-context-guard.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/no-context-guard.js"
           }
         ]
       },
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/mcp-health-check.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/mcp-health-check.js"
           }
         ]
       },
@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-pre.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-pre.js"
           }
         ]
       }
@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/pr-created.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/pr-created.js"
           }
         ]
       },
@@ -88,27 +88,27 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/post-edit-format.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/post-edit-format.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/post-edit-typecheck.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/post-edit-typecheck.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/quality-gate.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/quality-gate.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/ts-review-reminder.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/ts-review-reminder.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/console-log-warn.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/console-log-warn.js"
           },
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/deps-change-reminder.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/deps-change-reminder.js"
           }
         ]
       },
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-post.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/observe-post.js"
           }
         ]
       }
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/mcp-health-failure.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/mcp-health-failure.js"
           }
         ]
       }
@@ -139,7 +139,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/pre-compact-save.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/pre-compact-save.js"
           }
         ]
       }
@@ -150,7 +150,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-start.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-start.js"
           }
         ]
       }
@@ -161,7 +161,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-end-all.js"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && PATH=\"$PATH:/c/Program Files/nodejs\" node .claude/hooks/scripts/session-end-all.js"
           }
         ]
       }
