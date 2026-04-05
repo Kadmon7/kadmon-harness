@@ -25,12 +25,11 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 |------|----------|---------------|
 | **CLAUDE.md** | English | Component counts, file structure, Memory section, Hook catalog, Status line |
 | **README.md** | English | Complete reference: architecture, agents, skills, commands, hooks, rules, database, tests, plugins |
-| **docs/GUIDE.md** | Spanish | Usage guide: daily workflow, examples, troubleshooting, project-specific usage |
 
 ### Layer 2 — Rules (Claude reads every session)
 | File | What to check |
 |------|---------------|
-| **.claude/rules/common/hooks.md** | Hook catalog (22 entries) — descriptions MUST match actual hook behavior |
+| **.claude/rules/common/hooks.md** | Hook catalog (20 entries) — descriptions MUST match actual hook behavior |
 | **.claude/rules/common/agents.md** | Agent catalog — triggers, model routing, auto-invoke rules |
 | **.claude/rules/common/development-workflow.md** | Command reference table — if commands change, update here |
 | Other rules | Only if the change affects enforcement descriptions |
@@ -162,7 +161,7 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 ### Files Updated
 - CLAUDE.md: Memory section updated with carry-forward description
 - README.md: hook table descriptions updated, vitest.config.ts documented
-- docs/GUIDE.md: session hook table rewritten with new behaviors
+- rules/common/hooks.md: hook descriptions updated to match current behavior
 
 ### Verification
 - [x] All behavioral changes documented in at least 2 files
