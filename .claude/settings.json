@@ -169,7 +169,6 @@
   },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
-    "supabase@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "context7@claude-plugins-official": true

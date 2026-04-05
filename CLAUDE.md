@@ -17,7 +17,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - Language: TypeScript / JavaScript (primary)
 - Persistence: SQLite at `~/.kadmon/kadmon.db` (v1) — Supabase planned for v2
 - Runtime: Claude Code CLI on Windows (Git Bash)
-- MCPs: Supabase (persistence), Context7 (live documentation)
+- MCPs: Context7 (live documentation)
 - GitHub: `gh` CLI (Kadmon7, no MCP plugin)
 
 ## Environment Variables

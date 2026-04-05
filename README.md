@@ -494,13 +494,12 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 ---
 
-## Plugins (5 active)
+## Plugins (4 active)
 
 | Plugin | Type | Value | What It Adds |
 |--------|------|-------|-------------|
 | **context7** | MCP Server | CRITICAL | Live library documentation via `resolve-library-id` + `query-docs` |
 | **skill-creator** | Skill Plugin | CRITICAL | Create, modify, evaluate, and benchmark skills |
-| **supabase** | MCP Server | MEDIUM | Supabase integration: DB, auth, storage, edge functions, migrations (standby for v2) |
 | **frontend-design** | Skill Plugin | LOW | Production-grade frontend interfaces with distinctive design |
 | **ralph-loop** | Skill Plugin | LOW | Recurring execution loop (ralph-loop, cancel-ralph, help) |
 
@@ -605,8 +604,8 @@ Central configuration file. Controls:
 | Rules | 19 (9 common + 5 TypeScript + 5 Python) |
 | Tests | 260 passing |
 | SQLite Tables | 4 + 8 indexes |
-| MCPs | 3 (GitHub, Context7, Supabase) |
-| Plugins | 5 active |
+| MCPs | 2 (GitHub, Context7) |
+| Plugins | 4 active |
 
 ---
 
