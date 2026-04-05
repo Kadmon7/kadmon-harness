@@ -28,7 +28,7 @@ alwaysApply: true
 ### PreToolUse — mcp__ matcher (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| mcp-health-check | mcp-health-check.js | Validates MCP server health before MCP tool calls | 1 on unhealthy |
+| mcp-health-check | mcp-health-check.js | Validates MCP server health before MCP tool calls | 0 always (stderr warning) |
 
 ### PreToolUse — all tools (1)
 | Hook | Script | Purpose | Exit |

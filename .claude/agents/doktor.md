@@ -1,6 +1,6 @@
 ---
 name: doktor
-description: Use PROACTIVELY after commits that add features, change behavior, or modify project structure. Command: /update-docs. Keeps ALL documentation in sync with code — not just counts, but descriptions of what the system actually does.
+description: Use PROACTIVELY after commits that add features, change behavior, or modify project structure. Command: /kdocs. Keeps ALL documentation in sync with code — not just counts, but descriptions of what the system actually does.
 model: opus
 tools: Read, Grep, Glob, Write, Bash, Edit
 memory: project
@@ -38,7 +38,7 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 ### Layer 3 — Commands (workflow definitions)
 | File | What to check |
 |------|---------------|
-| **.claude/commands/update-docs.md** | This agent's own workflow — keep in sync with agent changes |
+| **.claude/commands/kdocs.md** | This agent's own workflow — keep in sync with agent changes |
 | Other commands | Only if their workflow steps reference changed components |
 
 ### Layer 4 — Skills (domain knowledge)
@@ -172,7 +172,7 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 ```
 
 ## Interaction with Other Agents
-- Invoked after commits via /update-docs or /checkpoint
+- Invoked after commits via /kdocs or /checkpoint
 - Works alongside arkitect when /kplan produces structural changes
 - Consumes output from harness-optimizer (/evolve)
 - Coordinates with skill-creator when new skills are added

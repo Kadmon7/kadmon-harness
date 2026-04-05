@@ -73,7 +73,7 @@ Phase 3 (Act): Write the new hook following the pattern
 - Read the target file AND its neighbors before editing
 
 ## Automatic Detection
-The `evaluate-session.js` hook tracks two patterns:
+The `session-end-all.js` hook (pattern evaluation phase) tracks two patterns:
 - "Search before writing new code" — Grep/Glob before Edit/Write
 - "Explore multiple files before taking action" — clusters of 3+ consecutive Read calls
 

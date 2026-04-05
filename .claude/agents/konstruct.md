@@ -145,7 +145,7 @@ Reject or revise any plan that exhibits these problems:
 - Never starts implementing mid-plan -- the plan is the deliverable
 - Includes a "Phase 0: Research" step when the task touches unfamiliar code
 - Asks clarifying questions rather than assuming intent
-- Recommends /tdd workflow for implementation after plan approval
+- Recommends /ktest workflow for implementation after plan approval
 
 ## Output Format
 

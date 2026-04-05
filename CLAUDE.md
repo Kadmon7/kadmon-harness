@@ -24,7 +24,7 @@ Observe → Remember → Verify → Specialize → Evolve
 | Remember | session persistence, instinct store, ADRs, /checkpoint, /docs |
 | Verify | TDD, code review, security review, type checking, no-context-guard |
 | Specialize | domain agents, skill catalog, /kplan |
-| Evolve | instinct learning, /instinct, /refactor-clean, pattern extraction, skill-creator (for all skill work) |
+| Evolve | instinct learning, /instinct, /evolve, pattern extraction, skill-creator (for all skill work) |
 
 ## Stack
 - Language: TypeScript / JavaScript (primary)
@@ -46,9 +46,9 @@ scripts/
 ├── rules/
 │   ├── common/         # 9 cross-language rules
 │   └── typescript/     # 6 TS-specific rules
-├── agents/             # 14 agent definitions
+├── agents/             # 15 agent definitions
 ├── skills/             # 20 skill documents
-└── commands/           # 18 command templates
+└���─ commands/           # 14 command templates
 vitest.config.ts          # Test config: KADMON_TEST_DB=:memory: safety net
 tests/
 ├── lib/                # Unit tests for scripts/lib/
@@ -81,13 +81,15 @@ docs/
 | e2e-runner | sonnet | E2E testing specialist |
 | harness-optimizer | opus | Harness configuration analysis |
 
-## Commands (18)
+## Commands (14)
 Defined in `.claude/commands/` — organized by phase:
 - **Observe** (3): /dashboard, /kompact, /kompas
-- **Remember** (3): /checkpoint, /docs, /update-docs
-- **Verify** (7): /tdd, /verify, /build-fix, /code-review, /test-coverage, /e2e, /eval
-- **Specialize** (2): /kplan, /workflow
-- **Evolve** (3): /instinct, /evolve, /refactor-clean
+- **Plan** (1): /kplan
+- **Build** (2): /kfix, /kperf
+- **Test** (1): /ktest
+- **Review** (1): /kreview
+- **Remember** (3): /checkpoint, /docs, /kdocs
+- **Evolve** (3): /eval, /instinct, /evolve
 
 ## Skills (20)
 Reusable knowledge documents in `.claude/skills/` referenced by agents during tasks.
@@ -107,12 +109,13 @@ Reusable knowledge documents in `.claude/skills/` referenced by agents during ta
 
 ## Development Workflow
 1. Research first (/docs, search-first skill)
-2. Plan (/kplan command, konstruct agent)
-3. Test first (/tdd command, tdd-guide agent)
-4. Implement (build-error-resolver if needed)
-5. Review (/code-review, /verify)
+2. Plan (/kplan — arkitect -> konstruct -> approval gate)
+3. Test first (/ktest — tdd-guide enforces red-green-refactor)
+4. Implement (build errors -> /kfix)
+5. Review (/kreview for quick pass)
 6. Commit (conventional commits via /checkpoint)
-7. Skill work (create, edit, optimize, evaluate) → MUST use skill-creator:skill-creator plugin
+7. Document (/kdocs — doktor syncs all 4 layers)
+8. Skill work (create, edit, optimize, evaluate) → MUST use skill-creator:skill-creator plugin
 
 ## Transparency
 Three-layer observability — no manual discipline required.
@@ -153,4 +156,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (180 tests passing, 20 hooks, 15 agents, 20 skills, 18 commands)
+v0.3.1 — Commands consolidated (180 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands)

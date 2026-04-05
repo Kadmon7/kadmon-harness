@@ -40,7 +40,7 @@ git commit --no-verify -m "skip hooks"
 
 **Override:** None. This is intentional by design. If pre-commit hooks are failing,
 the correct response is to fix the underlying issue, not to bypass the hooks. See the
-`build-error-resolver` agent for compilation errors and `/verify` for quality gate failures.
+`build-error-resolver` agent for compilation errors and `/checkpoint` for quality gate failures.
 
 ---
 
@@ -134,7 +134,7 @@ identifies which hook triggered and which file or flag caused the block.
 **Why can't I use --no-verify?**
 Safety principle: pre-commit hooks are the enforcement surface for type checking, linting,
 and security scans. Bypassing them means commits can silently violate quality gates.
-If the hooks are failing, fix the root cause — use `/build-fix` or `/verify`.
+If the hooks are failing, fix the root cause — use `/kfix` or `/checkpoint`.
 
 **How do I edit a protected config file?**
 Ask the arkitect to temporarily allow the change via `/kplan`, or follow the `update-config`

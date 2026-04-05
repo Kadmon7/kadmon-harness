@@ -126,7 +126,7 @@ import { openDb, saveToDisk } from './state-store.js';
 | Missing .js in local imports | Fails at runtime under Node16 module resolution | Always add `.js` extension to relative import paths |
 
 ## Integration
-- **code-reviewer agent** (sonnet): Auto-invoked on .ts/.tsx edits. Checks strict mode, type safety, naming conventions, import patterns, and immutability. Runs via /code-review and /checkpoint.
+- **code-reviewer agent** (sonnet): Auto-invoked on .ts/.tsx edits. Checks strict mode, type safety, naming conventions, import patterns, and immutability. Runs via /kreview and /checkpoint.
 - **post-edit-typecheck hook**: Validates TypeScript compilation immediately after every Edit/Write operation — catches violations in real time.
 - **quality-gate hook**: Runs lint and style checks after every Edit/Write operation.
 - **console-log-warn hook**: Flags console.log in production code — use the structured log() utility instead.

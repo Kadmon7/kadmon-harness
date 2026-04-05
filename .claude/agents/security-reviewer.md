@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Use PROACTIVELY when editing code that handles authentication, API keys, user input, exec/spawn, file paths, or SQL queries. Also runs as part of /code-review. Severity: CRITICAL/HIGH/MEDIUM/LOW.
+description: Use PROACTIVELY when editing code that handles authentication, API keys, user input, exec/spawn, file paths, or SQL queries. Also runs as part of /checkpoint and /kreview. Severity: CRITICAL/HIGH/MEDIUM/LOW.
 model: opus
 tools: Read, Grep, Glob
 memory: project

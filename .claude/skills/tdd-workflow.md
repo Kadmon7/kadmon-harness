@@ -98,11 +98,11 @@ it('should allow properly formatted commit (exit 0)', () => {
 
 ## Integration
 
-- **/tdd command**: Launches the tdd-guide agent, which enforces the red-green-refactor cycle step by step. Use it for any non-trivial implementation.
-- **/verify command**: Runs typecheck + tests + lint. Run after every green and refactor step to confirm nothing regressed beyond the file you touched.
+- **/ktest command**: Launches the tdd-guide agent, which enforces the red-green-refactor cycle step by step. Use it for any non-trivial implementation.
+- **/checkpoint command**: Runs typecheck + tests + lint + review. Run after every green and refactor step to confirm nothing regressed beyond the file you touched.
 - **tdd-guide agent** (sonnet): Walks you through each TDD phase, challenges premature implementation, and blocks commits with failing tests.
 - **post-edit-typecheck hook**: Catches type errors immediately after edits — acts as a fast feedback loop during the green phase.
-- **evaluate-session hook**: Tracks the "TDD discipline" pattern — whether tests preceded implementation in the session.
+- **session-end-all hook** (pattern evaluation phase): Tracks the "TDD discipline" pattern — whether tests preceded implementation in the session.
 
 ## Rules
 - Target 80%+ coverage on new code
@@ -110,7 +110,7 @@ it('should allow properly formatted commit (exit 0)', () => {
 - Use `:memory:` SQLite for all database tests — never touch production DB
 - Use execFileSync with input option for hook tests (Windows-safe, no stdin pipe issues)
 - Test happy path, error path, and at least one edge case per function
-- Run the full test suite (`npx vitest run`) before committing — /verify automates this
+- Run the full test suite (`npx vitest run`) before committing — /checkpoint automates this
 
 ## no_context Application
 TDD is the no_context principle applied to code itself. A test is evidence that behavior works — not an assumption, not a guess. When you write the test first, you prove you understand the requirement before you implement it. When the test passes, you have proof the code meets the requirement. No test means no evidence — and no_context demands evidence.

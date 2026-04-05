@@ -20,7 +20,7 @@ alwaysApply: true
 - ALWAYS review diff before committing: `git diff --staged`
 
 ## PR Workflow
-1. Run /verify before creating PR
+1. Run /checkpoint (includes verification + review gate) before creating PR
 2. Use `gh pr create` (not GitHub MCP)
 3. Analyze ALL commits since divergence: `git diff main...HEAD`
 4. Include test plan in PR body
@@ -28,8 +28,7 @@ alwaysApply: true
 
 ## Enforcement
 - block-no-verify hook blocks any git command with --no-verify flag (PreToolUse on Bash, exit 2)
-- git-push-reminder hook warns before git push without running /verify first (PreToolUse on Bash, exit 1)
+- git-push-reminder hook warns before git push without running /checkpoint first (PreToolUse on Bash, exit 1)
 - config-protection hook prevents accidental edits to critical config files (PreToolUse on Edit|Write, exit 2)
-- code-reviewer agent runs automatically before /checkpoint commits
-- /verify command runs typecheck + tests + lint before commit
-- /checkpoint command orchestrates: verify → review → commit → push
+- code-reviewer agent runs automatically as part of /checkpoint review phase
+- /checkpoint command orchestrates: verify → 5 parallel reviewers → gate → commit → push

@@ -30,12 +30,12 @@ alwaysApply: true
 - INVOKE security-reviewer agent immediately
 - FIX the vulnerability before continuing
 - ROTATE any exposed credentials (API keys, tokens, passwords)
-- REVIEW — run /code-review on the fix before committing
+- REVIEW — run /kreview on the fix before committing
 
 ## Enforcement
 - security-reviewer agent auto-invoked for code touching auth, API keys, user input, exec/spawn, file paths, SQL queries
 - config-protection hook prevents edits to critical config files (PreToolUse on Edit|Write, exit 2)
 - block-no-verify hook prevents bypassing git safety hooks (PreToolUse on Bash, exit 2)
 - safety-guard skill provides runtime security guardrails
-- security-reviewer agent provides structured security analysis during /code-review
+- security-reviewer agent provides structured security analysis during /checkpoint review phase
 - permissions.deny in settings.json blocks Read access to .env, .env.*, and secrets/ files

@@ -85,7 +85,7 @@ When you have multiple unrelated problems, investigating them sequentially waste
 1. **Identify independent domains** -- group by what is broken
 2. **Create focused agent tasks** -- scope, goal, constraints, context, expected output
 3. **Dispatch in parallel** -- multiple Agent tool calls in a single message
-4. **Review and integrate** -- read summaries, check for conflicts, run /verify, spot-check
+4. **Review and integrate** -- read summaries, check for conflicts, run /checkpoint, spot-check
 
 ### Agent Prompt Example
 
@@ -128,7 +128,7 @@ Execute implementation plans by dispatching a fresh subagent per task, with two-
    g. If quality issues: implementer fixes, re-review
    h. Mark task complete
 3. After all tasks: dispatch final code-reviewer for entire implementation
-4. Run /verify for full suite validation
+4. Run /checkpoint for full suite validation
 
 ### Implementer Prompt Template
 
@@ -202,9 +202,9 @@ This skill enforces the no_context principle at the orchestration layer. When di
 ## Integration
 
 **Project commands used:**
-- /verify -- run after integrating all agent results
-- /tdd -- subagents should follow TDD for each task
-- /code-review -- code quality review stage
+- /checkpoint -- run after integrating all agent results (verify + review + commit)
+- /ktest -- subagents should follow TDD for each task
+- /kreview -- code quality review stage
 - /kplan -- source of implementation plans
 
 **Project agents used:**

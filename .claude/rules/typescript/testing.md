@@ -30,10 +30,10 @@ globs: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 - PREFER Vitest for harness E2E tests, Playwright for web app E2E tests
 
 ## Enforcement
-- tdd-guide agent enforces red-green-refactor cycle via /tdd command
-- e2e-runner agent generates and runs E2E tests via /e2e command
-- /verify command runs typecheck + tests + lint as verification loop
-- /test-coverage command reports coverage per file
+- tdd-guide agent enforces red-green-refactor cycle via /ktest command
+- e2e-runner agent generates and runs E2E tests via /ktest e2e command
+- /checkpoint command runs typecheck + tests + lint as verification loop before commit
+- /ktest coverage command reports coverage per file
 - post-edit-typecheck hook catches type errors in test files after edits
 - tdd-workflow skill provides TDD methodology guidance
 - e2e-testing skill provides E2E test patterns and structure

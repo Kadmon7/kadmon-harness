@@ -38,8 +38,10 @@ try {
           /* skip */
         }
       }
-      if (!hasVerify) warnings.push("typecheck/tests not run (/verify)");
-      if (!hasReview) warnings.push("code-reviewer not invoked (/code-review)");
+      if (!hasVerify)
+        warnings.push("typecheck/tests not run — run /checkpoint first");
+      if (!hasReview)
+        warnings.push("code-reviewer not invoked — run /checkpoint first");
     }
   }
 

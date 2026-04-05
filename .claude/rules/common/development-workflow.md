@@ -6,12 +6,12 @@ alwaysApply: true
 
 ## Order
 - ALWAYS follow: Research → Plan → Test → Implement → Review → Commit
-- ALWAYS run /verify before /checkpoint
+- ALWAYS run /checkpoint (includes full verification + review gate)
 - NEVER commit failing tests (red tests)
-- ALWAYS write test before implementation (/tdd workflow)
+- ALWAYS write test before implementation (/ktest workflow)
 - ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills
 
-## Command Reference (18)
+## Command Reference (14)
 
 ### Observe Phase (3)
 | Command | Purpose | Agent |
@@ -20,36 +20,40 @@ alwaysApply: true
 | /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
 | /kompas | Full context rebuild — search git, memory, SQLite, docs, harness state. Use after compact or at session start | — |
 
+### Plan Phase (1)
+| Command | Purpose | Agent |
+|---------|---------|-------|
+| /kplan | Smart planning — arkitect -> konstruct -> code-reviewer chain with user approval gate | arkitect, konstruct, code-reviewer |
+
+### Build Phase (2)
+| Command | Purpose | Agent |
+|---------|---------|-------|
+| /kfix | Diagnose build errors + refactor cleanup. Use `/kfix build` or `/kfix clean` for single phase | build-error-resolver, refactor-cleaner |
+| /kperf | Performance analysis and optimization. Use `/kperf hooks` for hook latency | performance-optimizer |
+
+### Test Phase (1)
+| Command | Purpose | Agent |
+|---------|---------|-------|
+| /ktest | TDD + coverage + E2E testing pipeline. Use `/ktest coverage` or `/ktest e2e` for specific modes | tdd-guide, e2e-runner |
+
+### Review Phase (1)
+| Command | Purpose | Agent |
+|---------|---------|-------|
+| /kreview | Quick language-aware code review (no verification, no security/database reviewers) | code-reviewer + specialists |
+
 ### Remember Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /checkpoint | Save progress — run verification then commit and push | code-reviewer |
+| /checkpoint | Full verification + intelligent review + commit and push (5 reviewers) | code-reviewer + specialists |
 | /docs | Look up live documentation for any library or framework | almanak |
-| /update-docs | Update CLAUDE.md, README, and project documentation | doktor |
-
-### Verify Phase (7)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /tdd | Start TDD cycle — write failing test first, then implement | tdd-guide |
-| /verify | Run full verification loop — typecheck, tests, lint. Use `/verify full` for security scan | — |
-| /build-fix | Diagnose and fix build or compilation errors | build-error-resolver |
-| /code-review | Run code review on staged or recent changes | code-reviewer |
-| /test-coverage | Check and report test coverage per file | — |
-| /e2e | Generate and run E2E tests for full workflow verification | e2e-runner |
-| /eval | Run structured evaluation of agent or skill quality | — |
-
-### Specialize Phase (2)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /kplan | Smart planning — routes to arkitect+konstruct or konstruct-only based on task signals | konstruct, arkitect |
-| /workflow | Show available workflow chains (dev, qa, instinct, evolve) or guide through one | — |
+| /kdocs | Sync project documentation with code changes (4-layer sync) | doktor |
 
 ### Evolve Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
+| /eval | Run structured evaluation of agent or skill quality | — |
 | /instinct | Manage instinct lifecycle — status, eval, learn, promote, prune, export (subcommands) | — |
 | /evolve | Run harness self-optimization analysis | harness-optimizer |
-| /refactor-clean | Invoke refactor-cleaner agent to improve code structure | refactor-cleaner |
 
 ## Commits
 - MUST use conventional commits: feat/fix/chore/docs/refactor/test
@@ -66,6 +70,6 @@ alwaysApply: true
 ## Enforcement
 - no-context-guard hook blocks edits without prior Read (PreToolUse on Edit|Write)
 - block-no-verify hook prevents skipping git hooks (PreToolUse on Bash)
-- git-push-reminder hook warns before git push without /verify (PreToolUse on Bash)
+- git-push-reminder hook warns before git push without /checkpoint (PreToolUse on Bash)
 - post-edit-typecheck hook validates TypeScript after edits (PostToolUse on Edit|Write)
 - quality-gate hook runs lint/style checks after edits (PostToolUse on Edit|Write)

@@ -10,7 +10,7 @@ Multi-step verification that catches issues before they reach production or git.
 ## When to Use
 - After implementing any feature or fix
 - Before committing or pushing code
-- When /verify or /checkpoint is invoked
+- When /checkpoint is invoked (includes full verification + review)
 - After resolving merge conflicts
 - Before creating a PR
 - After any refactoring, even "safe" renames (they break imports more often than you think)
@@ -87,11 +87,11 @@ The `/checkpoint` command automates this entire flow: verify -> review -> commit
 - **Re-running the whole loop after fixing one step** — Restart from the failed step, not from the beginning. Build does not need to re-run if you only fixed a type error.
 
 ## Integration
-- **/verify** command runs this loop (use `/verify full` to add security scan)
-- **/checkpoint** depends on this loop passing before commit
+- **/checkpoint** command runs this loop as Phase 1 (verify), then Phase 2 (review), then commits
+- Verification is now embedded in /checkpoint — no separate /verify command needed
 - **build-error-resolver** agent handles failures in the build and typecheck steps
 - **post-edit-typecheck** hook runs a quick typecheck after every Edit/Write as early warning
-- **evaluate-session** hook tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` before `git commit` or `git push`
+- **session-end-all** hook (pattern evaluation phase) tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` before `git commit` or `git push`
 
 ## Rules
 - Never skip steps — each catches a different bug class

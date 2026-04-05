@@ -1,6 +1,6 @@
 ---
 name: continuous-learning-v2
-description: How the instinct learning system works — observation, confidence scoring (0.3->0.9), promotion to skills. Use this skill whenever working with /instinct subcommands (learn, status, eval, promote, prune, export), when debugging why an instinct was or wasn't created, understanding the evaluate-session hook, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
+description: How the instinct learning system works — observation, confidence scoring (0.3->0.9), promotion to skills. Use this skill whenever working with /instinct subcommands (learn, status, eval, promote, prune, export), when debugging why an instinct was or wasn't created, understanding the pattern evaluation in session-end-all, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
 ---
 
 # Continuous Learning v2
@@ -20,10 +20,10 @@ The instinct-based learning system. Observes sessions, creates atomic instincts 
 ### Observation Flow
 1. **observe-pre hook** logs every tool call to JSONL (file append, <50ms); captures Agent, TaskCreate, and TaskUpdate metadata
 2. **observe-post hook** logs tool results to the same JSONL; captures error messages on failures
-3. **evaluate-session hook** (at Stop) analyzes observations against 13 pattern definitions in `.claude/hooks/pattern-definitions.json`
+3. **session-end-all hook (pattern evaluation phase)** (at Stop) analyzes observations against 13 pattern definitions in `.claude/hooks/pattern-definitions.json`
 4. Matched patterns become instincts in SQLite via instinct-manager.ts
 
-The evaluate-session hook is the brain of the system. It reads observation logs, matches them against pattern definitions (sequence patterns, cluster patterns, command sequences), and creates or reinforces instincts. Without it, no learning happens — and it only fires on clean session termination.
+The session-end-all hook (pattern evaluation phase) is the brain of the system. It reads observation logs, matches them against pattern definitions (sequence patterns, cluster patterns, command sequences), and creates or reinforces instincts. Without it, no learning happens — and it only fires on clean session termination.
 
 ### Instinct Lifecycle
 ```
@@ -69,7 +69,7 @@ MUST use the skill-creator:skill-creator plugin for all promotion. Direct file c
 ### Example 1: Pattern detection
 ```
 Session observations show: Read -> Read -> Edit pattern 5 times
-evaluate-session matches "Read files before editing them" (sequence pattern)
+session-end-all (pattern evaluation phase) matches "Read files before editing them" (sequence pattern)
 Creates instinct:
   pattern: "Read files before editing them"
   action: "Always Read target file before Edit/Write"
@@ -100,14 +100,14 @@ After 7 days: /instinct prune archives it
 | Pattern not detected | No matching definition in pattern-definitions.json | Check the 13 patterns in `.claude/hooks/pattern-definitions.json`. If your pattern type is not there, add a new definition. |
 | Confidence dropped | Contradictions observed | Run `/instinct eval` to see contradiction counts. If the pattern is genuinely wrong, let it die. If it was a one-off, it will recover. |
 | Instinct not created after session | Stop hooks did not fire | Stop hooks only fire on clean termination. Crashes, terminal close, and /kompact do NOT trigger them. End sessions cleanly. |
-| evaluate-session throws errors | dist/ is stale | Run `npm run build` — lifecycle hooks import from compiled dist/. |
+| session-end-all (pattern evaluation) throws errors | dist/ is stale | Run `npm run build` — lifecycle hooks import from compiled dist/. |
 | Instinct stuck at low confidence | Pattern occurs rarely | The pattern needs to appear in multiple sessions. One session with 10 occurrences is still just 1 reinforcement. |
 
 ## Integration
 - **/instinct** command — 6 subcommands: status (default), eval, learn, promote, prune, export
-- **evaluate-session** hook — fires at Stop, analyzes observations against pattern-definitions.json
-- **observe-pre / observe-post** hooks — log tool calls, results, errors, and task metadata to JSONL for evaluate-session to analyze
-- **pattern-definitions.json** — 13 pattern definitions (sequence, cluster, command_sequence types) that evaluate-session matches against
+- **session-end-all** hook (pattern evaluation phase) — fires at Stop, analyzes observations against pattern-definitions.json
+- **observe-pre / observe-post** hooks — log tool calls, results, errors, and task metadata to JSONL for session-end-all to analyze
+- **pattern-definitions.json** — 13 pattern definitions (sequence, cluster, command_sequence types) that session-end-all (pattern evaluation phase) matches against
 - **/evolve** command — harness-optimizer agent also analyzes instinct quality, contradiction rates, and promotion candidates as part of its holistic harness review
 - **session-start** hook — loads 3 recent sessions with history trajectory, pending work carry-forward, and active instincts at session start
 - **skill-creator:skill-creator** plugin — required for /instinct promote (handles skill drafting and validation)
@@ -118,7 +118,7 @@ After 7 days: /instinct prune archives it
 - Promotion requires user approval (/instinct promote is manual, never automatic)
 - Contradictions are tracked — instincts can and should die when they are wrong
 - All skill creation from instincts MUST use the skill-creator:skill-creator plugin
-- End sessions cleanly to ensure evaluate-session fires and patterns are captured
+- End sessions cleanly to ensure session-end-all fires and patterns are captured
 
 ## no_context Application
 The learning system only creates instincts from observed behavior — never from assumptions. If a pattern was not observed in the JSONL, it cannot become an instinct. This is the no_context principle applied to the learning system itself: no evidence, no instinct.

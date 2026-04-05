@@ -1,6 +1,6 @@
 ---
 name: e2e-runner
-description: Invoked via /e2e command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Supports Vitest (harness) and Playwright (web apps).
+description: Invoked via /ktest e2e command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Supports Vitest (harness) and Playwright (web apps).
 model: sonnet
 tools: Read, Glob, Bash
 memory: project

@@ -65,7 +65,7 @@ Complete each phase before proceeding to the next.
 
 ### Phase 4: Implementation
 
-1. **Create Failing Test** — simplest reproduction, automated if possible. Follow /tdd workflow.
+1. **Create Failing Test** — simplest reproduction, automated if possible. Follow /ktest workflow.
 2. **Implement Single Fix** — one change, no "while I'm here" improvements
 3. **Verify Fix** — test passes? no regressions? issue resolved?
 4. **If Fix Doesn't Work:**
@@ -116,9 +116,9 @@ If you catch yourself thinking:
 ## Integration
 
 **Project commands:**
-- /tdd — for creating failing test case (Phase 4)
-- /verify — verify fix before claiming success
-- /build-fix — for build/compilation failures (delegates to build-error-resolver)
+- /ktest — for creating failing test case (Phase 4)
+- /checkpoint — verify fix before claiming success (verify + review + commit)
+- /kfix — for build/compilation failures (delegates to build-error-resolver)
 
 **Project agents:**
 - tdd-guide — guides test-first discipline in Phase 4

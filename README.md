@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`180 tests` | `20 hooks` | `14 agents` | `20 skills` | `18 commands`
+`180 tests` | `20 hooks` | `15 agents` | `20 skills` | `14 commands`
 
 > For practical usage guide, see [docs/GUIDE.md](docs/GUIDE.md) (Spanish).
 
@@ -14,8 +14,8 @@
 |-------|-------------|----------------|
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/checkpoint` |
-| **Verify** | Tests first, code review, quality gates | `/tdd`, `/verify`, `/code-review` |
-| **Specialize** | Domain agents, curated skill catalog | 14 agents, 20 skills, `/kplan` |
+| **Verify** | Tests first, code review, quality gates | `/ktest`, `/checkpoint`, `/kreview` |
+| **Specialize** | Domain agents, curated skill catalog | 15 agents, 20 skills, `/kplan` |
 | **Evolve** | Learn from sessions, promote patterns to skills | `/instinct learn`, `/evolve`, `/instinct promote` |
 
 ## Quick Start
@@ -38,9 +38,8 @@ Key commands inside a session:
 ```bash
 /dashboard          # System state: instincts, sessions, costs, hook health
 /kplan              # Plan complex tasks (routes to arkitect + konstruct)
-/tdd                # Test-driven development cycle
-/verify             # Typecheck + tests + lint
-/checkpoint         # Verify, commit, push
+/ktest              # Test-driven development cycle
+/checkpoint         # Verify + review + commit + push
 /kompact            # Smart context compaction
 /instinct learn     # Extract patterns from current session
 ```
@@ -121,22 +120,23 @@ On session end: Stop hooks persist to SQLite
 | **arkitect** | System design, architecture decisions. Produces ADRs. | Never | `/kplan` (architectural tasks) | ADR markdown |
 | **konstruct** | Breaks down complex tasks into numbered steps with verification. | Never | `/kplan` (multi-file tasks) | Phased plan S/M/L |
 | **database-reviewer** | Reviews SQL, schemas, migrations, Supabase code. Validates RLS, pgvector, sql.js. | On SQL/schema/Supabase edits | -- | Schema/Queries review |
-| **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/code-review` | Severity report |
+| **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/checkpoint` | Severity report |
 | **harness-optimizer** | Analyzes hook latency, instinct quality, skill gaps, cost trends. Never auto-applies. | Never | `/evolve` | PROMOTE/CREATE/OPTIMIZE report |
 
-### Sonnet Agents (9) — implementation and review
+### Sonnet Agents (10) — implementation and review
 
 | Agent | Purpose | Auto-invokes when... | Manual | Output |
 |-------|---------|---------------------|--------|--------|
-| **code-reviewer** | Code quality, strict mode, type safety, Node16 resolution. Severity BLOCK/WARN/NOTE. | On `.ts`/`.tsx` edits, `/checkpoint` | `/code-review` | Review markdown |
-| **tdd-guide** | Guides red-green-refactor cycle. Generates test templates before implementation. | Never | `/tdd` | TypeScript test template |
-| **build-error-resolver** | Diagnoses TS2xxx, module resolution, Vitest, sql.js WASM errors. Minimal fix. | On TypeScript/Vitest failures | `/build-fix` | Error report |
-| **refactor-cleaner** | Identifies dead code, duplication, consolidation opportunities. | Never | `/refactor-clean` | Refactoring summary |
-| **performance-optimizer** | Analyzes O(n^2) loops, slow queries, memory-intensive patterns. | On performance pattern detection | -- | Performance report |
-| **python-reviewer** | Reviews Python code: ML, embeddings, backends. | On `.py` edits | -- | Python review |
+| **code-reviewer** | Code quality, strict mode, type safety, Node16 resolution. Severity BLOCK/WARN/NOTE. | On `.ts`/`.tsx` edits, `/checkpoint` | `/kreview`, `/checkpoint` | Review markdown |
+| **typescript-reviewer** | TypeScript/JavaScript type safety, async correctness, Node/web security. | On `.ts`/`.tsx`/`.js`/`.jsx` edits | `/kreview`, `/checkpoint` | TypeScript review |
+| **tdd-guide** | Guides red-green-refactor cycle. Generates test templates before implementation. | Never | `/ktest` | TypeScript test template |
+| **build-error-resolver** | Diagnoses TS2xxx, module resolution, Vitest, sql.js WASM errors. Minimal fix. | On TypeScript/Vitest failures | `/kfix` | Error report |
+| **refactor-cleaner** | Identifies dead code, duplication, consolidation opportunities. | Never | `/kfix clean` | Refactoring summary |
+| **performance-optimizer** | Analyzes O(n^2) loops, slow queries, memory-intensive patterns. | On performance pattern detection | `/kperf` | Performance report |
+| **python-reviewer** | Reviews Python code: ML, embeddings, backends. | On `.py` edits | `/kreview`, `/checkpoint` | Python review |
 | **almanak** | Searches documentation via Context7 MCP. Fallback to WebSearch. Never invents APIs. | On unfamiliar API references | `/docs` | Signature + example + source |
-| **doktor** | Updates CLAUDE.md, README, component counts. Verifies against filesystem. | Suggested after structural commits | `/update-docs` | Updated file list |
-| **e2e-runner** | Runs end-to-end tests: session lifecycle, instinct lifecycle, hook chains. Expensive. | Never | `/e2e` | 5 test scenarios |
+| **doktor** | Updates CLAUDE.md, README, component counts. Verifies against filesystem. | Suggested after structural commits | `/kdocs` | Updated file list |
+| **e2e-runner** | Runs end-to-end tests: session lifecycle, instinct lifecycle, hook chains. Expensive. | Never | `/ktest e2e` | 5 test scenarios |
 
 ---
 
@@ -208,36 +208,32 @@ On session end: Stop hooks persist to SQLite
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `/checkpoint` | Verify + commit + push in one step | `/checkpoint` |
+| `/checkpoint` | Full verification + intelligent review + commit + push | `/checkpoint` |
 | `/docs` | Search live documentation (Context7) | `/docs supabase-js insert` |
-| `/update-docs` | Update CLAUDE.md and README after structural changes | `/update-docs` |
+| `/kdocs` | Sync project documentation with code changes (4-layer) | `/kdocs` |
 
-### Verify (7)
+### Verify (5)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `/tdd` | Test-first development cycle | `/tdd implement pruneInstincts` |
-| `/verify` | Typecheck + tests + lint; `/verify full` adds security scan | `/verify` |
-| `/build-fix` | Diagnose and fix build errors | `/build-fix` |
-| `/code-review` | Review quality of staged or recent changes | `/code-review` |
-| `/test-coverage` | Coverage report per file | `/test-coverage` |
-| `/e2e` | End-to-end tests for full workflow verification (expensive) | `/e2e session lifecycle` |
+| `/ktest` | TDD + coverage + E2E testing pipeline | `/ktest implement pruneInstincts` |
+| `/kfix` | Diagnose build errors + refactor cleanup | `/kfix` |
+| `/kreview` | Quick language-aware code review | `/kreview` |
+| `/kperf` | Performance analysis and optimization | `/kperf hooks` |
 | `/eval` | Evaluate agent/skill quality with structured tests | `/eval security-reviewer` |
 
-### Specialize (2)
+### Specialize (1)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `/kplan` | Smart planning (routes to arkitect + konstruct based on task) | `/kplan migrate state to Supabase` |
-| `/workflow` | Show or guide through workflow chains (dev, qa, instinct, evolve) | `/workflow dev` |
+| `/kplan` | Smart planning (arkitect -> konstruct -> approval gate) | `/kplan migrate state to Supabase` |
 
-### Evolve (3)
+### Evolve (2)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `/instinct` | Manage instinct lifecycle: `learn`, `status`, `promote`, `prune`, `export`, `eval` | `/instinct learn` |
 | `/evolve` | Harness self-optimization analysis | `/evolve` |
-| `/refactor-clean` | Invoke refactor-cleaner agent | `/refactor-clean state-store.ts` |
 
 ---
 
@@ -257,7 +253,7 @@ On session end: Stop hooks persist to SQLite
 
 | Hook | Event | Matcher | What It Does |
 |------|-------|---------|-------------|
-| **git-push-reminder** | PreToolUse | Bash | Reminds to run `/verify` before git push |
+| **git-push-reminder** | PreToolUse | Bash | Reminds to run `/checkpoint` before git push |
 | **ts-review-reminder** | PostToolUse | Edit\|Write | Warns after 5+ `.ts` edits without code review |
 | **console-log-warn** | PostToolUse | Edit\|Write | Warns about `console.log()` in production code |
 | **deps-change-reminder** | PostToolUse | Edit\|Write | Reminds to run `/docs` when package.json dependencies change |
@@ -578,18 +574,18 @@ Central configuration file. Controls:
 | Situation | Component |
 |-----------|-----------|
 | Plan a new task | `/kplan` -> konstruct agent (opus) |
-| Do TDD | `/tdd` -> tdd-guide agent (sonnet) |
-| Review code before commit | `/checkpoint` -> code-reviewer agent |
+| Do TDD | `/ktest` -> tdd-guide agent (sonnet) |
+| Review code before commit | `/checkpoint` -> 5 reviewers + code-reviewer consolidation |
 | Check harness state | `/dashboard` |
 | Look up API documentation | `/docs supabase-js insert` -> almanak + Context7 MCP |
-| Fix build errors | `/build-fix` -> build-error-resolver agent |
+| Fix build errors | `/kfix` -> build-error-resolver agent |
 | Learn from session | `/instinct learn` |
 | Evolve the harness | `/evolve` -> harness-optimizer agent (opus) |
 | Design UI | `/kplan` with design signals -> arkitect agent |
-| Audit security | `/code-review` -> security-reviewer agent (opus) |
+| Audit security | `/checkpoint` -> security-reviewer agent (opus) |
 | Check instincts | `/instinct status` |
 | Export instincts | `/instinct export` |
-| Refactor code | `/refactor-clean` -> refactor-cleaner agent |
+| Refactor code | `/kfix clean` -> refactor-cleaner agent (sonnet) |
 
 ### Key Numbers
 
@@ -651,4 +647,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3 — Consolidated (180 tests passing, 20 hooks, 14 agents, 20 skills, 18 commands)
+v0.3.1 — Commands consolidated (180 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands)

@@ -12,8 +12,8 @@ Code first, explain after. All safety and quality hooks active.
 3. Get it clean — refactor without changing behavior
 
 ## Workflow
-- MUST follow /tdd for new features (red → green → refactor)
-- MUST run /verify before /checkpoint
+- MUST follow /ktest for new features (red → green → refactor)
+- MUST run /checkpoint (includes verification + review gate)
 - MUST read files before editing (no-context-guard active)
 - PREFER small commits with conventional messages
 

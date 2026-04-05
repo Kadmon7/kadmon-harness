@@ -1,4 +1,4 @@
-// Shared pattern evaluation logic used by both evaluate-session.js and pre-compact-save.js
+// Shared pattern evaluation logic used by session-end-all.js, pre-compact-save.js, and session-start.js
 // Extracts tool sequences from observations and evaluates them against pattern definitions.
 
 import fs from "node:fs";

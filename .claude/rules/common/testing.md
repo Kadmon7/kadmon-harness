@@ -27,10 +27,10 @@ alwaysApply: true
 - MUST run full test suite before committing
 
 ## Enforcement
-- tdd-guide agent enforces red-green-refactor cycle via /tdd command
-- e2e-runner agent runs full workflow tests via /e2e command
-- /verify command runs typecheck + tests + lint as verification loop (use `/verify full` for security scan)
-- /test-coverage command reports coverage per file
+- tdd-guide agent enforces red-green-refactor cycle via /ktest command
+- e2e-runner agent runs full workflow tests via /ktest e2e command
+- /checkpoint command runs typecheck + tests + lint as verification loop before commit
+- /ktest coverage command reports coverage per file
 - /eval command evaluates agent and skill quality with structured tests
 - post-edit-typecheck hook catches type errors immediately after edits
 - verification-loop skill orchestrates the full verify pipeline

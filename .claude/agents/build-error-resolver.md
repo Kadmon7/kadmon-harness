@@ -1,6 +1,6 @@
 ---
 name: build-error-resolver
-description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Command: /build-fix. Diagnoses root cause and proposes minimal fix.
+description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Command: /kfix. Diagnoses root cause and proposes minimal fix.
 model: sonnet
 tools: Read, Grep, Glob, Bash, LSP
 memory: project

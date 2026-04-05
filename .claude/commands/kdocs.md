@@ -4,11 +4,10 @@ agent: doktor
 ---
 
 ## Purpose
-Keep all 4 layers of documentation in sync with code after implementation changes.
-Not just counts — behavioral descriptions must match what the code actually does.
+Keep all 4 layers of documentation in sync with code after implementation changes. Not just counts — behavioral descriptions must match what the code actually does. Absorbs the former /update-docs with K-naming convention.
 
 ## Steps
-1. Invoke doktor agent (opus)
+1. Invoke **doktor agent** (opus)
 2. Scan recent git commits for behavioral AND structural changes
 3. **Layer 1 — Public docs**: Update CLAUDE.md, README.md, docs/GUIDE.md
 4. **Layer 2 — Rules**: Update .claude/rules/common/hooks.md, agents.md, development-workflow.md if affected

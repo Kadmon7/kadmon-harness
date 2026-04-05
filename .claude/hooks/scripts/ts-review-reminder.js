@@ -53,7 +53,7 @@ try {
 
   if (tsEditCount >= TS_THRESHOLD && !hasReview) {
     console.log(
-      `\u{1F50D} ${tsEditCount} .ts edits without review. Consider /code-review`,
+      `\u{1F50D} ${tsEditCount} .ts edits without review. Consider /kreview`,
     );
     process.exit(1);
   }

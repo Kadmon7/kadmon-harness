@@ -31,18 +31,18 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 |-------|-------|---------|---------|--------|
 | arkitect | opus | /kplan with architecture signals | /kplan | architecture-decision-records |
 | konstruct | opus | /kplan always | /kplan | architecture-decision-records |
-| code-reviewer | sonnet | /code-review, /checkpoint | /code-review | coding-standards, receiving-code-review |
-| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /code-review | coding-standards |
-| database-reviewer | opus | Auto on SQL/schema/migration/Supabase | — | database-migrations, postgres-patterns |
-| security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /code-review | safety-guard |
-| tdd-guide | sonnet | /tdd command | /tdd | tdd-workflow |
-| build-error-resolver | sonnet | Auto on TS compilation/Vitest failures | /build-fix | systematic-debugging |
-| refactor-cleaner | sonnet | /refactor-clean only | /refactor-clean | coding-standards |
-| performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | context-budget |
-| python-reviewer | sonnet | Auto on .py edits | — | claude-api |
+| code-reviewer | sonnet | /checkpoint, /kreview | /checkpoint, /kreview | coding-standards, receiving-code-review |
+| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /checkpoint, /kreview | coding-standards |
+| database-reviewer | opus | Auto on SQL/schema/migration/Supabase | /checkpoint | database-migrations, postgres-patterns |
+| security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /checkpoint | safety-guard |
+| tdd-guide | sonnet | /ktest command | /ktest | tdd-workflow |
+| build-error-resolver | sonnet | Auto on TS compilation/Vitest failures | /kfix | systematic-debugging |
+| refactor-cleaner | sonnet | /kfix clean only | /kfix | coding-standards |
+| performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | /kperf | context-budget |
+| python-reviewer | sonnet | Auto on .py edits | /checkpoint, /kreview | claude-api |
 | almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns |
-| doktor | opus | /update-docs, after feature/structural commits | /update-docs | — |
-| e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
+| doktor | opus | /kdocs, after feature/structural commits | /kdocs | — |
+| e2e-runner | sonnet | /ktest e2e only (expensive) | /ktest | e2e-testing |
 | harness-optimizer | opus | /evolve only | /evolve | search-first |
 
 ## Auto-Invoke (no prompt needed)
@@ -66,8 +66,8 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation
 - NEVER invoke arkitect for routine bug fixes or small features
 - NEVER invoke harness-optimizer without explicit /evolve command
-- NEVER invoke e2e-runner without explicit /e2e command (tests are expensive)
-- NEVER invoke refactor-cleaner without explicit /refactor-clean command
+- NEVER invoke e2e-runner without explicit /ktest e2e command (tests are expensive)
+- NEVER invoke refactor-cleaner without explicit /kfix clean command
 
 ## Parallel Execution
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)

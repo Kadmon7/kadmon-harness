@@ -6,7 +6,7 @@
 
 ## 1. Que es Kadmon Harness
 
-Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 20 hooks, 14 agentes especializados y un motor de aprendizaje por instintos.
+Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Claude de un asistente reactivo en un sistema que **observa, recuerda, verifica, se especializa y evoluciona**. Impone el principio `no_context` — nunca inventar, nunca alucinar — mediante 20 hooks, 15 agentes especializados y un motor de aprendizaje por instintos.
 
 ### El Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 
@@ -14,8 +14,8 @@ Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Clau
 |------|----------|-------------------|
 | **Observe** | Registra cada operacion, gestiona contexto | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persiste sesiones, instintos, decisiones | SQLite, sessions, `/checkpoint`, `/docs` |
-| **Verify** | Tests primero, review, gates de calidad | `/tdd`, `/verify`, `/code-review`, typecheck hooks |
-| **Specialize** | Agentes de dominio, skills reutilizables | 14 agentes, 20 skills, `/kplan` |
+| **Verify** | Tests primero, review, gates de calidad | `/ktest`, `/checkpoint`, `/kreview`, typecheck hooks |
+| **Specialize** | Agentes de dominio, skills reutilizables | 15 agentes, 20 skills, `/kplan` |
 | **Evolve** | Aprende de sesiones, extrae patrones | `/instinct learn`, `/evolve`, instinct engine |
 
 ### Como difiere de Claude Code vanilla
@@ -24,7 +24,7 @@ Kadmon Harness es una capa operativa sobre Claude Code CLI que transforma a Clau
 |--------------------|--------------------|
 | Sin memoria entre sesiones | SQLite persiste sesiones, instintos y costos |
 | Sin verificacion automatica | Hooks validan tipos, lint y seguridad en cada edit |
-| Agente generico | 14 agentes especializados (5 opus, 9 sonnet) |
+| Agente generico | 15 agentes especializados (5 opus, 9 sonnet) |
 | Sin aprendizaje | Motor de instintos con scoring de confianza (0.3->0.9) |
 | Sin observabilidad | JSONL por sesion + dashboard CLI |
 
@@ -87,13 +87,11 @@ El `/dashboard` muestra instintos activos, sesiones recientes, costos y salud de
 /kplan implementar endpoint de busqueda por embedding
 
 # 5. Implementar con TDD
-/tdd crear funcion searchByEmbedding
+/ktest crear funcion searchByEmbedding
 
 # 6. Verificar despues de implementar
-/verify
-
 # 7. Si hay errores de compilacion
-/build-fix
+/kfix
 
 # 8. Buscar documentacion cuando sea necesario
 /docs supabase-js rpc function
@@ -106,7 +104,7 @@ El flujo es siempre: **Plan -> Test -> Implement -> Verify**. Los hooks se encar
 
 ```bash
 # 9. Revisar codigo antes de commit
-/code-review
+/kreview
 
 # 10. Guardar progreso (verifica + commit + push)
 /checkpoint
@@ -118,7 +116,7 @@ El flujo es siempre: **Plan -> Test -> Implement -> Verify**. Los hooks se encar
 /dashboard
 ```
 
-El `/checkpoint` ejecuta `/verify` automaticamente antes de commitear. Si falla, no commitea.
+El `/checkpoint` incluye verificacion automatica (build, typecheck, tests, lint) + review inteligente antes de commitear. Si falla, no commitea.
 
 ### Diagrama del flujo completo
 
@@ -127,13 +125,11 @@ Session start --> hooks cargan contexto automaticamente
     |
     +- /kplan --> planificar antes de implementar
     |
-    +- /tdd --> escribir tests primero (RED -> GREEN -> REFACTOR)
+    +- /ktest --> escribir tests primero (RED -> GREEN -> REFACTOR)
     |
     +- [implementar]
     |
-    +- /verify --> typecheck + tests + lint
-    |
-    +- /checkpoint --> review + commit + push
+    +- /checkpoint --> verify + review + commit + push
     |
     +- /instinct learn --> extraer instintos de la sesion
     |
@@ -146,12 +142,12 @@ Session end --> hooks persisten todo a SQLite
 > /kplan Agregar busqueda hebrea a ToratNetz
   -> konstruct agent (opus) analiza el codebase y produce un plan paso a paso
 
-> /tdd Implementar funcion searchHebrew
+> /ktest Implementar funcion searchHebrew
   -> tdd-guide (sonnet) escribe test fallido primero
   -> implementas hasta que pase
   -> refactorizas
 
-> /verify
+> /checkpoint
   -> npm run build OK
   -> tsc --noEmit OK
   -> vitest run OK
@@ -183,36 +179,32 @@ Session end --> hooks persisten todo a SQLite
 
 | Comando | Cuando usar | Ejemplo |
 |---------|-------------|---------|
-| `/checkpoint` | Guardar progreso — verifica, commitea y pushea | `/checkpoint` |
+| `/checkpoint` | Full verification + review + commit + push | `/checkpoint` |
 | `/docs` | Buscar documentacion actualizada de cualquier libreria | `/docs sql.js prepared statements` |
-| `/update-docs` | Actualizar CLAUDE.md y README tras cambios estructurales | `/update-docs` |
+| `/kdocs` | Sincronizar documentacion del proyecto con cambios de codigo | `/kdocs` |
 
-### Verify (7)
+### Verify (5)
 
 | Comando | Cuando usar | Ejemplo |
 |---------|-------------|---------|
-| `/tdd` | Empezar ciclo test-first para nueva funcionalidad | `/tdd Implementar pruneInstincts` |
-| `/verify` | Verificacion completa antes de commit; `/verify full` incluye security scan | `/verify` |
-| `/build-fix` | Cuando TypeScript no compila | `/build-fix` |
-| `/code-review` | Revisar calidad de cambios staged | `/code-review` |
-| `/test-coverage` | Ver cobertura por archivo | `/test-coverage` |
-| `/e2e` | Tests end-to-end de workflows completos (costoso) | `/e2e session lifecycle` |
+| `/ktest` | TDD + coverage + E2E pipeline | `/ktest Implementar pruneInstincts` |
+| `/kfix` | Diagnosticar errores de build + refactorizar | `/kfix` |
+| `/kreview` | Review rapido de codigo con deteccion de lenguaje | `/kreview` |
+| `/kperf` | Analisis y optimizacion de performance | `/kperf hooks` |
 | `/eval` | Evaluar calidad de un agente o skill | `/eval security-reviewer` |
 
-### Specialize (2)
+### Specialize (1)
 
 | Comando | Cuando usar | Ejemplo |
 |---------|-------------|---------|
 | `/kplan` | Tareas complejas, multi-archivo, enfoque incierto | `/kplan Migrar estado a Supabase` |
-| `/workflow` | Ver o seguir un workflow guiado (dev, qa, instinct, evolve) | `/workflow dev` |
 
-### Evolve (3)
+### Evolve (2)
 
 | Comando | Cuando usar | Ejemplo |
 |---------|-------------|---------|
 | `/instinct` | Gestionar ciclo de instintos: `learn`, `status`, `promote`, `prune`, `export`, `eval` | `/instinct learn` |
 | `/evolve` | Analisis de auto-optimizacion del harness | `/evolve` |
-| `/refactor-clean` | Refactorizar codigo (nunca automatico) | `/refactor-clean state-store.ts` |
 
 ### Top 10 comandos mas usados (con detalle)
 
@@ -224,24 +216,18 @@ Session end --> hooks persisten todo a SQLite
 ```
 Invoca konstruct (opus). Produce un plan numerado con fases, verificacion por paso, y estimaciones S/M/L.
 
-**2. `/tdd`** — Desarrollo test-first
+**2. `/ktest`** — Desarrollo test-first
 ```bash
-/tdd crear funcion calculateConfidence
-/tdd implementar endpoint de busqueda por embedding
+/ktest crear funcion calculateConfidence
+/ktest implementar endpoint de busqueda por embedding
 ```
 Invoca tdd-guide (sonnet). Genera test primero, espera que falle (red), luego implementa (green), luego refactoriza.
 
-**3. `/verify`** — Verificacion completa
-```bash
-/verify
-```
-Ejecuta en orden: build -> typecheck -> tests -> lint. Se detiene al primer fallo.
-
-**4. `/checkpoint`** — Guardar progreso
+**3. `/checkpoint`** — Verificacion completa + commit
 ```bash
 /checkpoint
 ```
-Ejecuta /verify, luego code-review, luego commit con formato convencional, luego push.
+Ejecuta en orden: build -> typecheck -> tests -> lint -> 5 reviewers paralelos -> commit + push. Se detiene al primer fallo.
 
 **5. `/dashboard`** — Ver estado del harness
 ```bash
@@ -258,9 +244,9 @@ Muestra: instintos activos con barras de confianza, sesiones recientes, costos, 
 ```
 Busca via Context7 MCP. Si no encuentra, fallback a WebSearch. Nunca inventa.
 
-**7. `/code-review`** — Revisar codigo
+**7. `/kreview`** — Revisar codigo
 ```bash
-/code-review
+/kreview
 ```
 Invoca code-reviewer (TypeScript specialist mode) + security-reviewer (si aplica). Findings con severidad BLOCK/WARN/NOTE.
 
@@ -304,12 +290,12 @@ Guarda estado antes de compactar. Usa en sesiones largas cuando Claude se pone l
 |--------|--------|---------|---------------|
 | arkitect | opus | `/kplan` | Disenar sistemas nuevos, decisiones arquitectonicas |
 | konstruct | opus | `/kplan` | Planificar tareas multi-archivo |
-| code-reviewer | sonnet | `/code-review`, `/checkpoint` | Antes de cada commit |
-| tdd-guide | sonnet | `/tdd` | Desarrollo test-first |
-| refactor-cleaner | sonnet | `/refactor-clean` | Limpiar codigo, eliminar duplicacion |
+| code-reviewer | sonnet | `/kreview`, `/checkpoint` | Antes de cada commit |
+| tdd-guide | sonnet | `/ktest` | Desarrollo test-first |
+| refactor-cleaner | sonnet | `/kfix clean` | Limpiar codigo, eliminar duplicacion |
 | almanak | sonnet | `/docs` | Buscar API docs actualizadas via Context7 |
-| doktor | opus | `/update-docs` | Actualizar CLAUDE.md y README |
-| e2e-runner | sonnet | `/e2e` | Tests E2E completos (costoso) |
+| doktor | opus | `/kdocs` | Sincronizar documentacion del proyecto |
+| e2e-runner | sonnet | `/ktest e2e` | Tests E2E completos (costoso) |
 | harness-optimizer | opus | `/evolve` | Analisis de optimizacion (solo recomendaciones) |
 
 **Regla de modelo**: opus para decisiones complejas (5 agentes), sonnet para implementacion (9 agentes). Nunca haiku para review ni seguridad.
@@ -388,7 +374,7 @@ Kadmon tiene **20 hooks** que se ejecutan automaticamente en distintos momentos.
 
 | Hook | Que advierte |
 |------|-------------|
-| git-push-reminder | Recuerda ejecutar `/verify` antes de git push |
+| git-push-reminder | Recuerda ejecutar `/checkpoint` antes de git push |
 | ts-review-reminder | Advierte tras 5+ ediciones .ts sin code review |
 | console-log-warn | Detecta `console.log()` en codigo de produccion |
 | deps-change-reminder | Recuerda correr `/docs` al cambiar dependencias en package.json |
@@ -493,7 +479,7 @@ npx tsx scripts/dashboard.ts
   Produce plan: 3 pasos, 2 archivos, complejidad S
 
 # 2. Test first
-> /tdd Implementar exportInstincts
+> /ktest Implementar exportInstincts
 
   tdd-guide escribe test en tests/lib/instinct-manager.test.ts:
   - test: exporta instintos activos como JSON
@@ -511,8 +497,8 @@ npx tsx scripts/dashboard.ts
 
   Tests pasan (GREEN)
 
-# 4. Verificar
-> /verify
+# 4. Verificar + commit
+> /checkpoint
   Build OK | Typecheck OK | Tests 78/78 OK | Lint OK
 
 # 5. Commit
@@ -531,7 +517,7 @@ npx tsx scripts/dashboard.ts
 
 ```
 # Error: TypeScript no compila despues de editar state-store.ts
-> /build-fix
+> /kfix
   build-error-resolver (sonnet):
   1. Corre npm run build -> lee error
   2. "Property 'syncedAt' does not exist on type 'SyncQueueItem'"
@@ -622,8 +608,8 @@ El skill `iterative-retrieval` define un loop de 4 fases:
 ```bash
 /kplan implementar busqueda semantica de pesukim
 /docs supabase pgvector similarity search
-/tdd crear funcion matchTorahChunks
-/code-review    # auto-invoca database-reviewer en SQL
+/ktest crear funcion matchTorahChunks
+/kreview    # auto-invoca database-reviewer en SQL
 ```
 
 ---
@@ -642,7 +628,7 @@ UNIVERSO KAIRON es un AI companion universe. Stack: **React Native + ElevenLabs 
 /docs react-native FlatList virtualization
 
 # Implementar con TDD
-/tdd crear componente ChatBubble
+/ktest crear componente ChatBubble
 ```
 
 ### ElevenLabs voice
@@ -780,7 +766,7 @@ Si el dashboard muestra instintos y hook health, la instalacion fue exitosa.
 
 ### Typecheck falla despues de editar
 - **Verificar**: El hook `post-edit-typecheck` imprime errores en stderr.
-- **Fix rapido**: `/build-fix` invoca build-error-resolver automaticamente.
+- **Fix rapido**: `/kfix` invoca build-error-resolver automaticamente.
 - **Fix manual**: Leer el error, corregir tipos en `scripts/lib/types.ts`.
 
 ### Context7 MCP caido
@@ -789,12 +775,12 @@ Si el dashboard muestra instintos y hook health, la instalacion fue exitosa.
 - **Fallback**: almanak agent usa WebSearch como respaldo automatico.
 
 ### Instintos no se crean
-- **Requisito**: La sesion necesita >= 10 tool calls para que `evaluate-session` active.
+- **Requisito**: La sesion necesita >= 10 tool calls para que `session-end-all` (pattern evaluation) active.
 - **Fix**: Usa `/instinct learn` manualmente para forzar extraccion de patrones.
 
 ### Tests fallan en CI pero pasan local
 - **Causa comun**: Tests dependen de `~/.kadmon/kadmon.db` en lugar de `:memory:`.
-- **Regla**: Todo test debe usar `:memory:` SQLite. Verificar con `/test-coverage`.
+- **Regla**: Todo test debe usar `:memory:` SQLite. Verificar con `/ktest coverage`.
 
 ### "no_context: must Read [file] before editing"
 - **Causa**: El hook `no-context-guard` bloqueo una edicion porque el archivo no fue leido primero.
@@ -808,8 +794,8 @@ Si el dashboard muestra instintos y hook health, la instalacion fue exitosa.
 - **Causa**: El hook `block-no-verify` bloqueo un comando git con `--no-verify`.
 - **Solucion**: No hay override — es intencional. Si los pre-commit hooks fallan, arreglar la causa raiz:
   ```bash
-  /build-fix    # Si es error de compilacion
-  /verify       # Para ver que falla exactamente
+  /kfix         # Si es error de compilacion
+  /checkpoint   # Para verificacion completa
   ```
 
 ### "config-protection: [file] is a protected config file"
@@ -844,7 +830,7 @@ Si el dashboard muestra instintos y hook health, la instalacion fue exitosa.
 - **Causa**: El hook `post-edit-typecheck` detecto errores de tipo.
 - **Solucion**:
   ```bash
-  /build-fix
+  /kfix
   # Errores comunes:
   # TS2307 (cannot find module) -> agregar .js extension al import
   # TS7016 (no declaration file) -> agregar @types/paquete
@@ -861,5 +847,5 @@ Si el dashboard muestra instintos y hook health, la instalacion fue exitosa.
 
 ---
 
-*Kadmon Harness v0.3 — 14 agentes, 18 comandos, 20 skills, 20 hooks, 180 tests*
+*Kadmon Harness v0.3.1 — 15 agentes, 14 comandos, 20 skills, 20 hooks, 180 tests*
 *Principio: `no_context` — si no hay evidencia, no inventar.*
