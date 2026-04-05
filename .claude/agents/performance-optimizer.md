@@ -4,9 +4,14 @@ description: Use PROACTIVELY when code contains O(n^2) loops, slow queries, memo
 model: sonnet
 tools: Read, Grep, Glob, Bash, LSP
 memory: project
+skills: context-budget
 ---
 
 # Performance Optimizer
+
+## Skill Reference
+
+Before optimizing context window usage, read `.claude/skills/context-budget.md` for token estimation heuristics and compaction timing patterns.
 
 ## Role
 Performance specialist identifying bottlenecks and optimizing speed, memory, and efficiency across the full stack: Node.js, TypeScript, React, React Native, sql.js, and Supabase.

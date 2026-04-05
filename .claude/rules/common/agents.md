@@ -21,32 +21,33 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Routing
 - MUST use opus model for: arkitect, konstruct, security-reviewer, database-reviewer, harness-optimizer
-- MUST use sonnet model for: code-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, almanak, e2e-runner
+- MUST use sonnet model for: code-reviewer, typescript-reviewer, tdd-guide, build-error-resolver, refactor-cleaner, performance-optimizer, python-reviewer, almanak, e2e-runner
 - MUST use opus model for doktor (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
-## Agent Catalog (14)
+## Agent Catalog (15)
 
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
 | arkitect | opus | /kplan with architecture signals | /kplan | architecture-decision-records |
 | konstruct | opus | /kplan always | /kplan | architecture-decision-records |
-| code-reviewer | sonnet | /code-review, /checkpoint, auto on .ts/.tsx | /code-review | coding-standards, receiving-code-review |
+| code-reviewer | sonnet | /code-review, /checkpoint | /code-review | coding-standards, receiving-code-review |
+| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /code-review | coding-standards |
 | database-reviewer | opus | Auto on SQL/schema/migration/Supabase | — | database-migrations, postgres-patterns |
 | security-reviewer | opus | Auto on auth/keys/input/exec/paths/SQL | /code-review | safety-guard |
 | tdd-guide | sonnet | /tdd command | /tdd | tdd-workflow |
 | build-error-resolver | sonnet | Auto on TS compilation/Vitest failures | /build-fix | systematic-debugging |
 | refactor-cleaner | sonnet | /refactor-clean only | /refactor-clean | coding-standards |
-| performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | — |
-| python-reviewer | sonnet | Auto on .py edits | — | — |
-| almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | — |
+| performance-optimizer | sonnet | Auto on O(n^2)/slow queries/memory | — | context-budget |
+| python-reviewer | sonnet | Auto on .py edits | — | claude-api |
+| almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns |
 | doktor | opus | /update-docs, after feature/structural commits | /update-docs | — |
 | e2e-runner | sonnet | /e2e only (expensive) | /e2e | e2e-testing |
-| harness-optimizer | opus | /evolve only | /evolve | — |
+| harness-optimizer | opus | /evolve only | /evolve | search-first |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → security-reviewer
-- Editing .ts/.tsx files → code-reviewer (TypeScript specialist mode)
+- Editing .ts/.tsx/.js/.jsx files → typescript-reviewer
 - Editing .py files → python-reviewer
 - Editing SQL/schema/migration/Supabase client → database-reviewer
 - TypeScript compilation or Vitest fails → build-error-resolver
@@ -56,6 +57,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Manual Rules
 - MUST invoke code-reviewer before any commit via /checkpoint
+- MUST invoke typescript-reviewer for .ts/.tsx/.js/.jsx file changes
 - MUST invoke konstruct via /kplan — runs for every /kplan invocation
 - MUST invoke arkitect before konstruct when /kplan task contains architecture signals
 - MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification

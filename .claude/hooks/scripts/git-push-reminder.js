@@ -29,7 +29,9 @@ try {
             hasVerify = true;
           if (
             e.toolName === "Agent" &&
-            e.metadata?.agentType === "code-reviewer"
+            ["code-reviewer", "typescript-reviewer"].includes(
+              e.metadata?.agentType,
+            )
           )
             hasReview = true;
         } catch {

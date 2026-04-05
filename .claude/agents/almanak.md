@@ -4,9 +4,14 @@ description: Use PROACTIVELY when code references unfamiliar APIs or when no_con
 model: sonnet
 tools: Read, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
 memory: user
+skills: mcp-server-patterns
 ---
 
 # Docs Lookup
+
+## Skill Reference
+
+When debugging MCP connection issues or configuring MCP servers, read `.claude/skills/mcp-server-patterns.md` for configuration, health monitoring, and troubleshooting patterns.
 
 ## Role
 

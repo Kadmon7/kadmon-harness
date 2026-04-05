@@ -4,9 +4,14 @@ description: Invoked exclusively via /evolve command. Never auto-triggered. Anal
 model: opus
 tools: Read, Grep, Glob, Bash
 memory: project
+skills: search-first
 ---
 
 # Harness Optimizer
+
+## Skill Reference
+
+When analyzing workflow patterns, read `.claude/skills/search-first.md` for the 3-phase search-explore-act methodology and evaluate-session pattern tracking.
 
 ## Role
 Kadmon Harness self-improvement specialist. Analyzes every component of the harness and proposes evolution paths across all dimensions.

@@ -62,12 +62,13 @@ docs/
 - `KADMON_TEST_DB` — Override SQLite DB path (used in tests with `:memory:`)
 - `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip (non-critical only)
 
-## Agents (14)
+## Agents (15)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | arkitect | opus | System design, architecture decisions |
 | konstruct | opus | Implementation planning, task breakdown |
-| code-reviewer | sonnet | Code quality, TypeScript, and security review |
+| code-reviewer | sonnet | Code quality, security, and general review |
+| typescript-reviewer | sonnet | TypeScript/JavaScript type safety and patterns |
 | database-reviewer | opus | PostgreSQL/Supabase review |
 | security-reviewer | opus | Security vulnerability detection |
 | tdd-guide | sonnet | Test-driven development workflow |
@@ -152,4 +153,4 @@ Each agent defines its own labeled output format in `.claude/agents/*.md`.
 - `npx tsx -e` produces no output on Windows — use temp script files or `node --input-type=module` with compiled dist/ imports
 
 ## Status
-v0.3 — Consolidated (180 tests passing, 20 hooks, 14 agents, 20 skills, 18 commands)
+v0.3 — Consolidated (180 tests passing, 20 hooks, 15 agents, 20 skills, 18 commands)
