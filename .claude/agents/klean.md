@@ -2,7 +2,7 @@
 name: klean
 description: Invoked exclusively via /kfix clean command. Never auto-triggered. Identifies dead code, duplication, and structural issues.
 model: sonnet
-tools: Read, Grep, Glob, Edit, LSP
+tools: Read, Grep, Glob, Edit
 memory: project
 ---
 
@@ -48,7 +48,7 @@ Review output critically — detection tools produce false positives. Every item
 
 ### 2. Verify
 For each candidate item:
-- Use LSP `findReferences` for exported TypeScript symbols (more accurate than text search)
+- Use Grep to search for all references to exported TypeScript symbols across the codebase
 - Fall back to Grep for non-symbol searches (strings, comments, configs, non-TS files)
 - Check for dynamic imports: `import()`, `require()`, string-based references
 - Check if part of a public API or exported package interface

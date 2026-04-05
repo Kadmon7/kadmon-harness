@@ -2,7 +2,7 @@
 name: mekanik
 description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Command: /kfix. Diagnoses root cause and proposes minimal fix.
 model: sonnet
-tools: Read, Grep, Glob, Bash, LSP
+tools: Read, Grep, Glob, Bash
 memory: project
 ---
 

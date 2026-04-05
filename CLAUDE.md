@@ -84,4 +84,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v0.3.3 — Python stack (260 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands, 20 rules [9 common + 6 TS + 5 Python])
+v0.3.3 — Python stack (260 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])

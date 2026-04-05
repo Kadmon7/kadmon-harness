@@ -2,9 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`180 tests` | `20 hooks` | `15 agents` | `20 skills` | `14 commands`
-
-> For practical usage guide, see [docs/GUIDE.md](docs/GUIDE.md) (Spanish).
+`260 tests` | `20 hooks` | `15 agents` | `20 skills` | `14 commands` | `19 rules`
 
 ## Mantra
 
@@ -90,7 +88,7 @@ On session end: Stop hooks persist to SQLite
 │  └─────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 14 Agents│  │ 20 Skills│  │ 15 Rules │             │
+│  │ 15 Agents│  │ 20 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -111,9 +109,9 @@ On session end: Stop hooks persist to SQLite
 
 ---
 
-## Agents (14)
+## Agents (15)
 
-### Opus Agents (5) — complex decisions
+### Opus Agents (6) — complex decisions
 
 | Agent | Purpose | Auto-invokes when... | Manual | Output |
 |-------|---------|---------------------|--------|--------|
@@ -122,8 +120,9 @@ On session end: Stop hooks persist to SQLite
 | **database-reviewer** | Reviews SQL, schemas, migrations, Supabase code. Validates RLS, pgvector, sql.js. | On SQL/schema/Supabase edits | -- | Schema/Queries review |
 | **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/checkpoint` | Severity report |
 | **alchemik** | Analyzes hook latency, instinct quality, skill gaps, cost trends. Never auto-applies. | Never | `/evolve` | PROMOTE/CREATE/OPTIMIZE report |
+| **doktor** | Updates CLAUDE.md, README, component counts. Verifies against filesystem. | Suggested after structural commits | `/kdocs` | Updated file list |
 
-### Sonnet Agents (10) — implementation and review
+### Sonnet Agents (9) — implementation and review
 
 | Agent | Purpose | Auto-invokes when... | Manual | Output |
 |-------|---------|---------------------|--------|--------|
@@ -135,7 +134,6 @@ On session end: Stop hooks persist to SQLite
 | **kronos** | Analyzes O(n^2) loops, slow queries, memory-intensive patterns. | On performance pattern detection | `/kperf` | Performance report |
 | **python-reviewer** | Reviews Python code: ML, embeddings, backends. | On `.py` edits | `/kreview`, `/checkpoint` | Python review |
 | **almanak** | Searches documentation via Context7 MCP. Fallback to WebSearch. Never invents APIs. | On unfamiliar API references | `/docs` | Signature + example + source |
-| **doktor** | Updates CLAUDE.md, README, component counts. Verifies against filesystem. | Suggested after structural commits | `/kdocs` | Updated file list |
 | **kartograf** | Runs end-to-end tests: session lifecycle, instinct lifecycle, hook chains. Expensive. | Never | `/ktest e2e` | 5 test scenarios |
 
 ---
@@ -194,7 +192,7 @@ On session end: Stop hooks persist to SQLite
 
 ---
 
-## Commands (18)
+## Commands (14)
 
 ### Observe (3)
 
@@ -291,7 +289,7 @@ On session end: Stop hooks persist to SQLite
 
 ---
 
-## Rules (15)
+## Rules (19)
 
 ### Common Rules (9) — always loaded
 
@@ -307,16 +305,25 @@ On session end: Stop hooks persist to SQLite
 | **security.md** | No secrets in git, Zod for input, parameterized SQL | security-reviewer, config-protection |
 | **testing.md** | 80%+ coverage, `:memory:` SQLite, Vitest, TDD | feniks, post-edit-typecheck |
 
-### TypeScript Rules (6) — loaded on `.ts`/`.tsx` files
+### TypeScript Rules (5) — loaded on `.ts`/`.tsx` files
 
 | File | What It Enforces | Enforced By |
 |------|-----------------|-------------|
 | **coding-style.md** | Strict mode, .js extensions, `import type` | kody |
 | **hooks.md** | parseStdin(), lifecycle hooks from dist/, `npm run build` | post-edit-typecheck |
-| **lsp-usage.md** | Prefer LSP over Grep for TS navigation, findReferences before refactor | kody |
 | **patterns.md** | Result pattern, Zod schemas, `catch (e: unknown)` | kody |
 | **security.md** | Branded types, path.resolve(), parameterized queries | security-reviewer |
 | **testing.md** | vi.fn(), mock externals, close DB in afterEach | feniks |
+
+### Python Rules (5) — loaded on `.py`/`.pyi` files
+
+| File | What It Enforces | Enforced By |
+|------|-----------------|-------------|
+| **coding-style.md** | PEP 8, naming, type annotations, black/ruff/isort | python-reviewer |
+| **hooks.md** | Python PostToolUse hooks (black/ruff, mypy/pyright) | python-reviewer |
+| **patterns.md** | Protocol, dataclasses, context managers, error handling | python-reviewer |
+| **security.md** | Secret management, subprocess safety, deserialization | python-reviewer, security-reviewer |
+| **testing.md** | pytest, fixtures, parametrize, 80%+ coverage | python-reviewer, feniks |
 
 ---
 
@@ -468,7 +475,7 @@ Sync queue for future cloud persistence (Supabase v2).
 
 ---
 
-## Tests (180)
+## Tests (260)
 
 Framework: Vitest. All database tests use `:memory:` SQLite.
 
@@ -480,19 +487,19 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 | Category | Files | What They Verify |
 |----------|-------|-----------------|
-| Hook tests | 9 | block-no-verify, commit-format-guard, console-log-warn, no-context-guard, observe-pre, ts-review-reminder, session-start, session-end-all, pre-compact-save |
+| Hook tests | 20 | All 20 hooks (block-no-verify, commit-format-guard, commit-quality, config-protection, console-log-warn, deps-change-reminder, git-push-reminder, mcp-health, no-context-guard, observe-pre, observe-post, post-edit-format, post-edit-typecheck, pr-created, pre-compact-save, quality-gate, session-end-all, session-start, ts-review-reminder) |
 | Library tests | 8 | dashboard, utils, instinct-manager, state-store, cost-calculator, session-manager, project-detect, pattern-engine |
 | E2E tests | 1 | instinct-lifecycle end-to-end |
+| Other | 1 | global-teardown |
 
 ---
 
-## Plugins (6 active)
+## Plugins (5 active)
 
 | Plugin | Type | Value | What It Adds |
 |--------|------|-------|-------------|
 | **context7** | MCP Server | CRITICAL | Live library documentation via `resolve-library-id` + `query-docs` |
 | **skill-creator** | Skill Plugin | CRITICAL | Create, modify, evaluate, and benchmark skills |
-| **typescript-lsp** | LSP Plugin | HIGH | TypeScript Language Server: goToDefinition, findReferences, hover, documentSymbol |
 | **supabase** | MCP Server | MEDIUM | Supabase integration: DB, auth, storage, edge functions, migrations (standby for v2) |
 | **frontend-design** | Skill Plugin | LOW | Production-grade frontend interfaces with distinctive design |
 | **ralph-loop** | Skill Plugin | LOW | Recurring execution loop (ralph-loop, cancel-ralph, help) |
@@ -591,16 +598,15 @@ Central configuration file. Controls:
 
 | Metric | Value |
 |--------|-------|
-| Agents | 14 (5 opus, 9 sonnet) |
+| Agents | 15 (6 opus, 9 sonnet) |
 | Skills | 20 |
-| Commands | 18 |
+| Commands | 14 |
 | Hooks | 20 |
-| Rules | 15 (9 common + 6 TypeScript) |
-| Contexts | 3 |
-| Tests | 180 passing |
+| Rules | 19 (9 common + 5 TypeScript + 5 Python) |
+| Tests | 260 passing |
 | SQLite Tables | 4 + 8 indexes |
 | MCPs | 3 (GitHub, Context7, Supabase) |
-| Plugins | 6 active |
+| Plugins | 5 active |
 
 ---
 
@@ -647,4 +653,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3.1 — Commands consolidated (180 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands)
+v0.3.3 — Python stack (260 tests passing, 20 hooks, 15 agents, 20 skills, 14 commands, 19 rules)
