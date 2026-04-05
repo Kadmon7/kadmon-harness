@@ -7,7 +7,7 @@ skills: [eval-harness]
 Invoke eval-harness skill to measure agent/skill effectiveness against defined criteria.
 
 ## Arguments
-- `<agent-name>` — evaluate a specific agent (e.g., `/eval code-reviewer`)
+- `<agent-name>` — evaluate a specific agent (e.g., `/eval kody`)
 - `<skill-name>` — evaluate a specific skill (e.g., `/eval search-first`)
 
 ## Steps
@@ -22,7 +22,7 @@ Evaluation report with scores and recommendations.
 
 ## Example
 ```
-Eval: code-reviewer agent
+Eval: kody agent
 
 | Criterion           | Result | Notes |
 |---------------------|--------|-------|

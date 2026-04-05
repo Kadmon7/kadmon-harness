@@ -29,19 +29,19 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 |-------|-------|
 | arkitect | opus |
 | konstruct | opus |
-| code-reviewer | sonnet |
+| kody | sonnet |
 | typescript-reviewer | sonnet |
 | database-reviewer | opus |
 | security-reviewer | opus |
-| tdd-guide | sonnet |
-| build-error-resolver | sonnet |
-| refactor-cleaner | sonnet |
-| performance-optimizer | sonnet |
+| feniks | sonnet |
+| mekanik | sonnet |
+| klean | sonnet |
+| kronos | sonnet |
 | python-reviewer | sonnet |
 | almanak | sonnet |
 | doktor | opus |
-| e2e-runner | sonnet |
-| harness-optimizer | opus |
+| kartograf | sonnet |
+| alchemik | opus |
 
 ## Commands (14)
 - **Observe** (3): /dashboard, /kompact, /kompas

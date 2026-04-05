@@ -1,6 +1,6 @@
 ---
 name: coding-standards
-description: TypeScript/JavaScript conventions for Kadmon projects — naming, types, imports, error handling, immutability, validation. Use this skill whenever writing new code, reviewing code for convention compliance, or unsure about naming (camelCase vs PascalCase vs snake_case), import style (node: prefix, .js extensions), error handling patterns, Zod validation, immutability, or file organization. Also consult when onboarding to the project or when the code-reviewer agent flags TypeScript issues.
+description: TypeScript/JavaScript conventions for Kadmon projects — naming, types, imports, error handling, immutability, validation. Use this skill whenever writing new code, reviewing code for convention compliance, or unsure about naming (camelCase vs PascalCase vs snake_case), import style (node: prefix, .js extensions), error handling patterns, Zod validation, immutability, or file organization. Also consult when onboarding to the project or when the kody agent flags TypeScript issues.
 ---
 
 # Coding Standards
@@ -11,7 +11,7 @@ TypeScript/JavaScript conventions for the Kadmon Harness ecosystem. These exist 
 - Writing any new TypeScript code
 - Reviewing code for convention compliance
 - Onboarding to the project or entering an unfamiliar module
-- When the code-reviewer agent flags issues — this skill explains why the rule exists
+- When the kody agent flags issues — this skill explains why the rule exists
 
 ## How It Works
 
@@ -126,7 +126,7 @@ import { openDb, saveToDisk } from './state-store.js';
 | Missing .js in local imports | Fails at runtime under Node16 module resolution | Always add `.js` extension to relative import paths |
 
 ## Integration
-- **code-reviewer agent** (sonnet): Auto-invoked on .ts/.tsx edits. Checks strict mode, type safety, naming conventions, import patterns, and immutability. Runs via /kreview and /checkpoint.
+- **kody agent** (sonnet): Auto-invoked on .ts/.tsx edits. Checks strict mode, type safety, naming conventions, import patterns, and immutability. Runs via /kreview and /checkpoint.
 - **post-edit-typecheck hook**: Validates TypeScript compilation immediately after every Edit/Write operation — catches violations in real time.
 - **quality-gate hook**: Runs lint and style checks after every Edit/Write operation.
 - **console-log-warn hook**: Flags console.log in production code — use the structured log() utility instead.
@@ -139,4 +139,4 @@ import { openDb, saveToDisk } from './state-store.js';
 - Prefer `const` over `let` — use `let` only when reassignment is truly needed
 
 ## no_context Application
-Coding standards are derived from the actual codebase patterns in types.ts, state-store.ts, and utils.ts — not from generic best practices. When in doubt, read the existing code in the module you are editing. The code-reviewer agent validates compliance, but understanding WHY a convention exists matters more than memorizing the rule.
+Coding standards are derived from the actual codebase patterns in types.ts, state-store.ts, and utils.ts — not from generic best practices. When in doubt, read the existing code in the module you are editing. The kody agent validates compliance, but understanding WHY a convention exists matters more than memorizing the rule.

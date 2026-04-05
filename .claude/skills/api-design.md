@@ -137,7 +137,7 @@ Use cursor-based when rows are frequently inserted or deleted (sessions, observa
 | No versioning plan | First breaking change forces an ad-hoc, inconsistent migration | Design with /v1/ prefix from the start |
 
 ## Integration
-- **code-reviewer agent** checks API patterns, response consistency, and Zod validation usage via /kreview and /checkpoint
+- **kody agent** checks API patterns, response consistency, and Zod validation usage via /kreview and /checkpoint
 - **arkitect agent** designs API boundaries and service interfaces during /kplan for multi-component systems
 - **security-reviewer agent** auto-invokes for endpoints handling auth, user input, or API keys
 - **types.ts** defines the TypeScript interfaces that API responses must reference — never invent ad-hoc shapes

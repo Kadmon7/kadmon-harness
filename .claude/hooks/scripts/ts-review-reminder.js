@@ -7,7 +7,7 @@ import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 
 const TS_THRESHOLD = 5;
-const REVIEWER_TYPES = ["code-reviewer", "typescript-reviewer"];
+const REVIEWER_TYPES = ["kody", "typescript-reviewer"];
 
 try {
   if (isDisabled("ts-review-reminder")) process.exit(0);

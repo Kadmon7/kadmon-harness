@@ -1,5 +1,5 @@
 ---
-name: performance-optimizer
+name: kronos
 description: Use PROACTIVELY when code contains O(n^2) loops, slow queries, memory-intensive patterns, or user asks to optimize. No dedicated command — auto-invoked. Covers Node.js, React, DB, and hook latency.
 model: sonnet
 tools: Read, Grep, Glob, Bash, LSP
@@ -148,7 +148,7 @@ Node.js cold start on Windows adds ~236ms -- budget is for hook logic only, not 
 ## Output Format
 
 ```markdown
-## Performance Audit: [scope] [performance-optimizer]
+## Performance Audit: [scope] [kronos]
 
 ### Bottleneck Identified
 - [file:line] [description] -- measured impact: [metric]

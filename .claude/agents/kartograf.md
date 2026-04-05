@@ -1,5 +1,5 @@
 ---
-name: e2e-runner
+name: kartograf
 description: Invoked via /ktest e2e command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Supports Vitest (harness) and Playwright (web apps).
 model: sonnet
 tools: Read, Glob, Bash
@@ -135,7 +135,7 @@ Always cover HIGH priority scenarios first. Skip LOW priority unless specificall
 
 ## Output Format
 ```markdown
-## E2E Results [e2e-runner]
+## E2E Results [kartograf]
 
 ### Scenarios
 | # | Scenario | Mode | Status | Time |

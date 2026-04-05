@@ -23,28 +23,28 @@ alwaysApply: true
 ### Plan Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kplan | Smart planning — arkitect -> konstruct -> code-reviewer chain with user approval gate | arkitect, konstruct, code-reviewer |
+| /kplan | Smart planning — arkitect -> konstruct -> kody chain with user approval gate | arkitect, konstruct, kody |
 
 ### Build Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kfix | Diagnose build errors + refactor cleanup. Use `/kfix build` or `/kfix clean` for single phase | build-error-resolver, refactor-cleaner |
-| /kperf | Performance analysis and optimization. Use `/kperf hooks` for hook latency | performance-optimizer |
+| /kfix | Diagnose build errors + refactor cleanup. Use `/kfix build` or `/kfix clean` for single phase | mekanik, klean |
+| /kperf | Performance analysis and optimization. Use `/kperf hooks` for hook latency | kronos |
 
 ### Test Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /ktest | TDD + coverage + E2E testing pipeline. Use `/ktest coverage` or `/ktest e2e` for specific modes | tdd-guide, e2e-runner |
+| /ktest | TDD + coverage + E2E testing pipeline. Use `/ktest coverage` or `/ktest e2e` for specific modes | feniks, kartograf |
 
 ### Review Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kreview | Quick language-aware code review (no verification, no security/database reviewers) | code-reviewer + specialists |
+| /kreview | Quick language-aware code review (no verification, no security/database reviewers) | kody + specialists |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /checkpoint | Full verification + intelligent review + commit and push (5 reviewers) | code-reviewer + specialists |
+| /checkpoint | Full verification + intelligent review + commit and push (5 reviewers) | kody + specialists |
 | /docs | Look up live documentation for any library or framework | almanak |
 | /kdocs | Sync project documentation with code changes (4-layer sync) | doktor |
 
@@ -53,7 +53,7 @@ alwaysApply: true
 |---------|---------|-------|
 | /eval | Run structured evaluation of agent or skill quality | — |
 | /instinct | Manage instinct lifecycle — status, eval, learn, promote, prune, export (subcommands) | — |
-| /evolve | Run harness self-optimization analysis | harness-optimizer |
+| /evolve | Run harness self-optimization analysis | alchemik |
 
 ## Commits
 - MUST use conventional commits: feat/fix/chore/docs/refactor/test

@@ -143,7 +143,7 @@ Session end --> hooks persisten todo a SQLite
   -> konstruct agent (opus) analiza el codebase y produce un plan paso a paso
 
 > /ktest Implementar funcion searchHebrew
-  -> tdd-guide (sonnet) escribe test fallido primero
+  -> feniks (sonnet) escribe test fallido primero
   -> implementas hasta que pase
   -> refactorizas
 
@@ -154,7 +154,7 @@ Session end --> hooks persisten todo a SQLite
   -> eslint OK
 
 > /checkpoint
-  -> code-reviewer valida cambios
+  -> kody valida cambios
   -> git commit -m "feat(search): add Hebrew text search"
   -> git push
 
@@ -221,7 +221,7 @@ Invoca konstruct (opus). Produce un plan numerado con fases, verificacion por pa
 /ktest crear funcion calculateConfidence
 /ktest implementar endpoint de busqueda por embedding
 ```
-Invoca tdd-guide (sonnet). Genera test primero, espera que falle (red), luego implementa (green), luego refactoriza.
+Invoca feniks (sonnet). Genera test primero, espera que falle (red), luego implementa (green), luego refactoriza.
 
 **3. `/checkpoint`** — Verificacion completa + commit
 ```bash
@@ -248,7 +248,7 @@ Busca via Context7 MCP. Si no encuentra, fallback a WebSearch. Nunca inventa.
 ```bash
 /kreview
 ```
-Invoca code-reviewer (TypeScript specialist mode) + security-reviewer (si aplica). Findings con severidad BLOCK/WARN/NOTE.
+Invoca kody (TypeScript specialist mode) + security-reviewer (si aplica). Findings con severidad BLOCK/WARN/NOTE.
 
 **8. `/instinct learn`** — Extraer patrones
 ```bash
@@ -260,7 +260,7 @@ Analiza la sesion actual y crea instintos con confianza 0.3. Con refuerzo en ses
 ```bash
 /evolve
 ```
-Invoca harness-optimizer (opus). Analiza hook latency, instinct quality, skill gaps, cost trends. Produce recomendaciones — nunca auto-aplica.
+Invoca alchemik (opus). Analiza hook latency, instinct quality, skill gaps, cost trends. Produce recomendaciones — nunca auto-aplica.
 
 **10. `/kompact`** — Compactar contexto
 ```bash
@@ -277,11 +277,11 @@ Guarda estado antes de compactar. Usa en sesiones largas cuando Claude se pone l
 
 | Agente | Modelo | Disparador |
 |--------|--------|------------|
-| code-reviewer | sonnet | Al editar archivos `.ts` o `.tsx` (modo TypeScript specialist) |
+| kody | sonnet | Al editar archivos `.ts` o `.tsx` (modo TypeScript specialist) |
 | database-reviewer | opus | Al editar SQL, schemas, migraciones, codigo Supabase |
 | security-reviewer | opus | Al tocar auth, API keys, input de usuario, exec/spawn, SQL |
-| build-error-resolver | sonnet | Cuando falla compilacion TypeScript o Vitest |
-| performance-optimizer | sonnet | Al detectar bucles O(n^2), queries lentas, patrones memory-intensive |
+| mekanik | sonnet | Cuando falla compilacion TypeScript o Vitest |
+| kronos | sonnet | Al detectar bucles O(n^2), queries lentas, patrones memory-intensive |
 | python-reviewer | sonnet | Al editar archivos `.py` |
 
 ### Agentes manuales (tu los invocas)
@@ -290,13 +290,13 @@ Guarda estado antes de compactar. Usa en sesiones largas cuando Claude se pone l
 |--------|--------|---------|---------------|
 | arkitect | opus | `/kplan` | Disenar sistemas nuevos, decisiones arquitectonicas |
 | konstruct | opus | `/kplan` | Planificar tareas multi-archivo |
-| code-reviewer | sonnet | `/kreview`, `/checkpoint` | Antes de cada commit |
-| tdd-guide | sonnet | `/ktest` | Desarrollo test-first |
-| refactor-cleaner | sonnet | `/kfix clean` | Limpiar codigo, eliminar duplicacion |
+| kody | sonnet | `/kreview`, `/checkpoint` | Antes de cada commit |
+| feniks | sonnet | `/ktest` | Desarrollo test-first |
+| klean | sonnet | `/kfix clean` | Limpiar codigo, eliminar duplicacion |
 | almanak | sonnet | `/docs` | Buscar API docs actualizadas via Context7 |
 | doktor | opus | `/kdocs` | Sincronizar documentacion del proyecto |
-| e2e-runner | sonnet | `/ktest e2e` | Tests E2E completos (costoso) |
-| harness-optimizer | opus | `/evolve` | Analisis de optimizacion (solo recomendaciones) |
+| kartograf | sonnet | `/ktest e2e` | Tests E2E completos (costoso) |
+| alchemik | opus | `/evolve` | Analisis de optimizacion (solo recomendaciones) |
 
 **Regla de modelo**: opus para decisiones complejas (5 agentes), sonnet para implementacion (9 agentes). Nunca haiku para review ni seguridad.
 
@@ -481,7 +481,7 @@ npx tsx scripts/dashboard.ts
 # 2. Test first
 > /ktest Implementar exportInstincts
 
-  tdd-guide escribe test en tests/lib/instinct-manager.test.ts:
+  feniks escribe test en tests/lib/instinct-manager.test.ts:
   - test: exporta instintos activos como JSON
   - test: retorna array vacio sin instintos
   - test: incluye metadata de proyecto
@@ -503,7 +503,7 @@ npx tsx scripts/dashboard.ts
 
 # 5. Commit
 > /checkpoint
-  code-reviewer valida cambios -> PASS
+  kody valida cambios -> PASS
   git commit -m "feat(instincts): add exportInstincts function"
   git push OK
 
@@ -518,7 +518,7 @@ npx tsx scripts/dashboard.ts
 ```
 # Error: TypeScript no compila despues de editar state-store.ts
 > /kfix
-  build-error-resolver (sonnet):
+  mekanik (sonnet):
   1. Corre npm run build -> lee error
   2. "Property 'syncedAt' does not exist on type 'SyncQueueItem'"
   3. Propone fix: agregar syncedAt?: string a SyncQueueItem
@@ -766,7 +766,7 @@ Si el dashboard muestra instintos y hook health, la instalacion fue exitosa.
 
 ### Typecheck falla despues de editar
 - **Verificar**: El hook `post-edit-typecheck` imprime errores en stderr.
-- **Fix rapido**: `/kfix` invoca build-error-resolver automaticamente.
+- **Fix rapido**: `/kfix` invoca mekanik automaticamente.
 - **Fix manual**: Leer el error, corregir tipos en `scripts/lib/types.ts`.
 
 ### Context7 MCP caido

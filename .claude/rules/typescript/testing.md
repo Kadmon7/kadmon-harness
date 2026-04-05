@@ -26,12 +26,12 @@ globs: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 
 ## E2E Testing
 - USE Playwright as the E2E testing framework for critical user flows
-- e2e-runner agent specializes in Playwright test generation and execution
+- kartograf agent specializes in Playwright test generation and execution
 - PREFER Vitest for harness E2E tests, Playwright for web app E2E tests
 
 ## Enforcement
-- tdd-guide agent enforces red-green-refactor cycle via /ktest command
-- e2e-runner agent generates and runs E2E tests via /ktest e2e command
+- feniks agent enforces red-green-refactor cycle via /ktest command
+- kartograf agent generates and runs E2E tests via /ktest e2e command
 - /checkpoint command runs typecheck + tests + lint as verification loop before commit
 - /ktest coverage command reports coverage per file
 - post-edit-typecheck hook catches type errors in test files after edits

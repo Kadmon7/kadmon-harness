@@ -98,9 +98,9 @@ it('should allow properly formatted commit (exit 0)', () => {
 
 ## Integration
 
-- **/ktest command**: Launches the tdd-guide agent, which enforces the red-green-refactor cycle step by step. Use it for any non-trivial implementation.
+- **/ktest command**: Launches the feniks agent, which enforces the red-green-refactor cycle step by step. Use it for any non-trivial implementation.
 - **/checkpoint command**: Runs typecheck + tests + lint + review. Run after every green and refactor step to confirm nothing regressed beyond the file you touched.
-- **tdd-guide agent** (sonnet): Walks you through each TDD phase, challenges premature implementation, and blocks commits with failing tests.
+- **feniks agent** (sonnet): Walks you through each TDD phase, challenges premature implementation, and blocks commits with failing tests.
 - **post-edit-typecheck hook**: Catches type errors immediately after edits — acts as a fast feedback loop during the green phase.
 - **session-end-all hook** (pattern evaluation phase): Tracks the "TDD discipline" pattern — whether tests preceded implementation in the session.
 

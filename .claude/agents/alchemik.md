@@ -1,5 +1,5 @@
 ---
-name: harness-optimizer
+name: alchemik
 description: Invoked exclusively via /evolve command. Never auto-triggered. Analyzes all harness components and produces evolution recommendations for arkitect review.
 model: opus
 tools: Read, Grep, Glob, Bash
@@ -118,7 +118,7 @@ Follow these five steps in order for every /evolve invocation.
 ## Output Format
 
 ```
-## Harness Evolution Report [harness-optimizer]
+## Harness Evolution Report [alchemik]
 
 ### Baseline Metrics
 - Hooks: [N] total, [N] within budget, [N] slow, [N] failing

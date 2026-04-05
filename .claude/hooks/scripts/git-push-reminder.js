@@ -29,9 +29,7 @@ try {
             hasVerify = true;
           if (
             e.toolName === "Agent" &&
-            ["code-reviewer", "typescript-reviewer"].includes(
-              e.metadata?.agentType,
-            )
+            ["kody", "typescript-reviewer"].includes(e.metadata?.agentType)
           )
             hasReview = true;
         } catch {
@@ -40,8 +38,7 @@ try {
       }
       if (!hasVerify)
         warnings.push("typecheck/tests not run — run /checkpoint first");
-      if (!hasReview)
-        warnings.push("code-reviewer not invoked — run /checkpoint first");
+      if (!hasReview) warnings.push("kody not invoked — run /checkpoint first");
     }
   }
 

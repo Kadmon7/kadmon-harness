@@ -7,7 +7,7 @@
 El Kadmon Harness es un **template operativo para Claude Code**. Le da a Claude:
 - **Memoria** — tracking de sesiones, instincts que aprenden tus patrones
 - **Calidad** — 20 hooks que validan codigo, previenen errores, y hacen enforce de convenciones
-- **Agentes** — 14 agentes especializados (code-reviewer, konstruct, tdd-guide, etc.)
+- **Agentes** — 14 agentes especializados (kody, konstruct, feniks, etc.)
 - **Skills** — 20 documentos de conocimiento que los agentes consultan
 - **Comandos** — 18 slash commands (/kplan, /tdd, /verify, /checkpoint, etc.)
 
@@ -93,12 +93,12 @@ El CLAUDE.md del harness tiene ~156 lineas. Tu proyecto tendra ~200 (las mismas 
 En `.claude/agents/`, tienes 14 agentes universales. Puedes:
 
 **Mantener tal cual** (funcionan para cualquier proyecto):
-- code-reviewer, konstruct, arkitect, tdd-guide, build-error-resolver
-- security-reviewer, refactor-cleaner, almanak, doktor
+- kody, konstruct, arkitect, feniks, mekanik
+- security-reviewer, klean, almanak, doktor
 
 **Adaptar** (agregar contexto de tu dominio):
 - database-reviewer → agregar patrones de tu schema
-- e2e-runner → adaptar a tus workflows
+- kartograf → adaptar a tus workflows
 
 **Crear nuevos** para tu dominio:
 ```markdown
@@ -220,7 +220,7 @@ mi-proyecto/
 |-------------|-------------|
 | Claude no recuerda sesiones anteriores | Session tracking con summary, files, costs |
 | No hay quality gates | 20 hooks: typecheck, lint, no-context-guard, commit format |
-| Code review manual | code-reviewer agent auto-invocado en .ts/.tsx |
+| Code review manual | kody agent auto-invocado en .ts/.tsx |
 | No hay patrones aprendidos | Instincts que aprenden tus workflows |
 | Comandos basicos de Claude Code | 18 comandos especializados (/kplan, /tdd, /verify...) |
 | Sin presupuesto de contexto | Monitoring de contexto, /kompact inteligente |
@@ -244,7 +244,7 @@ El agente **arkitect** evalua si hay decisiones arquitectonicas. El agente **kon
 ```
 /tdd Crear tests para el endpoint de ingesta
 ```
-El agente **tdd-guide** te guia en el ciclo RED → GREEN → REFACTOR. Escribes el test que falla, luego implementas.
+El agente **feniks** te guia en el ciclo RED → GREEN → REFACTOR. Escribes el test que falla, luego implementas.
 
 ### 3. Implementar
 Escribes el codigo. Mientras editas archivos `.ts`:
@@ -257,7 +257,7 @@ Escribes el codigo. Mientras editas archivos `.ts`:
 ```
 /code-review
 ```
-El agente **code-reviewer** revisa calidad, TypeScript, y convenciones.
+El agente **kody** revisa calidad, TypeScript, y convenciones.
 El agente **security-reviewer** busca vulnerabilidades (SQL injection, API keys expuestas).
 
 ### 5. Verificar

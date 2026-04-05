@@ -89,7 +89,7 @@ The `/checkpoint` command automates this entire flow: verify -> review -> commit
 ## Integration
 - **/checkpoint** command runs this loop as Phase 1 (verify), then Phase 2 (review), then commits
 - Verification is now embedded in /checkpoint — no separate /verify command needed
-- **build-error-resolver** agent handles failures in the build and typecheck steps
+- **mekanik** agent handles failures in the build and typecheck steps
 - **post-edit-typecheck** hook runs a quick typecheck after every Edit/Write as early warning
 - **session-end-all** hook (pattern evaluation phase) tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` before `git commit` or `git push`
 

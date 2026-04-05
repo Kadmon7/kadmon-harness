@@ -1,6 +1,6 @@
 ---
-name: tdd-guide
-description: Use PROACTIVELY before implementing any new feature or bug fix — write the test first. Command: /tdd. Enforces red-green-refactor cycle with 80%+ coverage target.
+name: feniks
+description: Use PROACTIVELY before implementing any new feature or bug fix — write the test first. Command: /ktest. Also invoked by /kplan when needs_tdd: true. Enforces red-green-refactor cycle with 80%+ coverage target.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project
@@ -109,7 +109,7 @@ Before declaring a TDD cycle complete, verify all items:
 ## Output Format
 
 ```typescript
-// TDD [tdd-guide]
+// TDD [feniks]
 // 1. RED -- write the test first
 describe('featureName', () => {
   it('should handle the happy path', () => {
@@ -129,6 +129,11 @@ describe('featureName', () => {
 // 3. REFACTOR -- clean up without changing behavior
 // 4. COVERAGE -- verify 80%+ on new code
 ```
+
+## Pipeline Contract (/kplan)
+- **Input**: reads `docs/plans/[date]-[slug].md` when invoked via /kplan with `needs_tdd: true`
+- **Mode**: guides TDD inline during implementation — does NOT write a separate document
+- **Scope**: enforces red-green-refactor for each code-writing step in the plan
 
 ## no_context Rule
 Before writing tests, reads the existing code to understand actual interfaces. Never tests against imagined APIs.

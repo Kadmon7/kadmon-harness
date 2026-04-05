@@ -121,22 +121,22 @@ On session end: Stop hooks persist to SQLite
 | **konstruct** | Breaks down complex tasks into numbered steps with verification. | Never | `/kplan` (multi-file tasks) | Phased plan S/M/L |
 | **database-reviewer** | Reviews SQL, schemas, migrations, Supabase code. Validates RLS, pgvector, sql.js. | On SQL/schema/Supabase edits | -- | Schema/Queries review |
 | **security-reviewer** | Detects SQL injection, XSS, command injection, path traversal. Severity CRITICAL/HIGH/MEDIUM/LOW. | On auth/keys/exec/spawn/SQL code | `/checkpoint` | Severity report |
-| **harness-optimizer** | Analyzes hook latency, instinct quality, skill gaps, cost trends. Never auto-applies. | Never | `/evolve` | PROMOTE/CREATE/OPTIMIZE report |
+| **alchemik** | Analyzes hook latency, instinct quality, skill gaps, cost trends. Never auto-applies. | Never | `/evolve` | PROMOTE/CREATE/OPTIMIZE report |
 
 ### Sonnet Agents (10) — implementation and review
 
 | Agent | Purpose | Auto-invokes when... | Manual | Output |
 |-------|---------|---------------------|--------|--------|
-| **code-reviewer** | Code quality, strict mode, type safety, Node16 resolution. Severity BLOCK/WARN/NOTE. | On `.ts`/`.tsx` edits, `/checkpoint` | `/kreview`, `/checkpoint` | Review markdown |
+| **kody** | Code quality, strict mode, type safety, Node16 resolution. Severity BLOCK/WARN/NOTE. | On `.ts`/`.tsx` edits, `/checkpoint` | `/kreview`, `/checkpoint` | Review markdown |
 | **typescript-reviewer** | TypeScript/JavaScript type safety, async correctness, Node/web security. | On `.ts`/`.tsx`/`.js`/`.jsx` edits | `/kreview`, `/checkpoint` | TypeScript review |
-| **tdd-guide** | Guides red-green-refactor cycle. Generates test templates before implementation. | Never | `/ktest` | TypeScript test template |
-| **build-error-resolver** | Diagnoses TS2xxx, module resolution, Vitest, sql.js WASM errors. Minimal fix. | On TypeScript/Vitest failures | `/kfix` | Error report |
-| **refactor-cleaner** | Identifies dead code, duplication, consolidation opportunities. | Never | `/kfix clean` | Refactoring summary |
-| **performance-optimizer** | Analyzes O(n^2) loops, slow queries, memory-intensive patterns. | On performance pattern detection | `/kperf` | Performance report |
+| **feniks** | Guides red-green-refactor cycle. Generates test templates before implementation. | Never | `/ktest` | TypeScript test template |
+| **mekanik** | Diagnoses TS2xxx, module resolution, Vitest, sql.js WASM errors. Minimal fix. | On TypeScript/Vitest failures | `/kfix` | Error report |
+| **klean** | Identifies dead code, duplication, consolidation opportunities. | Never | `/kfix clean` | Refactoring summary |
+| **kronos** | Analyzes O(n^2) loops, slow queries, memory-intensive patterns. | On performance pattern detection | `/kperf` | Performance report |
 | **python-reviewer** | Reviews Python code: ML, embeddings, backends. | On `.py` edits | `/kreview`, `/checkpoint` | Python review |
 | **almanak** | Searches documentation via Context7 MCP. Fallback to WebSearch. Never invents APIs. | On unfamiliar API references | `/docs` | Signature + example + source |
 | **doktor** | Updates CLAUDE.md, README, component counts. Verifies against filesystem. | Suggested after structural commits | `/kdocs` | Updated file list |
-| **e2e-runner** | Runs end-to-end tests: session lifecycle, instinct lifecycle, hook chains. Expensive. | Never | `/ktest e2e` | 5 test scenarios |
+| **kartograf** | Runs end-to-end tests: session lifecycle, instinct lifecycle, hook chains. Expensive. | Never | `/ktest e2e` | 5 test scenarios |
 
 ---
 
@@ -305,18 +305,18 @@ On session end: Stop hooks persist to SQLite
 | **patterns.md** | Dependency injection, no global state, context in errors | no-context-guard |
 | **performance.md** | No files > 50KB, batch SQLite ops, lazy loading | cost-tracker |
 | **security.md** | No secrets in git, Zod for input, parameterized SQL | security-reviewer, config-protection |
-| **testing.md** | 80%+ coverage, `:memory:` SQLite, Vitest, TDD | tdd-guide, post-edit-typecheck |
+| **testing.md** | 80%+ coverage, `:memory:` SQLite, Vitest, TDD | feniks, post-edit-typecheck |
 
 ### TypeScript Rules (6) — loaded on `.ts`/`.tsx` files
 
 | File | What It Enforces | Enforced By |
 |------|-----------------|-------------|
-| **coding-style.md** | Strict mode, .js extensions, `import type` | code-reviewer |
+| **coding-style.md** | Strict mode, .js extensions, `import type` | kody |
 | **hooks.md** | parseStdin(), lifecycle hooks from dist/, `npm run build` | post-edit-typecheck |
-| **lsp-usage.md** | Prefer LSP over Grep for TS navigation, findReferences before refactor | code-reviewer |
-| **patterns.md** | Result pattern, Zod schemas, `catch (e: unknown)` | code-reviewer |
+| **lsp-usage.md** | Prefer LSP over Grep for TS navigation, findReferences before refactor | kody |
+| **patterns.md** | Result pattern, Zod schemas, `catch (e: unknown)` | kody |
 | **security.md** | Branded types, path.resolve(), parameterized queries | security-reviewer |
-| **testing.md** | vi.fn(), mock externals, close DB in afterEach | tdd-guide |
+| **testing.md** | vi.fn(), mock externals, close DB in afterEach | feniks |
 
 ---
 
@@ -503,7 +503,7 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 | MCP | Type | What It Enables | Used By |
 |-----|------|----------------|---------|
-| **GitHub** | HTTP | Search code, create PRs/issues, read files, commits, reviews | code-reviewer, doktor |
+| **GitHub** | HTTP | Search code, create PRs/issues, read files, commits, reviews | kody, doktor |
 | **Context7** | Command (`npx -y @upstash/context7-mcp`) | Live documentation for any library | almanak agent, `/docs` |
 | **Supabase** | HTTP | DB operations, auth, storage, edge functions, migrations, SQL | database-reviewer, arkitect |
 
@@ -574,18 +574,18 @@ Central configuration file. Controls:
 | Situation | Component |
 |-----------|-----------|
 | Plan a new task | `/kplan` -> konstruct agent (opus) |
-| Do TDD | `/ktest` -> tdd-guide agent (sonnet) |
-| Review code before commit | `/checkpoint` -> 5 reviewers + code-reviewer consolidation |
+| Do TDD | `/ktest` -> feniks agent (sonnet) |
+| Review code before commit | `/checkpoint` -> 5 reviewers + kody consolidation |
 | Check harness state | `/dashboard` |
 | Look up API documentation | `/docs supabase-js insert` -> almanak + Context7 MCP |
-| Fix build errors | `/kfix` -> build-error-resolver agent |
+| Fix build errors | `/kfix` -> mekanik agent |
 | Learn from session | `/instinct learn` |
-| Evolve the harness | `/evolve` -> harness-optimizer agent (opus) |
+| Evolve the harness | `/evolve` -> alchemik agent (opus) |
 | Design UI | `/kplan` with design signals -> arkitect agent |
 | Audit security | `/checkpoint` -> security-reviewer agent (opus) |
 | Check instincts | `/instinct status` |
 | Export instincts | `/instinct export` |
-| Refactor code | `/kfix clean` -> refactor-cleaner agent (sonnet) |
+| Refactor code | `/kfix clean` -> klean agent (sonnet) |
 
 ### Key Numbers
 

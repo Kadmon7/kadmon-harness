@@ -1,6 +1,6 @@
 ---
 description: Save progress — full verification + intelligent review + commit and push
-agent: code-reviewer, typescript-reviewer, python-reviewer, security-reviewer, database-reviewer
+agent: kody, typescript-reviewer, python-reviewer, security-reviewer, database-reviewer
 skills: [verification-loop, coding-standards, receiving-code-review, safety-guard]
 ---
 
@@ -25,7 +25,7 @@ All-in-one quality gate and commit. Runs mechanical checks, invokes language-awa
    - Both present -> both in parallel
    - **Always**: invoke **security-reviewer** (opus) in parallel
    - **Always**: invoke **database-reviewer** (opus) in parallel
-4. **code-reviewer** (sonnet) consolidates all findings with BLOCK / WARN / NOTE severity
+4. **kody** (sonnet) consolidates all findings with BLOCK / WARN / NOTE severity
 
 ### Phase 3: Gate Decision
 - **Any BLOCK findings** -> STOP. Report issues. Do NOT commit.

@@ -1,5 +1,5 @@
 ---
-name: build-error-resolver
+name: mekanik
 description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Command: /kfix. Diagnoses root cause and proposes minimal fix.
 model: sonnet
 tools: Read, Grep, Glob, Bash, LSP
@@ -115,16 +115,16 @@ npm run build
 
 | Situation | Use Instead |
 |-----------|-------------|
-| Code needs structural refactoring | refactor-cleaner agent |
+| Code needs structural refactoring | klean agent |
 | Architecture changes needed | arkitect agent |
 | New features required | konstruct agent |
-| Tests failing due to logic errors | tdd-guide agent |
+| Tests failing due to logic errors | feniks agent |
 | Security issues detected | security-reviewer agent |
 
 ## Output Format
 
 ```markdown
-### Error Report [build-error-resolver]
+### Error Report [mekanik]
 1. **Error**: [TS2307] Cannot find module './foo'
 2. **File**: src/lib/utils.ts:14
 3. **Root Cause**: Missing .js extension in import path (Node16 module resolution requires explicit extensions)

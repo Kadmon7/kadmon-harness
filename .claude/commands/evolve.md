@@ -1,13 +1,13 @@
 ---
 description: Run harness self-optimization analysis — full evolution coverage across hooks, instincts, skills, agents, commands, and rules
-agent: harness-optimizer
+agent: alchemik
 ---
 
 ## Purpose
-Invoke harness-optimizer agent to analyze every harness component and propose evolution paths.
+Invoke alchemik agent to analyze every harness component and propose evolution paths.
 
 ## Steps
-1. Invoke harness-optimizer agent (opus)
+1. Invoke alchemik agent (opus)
 2. Analyze: hook latency + failure rates from observations JSONL
 3. Analyze: instinct quality + promotable candidates (confidence >= 0.7, occurrences >= 3)
 4. Analyze: skill usage patterns — propose new agents for complex skills

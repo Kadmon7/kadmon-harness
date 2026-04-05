@@ -1,6 +1,6 @@
 ---
 description: Full testing pipeline — TDD red-green-refactor, coverage check, and E2E workflow tests
-agent: tdd-guide, e2e-runner
+agent: feniks, kartograf
 skills: [tdd-workflow, e2e-testing]
 ---
 
@@ -16,7 +16,7 @@ Unified testing command. TDD for new features, coverage reporting, and E2E for w
 ## Steps
 
 ### TDD Mode (default — `<feature description>`)
-1. Invoke **tdd-guide agent** (sonnet) with the feature description
+1. Invoke **feniks agent** (sonnet) with the feature description
 2. **RED**: Agent writes a failing test file
 3. Run test to confirm it fails: `npx vitest run [test-file]`
 4. **GREEN**: Write minimum implementation to pass
@@ -31,7 +31,7 @@ Unified testing command. TDD for new features, coverage reporting, and E2E for w
 4. Report per-file coverage table
 
 ### E2E Mode (`e2e` — expensive, on-demand)
-1. Invoke **e2e-runner agent** (sonnet)
+1. Invoke **kartograf agent** (sonnet)
 2. Run specified scenarios (or all 3 core scenarios):
    - `session` — session lifecycle: start -> observe -> end -> verify SQLite
    - `instinct` — instinct lifecycle: create -> reinforce -> promote

@@ -118,8 +118,8 @@ If you catch yourself thinking:
 **Project commands:**
 - /ktest — for creating failing test case (Phase 4)
 - /checkpoint — verify fix before claiming success (verify + review + commit)
-- /kfix — for build/compilation failures (delegates to build-error-resolver)
+- /kfix — for build/compilation failures (delegates to mekanik)
 
 **Project agents:**
-- tdd-guide — guides test-first discipline in Phase 4
-- build-error-resolver — specialized for TypeScript compilation and Vitest errors
+- feniks — guides test-first discipline in Phase 4
+- mekanik — specialized for TypeScript compilation and Vitest errors

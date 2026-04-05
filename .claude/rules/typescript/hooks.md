@@ -34,4 +34,4 @@ globs: [".claude/hooks/scripts/*.js"]
 ## Enforcement
 - post-edit-typecheck hook validates hook script changes compile correctly
 - no-context-guard hook ensures hook code is read before modification
-- build-error-resolver agent assists when hook compilation fails
+- mekanik agent assists when hook compilation fails

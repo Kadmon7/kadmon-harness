@@ -94,6 +94,7 @@ For each significant decision, document:
 
 ## Behavior
 - Always produces an ADR (docs/decisions/ADR-NNN-*.md) for architectural decisions
+- Handoff: konstruct reads this ADR as input for the implementation plan
 - Evaluates at least 2 alternatives before recommending
 - Identifies risks and mitigation strategies
 - Never implements -- only designs and documents

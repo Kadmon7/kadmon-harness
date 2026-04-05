@@ -79,7 +79,7 @@ export function formatUser(user) {
 - console-log-warn hook detects violations automatically
 
 ## Enforcement
-- code-reviewer agent auto-checks strict mode, type safety, async patterns, and Node16 resolution on .ts/.tsx edits (TypeScript specialist mode)
+- kody agent auto-checks strict mode, type safety, async patterns, and Node16 resolution on .ts/.tsx edits (TypeScript specialist mode)
 - post-edit-typecheck hook validates TypeScript compilation after every Edit/Write (PostToolUse, exit 1 on errors)
 - quality-gate hook runs lint/style checks after every Edit/Write (PostToolUse)
 - console-log-warn hook warns about console.log in production code (PostToolUse)

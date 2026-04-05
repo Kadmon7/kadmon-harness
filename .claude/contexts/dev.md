@@ -30,6 +30,6 @@ Code first, explain after. All safety and quality hooks active.
 - Read — always before Edit (enforced by hook)
 
 ## Agents
-- tdd-guide for new features
-- build-error-resolver when builds fail
-- code-reviewer before commits and on .ts edits (TypeScript specialist mode)
+- feniks for new features
+- mekanik when builds fail
+- kody before commits and on .ts edits (TypeScript specialist mode)

@@ -30,5 +30,5 @@ alwaysApply: true
 - block-no-verify hook blocks any git command with --no-verify flag (PreToolUse on Bash, exit 2)
 - git-push-reminder hook warns before git push without running /checkpoint first (PreToolUse on Bash, exit 1)
 - config-protection hook prevents accidental edits to critical config files (PreToolUse on Edit|Write, exit 2)
-- code-reviewer agent runs automatically as part of /checkpoint review phase
+- kody agent runs automatically as part of /checkpoint review phase
 - /checkpoint command orchestrates: verify → 5 parallel reviewers → gate → commit → push

@@ -1,5 +1,5 @@
 ---
-name: code-reviewer
+name: kody
 description: Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying code. MUST BE USED for all code changes.
 tools: Read, Grep, Glob, Bash
 model: sonnet
@@ -223,6 +223,12 @@ When available, also check project-specific conventions from `CLAUDE.md` or proj
 - State management conventions (Zustand, Redux, Context)
 
 Adapt your review to the project's established patterns. When in doubt, match what the rest of the codebase does.
+
+## Pipeline Contract (/kplan)
+- **Input**: reads `docs/decisions/ADR-NNN-*.md` + `docs/plans/[date]-[slug].md` + code changes
+- **Output**: writes `docs/review.md` with BLOCK/WARN/NOTE findings
+- **Timing**: runs ONLY after code exists — never during planning phase
+- **Role**: final consolidator of the full /kplan pipeline
 
 ## v1.8 AI-Generated Code Review Addendum
 

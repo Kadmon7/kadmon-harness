@@ -40,7 +40,7 @@ git commit --no-verify -m "skip hooks"
 
 **Override:** None. This is intentional by design. If pre-commit hooks are failing,
 the correct response is to fix the underlying issue, not to bypass the hooks. See the
-`build-error-resolver` agent for compilation errors and `/checkpoint` for quality gate failures.
+`mekanik` agent for compilation errors and `/checkpoint` for quality gate failures.
 
 ---
 

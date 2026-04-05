@@ -72,7 +72,7 @@ describe("ts-review-reminder", () => {
     expect(r.stdout).toContain("review");
   });
 
-  it("exits 0 after 5+ edits if code-reviewer was invoked", () => {
+  it("exits 0 after 5+ edits if kody was invoked", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
@@ -82,7 +82,7 @@ describe("ts-review-reminder", () => {
       {
         toolName: "Agent",
         eventType: "tool_pre",
-        metadata: { agentType: "code-reviewer" },
+        metadata: { agentType: "kody" },
       },
     ]);
     const r = runHook({

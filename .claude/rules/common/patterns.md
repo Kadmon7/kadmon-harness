@@ -24,7 +24,7 @@ alwaysApply: true
 
 ## Enforcement
 - arkitect agent reviews system design and pattern decisions via /kplan
-- code-reviewer agent validates pattern adherence via /kreview and /checkpoint
-- code-reviewer agent checks type safety and immutability patterns on .ts/.tsx edits (TypeScript specialist mode)
+- kody agent validates pattern adherence via /kreview and /checkpoint
+- kody agent checks type safety and immutability patterns on .ts/.tsx edits (TypeScript specialist mode)
 - database-reviewer agent validates data layer patterns when editing SQL or Supabase code
 - no-context-guard hook ensures code is read before modification (enforces understand-before-edit pattern)

@@ -61,11 +61,11 @@ Promotion threshold: score >= 4 on at least 3 consecutive runs.
 
 ## Example Eval Cases
 
-### Case 1 — code-reviewer agent response quality
+### Case 1 — kody agent response quality
 
 ```typescript
 const codeReviewerEval: EvalCase = {
-  name: "code-reviewer: severity levels and file citations",
+  name: "kody: severity levels and file citations",
   input: {
     prompt: "Review this TypeScript file for issues",
     context: "src/lib/instinct-manager.ts — contains any cast and missing return type"
@@ -133,7 +133,7 @@ Results are rendered as a markdown table per eval run:
 
 | Case | Score | Passed | Criteria Met | Top Failure | Run At |
 |------|-------|--------|--------------|-------------|--------|
-| code-reviewer: severity levels | 4/5 | yes | 3/4 | markdown_structure (0.15) | 2026-03-26T10:00Z |
+| kody: severity levels | 4/5 | yes | 3/4 | markdown_structure (0.15) | 2026-03-26T10:00Z |
 | instinct promotion: confidence | 5/5 | yes | 4/4 | — | 2026-03-26T10:01Z |
 | almanak: Context7 accuracy | 3/5 | yes | 2/4 | cites_library_version (0.25) | 2026-03-26T10:02Z |
 

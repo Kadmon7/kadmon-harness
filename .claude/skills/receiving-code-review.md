@@ -126,4 +126,4 @@ gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies
 - /checkpoint — run after implementing review fixes (verify + review + commit)
 
 **Project agents:**
-- code-reviewer — produces the review feedback this skill helps process
+- kody — produces the review feedback this skill helps process

@@ -108,7 +108,7 @@ After 7 days: /instinct prune archives it
 - **session-end-all** hook (pattern evaluation phase) — fires at Stop, analyzes observations against pattern-definitions.json
 - **observe-pre / observe-post** hooks — log tool calls, results, errors, and task metadata to JSONL for session-end-all to analyze
 - **pattern-definitions.json** — 13 pattern definitions (sequence, cluster, command_sequence types) that session-end-all (pattern evaluation phase) matches against
-- **/evolve** command — harness-optimizer agent also analyzes instinct quality, contradiction rates, and promotion candidates as part of its holistic harness review
+- **/evolve** command — alchemik agent also analyzes instinct quality, contradiction rates, and promotion candidates as part of its holistic harness review
 - **session-start** hook — loads 3 recent sessions with history trajectory, pending work carry-forward, and active instincts at session start
 - **skill-creator:skill-creator** plugin — required for /instinct promote (handles skill drafting and validation)
 

@@ -27,8 +27,8 @@ alwaysApply: true
 - MUST run full test suite before committing
 
 ## Enforcement
-- tdd-guide agent enforces red-green-refactor cycle via /ktest command
-- e2e-runner agent runs full workflow tests via /ktest e2e command
+- feniks agent enforces red-green-refactor cycle via /ktest command
+- kartograf agent runs full workflow tests via /ktest e2e command
 - /checkpoint command runs typecheck + tests + lint as verification loop before commit
 - /ktest coverage command reports coverage per file
 - /eval command evaluates agent and skill quality with structured tests

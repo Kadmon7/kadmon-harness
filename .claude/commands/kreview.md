@@ -1,6 +1,6 @@
 ---
 description: Intelligent language-aware code review — detects language, routes to specialist reviewer, consolidates findings
-agent: code-reviewer, typescript-reviewer, python-reviewer
+agent: kody, typescript-reviewer, python-reviewer
 skills: [coding-standards, receiving-code-review]
 ---
 
@@ -18,7 +18,7 @@ Smart code review that detects the language of changed files and routes to the a
    - Python (.py) present -> invoke **python-reviewer** (sonnet)
    - Both present -> both in parallel
    - Neither -> skip specialist, go directly to step 3
-3. **code-reviewer** (sonnet) consolidates all findings with BLOCK / WARN / NOTE severity
+3. **kody** (sonnet) consolidates all findings with BLOCK / WARN / NOTE severity
 
 ## Output
 Review report with severity-tagged items grouped by reviewer.

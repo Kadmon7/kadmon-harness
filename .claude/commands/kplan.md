@@ -1,6 +1,6 @@
 ---
-description: Smart planning for complex tasks — arkitect -> konstruct -> code-reviewer chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
-agent: arkitect, konstruct, code-reviewer
+description: Smart planning for complex tasks — arkitect -> konstruct -> kody chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
+agent: arkitect, konstruct, kody
 skills: [architecture-decision-records, tdd-workflow]
 ---
 
@@ -62,16 +62,16 @@ Wait for explicit approval. If the user requests changes, update the plan and re
 
 Claude Code implements the plan from `docs/plan.md`.
 
-**If `needs_tdd: true`**: Invoke **tdd-guide agent** (sonnet) to GUIDE implementation in TDD mode.
-- tdd-guide enforces red-green-refactor during implementation
-- tdd-guide does NOT write a separate document — it operates inline
+**If `needs_tdd: true`**: Invoke **feniks agent** (sonnet) to GUIDE implementation in TDD mode.
+- feniks enforces red-green-refactor during implementation
+- feniks does NOT write a separate document — it operates inline
 - Each code-writing step follows: write failing test -> implement -> verify pass -> refactor
 
 **If `needs_tdd: false`**: Implement directly without TDD guidance (config changes, docs, trivial edits).
 
 ### Step 5: Code Review (after code exists)
 
-Invoke **code-reviewer agent** (sonnet) ONLY after implementation is complete.
+Invoke **kody agent** (sonnet) ONLY after implementation is complete.
 - Review all changes made during Step 4
 - Aggregate findings by severity: BLOCK / WARN / NOTE
 - BLOCK items must be fixed before proceeding

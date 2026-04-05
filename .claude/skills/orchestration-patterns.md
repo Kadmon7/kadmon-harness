@@ -124,10 +124,10 @@ Execute implementation plans by dispatching a fresh subagent per task, with two-
    c. Implementer implements, tests, commits, self-reviews
    d. Dispatch spec reviewer (verify code matches spec)
    e. If spec issues: implementer fixes, re-review
-   f. Dispatch code-reviewer agent for code quality
+   f. Dispatch kody agent for code quality
    g. If quality issues: implementer fixes, re-review
    h. Mark task complete
-3. After all tasks: dispatch final code-reviewer for entire implementation
+3. After all tasks: dispatch final kody for entire implementation
 4. Run /checkpoint for full suite validation
 
 ### Implementer Prompt Template
@@ -170,7 +170,7 @@ Never ignore escalation or retry without changes.
 
 **Stage 1 -- Spec Compliance:** Verify implementer built what was requested. Read actual code, compare to requirements line by line. Check for missing requirements, extra/unneeded work, misunderstandings.
 
-**Stage 2 -- Code Quality:** Only after spec compliance passes. Dispatch code-reviewer agent. Check single responsibility, testability, project conventions. Returns severity-rated issues.
+**Stage 2 -- Code Quality:** Only after spec compliance passes. Dispatch kody agent. Check single responsibility, testability, project conventions. Returns severity-rated issues.
 
 ### Model Selection
 
@@ -208,6 +208,6 @@ This skill enforces the no_context principle at the orchestration layer. When di
 - /kplan -- source of implementation plans
 
 **Project agents used:**
-- code-reviewer -- dispatched for code quality stage
-- tdd-guide -- referenced by subagents for test-first discipline
+- kody -- dispatched for code quality stage
+- feniks -- referenced by subagents for test-first discipline
 - arkitect / konstruct -- produce the plans that this skill executes

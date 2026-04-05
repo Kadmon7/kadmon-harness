@@ -1,5 +1,5 @@
 ---
-name: refactor-cleaner
+name: klean
 description: Invoked exclusively via /kfix clean command. Never auto-triggered. Identifies dead code, duplication, and structural issues.
 model: sonnet
 tools: Read, Grep, Glob, Edit, LSP
@@ -108,7 +108,7 @@ After each batch:
 
 ## Output Format
 ```markdown
-## Refactoring Summary [refactor-cleaner]
+## Refactoring Summary [klean]
 
 ### Detection Results
 - knip: X unused exports, Y unused files, Z unused dependencies

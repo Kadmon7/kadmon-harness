@@ -136,6 +136,12 @@ Reject or revise any plan that exhibits these problems:
 - Steps that say "refactor everything" or "rewrite the module"
 - No success criteria to determine when the feature is complete
 
+## Pipeline Contract (/kplan)
+- **Input**: reads `docs/decisions/ADR-NNN-*.md` from arkitect (Route A only; Route B has no ADR)
+- **Output**: writes plan to `docs/plans/[date]-[slug].md`
+- **Output must include** `needs_tdd: true/false` in plan frontmatter to signal whether feniks should guide TDD
+- **Handoff**: if `needs_tdd: true` -> feniks guides TDD implementation after user approval
+
 ## Behavior
 
 - Always produces a numbered plan with one verification per step

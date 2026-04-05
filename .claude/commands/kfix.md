@@ -1,6 +1,6 @@
 ---
-description: Diagnose and fix build errors, then clean up code structure — sequential build-error-resolver -> refactor-cleaner
-agent: build-error-resolver, refactor-cleaner
+description: Diagnose and fix build errors, then clean up code structure — sequential mekanik -> klean
+agent: mekanik, klean
 skills: [systematic-debugging, coding-standards]
 ---
 
@@ -9,15 +9,15 @@ Two-phase fix: first resolve compilation/build errors, then clean up the resulti
 
 ## Arguments
 - (none) — run build fix, then refactor recently changed files
-- `build` — only Phase 1 (build-error-resolver), skip refactoring
-- `clean` — only Phase 2 (refactor-cleaner), skip build fix
+- `build` — only Phase 1 (mekanik), skip refactoring
+- `clean` — only Phase 2 (klean), skip build fix
 - `<file-path>` — target specific file for both phases
 
 ## Steps
 
 ### Phase 1: Build Fix
 1. Run `npm run build` or `npx tsc --noEmit` to capture errors
-2. Invoke **build-error-resolver agent** (sonnet) with full error output
+2. Invoke **mekanik agent** (sonnet) with full error output
 3. Agent diagnoses root cause, traces to source file and line
 4. Agent proposes minimal fix (no unrelated changes)
 5. Apply fix
@@ -26,7 +26,7 @@ Two-phase fix: first resolve compilation/build errors, then clean up the resulti
 
 ### Phase 2: Refactor Clean
 1. Run tests BEFORE any changes: `npx vitest run`
-2. Invoke **refactor-cleaner agent** (sonnet) on target files
+2. Invoke **klean agent** (sonnet) on target files
 3. Agent identifies: unused imports, dead functions, duplicated code
 4. Apply refactoring changes
 5. Run tests AFTER to verify no behavior change: `npx vitest run`

@@ -63,7 +63,7 @@ describe("git-push-reminder", () => {
     });
     expect(r.code).toBe(1);
     expect(r.stdout).toContain("typecheck/tests not run");
-    expect(r.stdout).toContain("code-reviewer not invoked");
+    expect(r.stdout).toContain("kody not invoked");
   });
 
   it("exits 0 when observations contain verify and review entries", () => {
@@ -76,7 +76,7 @@ describe("git-push-reminder", () => {
       {
         eventType: "tool_pre",
         toolName: "Agent",
-        metadata: { agentType: "code-reviewer", command: null },
+        metadata: { agentType: "kody", command: null },
       },
     ]);
     const r = runHook({
@@ -99,7 +99,7 @@ describe("git-push-reminder", () => {
       tool_input: { command: "git push origin main" },
     });
     expect(r.code).toBe(1);
-    expect(r.stdout).toContain("code-reviewer not invoked");
+    expect(r.stdout).toContain("kody not invoked");
     expect(r.stdout).not.toContain("typecheck/tests not run");
   });
 
@@ -108,7 +108,7 @@ describe("git-push-reminder", () => {
       {
         eventType: "tool_pre",
         toolName: "Agent",
-        metadata: { agentType: "code-reviewer", command: null },
+        metadata: { agentType: "kody", command: null },
       },
     ]);
     const r = runHook({
@@ -117,7 +117,7 @@ describe("git-push-reminder", () => {
     });
     expect(r.code).toBe(1);
     expect(r.stdout).toContain("typecheck/tests not run");
-    expect(r.stdout).not.toContain("code-reviewer not invoked");
+    expect(r.stdout).not.toContain("kody not invoked");
   });
 
   it("exits 0 when observations file does not exist", () => {
