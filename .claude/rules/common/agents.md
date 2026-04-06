@@ -43,7 +43,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns, deep-research |
 | doks | opus | /kdocs, after feature/structural commits | /kdocs | docs-sync |
 | kartograf | sonnet | /ktest e2e only (expensive) | /ktest | e2e-testing |
-| alchemik | opus | /evolve only | /evolve | search-first |
+| alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2 |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → spektr
