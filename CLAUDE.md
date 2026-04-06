@@ -74,7 +74,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | ralph-loop | `ralph-loop:ralph-loop` | Recurring execution loops. Cancel: `ralph-loop:cancel-ralph` |
 
 ## Hooks
-20 registered hooks + 4 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
+20 registered hooks + 7 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
 
 ## Memory
 - **SQLite**: sessions, instincts, cost events at `~/.kadmon/kadmon.db`

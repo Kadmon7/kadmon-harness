@@ -502,7 +502,7 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 | Category | Files | What They Verify |
 |----------|-------|-----------------|
-| Hook tests | 20 | All 20 hooks (block-no-verify, commit-format-guard, commit-quality, config-protection, console-log-warn, deps-change-reminder, git-push-reminder, mcp-health, no-context-guard, observe-pre, observe-post, post-edit-format, post-edit-typecheck, pr-created, pre-compact-save, quality-gate, session-end-all, session-start, ts-review-reminder) |
+| Hook tests | 23 | All 20 hooks (block-no-verify, commit-format-guard, commit-quality, config-protection, console-log-warn, deps-change-reminder, git-push-reminder, mcp-health-check, mcp-health-failure, no-context-guard, observe-pre, observe-post, post-edit-format, post-edit-typecheck, pr-created, pre-compact-save, quality-gate, session-end-all, session-start, ts-review-reminder) + 3 shared modules (ensure-dist, hook-logger, backup-rotate) |
 | Library tests | 8 | dashboard, utils, instinct-manager, state-store, cost-calculator, session-manager, project-detect, pattern-engine |
 | E2E tests | 1 | instinct-lifecycle end-to-end |
 | Other | 1 | global-teardown |

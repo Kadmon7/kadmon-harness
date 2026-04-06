@@ -10,7 +10,7 @@ An operative layer for Claude Code — infrastructure that makes every session s
 
 ## Components (v1.0)
 
-- **15 agents** (5 opus, 10 sonnet) with rich descriptions and skill linkages
+- **15 agents** (6 opus, 9 sonnet) with rich descriptions and skill linkages
 - **25 skills** domain knowledge loaded on demand
 - **14 commands** organized by lifecycle: Observe, Plan, Build, Test, Review, Remember, Evolve
 - **20 hooks** (PreToolUse, PostToolUse, PostToolUseFailure, PreCompact, SessionStart, Stop)
