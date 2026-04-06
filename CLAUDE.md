@@ -52,18 +52,18 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - **Remember** (3): /checkpoint, /docs, /kdocs
 - **Evolve** (3): /eval, /instinct, /evolve
 
-## Skills (25)
+## Skills (22)
 - **Workflow**: search-first, context-budget
 - **Quality**: coding-standards, tdd-workflow, verification-loop, e2e-testing
 - **Learning**: continuous-learning-v2, eval-harness
 - **Architecture**: architecture-decision-records, api-design
-- **Data**: database-migrations, postgres-patterns, iterative-retrieval, iterative-retrieval-hebrew
+- **Data**: database-migrations, postgres-patterns
 - **Integration**: claude-api, mcp-server-patterns
 - **Python**: python-patterns, python-testing
 - **Frontend**: frontend-patterns
 - **Research**: deep-research
 - **Documentation**: docs-sync
-- **Other**: orchestration-patterns, systematic-debugging, receiving-code-review, safety-guard
+- **Other**: systematic-debugging, receiving-code-review, safety-guard
 
 ## Plugins (4)
 | Plugin | Invocation | Use |
@@ -96,4 +96,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (289 tests passing, 33 test files, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])
+v1.0 — Production ready (289 tests passing, 33 test files, 20 hooks, 15 agents, 22 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])

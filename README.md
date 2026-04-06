@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`289 tests` | `20 hooks` | `15 agents` | `25 skills` | `14 commands` | `19 rules`
+`289 tests` | `20 hooks` | `15 agents` | `22 skills` | `14 commands` | `19 rules`
 
 ## Mantra
 
@@ -13,7 +13,7 @@
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/dashboard` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/checkpoint` |
 | **Verify** | Tests first, code review, quality gates | `/ktest`, `/checkpoint`, `/kreview` |
-| **Specialize** | Domain agents, curated skill catalog | 15 agents, 25 skills, `/kplan` |
+| **Specialize** | Domain agents, curated skill catalog | 15 agents, 22 skills, `/kplan` |
 | **Evolve** | Learn from sessions, promote patterns to skills | `/instinct learn`, `/evolve`, `/instinct promote` |
 
 ## Quick Start
@@ -88,7 +88,7 @@ On session end: Stop hooks persist to SQLite
 │  └─────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 15 Agents│  │ 25 Skills│  │ 19 Rules │             │
+│  │ 15 Agents│  │ 22 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -138,7 +138,7 @@ On session end: Stop hooks persist to SQLite
 
 ---
 
-## Skills (25)
+## Skills (22)
 
 ### TypeScript / Code Quality
 
@@ -194,16 +194,8 @@ On session end: Stop hooks persist to SQLite
 | **context-budget** | Context window management, when to compact |
 | **continuous-learning-v2** | Instinct lifecycle: create, reinforce, contradict, promote, prune |
 | **mcp-server-patterns** | MCP configuration, health checks, secrets management |
-| **orchestration-patterns** | Context-rich dispatch, parallel agents, plan execution via subagents |
 | **systematic-debugging** | Structured diagnosis: reproduce, isolate, hypothesize, verify |
 | **receiving-code-review** | Receiving and applying code review feedback, prioritizing findings |
-
-### Domain-Specific
-
-| Skill | What It Teaches |
-|-------|----------------|
-| **iterative-retrieval** | 4-phase RAG loop: dispatch, evaluate, refine, loop. pgvector patterns. |
-| **iterative-retrieval-hebrew** | Hebrew/Aramaic RAG: Pesukim, Sugya, Rashi/Ramban, multilingual embeddings |
 
 ---
 
@@ -613,7 +605,7 @@ Central configuration file. Controls:
 | Metric | Value |
 |--------|-------|
 | Agents | 15 (6 opus, 9 sonnet) |
-| Skills | 25 |
+| Skills | 22 |
 | Commands | 14 |
 | Hooks | 20 |
 | Rules | 19 (9 common + 5 TypeScript + 5 Python) |
@@ -667,4 +659,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v1.0 — Production ready (289 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules)
+v1.0 — Production ready (289 tests passing, 20 hooks, 15 agents, 22 skills, 14 commands, 19 rules)
