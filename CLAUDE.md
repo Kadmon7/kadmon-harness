@@ -87,7 +87,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - DB path: `~/.kadmon/kadmon.db` (NOT `data/harness.db`) — use `path.join(homedir(), '.kadmon', 'kadmon.db')`
 - Sessions table uses `id` column (not `session_id`) — check with `PRAGMA table_info(sessions)`
 - Auto-memory dir: `~/.claude/projects/C--Command-Center-Kadmon-Harness/` (hyphens, not spaces)
-- Lifecycle hooks import from `dist/` — run `npm run build` after changing `scripts/lib/`
+- Lifecycle hooks import from `dist/` — `ensure-dist.js` auto-rebuilds, but manual `npm run build` if needed
 - Hook latency budgets are for logic only — Node.js cold start adds ~236ms on Windows
 - ORDER BY needs `rowid` tiebreaker for deterministic results when timestamps collide
 - Pattern evaluation uses 13 definitions from `.claude/hooks/pattern-definitions.json`
@@ -96,4 +96,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v0.3.4 — Skill adoption + agent updates (260 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])
+v1.0 — Production ready (289 tests passing, 33 test files, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])

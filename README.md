@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`260 tests` | `20 hooks` | `15 agents` | `25 skills` | `14 commands` | `19 rules`
+`289 tests` | `20 hooks` | `15 agents` | `25 skills` | `14 commands` | `19 rules`
 
 ## Mantra
 
@@ -490,7 +490,7 @@ Sync queue for future cloud persistence (Supabase v2).
 
 ---
 
-## Tests (260)
+## Tests (289)
 
 Framework: Vitest. All database tests use `:memory:` SQLite.
 
@@ -667,4 +667,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v0.3.4 — Skill adoption + agent updates (260 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules)
+v1.0 — Production ready (289 tests passing, 20 hooks, 15 agents, 25 skills, 14 commands, 19 rules)
