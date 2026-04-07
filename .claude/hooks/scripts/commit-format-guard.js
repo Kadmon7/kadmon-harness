@@ -2,6 +2,7 @@
 // Hook: commit-format-guard | Trigger: PreToolUse (Bash)
 // Purpose: Block git commits that don't follow conventional commit format. Exit 2 on violation.
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 
 const TYPES = "feat|fix|docs|chore|refactor|test|style|perf";
 const PATTERN = new RegExp(`^(${TYPES})(\\(.+\\))?: .+`);
@@ -38,6 +39,15 @@ try {
   if (!msg) process.exit(0); // Can't parse message (e.g., --amend), allow
 
   if (!PATTERN.test(msg)) {
+    const error = `conventional commit format required. Got: "${msg}"`;
+    logHookEvent(input.session_id, {
+      hookName: "commit-format-guard",
+      eventType: "pre_tool",
+      toolName: "Bash",
+      exitCode: 2,
+      blocked: true,
+      error,
+    });
     console.error(
       JSON.stringify({
         block: true,

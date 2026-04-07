@@ -3,6 +3,7 @@
 // Purpose: Remind to check /almanak when package.json dependencies change
 // Exit 1 (warning) when package.json is edited, exit 0 otherwise.
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 
 try {
   if (isDisabled("deps-change-reminder")) process.exit(0);
@@ -21,6 +22,14 @@ try {
   )
     process.exit(0);
 
+  logHookEvent(input.session_id, {
+    hookName: "deps-change-reminder",
+    eventType: "post_tool",
+    toolName: input.tool_name,
+    exitCode: 1,
+    blocked: false,
+    error: "package.json deps modified",
+  });
   console.error(
     JSON.stringify({
       warn: true,

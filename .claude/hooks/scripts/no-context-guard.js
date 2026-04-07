@@ -6,6 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseStdin, wasTruncated } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 const EXEMPT_EXT = [".test.ts", ".spec.ts", ".md", ".json"];
 function isExempt(fp) {
   if (!fp) return true;
@@ -40,6 +41,14 @@ try {
   if (process.env.KADMON_NO_CONTEXT_GUARD === "off") process.exit(0);
   const input = parseStdin();
   if (wasTruncated(input)) {
+    logHookEvent(input.session_id, {
+      hookName: "no-context-guard",
+      eventType: "pre_tool",
+      toolName: input.tool_name,
+      exitCode: 2,
+      blocked: true,
+      error: "stdin truncated",
+    });
     console.error(
       JSON.stringify({
         block: true,
@@ -57,6 +66,14 @@ try {
   if (!fs.existsSync(obsPath)) process.exit(0);
   const { paths, dirs } = getResearched(obsPath);
   if (paths.has(target) || dirs.has(path.dirname(target))) process.exit(0);
+  logHookEvent(input.session_id, {
+    hookName: "no-context-guard",
+    eventType: "pre_tool",
+    toolName: input.tool_name,
+    exitCode: 2,
+    blocked: true,
+    error: `no_context: ${target}`,
+  });
   console.error(
     JSON.stringify({
       block: true,

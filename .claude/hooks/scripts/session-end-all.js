@@ -62,10 +62,14 @@ async function main() {
     const cwd = input.cwd ?? process.cwd();
     if (!sid) process.exit(0);
 
-    const obsPath = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
+    const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
+    const obsPath = path.join(sessionDir, "observations.jsonl");
+    const hookEventsPath = path.join(sessionDir, "hook-events.jsonl");
     const filesModified = new Set();
     const toolsUsed = new Set();
     let messageCount = 0;
+    const agentPre = new Map(); // track Agent tool_pre events by timestamp for duration pairing
+    const extractedAgents = [];
 
     if (fs.existsSync(obsPath)) {
       for (const line of fs
@@ -74,10 +78,59 @@ async function main() {
         .filter(Boolean)) {
         try {
           const e = JSON.parse(line);
-          if (e.eventType === "tool_pre") messageCount++;
+          if (e.eventType === "tool_pre") {
+            messageCount++;
+            if (e.toolName === "Agent" && e.metadata) {
+              agentPre.set(e.timestamp, {
+                agentType: e.metadata.agentType ?? "general-purpose",
+                description: e.metadata.agentDescription ?? null,
+                timestamp: e.timestamp,
+              });
+            }
+          }
+          if (e.eventType === "tool_post" && e.toolName === "Agent") {
+            // Pair with most recent unmatched agent pre event
+            const lastKey = [...agentPre.keys()].pop();
+            if (lastKey) {
+              const pre = agentPre.get(lastKey);
+              agentPre.delete(lastKey);
+              extractedAgents.push({
+                agentType: pre.agentType,
+                description: pre.description,
+                durationMs: e.durationMs ?? null,
+                success: e.success !== false,
+                error: e.error ?? null,
+                timestamp: pre.timestamp,
+              });
+            }
+          }
           if (e.toolName) toolsUsed.add(e.toolName);
           if (e.filePath && ["Edit", "Write"].includes(e.toolName))
             filesModified.add(e.filePath);
+        } catch {}
+      }
+    }
+    // Any unmatched agent pre events (no post received)
+    for (const [, pre] of agentPre) {
+      extractedAgents.push({
+        agentType: pre.agentType,
+        description: pre.description,
+        durationMs: null,
+        success: null,
+        error: null,
+        timestamp: pre.timestamp,
+      });
+    }
+
+    // Read hook events JSONL
+    const extractedHookEvents = [];
+    if (fs.existsSync(hookEventsPath)) {
+      for (const line of fs
+        .readFileSync(hookEventsPath, "utf8")
+        .split("\n")
+        .filter(Boolean)) {
+        try {
+          extractedHookEvents.push(JSON.parse(line));
         } catch {}
       }
     }
@@ -111,7 +164,6 @@ async function main() {
       for (const f of bashFiles) filesModified.add(f);
     }
 
-    let dbReady = false;
     try {
       const { openDb, insertCostEvent, upsertSession, getSession } =
         await import(
@@ -123,7 +175,6 @@ async function main() {
           .href
       );
       await openDb(process.env.KADMON_TEST_DB || undefined);
-      dbReady = true;
 
       const existingSession = getSession(sid);
       const result = endSession(sid, {
@@ -265,6 +316,55 @@ async function main() {
           JSON.stringify({ warn: `session-end-all cost: ${costErr.message}` }),
         );
       }
+
+      // --- Phase 1c: Persist hook events and agent invocations ---
+      try {
+        const { insertHookEvent, insertAgentInvocation } = await import(
+          new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
+            .href
+        );
+
+        let hookCount = 0;
+        for (const he of extractedHookEvents) {
+          insertHookEvent({
+            sessionId: sid,
+            hookName: he.hookName ?? "unknown",
+            eventType: he.eventType ?? "pre_tool",
+            toolName: he.toolName ?? null,
+            exitCode: he.exitCode ?? 0,
+            blocked: Boolean(he.blocked),
+            durationMs: he.durationMs ?? null,
+            error: he.error ?? null,
+            timestamp: he.timestamp ?? new Date().toISOString(),
+          });
+          hookCount++;
+        }
+
+        let agentCount = 0;
+        for (const ai of extractedAgents) {
+          insertAgentInvocation({
+            sessionId: sid,
+            agentType: ai.agentType ?? "general-purpose",
+            model: null,
+            description: ai.description ?? null,
+            durationMs: ai.durationMs ?? null,
+            success: ai.success,
+            error: ai.error ?? null,
+            timestamp: ai.timestamp ?? new Date().toISOString(),
+          });
+          agentCount++;
+        }
+
+        if (hookCount > 0 || agentCount > 0) {
+          output.push(
+            `DB: ${hookCount} hook events, ${agentCount} agent invocations persisted`,
+          );
+        }
+      } catch (persistErr) {
+        logHookError("session-end-all", persistErr, {
+          phase: "hook-agent-persist",
+        });
+      }
     } catch (dbErr) {
       logHookError("session-end-all", dbErr, { phase: "db-init" });
       console.error(
@@ -274,7 +374,6 @@ async function main() {
 
     // --- Phase 4: Write marker (was session-end-marker.js) ---
     try {
-      const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
       if (fs.existsSync(sessionDir)) {
         fs.writeFileSync(
           path.join(sessionDir, "clean-exit.marker"),
@@ -288,10 +387,10 @@ async function main() {
 
     // --- Phase 5: Cleanup observations (from session-end-persist) ---
     try {
-      const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
       if (fs.existsSync(sessionDir) && messageCount >= 20) {
         for (const file of [
           "observations.jsonl",
+          "hook-events.jsonl",
           "tool_count.txt",
           "last_pre_ts.txt",
         ]) {

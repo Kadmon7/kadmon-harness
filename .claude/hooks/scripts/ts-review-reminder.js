@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 
 const TS_THRESHOLD = 5;
 const REVIEWER_TYPES = ["kody", "typescript-reviewer"];
@@ -52,6 +53,14 @@ try {
   }
 
   if (tsEditCount >= TS_THRESHOLD && !hasReview) {
+    logHookEvent(sid, {
+      hookName: "ts-review-reminder",
+      eventType: "post_tool",
+      toolName: "Edit",
+      exitCode: 1,
+      blocked: false,
+      error: `${tsEditCount} .ts edits without review`,
+    });
     console.log(
       `\u{1F50D} ${tsEditCount} .ts edits without review. Consider /chekpoint`,
     );

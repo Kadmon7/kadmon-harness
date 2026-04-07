@@ -63,6 +63,31 @@ CREATE TABLE IF NOT EXISTS sync_queue (
   last_error TEXT
 );
 
+CREATE TABLE IF NOT EXISTS hook_events (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES sessions(id),
+  hook_name TEXT NOT NULL,
+  event_type TEXT NOT NULL CHECK (event_type IN ('pre_tool', 'post_tool', 'post_tool_fail', 'pre_compact', 'session_start', 'stop')),
+  tool_name TEXT,
+  exit_code INTEGER NOT NULL DEFAULT 0,
+  blocked INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER,
+  error TEXT,
+  timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS agent_invocations (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES sessions(id),
+  agent_type TEXT NOT NULL,
+  model TEXT,
+  description TEXT,
+  duration_ms INTEGER,
+  success INTEGER,
+  error TEXT,
+  timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_sessions_project ON sessions(project_hash);
 CREATE INDEX IF NOT EXISTS idx_sessions_started ON sessions(started_at DESC);
@@ -72,3 +97,9 @@ CREATE INDEX IF NOT EXISTS idx_instincts_confidence ON instincts(confidence DESC
 CREATE INDEX IF NOT EXISTS idx_cost_events_session ON cost_events(session_id);
 CREATE INDEX IF NOT EXISTS idx_cost_events_timestamp ON cost_events(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_sync_queue_pending ON sync_queue(synced_at) WHERE synced_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_hook_events_session ON hook_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_hook_events_hook ON hook_events(hook_name);
+CREATE INDEX IF NOT EXISTS idx_hook_events_timestamp ON hook_events(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_invocations_session ON agent_invocations(session_id);
+CREATE INDEX IF NOT EXISTS idx_agent_invocations_agent ON agent_invocations(agent_type);
+CREATE INDEX IF NOT EXISTS idx_agent_invocations_timestamp ON agent_invocations(timestamp DESC);

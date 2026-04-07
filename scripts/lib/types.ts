@@ -89,6 +89,41 @@ export interface SyncQueueEntry {
   lastError?: string | null;
 }
 
+// ─── Hook Event (persistent, per-session) ───
+
+export interface HookEvent {
+  id: string;
+  sessionId: string;
+  hookName: string;
+  eventType:
+    | "pre_tool"
+    | "post_tool"
+    | "post_tool_fail"
+    | "pre_compact"
+    | "session_start"
+    | "stop";
+  toolName?: string;
+  exitCode: number;
+  blocked: boolean;
+  durationMs?: number;
+  error?: string;
+  timestamp: string;
+}
+
+// ─── Agent Invocation (persistent, per-session) ───
+
+export interface AgentInvocation {
+  id: string;
+  sessionId: string;
+  agentType: string;
+  model?: string;
+  description?: string;
+  durationMs?: number;
+  success?: boolean;
+  error?: string;
+  timestamp: string;
+}
+
 // ─── Project Info ───
 
 export interface ProjectInfo {

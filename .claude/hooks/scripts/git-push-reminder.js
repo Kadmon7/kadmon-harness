@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 try {
   if (isDisabled("git-push-reminder")) process.exit(0);
   const input = parseStdin();
@@ -44,6 +45,14 @@ try {
   }
 
   if (warnings.length > 0) {
+    logHookEvent(sid, {
+      hookName: "git-push-reminder",
+      eventType: "pre_tool",
+      toolName: "Bash",
+      exitCode: 1,
+      blocked: false,
+      error: warnings.join("; "),
+    });
     console.log(`\u{26A0}\u{FE0F} Pre-push: ${warnings.join(", ")}`);
     process.exit(1);
   }

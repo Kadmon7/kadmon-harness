@@ -3,6 +3,7 @@
 // Purpose: Warn about console.log() left in production code. Exit 1 as warning.
 import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 
 const SKIP_PATHS = [
   "node_modules",
@@ -29,6 +30,14 @@ try {
   const content =
     input.tool_input?.new_string ?? input.tool_input?.content ?? "";
   if (content.includes("console.log(")) {
+    logHookEvent(input.session_id, {
+      hookName: "console-log-warn",
+      eventType: "post_tool",
+      toolName: input.tool_name,
+      exitCode: 1,
+      blocked: false,
+      error: `console.log() in ${path.basename(filePath)}`,
+    });
     console.log(
       `\u{26A0}\u{FE0F} console.log() detected in ${path.basename(filePath)} — remove before committing`,
     );

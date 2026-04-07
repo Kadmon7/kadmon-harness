@@ -4,6 +4,7 @@
 // Exit 2 on problems found, exit 0 otherwise.
 import { execSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 
 const SECRET_PATTERNS = [
   /(?:api[_-]?key|secret[_-]?key|token|password|credentials)\s*[:=]\s*["'][A-Za-z0-9+/=]{16,}["']/i,
@@ -90,6 +91,15 @@ try {
   const uniqueIssues = [...new Set(issues)];
 
   if (uniqueIssues.length > 0) {
+    const error = uniqueIssues.join("; ");
+    logHookEvent(input.session_id, {
+      hookName: "commit-quality",
+      eventType: "pre_tool",
+      toolName: "Bash",
+      exitCode: 2,
+      blocked: true,
+      error,
+    });
     console.error(
       JSON.stringify({
         block: true,

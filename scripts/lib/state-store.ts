@@ -10,6 +10,8 @@ import type {
   SessionSummary,
   CostEvent,
   SyncQueueEntry,
+  HookEvent,
+  AgentInvocation,
 } from "./types.js";
 import { kadmonDataDir, generateId, nowISO, ensureDir, log } from "./utils.js";
 
@@ -310,6 +312,10 @@ export function deleteSession(id: string): boolean {
   if (!session) return false;
   const txn = db.transaction(() => {
     db.prepare("DELETE FROM cost_events WHERE session_id = @id").run({ id });
+    db.prepare("DELETE FROM hook_events WHERE session_id = @id").run({ id });
+    db.prepare("DELETE FROM agent_invocations WHERE session_id = @id").run({
+      id,
+    });
     db.prepare("DELETE FROM sessions WHERE id = @id").run({ id });
   });
   txn();
@@ -330,6 +336,12 @@ export function cleanupTestSessions(projectHash?: string): number {
     for (const row of rows) {
       const sid = String(row.id);
       db.prepare("DELETE FROM cost_events WHERE session_id = @id").run({
+        id: sid,
+      });
+      db.prepare("DELETE FROM hook_events WHERE session_id = @id").run({
+        id: sid,
+      });
+      db.prepare("DELETE FROM agent_invocations WHERE session_id = @id").run({
         id: sid,
       });
       db.prepare("DELETE FROM sessions WHERE id = @id").run({ id: sid });
@@ -570,4 +582,176 @@ export function markSynced(id: number): void {
       id,
       synced_at: nowISO(),
     });
+}
+
+// ─── Hook event operations ───
+
+function mapHookEventRow(row: Record<string, unknown>): HookEvent {
+  return {
+    id: String(row.id),
+    sessionId: String(row.session_id),
+    hookName: String(row.hook_name),
+    eventType: String(row.event_type) as HookEvent["eventType"],
+    toolName: row.tool_name ? String(row.tool_name) : undefined,
+    exitCode: Number(row.exit_code ?? 0),
+    blocked: Number(row.blocked) !== 0,
+    durationMs: row.duration_ms != null ? Number(row.duration_ms) : undefined,
+    error: row.error ? String(row.error) : undefined,
+    timestamp: String(row.timestamp),
+  };
+}
+
+export function insertHookEvent(event: Omit<HookEvent, "id">): void {
+  const id = generateId();
+  getDb()
+    .prepare(
+      `INSERT INTO hook_events (id, session_id, hook_name, event_type, tool_name,
+         exit_code, blocked, duration_ms, error, timestamp)
+       VALUES (@id, @session_id, @hook_name, @event_type, @tool_name,
+         @exit_code, @blocked, @duration_ms, @error, @timestamp)`,
+    )
+    .run({
+      id,
+      session_id: event.sessionId,
+      hook_name: event.hookName,
+      event_type: event.eventType,
+      tool_name: event.toolName ?? null,
+      exit_code: event.exitCode,
+      blocked: event.blocked ? 1 : 0,
+      duration_ms: event.durationMs ?? null,
+      error: event.error ? event.error.slice(0, 500) : null,
+      timestamp: event.timestamp ?? nowISO(),
+    });
+}
+
+export function getHookEventsBySession(sessionId: string): HookEvent[] {
+  return getDb()
+    .prepare(
+      "SELECT * FROM hook_events WHERE session_id = ? ORDER BY timestamp ASC, rowid ASC",
+    )
+    .all(sessionId)
+    .map(mapHookEventRow);
+}
+
+export function getHookEventStats(
+  projectHash: string,
+  since?: string,
+): Array<{
+  hookName: string;
+  total: number;
+  blocks: number;
+  avgDurationMs: number;
+}> {
+  // sinceClause is a hardcoded literal, not caller-provided — safe from injection
+  const sinceClause = since ? "AND he.timestamp >= ?" : "";
+  const args: unknown[] = [projectHash];
+  if (since) args.push(since);
+
+  return getDb()
+    .prepare(
+      `SELECT he.hook_name,
+              COUNT(*) as total,
+              SUM(he.blocked) as blocks,
+              AVG(he.duration_ms) as avg_duration_ms
+       FROM hook_events he
+       JOIN sessions s ON he.session_id = s.id
+       WHERE s.project_hash = ? ${sinceClause}
+       GROUP BY he.hook_name
+       ORDER BY total DESC`,
+    )
+    .all(...args)
+    .map((row) => ({
+      hookName: String(row.hook_name),
+      total: Number(row.total),
+      blocks: Number(row.blocks ?? 0),
+      avgDurationMs: Math.round(Number(row.avg_duration_ms ?? 0)),
+    }));
+}
+
+// ─── Agent invocation operations ───
+
+function mapAgentInvocationRow(row: Record<string, unknown>): AgentInvocation {
+  return {
+    id: String(row.id),
+    sessionId: String(row.session_id),
+    agentType: String(row.agent_type),
+    model: row.model ? String(row.model) : undefined,
+    description: row.description ? String(row.description) : undefined,
+    durationMs: row.duration_ms != null ? Number(row.duration_ms) : undefined,
+    success: row.success != null ? Number(row.success) !== 0 : undefined,
+    error: row.error ? String(row.error) : undefined,
+    timestamp: String(row.timestamp),
+  };
+}
+
+export function insertAgentInvocation(
+  invocation: Omit<AgentInvocation, "id">,
+): void {
+  const id = generateId();
+  getDb()
+    .prepare(
+      `INSERT INTO agent_invocations (id, session_id, agent_type, model,
+         description, duration_ms, success, error, timestamp)
+       VALUES (@id, @session_id, @agent_type, @model,
+         @description, @duration_ms, @success, @error, @timestamp)`,
+    )
+    .run({
+      id,
+      session_id: invocation.sessionId,
+      agent_type: invocation.agentType,
+      model: invocation.model ?? null,
+      description: invocation.description ?? null,
+      duration_ms: invocation.durationMs ?? null,
+      success: invocation.success != null ? (invocation.success ? 1 : 0) : null,
+      error: invocation.error ? invocation.error.slice(0, 500) : null,
+      timestamp: invocation.timestamp ?? nowISO(),
+    });
+}
+
+export function getAgentInvocationsBySession(
+  sessionId: string,
+): AgentInvocation[] {
+  return getDb()
+    .prepare(
+      "SELECT * FROM agent_invocations WHERE session_id = ? ORDER BY timestamp ASC, rowid ASC",
+    )
+    .all(sessionId)
+    .map(mapAgentInvocationRow);
+}
+
+export function getAgentInvocationStats(
+  projectHash: string,
+  since?: string,
+): Array<{
+  agentType: string;
+  total: number;
+  avgDurationMs: number;
+  failureRate: number;
+}> {
+  // sinceClause is a hardcoded literal, not caller-provided — safe from injection
+  const sinceClause = since ? "AND ai.timestamp >= ?" : "";
+  const args: unknown[] = [projectHash];
+  if (since) args.push(since);
+
+  // failure_rate = failures / known_outcomes (excludes NULL success rows from denominator)
+  return getDb()
+    .prepare(
+      `SELECT ai.agent_type,
+              COUNT(*) as total,
+              AVG(ai.duration_ms) as avg_duration_ms,
+              CAST(SUM(CASE WHEN ai.success = 0 THEN 1 ELSE 0 END) AS REAL)
+                / NULLIF(COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END), 0) as failure_rate
+       FROM agent_invocations ai
+       JOIN sessions s ON ai.session_id = s.id
+       WHERE s.project_hash = ? ${sinceClause}
+       GROUP BY ai.agent_type
+       ORDER BY total DESC`,
+    )
+    .all(...args)
+    .map((row) => ({
+      agentType: String(row.agent_type),
+      total: Number(row.total),
+      avgDurationMs: Math.round(Number(row.avg_duration_ms ?? 0)),
+      failureRate: Number(row.failure_rate ?? 0),
+    }));
 }

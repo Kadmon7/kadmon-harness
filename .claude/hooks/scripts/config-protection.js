@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseStdin, wasTruncated, isDisabled } from "./parse-stdin.js";
+import { logHookEvent } from "./log-hook-event.js";
 const PROTECTED = [
   ".eslintrc",
   ".prettierrc",
@@ -25,6 +26,14 @@ try {
   const input = parseStdin();
   // Block on truncated input — attacker could bypass by overflowing stdin
   if (wasTruncated(input)) {
+    logHookEvent(input.session_id, {
+      hookName: "config-protection",
+      eventType: "pre_tool",
+      toolName: input.tool_name,
+      exitCode: 2,
+      blocked: true,
+      error: "stdin truncated",
+    });
     console.error(
       JSON.stringify({
         block: true,
@@ -41,6 +50,14 @@ try {
   if (!PROTECTED.some((f) => fileName.startsWith(f))) process.exit(0);
   for (const { re, msg } of DANGEROUS) {
     if (re.test(content)) {
+      logHookEvent(input.session_id, {
+        hookName: "config-protection",
+        eventType: "pre_tool",
+        toolName: input.tool_name,
+        exitCode: 2,
+        blocked: true,
+        error: `${msg} in ${fileName}`,
+      });
       console.error(
         JSON.stringify({
           block: true,
