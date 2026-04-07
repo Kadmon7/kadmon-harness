@@ -3,7 +3,7 @@
 // Purpose: Block weakening of linter/compiler configs
 import fs from "node:fs";
 import path from "node:path";
-import { parseStdin, wasTruncated } from "./parse-stdin.js";
+import { parseStdin, wasTruncated, isDisabled } from "./parse-stdin.js";
 const PROTECTED = [
   ".eslintrc",
   ".prettierrc",
@@ -21,6 +21,7 @@ const DANGEROUS = [
   { re: /:\s*("off"|0)\s*[,}\]]/, msg: "Disabling lint rules" },
 ];
 try {
+  if (isDisabled("config-protection")) process.exit(0);
   const input = parseStdin();
   // Block on truncated input — attacker could bypass by overflowing stdin
   if (wasTruncated(input)) {

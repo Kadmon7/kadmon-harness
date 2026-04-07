@@ -4,8 +4,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 try {
+  if (isDisabled("git-push-reminder")) process.exit(0);
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
   if (!cmd.includes("git push")) process.exit(0);

@@ -64,9 +64,13 @@ export function endSession(
   const startMs = new Date(existing.startedAt).getTime();
   const endMs = nowMs();
 
+  // Filter undefined values so they don't overwrite existing data
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([, v]) => v !== undefined),
+  );
   const final: SessionSummary = {
     ...existing,
-    ...updates,
+    ...cleanUpdates,
     id: sessionId,
     endedAt: now,
     durationMs: endMs - startMs,

@@ -19,19 +19,35 @@ function runHook(input: object): { code: number; stderr: string } {
 }
 
 describe("deps-change-reminder", () => {
-  it("warns when file_path is package.json", () => {
+  it("warns when file_path is package.json with dependency changes", () => {
     const r = runHook({
-      tool_input: { file_path: "/project/package.json" },
+      tool_input: {
+        file_path: "/project/package.json",
+        new_string: '"dependencies": { "zod": "^3.0.0" }',
+      },
     });
     expect(r.code).toBe(1);
     expect(r.stderr).toContain("package.json modified");
   });
 
-  it("warns for nested package.json paths", () => {
+  it("warns for nested package.json paths with dependency changes", () => {
     const r = runHook({
-      tool_input: { file_path: "/project/packages/core/package.json" },
+      tool_input: {
+        file_path: "/project/packages/core/package.json",
+        new_string: '"devDependencies": { "vitest": "^2.0.0" }',
+      },
     });
     expect(r.code).toBe(1);
+  });
+
+  it("allows package.json edits that do not touch dependencies", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/package.json",
+        new_string: '"scripts": { "build": "tsc" }',
+      },
+    });
+    expect(r.code).toBe(0);
   });
 
   it("allows non-package.json files", () => {

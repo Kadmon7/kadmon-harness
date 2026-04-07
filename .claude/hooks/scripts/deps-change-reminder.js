@@ -2,13 +2,24 @@
 // Hook: deps-change-reminder | Trigger: PostToolUse (Edit|Write)
 // Purpose: Remind to check /almanak when package.json dependencies change
 // Exit 1 (warning) when package.json is edited, exit 0 otherwise.
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 
 try {
+  if (isDisabled("deps-change-reminder")) process.exit(0);
   const input = parseStdin();
   const filePath = input.tool_input?.file_path ?? "";
 
   if (!filePath.endsWith("package.json")) process.exit(0);
+
+  // Only warn when dependency sections are modified
+  const content =
+    input.tool_input?.new_string ?? input.tool_input?.content ?? "";
+  if (
+    !/"(?:dependencies|devDependencies|peerDependencies|optionalDependencies)"/i.test(
+      content,
+    )
+  )
+    process.exit(0);
 
   console.error(
     JSON.stringify({

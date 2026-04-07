@@ -6,22 +6,47 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
+ * Extract file paths from Bash commands that modify files.
+ * @param {string} cmd - Bash command string
+ * @returns {Set<string>}
+ */
+export function extractBashFiles(cmd) {
+  const files = new Set();
+  const patterns = [
+    /(?:>>?)\s*["']?([^\s"'|&;]+)/g, // echo "x" > file.txt
+    /\bcp\s+\S+\s+["']?([^\s"'|&;]+)/g, // cp src dest
+    /\bmv\s+\S+\s+["']?([^\s"'|&;]+)/g, // mv src dest
+    /\btouch\s+["']?([^\s"'|&;]+)/g, // touch file
+  ];
+  for (const rx of patterns) {
+    let m;
+    while ((m = rx.exec(cmd)) !== null) {
+      const f = m[1];
+      if (f && !f.startsWith("-") && !f.startsWith("/dev/") && !f.includes("*"))
+        files.add(f);
+    }
+  }
+  return files;
+}
+
+/**
  * Generate a heuristic session summary from observations.
  * @param {string} obsPath - Path to observations.jsonl
- * @returns {{ summary: string, tasks: string[], topFiles: string[] }}
+ * @returns {{ summary: string, tasks: string[], topFiles: string[], bashFiles: string[] }}
  */
 export function generateSummary(obsPath) {
   if (!fs.existsSync(obsPath)) {
-    return { summary: "", tasks: [], topFiles: [] };
+    return { summary: "", tasks: [], topFiles: [], bashFiles: [] };
   }
 
   const lines = fs.readFileSync(obsPath, "utf8").split("\n").filter(Boolean);
   if (lines.length === 0) {
-    return { summary: "", tasks: [], topFiles: [] };
+    return { summary: "", tasks: [], topFiles: [], bashFiles: [] };
   }
 
   const editCounts = new Map();
   const readFiles = new Set();
+  const bashFiles = new Set();
   const toolCounts = new Map();
   const tasks = new Set();
   const agentTypes = new Set();
@@ -78,6 +103,8 @@ export function generateSummary(obsPath) {
         );
         if (match) lastCommitMsg = match[0].trim();
       }
+      // Extract file modifications from bash commands
+      for (const f of extractBashFiles(cmd)) bashFiles.add(f);
     }
 
     // Track agent dispatches as tasks
@@ -127,14 +154,34 @@ export function generateSummary(obsPath) {
     }
   }
 
+  // Infer tasks as fallback when no Agent/Skill/TaskCreate events exist
+  if (tasks.size === 0) {
+    if (hadCommit && lastCommitMsg) {
+      tasks.add(lastCommitMsg);
+    } else if (editCounts.size > 0 && hadTests) {
+      tasks.add("Developed and tested code changes");
+    } else if (editCounts.size > 0) {
+      tasks.add("Code modifications");
+    } else if (readFiles.size > 0) {
+      tasks.add("Code exploration and research");
+    }
+  }
+
   // Build top edited files
   const topFiles = [...editCounts.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([name]) => name);
 
-  // Build summary parts
+  // Build summary parts — commit message first (most informative)
   const parts = [];
+
+  // Commit info (lead with this if available)
+  if (hadCommit && lastCommitMsg) {
+    parts.push(`Committed: ${lastCommitMsg}`);
+  } else if (hadCommit) {
+    parts.push("Committed changes");
+  }
 
   // What was edited
   if (topFiles.length > 0) {
@@ -151,13 +198,6 @@ export function generateSummary(obsPath) {
   if (hadTests) checks.push("tests");
   if (hadTypecheck) checks.push("typecheck");
   if (checks.length > 0) parts.push(`Ran: ${checks.join(", ")}`);
-
-  // Commit info
-  if (hadCommit && lastCommitMsg) {
-    parts.push(`Committed: ${lastCommitMsg}`);
-  } else if (hadCommit) {
-    parts.push("Committed changes");
-  }
 
   // Failures and errors
   if (failedTools > 0) {
@@ -191,5 +231,6 @@ export function generateSummary(obsPath) {
     summary: parts.join(". ") + ".",
     tasks: [...tasks],
     topFiles,
+    bashFiles: [...bashFiles],
   };
 }

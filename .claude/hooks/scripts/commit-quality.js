@@ -3,7 +3,7 @@
 // Purpose: Scan staged changes for console.log, debugger, and secrets before commit.
 // Exit 2 on problems found, exit 0 otherwise.
 import { execSync } from "node:child_process";
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 
 const SECRET_PATTERNS = [
   /(?:api[_-]?key|secret[_-]?key|token|password|credentials)\s*[:=]\s*["'][A-Za-z0-9+/=]{16,}["']/i,
@@ -13,6 +13,7 @@ const SECRET_PATTERNS = [
 ];
 
 try {
+  if (isDisabled("commit-quality")) process.exit(0);
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
 

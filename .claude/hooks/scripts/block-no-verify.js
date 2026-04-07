@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Hook: block-no-verify | Trigger: PreToolUse (Bash)
 // Purpose: Block git commit --no-verify and git push --no-gpg-sign
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 try {
+  if (isDisabled("block-no-verify")) process.exit(0);
   const input = parseStdin();
   const command = input.tool_input?.command ?? "";
   const blocked = ["--no-verify", "--no-gpg-sign"];

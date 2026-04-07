@@ -280,10 +280,10 @@ describe("session-end-all", () => {
     expect(marker.exitedAt).toBeTruthy();
   });
 
-  it("cleans observation files when messageCount >= 10", async () => {
-    // 24 lines => 12 tool_pre (messageCount=12) => triggers cleanup
-    writeObservations(generateObsLines(24));
-    fs.writeFileSync(path.join(obsDir, "tool_count.txt"), "24");
+  it("cleans observation files when messageCount >= 20", async () => {
+    // 44 lines => 22 tool_pre (messageCount=22) => triggers cleanup at >= 20
+    writeObservations(generateObsLines(44));
+    fs.writeFileSync(path.join(obsDir, "tool_count.txt"), "44");
 
     runHook({ session_id: sessionId, cwd: process.cwd() });
 

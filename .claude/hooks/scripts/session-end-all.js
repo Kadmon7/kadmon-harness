@@ -101,7 +101,15 @@ async function main() {
     }
 
     // --- Phase 1: Persist session (was session-end-persist.js) ---
-    const { summary, tasks: extractedTasks } = generateSummary(obsPath);
+    const {
+      summary,
+      tasks: extractedTasks,
+      bashFiles,
+    } = generateSummary(obsPath);
+    // Merge bash-extracted file paths into filesModified
+    if (bashFiles && bashFiles.length > 0) {
+      for (const f of bashFiles) filesModified.add(f);
+    }
 
     let dbReady = false;
     try {
@@ -117,10 +125,14 @@ async function main() {
       await openDb(process.env.KADMON_TEST_DB || undefined);
       dbReady = true;
 
+      const existingSession = getSession(sid);
       const result = endSession(sid, {
-        filesModified: [...filesModified],
-        toolsUsed: [...toolsUsed],
-        messageCount,
+        filesModified: filesModified.size > 0 ? [...filesModified] : undefined,
+        toolsUsed: toolsUsed.size > 0 ? [...toolsUsed] : undefined,
+        messageCount: Math.max(
+          existingSession?.messageCount ?? 0,
+          messageCount,
+        ),
         summary: summary || undefined,
         tasks: extractedTasks.length > 0 ? extractedTasks : undefined,
       });
@@ -277,8 +289,12 @@ async function main() {
     // --- Phase 5: Cleanup observations (from session-end-persist) ---
     try {
       const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
-      if (fs.existsSync(sessionDir) && messageCount >= 10) {
-        for (const file of ["observations.jsonl", "tool_count.txt"]) {
+      if (fs.existsSync(sessionDir) && messageCount >= 20) {
+        for (const file of [
+          "observations.jsonl",
+          "tool_count.txt",
+          "last_pre_ts.txt",
+        ]) {
           const filePath = path.join(sessionDir, file);
           try {
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);

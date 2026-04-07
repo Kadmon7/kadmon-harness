@@ -98,4 +98,18 @@ describe("observe-pre", () => {
     expect(event.metadata.agentType).toBeNull();
     expect(event.metadata.agentDescription).toBe("Some task");
   });
+
+  it("writes last_pre_ts.txt with valid timestamp", () => {
+    const before = Date.now();
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Read",
+      tool_input: { file_path: "src/index.ts" },
+    });
+    const tsFile = path.join(OBS_DIR, "last_pre_ts.txt");
+    expect(fs.existsSync(tsFile)).toBe(true);
+    const ts = parseInt(fs.readFileSync(tsFile, "utf8").trim(), 10);
+    expect(ts).toBeGreaterThanOrEqual(before);
+    expect(ts).toBeLessThanOrEqual(Date.now());
+  });
 });

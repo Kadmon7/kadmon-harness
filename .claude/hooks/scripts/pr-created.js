@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Hook: pr-created | Trigger: PostToolUse (Bash)
 // Purpose: Log PR URL when a PR is created via gh cli. Exit 0 always (informative).
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 
 try {
+  if (isDisabled("pr-created")) process.exit(0);
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
 

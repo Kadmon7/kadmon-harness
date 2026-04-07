@@ -23,7 +23,15 @@ export function wasTruncated(input) {
   return input?._truncated === true;
 }
 
+// Security-critical hooks that must never be disabled via env var
+const NEVER_DISABLE = new Set([
+  "block-no-verify",
+  "config-protection",
+  "commit-quality",
+]);
+
 export function isDisabled(hookName) {
+  if (NEVER_DISABLE.has(hookName)) return false;
   const disabled = (process.env.KADMON_DISABLED_HOOKS ?? "")
     .split(",")
     .map((s) => s.trim())

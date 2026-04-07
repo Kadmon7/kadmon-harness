@@ -117,4 +117,67 @@ describe("observe-post", () => {
   it("exits 0 on empty input", () => {
     expect(runHook({})).toBe(0);
   });
+
+  it("records durationMs when last_pre_ts.txt exists", () => {
+    fs.mkdirSync(OBS_DIR, { recursive: true });
+    fs.writeFileSync(
+      path.join(OBS_DIR, "last_pre_ts.txt"),
+      String(Date.now() - 150),
+    );
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Read",
+      tool_input: { file_path: "src/index.ts" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.durationMs).toBeGreaterThanOrEqual(100);
+    expect(event.durationMs).toBeLessThan(5000);
+  });
+
+  it("works gracefully without last_pre_ts.txt", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Read",
+      tool_input: { file_path: "src/index.ts" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.durationMs).toBeUndefined();
+  });
+
+  it("captures metadata.command for Bash tools", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "npm run build" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.command).toBe("npm run build");
+  });
+
+  it("captures metadata.resultSnippet for Bash tools", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "echo hello" },
+      tool_result: "hello\nworld\n",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.resultSnippet).toBe("hello\nworld\n");
+  });
+
+  it("does not capture metadata for non-Bash tools", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Read",
+      tool_input: { file_path: "a.ts" },
+      tool_result: "file content here",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata).toBeUndefined();
+  });
 });

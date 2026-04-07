@@ -104,4 +104,29 @@ describe("session-manager", () => {
     expect(ctx).toContain("Active instincts: 1");
     expect(ctx).toContain("[0.7] always run tsc");
   });
+
+  it("endSession with undefined fields preserves existing data", () => {
+    startSession("sess-preserve", PROJECT);
+    // First endSession with actual data
+    endSession("sess-preserve", {
+      filesModified: ["a.ts", "b.ts"],
+      toolsUsed: ["Read", "Edit"],
+      tasks: ["initial task"],
+      messageCount: 50,
+    });
+
+    // Call endSession again with undefined values (simulates empty observations)
+    const result = endSession("sess-preserve", {
+      filesModified: undefined,
+      toolsUsed: undefined,
+      tasks: undefined,
+      messageCount: 5,
+    });
+
+    expect(result).not.toBeNull();
+    // Existing data should be preserved, not overwritten
+    expect(result!.filesModified).toEqual(["a.ts", "b.ts"]);
+    expect(result!.toolsUsed).toEqual(["Read", "Edit"]);
+    expect(result!.tasks).toEqual(["initial task"]);
+  });
 });

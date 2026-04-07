@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // Hook: commit-format-guard | Trigger: PreToolUse (Bash)
 // Purpose: Block git commits that don't follow conventional commit format. Exit 2 on violation.
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 
 const TYPES = "feat|fix|docs|chore|refactor|test|style|perf";
 const PATTERN = new RegExp(`^(${TYPES})(\\(.+\\))?: .+`);
 
 try {
+  if (isDisabled("commit-format-guard")) process.exit(0);
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
 

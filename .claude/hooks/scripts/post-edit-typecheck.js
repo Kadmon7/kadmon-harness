@@ -4,8 +4,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { parseStdin } from "./parse-stdin.js";
+import { parseStdin, isDisabled } from "./parse-stdin.js";
 try {
+  if (isDisabled("post-edit-typecheck")) process.exit(0);
   const input = parseStdin();
   const fp = input.tool_input?.file_path ?? "";
   if (!fp || path.extname(fp) !== ".ts") process.exit(0);
@@ -14,6 +15,7 @@ try {
     execSync("npx tsc --noEmit --skipLibCheck", {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
+      timeout: 15000,
     });
   } catch (tscErr) {
     if (tscErr.stdout)

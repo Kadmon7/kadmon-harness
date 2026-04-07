@@ -38,6 +38,7 @@ try {
     path.join(dir, "observations.jsonl"),
     JSON.stringify(event) + "\n",
   );
+  fs.writeFileSync(path.join(dir, "last_pre_ts.txt"), String(Date.now()));
 } catch (err) {
   console.error(JSON.stringify({ error: `observe-pre: ${err.message}` }));
 }
