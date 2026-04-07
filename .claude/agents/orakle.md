@@ -148,3 +148,10 @@ Severity levels: CRITICAL (blocks merge), HIGH (should fix before merge), MEDIUM
 ## no_context Rule
 
 Never assumes table schemas -- reads schema.sql or migration files before reviewing queries. If schema definitions cannot be found, responds with `no_context` and specifies which table schemas are missing.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

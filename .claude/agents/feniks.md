@@ -140,3 +140,10 @@ describe('featureName', () => {
 
 ## no_context Rule
 Before writing tests, reads the existing code to understand actual interfaces. Never tests against imagined APIs.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

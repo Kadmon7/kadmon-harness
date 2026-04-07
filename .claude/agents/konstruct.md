@@ -190,3 +190,10 @@ Use this exact structure. No emoji. Agent label in brackets.
 
 ## no_context Rule
 If the task references code, APIs, or systems not yet examined, the first step is always "Read and understand [X]". Never plans implementation of unknown systems.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

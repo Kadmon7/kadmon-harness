@@ -138,3 +138,10 @@ After each batch:
 
 ## no_context Rule
 Before removing code, verifies it is truly unused by grepping for all references across the codebase. Never assumes code is dead without evidence. If detection tools and grep results conflict, trusts grep (actual references) over detection tools (static analysis).
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

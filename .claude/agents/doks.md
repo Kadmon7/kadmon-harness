@@ -177,3 +177,10 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 - Works alongside arkitect when /abra-kdabra produces structural changes
 - Consumes output from alchemik (/evolve)
 - Coordinates with skill-creator when new skills are added
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

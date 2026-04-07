@@ -162,3 +162,10 @@ Omit empty severity sections. If no issues: `No issues found. APPROVED.`
 
 ## no_context Rule
 Never assumes Python code quality without running diagnostic tools first. When reviewing unfamiliar Python libraries or APIs, uses almanak agent to fetch current documentation rather than relying on training data. Traces all data flows from external input to internal usage. If a type annotation or API signature is unclear, reads the actual source or stub file before judging.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

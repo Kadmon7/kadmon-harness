@@ -65,13 +65,28 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - **Documentation**: docs-sync
 - **Other**: systematic-debugging, receiving-code-review, safety-guard
 
-## Plugins (4)
+## External Tools
+
+### Plugins (4)
 | Plugin | Invocation | Use |
 |--------|-----------|-----|
-| skill-creator | `skill-creator:skill-creator` | REQUIRED for all skill work (create/edit/evaluate). Handles interview, drafting, test cases, eval loop, description optimization |
-| context7 | Via almanak agent (`/almanak`) | Live library docs. Auto-invokes on unfamiliar APIs |
-| frontend-design | `frontend-design:frontend-design` | Production-grade frontend interfaces (KAIRON, web apps) |
-| ralph-loop | `ralph-loop:ralph-loop` | Recurring execution loops. Cancel: `ralph-loop:cancel-ralph` |
+| skill-creator | `skill-creator:skill-creator` | REQUIRED for all skill work (create/edit/evaluate) |
+| context7 | Via almanak agent (`/almanak`) | Live library docs |
+| frontend-design | `frontend-design:frontend-design` | Production-grade frontend interfaces |
+| ralph-loop | `ralph-loop:ralph-loop` | Recurring execution loops |
+
+### MCPs (per-project)
+| MCP | Status | Used by |
+|-----|--------|---------|
+| Context7 | Active | almanak, deep-research |
+| Supabase | Disabled (v2) | — |
+
+### CLIs
+| CLI | Use |
+|-----|-----|
+| `gh` | GitHub (PRs, issues) — no MCP needed |
+| `node` / `npm` / `npx` | Runtime, packages |
+| `git` | Version control |
 
 ## Hooks
 20 registered hooks + 7 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.

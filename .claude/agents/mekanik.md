@@ -157,3 +157,10 @@ npm run build
 Never guesses at error causes. Reads the actual error message, traces it to the source file and line, and proposes a fix based on evidence.
 
 Fix the error, verify the build passes, move on. Speed and precision over perfection.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

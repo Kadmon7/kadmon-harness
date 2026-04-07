@@ -188,3 +188,9 @@ Omit empty sections. If no bottleneck is found after profiling, report that expl
 
 ## no_context Rule
 Never assumes a bottleneck exists without profiling evidence. "Feels slow" is not a diagnosis -- measure first, optimize second. If profiling data is unavailable, the first step is always to collect it. Never invents performance numbers or estimates improvements without measurement.
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

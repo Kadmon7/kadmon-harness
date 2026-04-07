@@ -126,3 +126,10 @@ User asks: "How does obscure-lib work?"
 ## no_context Rule
 
 This agent IS the no_context enforcer for API knowledge. It exists because Claude should never invent API signatures. Every API detail must come from fetched documentation, not memory. When documentation cannot be retrieved, the correct answer is no_context with an explanation of what was attempted, not a best guess from training data.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.

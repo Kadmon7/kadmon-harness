@@ -515,27 +515,15 @@ npx vitest run tests/lib/state-store.test.ts  # Specific file
 
 ---
 
-## MCPs (3)
+## MCPs (1 active)
 
-| MCP | Type | What It Enables | Used By |
-|-----|------|----------------|---------|
-| **GitHub** | HTTP | Search code, create PRs/issues, read files, commits, reviews | kody, doks |
-| **Context7** | Command (`npx -y @upstash/context7-mcp`) | Live documentation for any library | almanak agent, `/almanak` |
-| **Supabase** | HTTP | DB operations, auth, storage, edge functions, migrations, SQL | orakle, arkitect |
+| MCP | Type | Status | Used By |
+|-----|------|--------|---------|
+| **Context7** | Command (`npx -y @upstash/context7-mcp`) | Active | almanak agent, `/almanak` |
+
+GitHub uses `gh` CLI (not MCP). Supabase MCP disabled (v2, per-project when needed).
 
 Health monitored by `mcp-health-check` (PreToolUse) and `mcp-health-failure` (PostToolUseFailure).
-
----
-
-## Schemas (3)
-
-JSON Schema (draft 2020-12) files in `schemas/`:
-
-| Schema | Validates | Used By |
-|--------|----------|---------|
-| **instinct.schema.json** | Instinct: confidence [0,1], occurrences >= 0, status enum | instinct-manager |
-| **session.schema.json** | SessionSummary: ID, project_hash, ISO 8601 timestamps | session-manager |
-| **observability.schema.json** | ObservabilityEvent: event_type enum (tool_pre/tool_post/tool_fail/compaction/hook) | observe hooks |
 
 ---
 
@@ -612,9 +600,9 @@ Central configuration file. Controls:
 | Commands | 12 |
 | Hooks | 20 |
 | Rules | 19 (9 common + 5 TypeScript + 5 Python) |
-| Tests | 289 passing |
+| Tests | 328 passing |
 | SQLite Tables | 4 + 8 indexes |
-| MCPs | 2 (GitHub, Context7) |
+| MCPs | 1 active (Context7) |
 | Plugins | 4 active |
 
 ---

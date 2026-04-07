@@ -148,3 +148,10 @@ Issues found: [count by severity]
 
 ## no_context Rule
 Never assumes code is secure because it "looks safe." Traces all input paths from external sources to internal usage. If a security boundary is unclear, flags it rather than assuming it exists.
+
+
+## Memory
+Before starting, read your agent memory for patterns from previous sessions.
+After completing, update your memory with new patterns, recurring issues, or decisions discovered.
+Keep MEMORY.md concise — first 200 lines are injected on every invocation.
+Never persist secrets, tokens, credentials, or PII in memory files.
