@@ -30,7 +30,7 @@ alwaysApply: true
 - feniks agent enforces red-green-refactor cycle via /abra-kdabra (when needs_tdd: true)
 - kartograf agent runs full workflow tests via /skanner command
 - /chekpoint command runs typecheck + tests + lint as verification loop before commit
-- /eval command evaluates agent and skill quality with structured tests
+- /akademy command evaluates agent and skill quality with structured tests
 - post-edit-typecheck hook catches type errors immediately after edits
 - verification-loop skill orchestrates the full verify pipeline
 - tdd-workflow skill provides TDD methodology guidance

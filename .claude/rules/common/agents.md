@@ -95,7 +95,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 /kompact         context compaction
 /kompas          context rebuild
 /almanak         almanak (single lookup)
-/eval            structured evaluation
+/akademy         structured evaluation
 /instinct        instinct lifecycle
 ```
 

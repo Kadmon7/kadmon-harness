@@ -217,12 +217,11 @@ On session end: Stop hooks persist to SQLite
 | `/almanak` | Search live documentation (Context7) | `/almanak supabase-js insert` |
 | `/doks` | Sync project documentation with code changes (4-layer) | `/doks` |
 
-### Verify (2)
+### Verify (1)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `/medik` | Full harness diagnostic — 7 health checks, repair, cleanup. Alias: /MediK | `/medik hooks` |
-| `/eval` | Evaluate agent/skill quality with structured tests | `/eval spektr` |
 
 ### Scan (1)
 
@@ -236,10 +235,11 @@ On session end: Stop hooks persist to SQLite
 |---------|---------|---------|
 | `/abra-kdabra` | Smart planning (arkitect -> konstruct -> feniks (if TDD) -> kody) | `/abra-kdabra migrate state to Supabase` |
 
-### Evolve (2)
+### Evolve (3)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
+| `/akademy` | Evaluate agent/skill quality with structured tests | `/akademy spektr` |
 | `/instinct` | Manage instinct lifecycle: `learn`, `status`, `promote`, `prune`, `export`, `eval` | `/instinct learn` |
 | `/evolve` | Harness self-optimization analysis | `/evolve` |
 

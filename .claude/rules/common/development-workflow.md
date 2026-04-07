@@ -45,7 +45,7 @@ alwaysApply: true
 ### Evolve Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /eval | Run structured evaluation of agent or skill quality | — |
+| /akademy | Run structured evaluation of agent or skill quality | — |
 | /instinct | Manage instinct lifecycle — status, eval, learn, promote, prune, export (subcommands) | — |
 | /evolve | Run harness self-optimization analysis | alchemik |
 

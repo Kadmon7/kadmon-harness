@@ -1,6 +1,6 @@
 ---
 name: eval-harness
-description: Structured evaluation framework for agents and skills — 1-5 scoring, pass/fail criteria, promotion checks. Use this skill whenever running /eval, checking if an agent produces quality output, validating a skill before promotion, detecting regressions after changes, or when the user asks "is this agent good?", "how do we measure quality?", or "should we promote this instinct?". Also use when designing test cases for new agents or skills.
+description: Structured evaluation framework for agents and skills — 1-5 scoring, pass/fail criteria, promotion checks. Use this skill whenever running /akademy, checking if an agent produces quality output, validating a skill before promotion, detecting regressions after changes, or when the user asks "is this agent good?", "how do we measure quality?", or "should we promote this instinct?". Also use when designing test cases for new agents or skills.
 ---
 
 # Eval Harness
@@ -9,7 +9,7 @@ Structured evaluation framework for measuring agent and skill effectiveness in t
 All scores derive from measurable criteria applied to actual agent output — never subjective impression.
 
 ## When to Use
-- When `/eval` command is invoked
+- When `/akademy` command is invoked
 - Before promoting an instinct (confidence >= 0.7 check)
 - After modifying an agent definition or skill file
 - Regression detection after harness updates

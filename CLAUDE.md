@@ -50,7 +50,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
 - **Remember** (3): /chekpoint, /almanak, /doks
-- **Evolve** (3): /eval, /instinct, /evolve
+- **Evolve** (3): /akademy, /instinct, /evolve
 
 ## Skills (22)
 - **Workflow**: search-first, context-budget
