@@ -23,6 +23,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 ## Environment Variables
 - `KADMON_TEST_DB` — Override SQLite DB path (`:memory:` in tests)
 - `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip
+- `KADMON_NO_CONTEXT_GUARD` — Set to `"off"` to disable no-context enforcement
 
 ## Agents (15)
 | Agent | Model |
