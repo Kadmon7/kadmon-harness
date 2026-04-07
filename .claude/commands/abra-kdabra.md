@@ -32,17 +32,19 @@ Architecture signals take priority when both are present.
 
 **Route A: Architecture First (architecture signals detected)**
 1. Announce: "Architecture signals detected — running arkitect first, then konstruct."
-2. Invoke **arkitect agent** (opus) with full task context
-3. Arkitect writes ADR to `docs/decisions/ADR-NNN-[slug].md`
-4. THEN invoke **konstruct agent** (opus) with task context + ADR reference
-5. Konstruct reads the ADR, produces plan in `docs/plans/plan-NNN-[slug].md`
-6. Konstruct sets `needs_tdd: true` or `needs_tdd: false` in plan frontmatter based on whether new code will be written
+2. Determine NNN: scan `docs/decisions/` and `docs/plans/` for the highest existing number, then use NNN = max + 1
+3. Invoke **arkitect agent** (opus) with full task context
+4. Arkitect writes ADR to `docs/decisions/ADR-NNN-[slug].md` with YAML frontmatter (see Artifact Format below)
+5. THEN invoke **konstruct agent** (opus) with task context + ADR reference
+6. Konstruct reads the ADR, produces plan in `docs/plans/plan-NNN-[slug].md` with matching NNN and `adr: ADR-NNN-[slug].md`
+7. Konstruct sets `needs_tdd: true` or `needs_tdd: false` in plan frontmatter based on whether new code will be written
 
 **Route B: Implementation Direct (no architecture signals)**
 1. Announce: "Implementation task — running konstruct directly."
-2. Invoke **konstruct agent** (opus) with full task context
-3. Konstruct reads relevant code via Grep/Glob
-4. Konstruct produces plan in `docs/plans/plan-NNN-[slug].md` with `needs_tdd: true/false`
+2. Determine NNN: scan `docs/decisions/` and `docs/plans/` for the highest existing number, then use NNN = max + 1
+3. Invoke **konstruct agent** (opus) with full task context
+4. Konstruct reads relevant code via Grep/Glob
+5. Konstruct produces plan in `docs/plans/plan-NNN-[slug].md` with `adr: none` and `route: B`
 
 ### Step 3: STOP — User Approval Gate
 
@@ -51,16 +53,16 @@ Architecture signals take priority when both are present.
 Present to the user:
 - Route taken (A or B)
 - ADR path (if Route A)
-- Plan summary from `docs/plan.md`
+- Plan summary from `docs/plans/plan-NNN-[slug].md`
 - Whether TDD mode is flagged (`needs_tdd` value)
 
-Ask: **"Plan complete in docs/plan.md. Continue to implementation?"**
+Ask: **"Plan complete in docs/plans/plan-NNN-[slug].md. Continue to implementation?"**
 
 Wait for explicit approval. If the user requests changes, update the plan and re-present.
 
 ### Step 4: Implement (after user approval)
 
-Claude Code implements the plan from `docs/plan.md`.
+Claude Code implements the plan from `docs/plans/plan-NNN-[slug].md`.
 
 **If `needs_tdd: true`**: Invoke **feniks agent** (sonnet) to GUIDE implementation in TDD mode.
 - feniks enforces red-green-refactor during implementation
@@ -82,6 +84,42 @@ Invoke **kody agent** (sonnet) ONLY after implementation is complete.
 - Agents read/write these files as their handoff mechanism
 - Each plan run creates new files — previous plans/ADRs are preserved as history
 
+## Artifact Numbering
+ADRs and plans share a **single sequential counter**. The number identifies the task, not the artifact type.
+- Route A creates: ADR-003 + plan-003 (same number, cross-referenced)
+- Route B creates: only plan-003 (with `adr: none`)
+- To determine NNN: `ls docs/decisions/ docs/plans/ | grep -oP '\d{3}' | sort -rn | head -1` — use max + 1
+
+## Artifact Format
+
+### Plan frontmatter (YAML)
+```yaml
+---
+number: 3
+title: Short descriptive title
+date: YYYY-MM-DD
+status: pending | in_progress | completed
+needs_tdd: true | false
+route: A | B
+adr: ADR-003-slug.md | none
+---
+```
+
+### ADR frontmatter (YAML)
+```yaml
+---
+number: 3
+title: Short descriptive title
+date: YYYY-MM-DD
+status: proposed | accepted | deprecated | superseded
+route: A
+plan: plan-003-slug.md
+superseded_by: ADR-005-slug.md  # optional, only when superseded
+---
+```
+
+Both artifacts MUST include `number`, `date`, `route`, and the cross-reference field (`adr`/`plan`).
+
 ## Output
 Route taken + artifact paths + numbered step summary with complexity estimates (S/M/L).
 
@@ -90,26 +128,26 @@ Route taken + artifact paths + numbered step summary with complexity estimates (
 Route: ARCHITECTURE FIRST (signals: "design", "persistence", new subsystem)
 
 Phase 1 — Arkitect:
-  ADR: docs/adr.md
+  ADR: docs/decisions/ADR-003-persistence-layer.md
   Decision: sql.js with version column + diff tracking
 
 Phase 2 — Konstruct:
-  Plan: docs/plan.md (needs_tdd: true)
+  Plan: docs/plans/plan-003-persistence-layer.md (needs_tdd: true)
   - Step 1: Add version column to instincts table (S)
   - Step 2: Write migration script (M)
   - Step 3: Update instinct-manager read/write (M)
 
-STOP: "Plan complete in docs/plan.md. Continue to implementation?"
+STOP: "Plan complete in docs/plans/plan-003-persistence-layer.md. Continue to implementation?"
 ```
 
 ## Example: Implementation Route
 ```
 Route: IMPLEMENTATION DIRECT (no architecture signals)
 
-Plan: docs/plan.md (needs_tdd: true)
+Plan: docs/plans/plan-004-export-instincts.md (needs_tdd: true)
 - Step 1: Write exportInstincts() function (S)
 - Step 2: Implement JSON serialization (S)
 - Step 3: Add CLI command wiring (S)
 
-STOP: "Plan complete in docs/plan.md. Continue to implementation?"
+STOP: "Plan complete in docs/plans/plan-004-export-instincts.md. Continue to implementation?"
 ```

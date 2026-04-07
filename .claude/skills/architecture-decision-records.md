@@ -33,10 +33,18 @@ Watch for these patterns in conversation:
 
 ## ADR Template
 ```markdown
+---
+number: NNN
+title: Short descriptive title
+date: YYYY-MM-DD
+status: proposed | accepted | deprecated | superseded
+route: A
+plan: plan-NNN-slug.md
+superseded_by: ADR-NNN-slug.md  # optional, only when superseded
+---
+
 # ADR-NNN: [Decision Title]
 
-**Date**: YYYY-MM-DD
-**Status**: proposed | accepted | deprecated | superseded by ADR-NNN
 **Deciders**: [who was involved]
 
 ## Context
@@ -67,13 +75,15 @@ What did we decide and why? [1-3 sentences]
 - [risk and mitigation]
 ```
 
+**Note:** `number` is shared with plans — ADR-003 and plan-003 reference the same task. Date and status moved to YAML frontmatter. See `/abra-kdabra` Artifact Format section for full spec.
+
 ## Workflow
 
 1. **Detect** -- recognize a decision moment (explicit or implicit signal)
 2. **Gather context** -- what problem prompted this? What constraints exist?
 3. **Document alternatives** -- what other options were considered? Why rejected?
 4. **State consequences** -- what are the trade-offs? What becomes easier/harder?
-5. **Assign number** -- scan existing ADRs in `docs/decisions/` and increment (3-digit: 001)
+5. **Assign number** -- scan both `docs/decisions/` and `docs/plans/` for the highest existing 3-digit number, then use max + 1 (shared counter with plans — see `/abra-kdabra` Artifact Numbering)
 6. **Confirm and write** -- present the draft to the user. Only write after explicit approval
 7. **Update index** -- append to `docs/decisions/README.md` if it exists
 
@@ -159,7 +169,7 @@ Once accepted, an ADR is never edited -- only superseded by a new ADR.
 - An ADR directory must exist before writing. If `docs/decisions/` does not exist, ask user before creating it
 
 ## Rules
-- Every ADR gets a sequential 3-digit number (ADR-001, ADR-002, ...)
+- Every ADR gets a sequential 3-digit number shared with plans (scan both `docs/decisions/` and `docs/plans/` for max + 1)
 - Once accepted, an ADR is never edited -- only superseded by a new ADR
 - The arkitect agent produces ADRs automatically
 - ADRs are committed and pushed alongside the code they affect
