@@ -111,4 +111,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (289 tests passing, 33 test files, 20 hooks, 15 agents, 22 skills, 12 commands, 19 rules [9 common + 5 TS + 5 Python])
+v1.0 — Production ready (344 tests passing, 37 test files, 20 hooks, 15 agents, 22 skills, 12 commands, 19 rules, 6 DB tables)

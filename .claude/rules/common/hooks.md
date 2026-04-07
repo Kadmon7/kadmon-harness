@@ -75,7 +75,7 @@ alwaysApply: true
 |------|--------|---------|------|
 | session-end-all | session-end-all.js | Consolidated Stop hook: persist session + evaluate patterns + track cost + write marker + daily log (replaces 4 separate hooks to avoid sql.js race condition) | 0 always |
 
-## Shared Modules (7)
+## Shared Modules (8)
 
 Not registered as hooks — imported by lifecycle hooks as utilities.
 
@@ -88,6 +88,7 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 | ensure-dist.js | Detect stale dist/ and auto-rebuild | session-start, session-end-all, pre-compact-save |
 | hook-logger.js | Persist hook errors to ~/.kadmon/hook-errors.log | session-start, session-end-all, pre-compact-save, evaluate-patterns-shared |
 | backup-rotate.js | Maintain 3 timestamped backups of kadmon.db | session-start |
+| log-hook-event.js | Append hook execution events to session-scoped JSONL | 11 blocking/warning hooks (persisted to DB by session-end-all) |
 
 ## Safety
 - NEVER crash Claude Code — always exit(0) on unexpected errors
