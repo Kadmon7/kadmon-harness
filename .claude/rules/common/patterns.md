@@ -23,8 +23,8 @@ alwaysApply: true
 - MUST use immutable data structures — create new objects, never mutate existing ones
 
 ## Enforcement
-- arkitect agent reviews system design and pattern decisions via /kplan
-- kody agent validates pattern adherence via /kreview and /checkpoint
+- arkitect agent reviews system design and pattern decisions via /abra-kdabra
+- kody agent validates pattern adherence via /chekpoint
 - kody agent checks type safety and immutability patterns on .ts/.tsx edits (TypeScript specialist mode)
 - orakle agent validates data layer patterns when editing SQL or Supabase code
 - no-context-guard hook ensures code is read before modification (enforces understand-before-edit pattern)

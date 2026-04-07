@@ -1,6 +1,6 @@
 ---
 name: almanak
-description: Use PROACTIVELY when code references unfamiliar APIs or when no_context principle requires verification. Command: /docs. Fetches live documentation via Context7 MCP.
+description: Use PROACTIVELY when code references unfamiliar APIs or when no_context principle requires verification. Command: /almanak. Fetches live documentation via Context7 MCP.
 model: sonnet
 tools: Read, Grep, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
 memory: user

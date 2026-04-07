@@ -198,7 +198,7 @@ except APIError as e:
 ```
 
 ## Gotchas
-- The SDK API evolves -- always use /docs (almanak + Context7) for current signatures
+- The SDK API evolves -- always use /almanak (Context7) for current signatures
 - Never hardcode API keys. Always use environment variables: `ANTHROPIC_API_KEY`
 - Check token usage in response: `response.usage.input_tokens`, `response.usage.output_tokens`
 - Use cost-calculator.ts in the harness to estimate per-session costs
@@ -212,4 +212,4 @@ except APIError as e:
 - Route by complexity: Haiku for simple, Sonnet for standard, Opus for complex
 
 ## no_context Application
-Always fetch current API documentation via almanak agent (/docs) before using new API features. The Claude API evolves -- do not rely on training data.
+Always fetch current API documentation via almanak agent (/almanak) before using new API features. The Claude API evolves -- do not rely on training data.

@@ -44,13 +44,12 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | kartograf | sonnet |
 | alchemik | opus |
 
-## Commands (14)
-- **Observe** (3): /dashboard, /kompact, /kompas
-- **Plan** (1): /kplan
-- **Build** (2): /kfix, /kperf
-- **Test** (1): /ktest
-- **Review** (1): /kreview
-- **Remember** (3): /checkpoint, /docs, /kdocs
+## Commands (12)
+- **Observe** (3): /kadmon-harness, /kompact, /kompas
+- **Plan** (1): /abra-kdabra
+- **Build** (1): /medik (alias /MediK)
+- **Scan** (1): /skanner
+- **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (3): /eval, /instinct, /evolve
 
 ## Skills (22)
@@ -70,7 +69,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | Plugin | Invocation | Use |
 |--------|-----------|-----|
 | skill-creator | `skill-creator:skill-creator` | REQUIRED for all skill work (create/edit/evaluate). Handles interview, drafting, test cases, eval loop, description optimization |
-| context7 | Via almanak agent (`/docs`) | Live library docs. Auto-invokes on unfamiliar APIs |
+| context7 | Via almanak agent (`/almanak`) | Live library docs. Auto-invokes on unfamiliar APIs |
 | frontend-design | `frontend-design:frontend-design` | Production-grade frontend interfaces (KAIRON, web apps) |
 | ralph-loop | `ralph-loop:ralph-loop` | Recurring execution loops. Cancel: `ralph-loop:cancel-ralph` |
 
@@ -97,4 +96,4 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (289 tests passing, 33 test files, 20 hooks, 15 agents, 22 skills, 14 commands, 19 rules [9 common + 5 TS + 5 Python])
+v1.0 — Production ready (289 tests passing, 33 test files, 20 hooks, 15 agents, 22 skills, 12 commands, 19 rules [9 common + 5 TS + 5 Python])

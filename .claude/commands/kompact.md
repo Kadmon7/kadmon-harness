@@ -21,7 +21,7 @@ Report current context state:
 
 ### 2. Safety Check
 Warn and ask for confirmation if:
-- **Uncommitted changes** exist → "You have uncommitted changes. Consider /checkpoint first."
+- **Uncommitted changes** exist → "You have uncommitted changes. Consider /chekpoint first."
 - **Last tool was Edit** → "You're mid-edit. Compacting now may lose context about your changes."
 - **Active debugging** → Check observations for recent tool_fail events
 - **Productive session (>30 tool calls) without /instinct learn** → "Consider /instinct learn first to capture patterns before compacting."

@@ -166,7 +166,7 @@ it('should return active instincts sorted by confidence', async () => {
 | Missing .js in local imports | Fails at runtime under Node16 module resolution | Always add `.js` extension to relative import paths |
 
 ## Integration
-- **kody agent** (sonnet): Auto-invoked on .ts/.tsx edits. Checks strict mode, type safety, naming conventions, import patterns, and immutability. Runs via /kreview and /checkpoint.
+- **kody agent** (sonnet): Auto-invoked on .ts/.tsx edits. Checks strict mode, type safety, naming conventions, import patterns, and immutability. Runs via /chekpoint.
 - **post-edit-typecheck hook**: Validates TypeScript compilation immediately after every Edit/Write operation — catches violations in real time.
 - **quality-gate hook**: Runs lint and style checks after every Edit/Write operation.
 - **console-log-warn hook**: Flags console.log in production code — use the structured log() utility instead.

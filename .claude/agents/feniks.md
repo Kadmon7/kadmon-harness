@@ -1,6 +1,6 @@
 ---
 name: feniks
-description: Use PROACTIVELY before implementing any new feature or bug fix — write the test first. Command: /ktest. Also invoked by /kplan when needs_tdd: true. Enforces red-green-refactor cycle with 80%+ coverage target.
+description: Use PROACTIVELY before implementing any new feature or bug fix — write the test first. Command: /abra-kdabra (when needs_tdd: true). Enforces red-green-refactor cycle with 80%+ coverage target.
 model: sonnet
 tools: Read, Grep, Glob, Bash, Write, Edit
 memory: project
@@ -133,8 +133,8 @@ describe('featureName', () => {
 // 4. COVERAGE -- verify 80%+ on new code
 ```
 
-## Pipeline Contract (/kplan)
-- **Input**: reads `docs/plans/plan-NNN-[slug].md` when invoked via /kplan with `needs_tdd: true`
+## Pipeline Contract (/abra-kdabra)
+- **Input**: reads `docs/plans/plan-NNN-[slug].md` when invoked via /abra-kdabra with `needs_tdd: true`
 - **Mode**: guides TDD inline during implementation — does NOT write a separate document
 - **Scope**: enforces red-green-refactor for each code-writing step in the plan
 

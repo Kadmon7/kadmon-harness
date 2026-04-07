@@ -29,20 +29,20 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
-| arkitect | opus | /kplan with architecture signals | /kplan | architecture-decision-records |
-| konstruct | opus | /kplan always | /kplan | architecture-decision-records |
-| kody | sonnet | /checkpoint, /kreview | /checkpoint, /kreview | coding-standards, receiving-code-review |
-| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /checkpoint, /kreview | coding-standards, frontend-patterns |
-| orakle | opus | Auto on SQL/schema/migration/Supabase | /checkpoint | database-migrations, postgres-patterns |
-| spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /checkpoint | safety-guard |
-| feniks | sonnet | /ktest command | /ktest | tdd-workflow, python-testing |
-| mekanik | sonnet | Auto on TS compilation/Vitest failures | /kfix | systematic-debugging |
-| kurator | sonnet | /kfix clean only | /kfix | coding-standards |
-| arkonte | sonnet | Auto on O(n^2)/slow queries/memory | /kperf | context-budget |
-| python-reviewer | sonnet | Auto on .py edits | /checkpoint, /kreview | python-patterns, python-testing |
-| almanak | sonnet | /docs, unfamiliar APIs, no_context | /docs | mcp-server-patterns, deep-research |
-| doks | opus | /kdocs, after feature/structural commits | /kdocs | docs-sync |
-| kartograf | sonnet | /ktest e2e only (expensive) | /ktest | e2e-testing |
+| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records |
+| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records |
+| kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review |
+| typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /chekpoint | coding-standards, frontend-patterns |
+| orakle | opus | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
+| spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard |
+| feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing |
+| mekanik | sonnet | Auto on TS compilation/Vitest failures | /medik | systematic-debugging |
+| kurator | sonnet | /medik clean only | /medik | coding-standards |
+| arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget |
+| python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing |
+| almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research |
+| doks | opus | /doks, after feature/structural commits | /doks | docs-sync |
+| kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
 | alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2 |
 
 ## Auto-Invoke (no prompt needed)
@@ -52,26 +52,52 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - Editing SQL/schema/migration/Supabase client → orakle
 - TypeScript compilation or Vitest fails → mekanik
 - Performance concerns (O(n^2), slow queries, memory patterns) → arkonte
-- /kplan with architecture signals → arkitect before konstruct
-- Encountering unfamiliar external API or library → almanak (via /docs)
+- /abra-kdabra with architecture signals → arkitect before konstruct
+- Encountering unfamiliar external API or library → almanak (via /almanak)
 
 ## Manual Rules
-- MUST invoke kody before any commit via /checkpoint
+- MUST invoke kody before any commit via /chekpoint
 - MUST invoke typescript-reviewer for .ts/.tsx/.js/.jsx file changes
-- MUST invoke konstruct via /kplan — runs for every /kplan invocation
-- MUST invoke arkitect before konstruct when /kplan task contains architecture signals
+- MUST invoke konstruct via /abra-kdabra — runs for every /abra-kdabra invocation
+- MUST invoke arkitect before konstruct when /abra-kdabra task contains architecture signals
 - MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification
 - MUST invoke mekanik when TypeScript compilation or Vitest tests fail (skip for obvious typos)
 - MUST invoke doks after commits that add/remove agents, skills, or commands
 - MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation. Invoke: `skill: "skill-creator:skill-creator"`. Never create skill files manually — the plugin handles structure, frontmatter, and description optimization.
 - NEVER invoke arkitect for routine bug fixes or small features
 - NEVER invoke alchemik without explicit /evolve command
-- NEVER invoke kartograf without explicit /ktest e2e command (tests are expensive)
-- NEVER invoke kurator without explicit /kfix clean command
+- NEVER invoke kartograf without explicit /skanner command (tests are expensive)
+- NEVER invoke kurator without explicit /medik clean command
 
 ## Parallel Execution
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)
 - NEVER run agents sequentially when their inputs are independent
+
+### Orchestration Patterns (12 commands)
+
+#### Parallel (agents run simultaneously)
+```
+/chekpoint  verify → [ts-reviewer, py-reviewer, spektr, orakle, kody] → gate → commit
+/skanner    [arkonte (perf), kartograf (e2e)] → report
+```
+
+#### Sequential (agents run in order)
+```
+/abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd) → kody
+/medik    mekanik (7 checks + gate) → kurator (clean)
+/doks     doks
+/evolve   alchemik
+```
+
+#### Direct (no agent orchestration)
+```
+/kadmon-harness  script execution
+/kompact         context compaction
+/kompas          context rebuild
+/almanak         almanak (single lookup)
+/eval            structured evaluation
+/instinct        instinct lifecycle
+```
 
 ## Approval Criteria
 - CRITICAL → BLOCK merge, fix immediately

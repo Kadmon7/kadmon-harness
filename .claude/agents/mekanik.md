@@ -1,6 +1,6 @@
 ---
 name: mekanik
-description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Command: /kfix. Diagnoses root cause and proposes minimal fix.
+description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests error out, or Node.js module resolution errors are detected. Command: /medik. Diagnoses root cause and proposes minimal fix.
 model: sonnet
 tools: Read, Grep, Glob, Bash, Edit
 memory: project
@@ -27,7 +27,24 @@ npm run build                              # Full compile to dist/
 npx tsc --noEmit --pretty                  # Type-check only, readable output
 npx tsc --noEmit --pretty --incremental false  # Show ALL errors (no cache)
 npx vitest run                             # Run full test suite
+cat ~/.kadmon/hook-errors.log              # Recent hook errors
+npm audit                                  # Dependency vulnerabilities
 ```
+
+## Full Health Check (7 checks for /MediK)
+
+When invoked via /medik (alias /MediK), run these 7 checks before any repair:
+
+1. **Build**: `npm run build` — catch compilation errors, EBUSY locks, missing files
+2. **Typecheck**: `npx tsc --noEmit` — catch type errors
+3. **Tests**: `npx vitest run` — catch test failures
+4. **Hook errors**: Read `~/.kadmon/hook-errors.log` — catch hook crashes and errors
+5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, tables present (sessions, instincts, cost_events), not corrupt
+6. **dist/ sync**: Compare `dist/` timestamps vs `scripts/lib/` — catch stale compiled output
+7. **Dependencies**: `npm audit` — catch vulnerable packages
+
+Write report to `docs/diagnostics/diag-NNN.md` (3-digit zero-padded, increment from highest existing).
+STOP and present report to user before repairing anything.
 
 ## Workflow
 

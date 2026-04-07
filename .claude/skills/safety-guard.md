@@ -40,7 +40,7 @@ git commit --no-verify -m "skip hooks"
 
 **Override:** None. This is intentional by design. If pre-commit hooks are failing,
 the correct response is to fix the underlying issue, not to bypass the hooks. See the
-`mekanik` agent for compilation errors and `/checkpoint` for quality gate failures.
+`mekanik` agent for compilation errors and `/chekpoint` for quality gate failures.
 
 ---
 
@@ -67,7 +67,7 @@ silently lower standards (e.g., disabling strict mode) without being caught by t
 ```
 
 **Override:** No automatic override. To edit a protected file, the arkitect must
-explicitly approve the change. Invoke the `arkitect` agent via `/kplan` to review
+explicitly approve the change. Invoke the `arkitect` agent via `/abra-kdabra` to review
 and authorize the edit.
 
 ---
@@ -134,10 +134,10 @@ identifies which hook triggered and which file or flag caused the block.
 **Why can't I use --no-verify?**
 Safety principle: pre-commit hooks are the enforcement surface for type checking, linting,
 and security scans. Bypassing them means commits can silently violate quality gates.
-If the hooks are failing, fix the root cause — use `/kfix` or `/checkpoint`.
+If the hooks are failing, fix the root cause — use `/medik` or `/chekpoint`.
 
 **How do I edit a protected config file?**
-Ask the arkitect to temporarily allow the change via `/kplan`, or follow the `update-config`
+Ask the arkitect to temporarily allow the change via `/abra-kdabra`, or follow the `update-config`
 skill process. Never attempt to disable config-protection unilaterally.
 
 **How do I disable no-context-guard?**

@@ -7,6 +7,8 @@ skills: [verification-loop, coding-standards, receiving-code-review, safety-guar
 ## Purpose
 All-in-one quality gate and commit. Runs mechanical checks, invokes language-aware reviewers in parallel, consolidates findings, and only commits if everything passes. Absorbs the former /kcheck pipeline.
 
+> **Note:** The command name `/chekpoint` (one 'c') is intentional — stylistic K-naming convention used across all harness commands.
+
 ## Steps
 
 ### Phase 1: Verification

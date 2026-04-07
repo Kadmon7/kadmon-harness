@@ -184,8 +184,8 @@ When retiring endpoints, follow a 6-month sunset:
 | No versioning plan | First breaking change forces an ad-hoc, inconsistent migration | Design with /v1/ prefix from the start |
 
 ## Integration
-- **kody agent** checks API patterns, response consistency, and Zod validation usage via /kreview and /checkpoint
-- **arkitect agent** designs API boundaries and service interfaces during /kplan for multi-component systems
+- **kody agent** checks API patterns, response consistency, and Zod validation usage via /chekpoint
+- **arkitect agent** designs API boundaries and service interfaces during /abra-kdabra for multi-component systems
 - **spektr agent** auto-invokes for endpoints handling auth, user input, or API keys
 - **types.ts** defines the TypeScript interfaces that API responses must reference — never invent ad-hoc shapes
 - **Zod schemas** serve double duty: runtime validation at the boundary and `z.infer<>` for static type inference

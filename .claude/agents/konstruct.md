@@ -1,6 +1,6 @@
 ---
 name: konstruct
-description: Use PROACTIVELY when breaking down complex tasks into implementation steps. Command: /kplan (Route B — always runs). Best for multi-file changes, uncertain approaches, or cross-system impact.
+description: Use PROACTIVELY when breaking down complex tasks into implementation steps. Command: /abra-kdabra (Route B — always runs). Best for multi-file changes, uncertain approaches, or cross-system impact.
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project
@@ -138,7 +138,7 @@ Reject or revise any plan that exhibits these problems:
 - Steps that say "refactor everything" or "rewrite the module"
 - No success criteria to determine when the feature is complete
 
-## Pipeline Contract (/kplan)
+## Pipeline Contract (/abra-kdabra)
 - **Input**: reads `docs/decisions/ADR-NNN-*.md` from arkitect (Route A only; Route B has no ADR)
 - **Output**: writes plan to `docs/plans/plan-NNN-[slug].md` (scan existing plans and increment highest number, 3-digit zero-padded)
 - **Output must include** `needs_tdd: true/false` in plan frontmatter to signal whether feniks should guide TDD
@@ -153,7 +153,7 @@ Reject or revise any plan that exhibits these problems:
 - Never starts implementing mid-plan -- the plan is the deliverable
 - Includes a "Phase 0: Research" step when the task touches unfamiliar code
 - Asks clarifying questions rather than assuming intent
-- Recommends /ktest workflow for implementation after plan approval
+- Recommends TDD workflow for implementation after plan approval
 
 ## Output Format
 

@@ -154,7 +154,7 @@ Once accepted, an ADR is never edited -- only superseded by a new ADR.
 
 ## Gotchas
 - ADRs are committed and pushed alongside the code they affect -- they are not separate documentation deliverables
-- The arkitect agent produces ADRs automatically during /kplan (Route A). Ensure it follows this format
+- The arkitect agent produces ADRs automatically during /abra-kdabra (Route A). Ensure it follows this format
 - ADR numbering uses 3-digit format (001-999) for consistent sorting
 - An ADR directory must exist before writing. If `docs/decisions/` does not exist, ask user before creating it
 

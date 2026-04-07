@@ -1,6 +1,6 @@
 ---
 name: verification-loop
-description: Run build + typecheck + lint + tests in sequence after any code change or before any git commit/push. Use this skill whenever you finish implementing a feature, fix a bug, refactor code, before running /checkpoint, or before any commit or push. Also use when the user says "verify", "check if it works", "run tests", "does it compile", "commit this", "push it", or "checkpoint". Stop at first failure — fix before proceeding. This is the safety net that catches type errors, lint violations, and regressions before they reach git. A commit without verification is a gamble — this skill eliminates that risk.
+description: Run build + typecheck + lint + tests in sequence after any code change or before any git commit/push. Use this skill whenever you finish implementing a feature, fix a bug, refactor code, before running /chekpoint, or before any commit or push. Also use when the user says "verify", "check if it works", "run tests", "does it compile", "commit this", "push it", or "checkpoint". Stop at first failure — fix before proceeding. This is the safety net that catches type errors, lint violations, and regressions before they reach git. A commit without verification is a gamble — this skill eliminates that risk.
 ---
 
 # Verification Loop
@@ -10,7 +10,7 @@ Multi-step verification that catches issues before they reach production or git.
 ## When to Use
 - After implementing any feature or fix
 - Before committing or pushing code
-- When /checkpoint is invoked (includes full verification + review)
+- When /chekpoint is invoked (includes full verification + review)
 - After resolving merge conflicts
 - Before creating a PR
 - After any refactoring, even "safe" renames (they break imports more often than you think)
@@ -77,7 +77,7 @@ git push
 
 Committing broken code and "fixing it in the next commit" creates noise in git history. The `block-no-verify` hook enforces this by blocking `--no-verify` flags on git commands.
 
-The `/checkpoint` command automates this entire flow: verify -> review -> commit -> push. Use it instead of manual git commands when possible.
+The `/chekpoint` command automates this entire flow: verify -> review -> commit -> push. Use it instead of manual git commands when possible.
 
 ## Anti-Patterns
 - **Committing without verifying** — "It's a small change, it'll be fine." Small changes break builds. The verification loop exists precisely for this overconfidence.
@@ -87,8 +87,8 @@ The `/checkpoint` command automates this entire flow: verify -> review -> commit
 - **Re-running the whole loop after fixing one step** — Restart from the failed step, not from the beginning. Build does not need to re-run if you only fixed a type error.
 
 ## Integration
-- **/checkpoint** command runs this loop as Phase 1 (verify), then Phase 2 (review), then commits
-- Verification is now embedded in /checkpoint — no separate /verify command needed
+- **/chekpoint** command runs this loop as Phase 1 (verify), then Phase 2 (review), then commits
+- Verification is now embedded in /chekpoint — no separate /verify command needed
 - **mekanik** agent handles failures in the build and typecheck steps
 - **post-edit-typecheck** hook runs a quick typecheck after every Edit/Write as early warning
 - **session-end-all** hook (pattern evaluation phase) tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` before `git commit` or `git push`

@@ -12,7 +12,7 @@ An operative layer for Claude Code — infrastructure that makes every session s
 
 - **15 agents** (6 opus, 9 sonnet) with rich descriptions and skill linkages
 - **22 skills** domain knowledge loaded on demand
-- **14 commands** organized by lifecycle: Observe, Plan, Build, Test, Review, Remember, Evolve
+- **12 commands** organized by lifecycle: Observe, Plan, Build, Scan, Remember, Evolve
 - **20 hooks** (PreToolUse, PostToolUse, PostToolUseFailure, PreCompact, SessionStart, Stop)
 - **19 rules** (9 common + 5 TypeScript + 5 Python) with alwaysApply and glob triggers
 - **289 tests** across 33 test files, 0 failures
@@ -22,10 +22,10 @@ An operative layer for Claude Code — infrastructure that makes every session s
 ### Orchestration Chain
 Each command specifies which agent to invoke and which skills to load:
 ```
-/kplan    -> arkitect + konstruct -> architecture-decision-records
-/kreview  -> kody + specialists   -> coding-standards, receiving-code-review
-/ktest    -> feniks               -> tdd-workflow
-/checkpoint -> kody + 4 parallel reviewers -> full verification + commit
+/abra-kdabra -> arkitect + konstruct + feniks + kody -> architecture-decision-records, tdd-workflow
+/chekpoint   -> kody + 4 parallel reviewers          -> full verification + commit
+/medik       -> mekanik + kurator                     -> systematic-debugging, coding-standards
+/skanner     -> arkonte + kartograf                   -> context-budget, e2e-testing
 ```
 
 ### Persistence

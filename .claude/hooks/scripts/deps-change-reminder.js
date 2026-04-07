@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Hook: deps-change-reminder | Trigger: PostToolUse (Edit|Write)
-// Purpose: Remind to check /docs when package.json dependencies change
+// Purpose: Remind to check /almanak when package.json dependencies change
 // Exit 1 (warning) when package.json is edited, exit 0 otherwise.
 import { parseStdin } from "./parse-stdin.js";
 
@@ -14,7 +14,7 @@ try {
     JSON.stringify({
       warn: true,
       message:
-        "package.json modified. If dependency versions changed, run /docs <library> breaking changes before committing.",
+        "package.json modified. If dependency versions changed, run /almanak <library> breaking changes before committing.",
     }),
   );
   process.exit(1);

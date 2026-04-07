@@ -229,11 +229,11 @@ When available, also check project-specific conventions from `CLAUDE.md` or proj
 
 Adapt your review to the project's established patterns. When in doubt, match what the rest of the codebase does.
 
-## Pipeline Contract (/kplan)
+## Pipeline Contract (/abra-kdabra)
 - **Input**: reads `docs/decisions/ADR-NNN-*.md` + `docs/plans/plan-NNN-[slug].md` + code changes
 - **Output**: writes `docs/review.md` with BLOCK/WARN/NOTE findings
 - **Timing**: runs ONLY after code exists — never during planning phase
-- **Role**: final consolidator of the full /kplan pipeline
+- **Role**: final consolidator of the full /abra-kdabra pipeline
 
 ## AI-Generated Code Review Addendum
 

@@ -1,6 +1,6 @@
 ---
 name: kartograf
-description: Invoked via /ktest e2e command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Supports Vitest (harness) and Playwright (web apps).
+description: Invoked via /skanner command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Supports Vitest (harness) and Playwright (web apps).
 model: sonnet
 tools: Read, Grep, Glob, Bash, Write, Edit
 memory: project

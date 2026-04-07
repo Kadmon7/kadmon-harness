@@ -189,8 +189,8 @@ test('creates user', () => {
 
 ## Integration
 
-- **/ktest command**: Launches the feniks agent, which enforces the red-green-refactor cycle step by step
-- **/checkpoint command**: Runs typecheck + tests + lint + review. Run after every green and refactor step
+- **/abra-kdabra command** (with needs_tdd: true): Launches the feniks agent, which enforces the red-green-refactor cycle step by step
+- **/chekpoint command**: Runs typecheck + tests + lint + review. Run after every green and refactor step
 - **feniks agent** (sonnet): Walks you through each TDD phase, challenges premature implementation
 - **post-edit-typecheck hook**: Catches type errors immediately after edits -- fast feedback during green phase
 - **session-end-all hook** (pattern evaluation phase): Tracks "TDD discipline" pattern

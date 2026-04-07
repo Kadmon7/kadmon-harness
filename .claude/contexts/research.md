@@ -10,11 +10,11 @@ Read widely, ask questions, document findings. Do not code until the problem is 
 1. Understand — read existing code and documentation
 2. Explore — search for patterns, libraries, prior art
 3. Hypothesis — form a theory about the right approach
-4. Verify — confirm with documentation (use /docs)
+4. Verify — confirm with documentation (use /almanak)
 5. Summarize — document findings before implementing
 
 ## Workflow
-- ALWAYS use /docs for API lookups
+- ALWAYS use /almanak for API lookups
 - PREFER reading over writing
 - PREFER Grep/Glob for codebase exploration
 - Document findings in markdown before proposing code

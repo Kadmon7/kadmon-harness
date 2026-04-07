@@ -68,5 +68,5 @@ def test_uppercase(input, expected):
 ## Enforcement
 
 - python-reviewer agent validates test quality on test file edits
-- feniks agent enforces red-green-refactor cycle via /ktest command
+- feniks agent enforces red-green-refactor cycle via /abra-kdabra (when needs_tdd: true)
 - pytest coverage reports validate 80%+ target on new code

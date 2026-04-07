@@ -1,6 +1,6 @@
 ---
-description: Smart planning for complex tasks — arkitect -> konstruct -> kody chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
-agent: arkitect, konstruct, kody
+description: Smart planning for complex tasks — arkitect -> konstruct -> feniks (if TDD) -> kody chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
+agent: arkitect, konstruct, feniks, kody
 skills: [architecture-decision-records, tdd-workflow]
 ---
 
@@ -8,7 +8,7 @@ skills: [architecture-decision-records, tdd-workflow]
 Sequential planning chain with shared memory bus in `docs/`. Produces an ADR (if architectural) and an implementation plan, then gates on user approval before any code is written.
 
 ## Arguments
-- `<task description>` — describe the task to plan (e.g., `/kplan design persistence layer for instinct versioning`)
+- `<task description>` — describe the task to plan (e.g., `/abra-kdabra design persistence layer for instinct versioning`)
 
 ## Steps
 

@@ -29,7 +29,7 @@ Research before coding. The foundation of the no_context principle.
 |  2. PARALLEL SEARCH                         |
 |  +---------+ +---------+ +---------+        |
 |  |Codebase | |  npm /  | | GitHub/ |        |
-|  |Grep/Glob| |  PyPI   | | /docs   |        |
+|  |Grep/Glob| |  PyPI   | |/almanak |        |
 |  +---------+ +---------+ +---------+        |
 +---------------------------------------------+
             |
@@ -78,7 +78,7 @@ Research before coding. The foundation of the no_context principle.
 - Pre-commit: `husky`, `lint-staged`
 
 ### AI/LLM Integration
-- Claude SDK: use /docs (Context7) for latest API
+- Claude SDK: use /almanak (Context7) for latest API
 - Prompt management: check MCP servers in settings
 - Document processing: `pdfplumber`, `mammoth`
 
@@ -92,7 +92,7 @@ Find what already exists.
 
 1. **Search the codebase** -- Grep/Glob for existing implementations
 2. **Search dependencies** -- Check if a library already solves this
-3. **Search documentation** -- Use /docs for API details
+3. **Search documentation** -- Use /almanak for API details
 4. **Evaluate** -- Can you reuse? Adapt? Or must you build new?
 
 ## Phase 2: Explore
@@ -161,7 +161,7 @@ The `session-end-all.js` hook (pattern evaluation phase) tracks two patterns:
 - Always search before coding -- enforced by the no-context-guard hook
 - If you find existing code that does 80% of what you need, adapt it
 - If no existing solution: document why in a comment
-- Never assume a library API -- use /docs to verify
+- Never assume a library API -- use /almanak to verify
 - Read the target file AND its neighbors before editing
 
 ## no_context Application

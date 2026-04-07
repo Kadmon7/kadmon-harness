@@ -7,8 +7,8 @@ agent: almanak
 Fetch current API documentation via Context7 MCP instead of relying on training data.
 
 ## Arguments
-- `<library> <topic>` — look up specific API (e.g., `/docs vitest mock function`)
-- `<library>` — browse library documentation (e.g., `/docs sql-js`)
+- `<library> <topic>` — look up specific API (e.g., `/almanak vitest mock function`)
+- `<library>` — browse library documentation (e.g., `/almanak sql-js`)
 
 ## Steps
 1. Invoke almanak agent with the query
@@ -22,7 +22,7 @@ API signature, minimal example, and documentation source.
 
 ## Example
 ```
-User: /docs vitest mock function
+User: /almanak vitest mock function
 
 Result:
 vi.fn() — creates a mock function

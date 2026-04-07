@@ -11,7 +11,7 @@ Principles for keeping all documentation layers accurate and in sync with code b
 
 - After commits that add features, change behavior, or modify structure
 - When any agent needs to update documentation
-- During /kdocs or /checkpoint workflows
+- During /doks or /chekpoint workflows
 - When reviewing documentation accuracy
 
 ## The 4-Layer Documentation Model
@@ -102,7 +102,7 @@ After making documentation updates, verify ALL of these:
 ## Integration
 
 - **Agent**: doks (primary executor of this methodology)
-- **Command**: /kdocs (triggers doks with this skill)
+- **Command**: /doks (triggers doks with this skill)
 - **Also useful for**: any agent that needs to update documentation as a side effect
 
 ## no_context Application

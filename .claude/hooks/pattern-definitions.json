@@ -47,7 +47,7 @@
   {
     "type": "command_sequence",
     "name": "Check dashboard for system health",
-    "action": "Run /dashboard or npx tsx scripts/dashboard.ts to verify harness state",
+    "action": "Run /kadmon-harness or npx tsx scripts/dashboard.ts to verify harness state",
     "triggerCommands": ["dashboard"],
     "followedByCommands": [],
     "threshold": 2,
@@ -56,7 +56,7 @@
   {
     "type": "sequence",
     "name": "Plan before implementing changes",
-    "action": "Use /kplan or Agent to break complex tasks into steps before editing code",
+    "action": "Use /abra-kdabra or Agent to break complex tasks into steps before editing code",
     "before": "Agent",
     "after": "Edit",
     "threshold": 1,

@@ -37,7 +37,7 @@ alwaysApply: true
 - NEVER create circular dependencies
 
 ## Enforcement
-- kody agent auto-checks strict mode, type safety, Node16 resolution on .ts/.tsx edits, and validates naming conventions and import patterns via /kreview and /checkpoint
+- kody agent auto-checks strict mode, type safety, Node16 resolution on .ts/.tsx edits, and validates naming conventions and import patterns via /chekpoint
 - post-edit-typecheck hook validates TypeScript compilation after every Edit/Write
 - quality-gate hook runs lint/style checks after every Edit/Write
 - coding-standards skill provides reference conventions during implementation

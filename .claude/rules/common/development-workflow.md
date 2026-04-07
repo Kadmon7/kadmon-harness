@@ -6,47 +6,41 @@ alwaysApply: true
 
 ## Order
 - ALWAYS follow: Research → Plan → Test → Implement → Review → Commit
-- ALWAYS run /checkpoint (includes full verification + review gate)
+- ALWAYS run /chekpoint (includes full verification + review gate)
 - NEVER commit failing tests (red tests)
-- ALWAYS write test before implementation (/ktest workflow)
+- ALWAYS write test before implementation (TDD workflow)
 - ALWAYS use skill-creator:skill-creator plugin for creating, editing, optimizing, or evaluating skills. Invoke: `skill: "skill-creator:skill-creator"`. Never create skill files manually — the plugin handles structure, frontmatter, description optimization, and eval setup.
 
-## Command Reference (14)
+## Command Reference (12)
 
 ### Observe Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /dashboard | Show harness dashboard (instincts, sessions, costs, hook health) | — |
+| /kadmon-harness | Show harness dashboard (instincts, sessions, costs, hook health) | — |
 | /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
 | /kompas | Full context rebuild — search git, memory, SQLite, docs, harness state. Use after compact or at session start | — |
 
 ### Plan Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kplan | Smart planning — arkitect -> konstruct -> kody chain with user approval gate | arkitect, konstruct, kody |
+| /abra-kdabra | Smart planning — arkitect -> konstruct -> feniks (if TDD) -> kody chain with user approval gate | arkitect, konstruct, feniks, kody |
 
-### Build Phase (2)
+### Build Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kfix | Diagnose build errors + refactor cleanup. Use `/kfix build` or `/kfix clean` for single phase | mekanik, kurator |
-| /kperf | Performance analysis and optimization. Use `/kperf hooks` for hook latency | arkonte |
+| /medik | Full harness diagnostic — 7 health checks, approval gate, repair, cleanup. Alias: /MediK. Use `/medik build`, `/medik hooks`, `/medik db`, or `/medik clean` for single phase | mekanik, kurator |
 
-### Test Phase (1)
+### Scan Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /ktest | TDD + coverage + E2E testing pipeline. Use `/ktest coverage` or `/ktest e2e` for specific modes | feniks, kartograf |
-
-### Review Phase (1)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /kreview | Quick language-aware code review (no verification, no security/database reviewers) | kody + specialists |
+| /skanner | Deep system assessment — performance profiling + E2E workflow tests in parallel. Optional agent evaluation. | arkonte, kartograf |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /checkpoint | Full verification + intelligent review + commit and push (5 reviewers) | kody + specialists |
-| /docs | Look up live documentation for any library or framework | almanak |
-| /kdocs | Sync project documentation with code changes (4-layer sync) | doks |
+| /chekpoint | Full verification + intelligent review + commit and push (5 reviewers) | kody + specialists |
+| /almanak | Look up live documentation for any library or framework | almanak |
+| /doks | Sync project documentation with code changes (4-layer sync) | doks |
 
 ### Evolve Phase (3)
 | Command | Purpose | Agent |
@@ -64,12 +58,12 @@ alwaysApply: true
 ## Research
 - ALWAYS follow search-first skill (5 steps: codebase → dependencies → docs → evaluate → proceed)
 - SHOULD search GitHub for existing implementations: `gh search code <query>`
-- ALWAYS use /docs for API lookups instead of relying on memory
+- ALWAYS use /almanak for API lookups instead of relying on memory
 - MUST read existing code before modifying it (enforced by no-context-guard hook)
 
 ## Enforcement
 - no-context-guard hook blocks edits without prior Read (PreToolUse on Edit|Write)
 - block-no-verify hook prevents skipping git hooks (PreToolUse on Bash)
-- git-push-reminder hook warns before git push without /checkpoint (PreToolUse on Bash)
+- git-push-reminder hook warns before git push without /chekpoint (PreToolUse on Bash)
 - post-edit-typecheck hook validates TypeScript after edits (PostToolUse on Edit|Write)
 - quality-gate hook runs lint/style checks after edits (PostToolUse on Edit|Write)

@@ -1,6 +1,6 @@
 ---
 name: arkonte
-description: Use PROACTIVELY when code contains O(n^2) loops, slow queries, memory-intensive patterns, or user asks to optimize. No dedicated command — auto-invoked. Covers Node.js, React, DB, and hook latency.
+description: Use PROACTIVELY when code contains O(n^2) loops, slow queries, memory-intensive patterns, or user asks to optimize. Command: /skanner (performance phase). Also auto-invoked. Covers Node.js, React, DB, and hook latency.
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project

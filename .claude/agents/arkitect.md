@@ -1,6 +1,6 @@
 ---
 name: arkitect
-description: Use PROACTIVELY when designing system architecture, evaluating trade-offs, or planning multi-component changes. Command: /kplan (Route A — architecture signals). Produces ADRs for every significant decision.
+description: Use PROACTIVELY when designing system architecture, evaluating trade-offs, or planning multi-component changes. Command: /abra-kdabra (Route A — architecture signals). Produces ADRs for every significant decision.
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project

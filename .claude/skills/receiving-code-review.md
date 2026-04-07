@@ -85,7 +85,7 @@ For multi-item feedback:
 1. Clarify anything unclear FIRST
 2. Implement in order: blocking issues → simple fixes → complex fixes
 3. Test each fix individually
-4. Run /checkpoint for regression check
+4. Run /chekpoint for regression check
 
 ## When to Push Back
 
@@ -122,8 +122,8 @@ gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies
 ## Integration
 
 **Project commands:**
-- /kreview — triggers code review that may produce feedback
-- /checkpoint — run after implementing review fixes (verify + review + commit)
+- /chekpoint — triggers code review that may produce feedback
+- /chekpoint — run after implementing review fixes (verify + review + commit)
 
 **Project agents:**
 - kody — produces the review feedback this skill helps process

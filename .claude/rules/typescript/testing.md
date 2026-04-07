@@ -30,10 +30,9 @@ globs: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 - PREFER Vitest for harness E2E tests, Playwright for web app E2E tests
 
 ## Enforcement
-- feniks agent enforces red-green-refactor cycle via /ktest command
-- kartograf agent generates and runs E2E tests via /ktest e2e command
-- /checkpoint command runs typecheck + tests + lint as verification loop before commit
-- /ktest coverage command reports coverage per file
+- feniks agent enforces red-green-refactor cycle via /abra-kdabra (when needs_tdd: true)
+- kartograf agent generates and runs E2E tests via /skanner command
+- /chekpoint command runs typecheck + tests + lint as verification loop before commit
 - post-edit-typecheck hook catches type errors in test files after edits
 - tdd-workflow skill provides TDD methodology guidance
 - e2e-testing skill provides E2E test patterns and structure

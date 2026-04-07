@@ -20,7 +20,7 @@ Build and consume MCP (Model Context Protocol) servers. MCP lets AI assistants c
 - **Prompts**: Reusable, parameterized prompt templates the client can surface (e.g. in Claude Desktop).
 - **Transport**: stdio for local clients; Streamable HTTP for remote. Legacy HTTP/SSE for backward compatibility only.
 
-The SDK API has changed over time -- registration methods may be `tool()` / `resource()` or `registerTool()` / `registerResource()` depending on version. Always verify against current docs via /docs (Context7) or the official MCP documentation.
+The SDK API has changed over time -- registration methods may be `tool()` / `resource()` or `registerTool()` / `registerResource()` depending on version. Always verify against current docs via /almanak (Context7) or the official MCP documentation.
 
 ## Consuming MCP Servers
 
@@ -96,7 +96,7 @@ Keep server logic (tools + resources) independent of transport so you can plug i
 - Keep under 10 MCP servers enabled to preserve context window budget
 - Use environment variable expansion for secrets: `${VAR_NAME}` -- never hardcode
 - The mcp-health-check hook validates server health before MCP tool calls; mcp-health-failure logs failures for diagnostics
-- SDK method names change between versions (`tool()` vs `registerTool()`). Always verify with /docs
+- SDK method names change between versions (`tool()` vs `registerTool()`). Always verify with /almanak
 
 ## Rules
 - Keep under 10 MCP servers enabled to preserve context
@@ -105,4 +105,4 @@ Keep server logic (tools + resources) independent of transport so you can plug i
 - Test MCP tools manually before relying on them in workflows
 
 ## no_context Application
-When consuming MCP server tools, verify the tool exists and understand its parameters via documentation -- do not assume MCP tool schemas. The SDK API evolves; always check current docs via /docs (Context7).
+When consuming MCP server tools, verify the tool exists and understand its parameters via documentation -- do not assume MCP tool schemas. The SDK API evolves; always check current docs via /almanak (Context7).

@@ -37,8 +37,8 @@ try {
         }
       }
       if (!hasVerify)
-        warnings.push("typecheck/tests not run — run /checkpoint first");
-      if (!hasReview) warnings.push("kody not invoked — run /checkpoint first");
+        warnings.push("typecheck/tests not run — run /chekpoint first");
+      if (!hasReview) warnings.push("kody not invoked — run /chekpoint first");
     }
   }
 
