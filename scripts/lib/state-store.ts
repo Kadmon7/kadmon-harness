@@ -13,7 +13,7 @@ import type {
   HookEvent,
   AgentInvocation,
 } from "./types.js";
-import { kadmonDataDir, generateId, nowISO, ensureDir, log } from "./utils.js";
+import { kadmonDataDir, generateId, nowISO, ensureDir } from "./utils.js";
 
 // ─── sql.js wrapper (adapted from ECC) ───
 

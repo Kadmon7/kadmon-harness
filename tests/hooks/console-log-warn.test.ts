@@ -108,7 +108,7 @@ describe("console-log-warn", () => {
 
   it("skips when hook is disabled via env var", () => {
     try {
-      const stdout = execFileSync("node", [HOOK], {
+      execFileSync("node", [HOOK], {
         encoding: "utf8",
         input: JSON.stringify({
           tool_input: {

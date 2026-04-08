@@ -96,7 +96,7 @@ describe("rotateBackup", () => {
     const oldTime = new Date("2026-01-01T00:00:00Z");
     fs.utimesSync(oldBak, oldTime, oldTime);
 
-    const result = rotateBackup(DB_FILE);
+    rotateBackup(DB_FILE);
     // Old format should be gone
     expect(fs.existsSync(oldBak)).toBe(false);
     // Should have 2 backups: migrated (from old mtime) + new (from now)
