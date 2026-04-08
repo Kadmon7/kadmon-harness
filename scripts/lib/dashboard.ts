@@ -110,9 +110,15 @@ function fmtMs(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-function miniBar(value: number, max: number, width = 8): string {
-  if (max <= 0) return "\u2591".repeat(width);
-  const filled = Math.round((value / max) * width);
+function miniBar(value: number, max: number, width = 8, log = false): string {
+  if (max <= 0 || value <= 0) return "\u2591".repeat(width);
+  let ratio: number;
+  if (log) {
+    ratio = Math.log(value + 1) / Math.log(max + 1);
+  } else {
+    ratio = value / max;
+  }
+  const filled = Math.max(1, Math.round(ratio * width));
   return (
     "\u2588".repeat(Math.min(filled, width)) +
     "\u2591".repeat(Math.max(width - filled, 0))
@@ -517,7 +523,7 @@ export function renderDashboard(
   for (const row of dbRows) {
     const name = row.table.padEnd(22);
     const count = String(row.count).padStart(6);
-    const bar = miniBar(row.count, maxCount, 10);
+    const bar = miniBar(row.count, maxCount, 10, true);
     lines.push(`  ${name} ${count}  ${DIM}${bar}${RESET}`);
   }
 
