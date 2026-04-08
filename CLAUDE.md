@@ -89,10 +89,10 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | `git` | Version control |
 
 ## Hooks
-20 registered hooks + 7 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
+20 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
 
 ## Memory
-- **SQLite**: sessions, instincts, cost events at `~/.kadmon/kadmon.db`
+- **SQLite**: sessions, instincts, cost events, hook events, agent invocations at `~/.kadmon/kadmon.db` (6 tables)
 - **Observations**: ephemeral JSONL per session, summarized at session end
 - **Auto Memory**: `~/.claude/projects/<project>/memory/` with 4 types: user, feedback, project, reference
 - **AutoDream**: consolidates memory every 24h/5+ sessions

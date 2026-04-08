@@ -28,7 +28,7 @@ globs: [".claude/hooks/scripts/*.js"]
 
 ## Lifecycle Hooks (3 registered + sub-modules)
 - session-start.js — initializes session, loads instincts and previous session summary, recovers orphaned sessions
-- session-end-all.js — consolidated Stop hook: persist session + evaluate patterns + track cost + write marker + daily log (imports generate-session-summary, evaluate-patterns-shared, daily-log as shared modules)
+- session-end-all.js — consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (imports generate-session-summary, evaluate-patterns-shared, daily-log as shared modules)
 - pre-compact-save.js — saves session state, generates summary, evaluates patterns before context compaction
 
 ## Enforcement

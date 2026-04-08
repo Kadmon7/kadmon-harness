@@ -8,6 +8,9 @@ import {
   getRecentSessions,
   getCostSummaryByModel,
   getInstinctCounts,
+  getHookEventStats,
+  getAgentInvocationStats,
+  getDb,
 } from "./state-store.js";
 import type { ObservabilityEvent } from "./types.js";
 
@@ -29,6 +32,7 @@ export interface SessionRow {
   compactionCount: number;
   durationMs: number;
   cost: string;
+  costNum: number;
   isLive: boolean;
 }
 
@@ -47,6 +51,25 @@ export interface ModelCostRow {
   totalCost: number;
 }
 
+interface HookStatRow {
+  hookName: string;
+  total: number;
+  blocks: number;
+  avgDurationMs: number;
+}
+
+interface AgentStatRow {
+  agentType: string;
+  total: number;
+  avgDurationMs: number;
+  failureRate: number;
+}
+
+interface DbStatusRow {
+  table: string;
+  count: number;
+}
+
 // ─── ANSI helpers ───
 
 const BOLD = "\x1b[1m";
@@ -57,6 +80,12 @@ const GREEN = "\x1b[32m";
 const YELLOW = "\x1b[33m";
 const RED = "\x1b[31m";
 const MAGENTA = "\x1b[35m";
+const WHITE = "\x1b[37m";
+const BG_CYAN = "\x1b[46m";
+const BG_GREEN = "\x1b[42m";
+const BG_YELLOW = "\x1b[43m";
+const BG_RED = "\x1b[41m";
+const BLACK = "\x1b[30m";
 
 // ─── Formatting helpers ───
 
@@ -75,20 +104,56 @@ function fmtDuration(ms: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+function fmtMs(ms: number): string {
+  if (ms <= 0) return "\u2014";
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function miniBar(value: number, max: number, width = 8): string {
+  if (max <= 0) return "\u2591".repeat(width);
+  const filled = Math.round((value / max) * width);
+  return (
+    "\u2588".repeat(Math.min(filled, width)) +
+    "\u2591".repeat(Math.max(width - filled, 0))
+  );
+}
+
+function statusBadge(status: "OK" | "WARN" | "FAIL" | "GOOD" | "MEH"): string {
+  switch (status) {
+    case "OK":
+    case "GOOD":
+      return `${BG_GREEN}${BLACK} ${status} ${RESET}`;
+    case "WARN":
+    case "MEH":
+      return `${BG_YELLOW}${BLACK} ${status} ${RESET}`;
+    case "FAIL":
+      return `${BG_RED}${WHITE} ${status} ${RESET}`;
+  }
+}
+
 // ─── Rendering ───
 
 export function renderConfidenceBar(confidence: number): string {
   const width = 10;
   const filled = Math.round(confidence * width);
   const empty = width - filled;
+  const color = confidence >= 0.7 ? GREEN : confidence >= 0.4 ? YELLOW : RED;
   const bar = "\u2588".repeat(filled) + "\u2591".repeat(empty);
-  return `[${bar}] ${confidence.toFixed(1)}`;
+  return `${color}[${bar}]${RESET} ${confidence.toFixed(1)}`;
 }
 
-function statusColor(status: "OK" | "WARN" | "FAIL"): string {
-  if (status === "OK") return GREEN;
-  if (status === "WARN") return YELLOW;
-  return RED;
+function sectionHeader(
+  emoji: string,
+  title: string,
+  subtitle?: string,
+): string {
+  const sub = subtitle ? ` ${DIM}(${subtitle})${RESET}` : "";
+  return `${BOLD}${CYAN}${emoji} ${title}${RESET}${sub}`;
+}
+
+function separator(): string {
+  return `${DIM}${"─".repeat(60)}${RESET}`;
 }
 
 // ─── Data fetching ───
@@ -110,7 +175,6 @@ export function getInstinctRows(projectHash: string): InstinctRow[] {
 export function getSessionRows(projectHash: string, limit = 5): SessionRow[] {
   const sessions = getRecentSessions(projectHash, limit + 10);
 
-  // Filter ghost sessions (0 msgs, 0 files, not live) but keep the most recent live session
   let foundLive = false;
   const filtered = sessions.filter((s) => {
     const isLive = !s.endedAt;
@@ -118,10 +182,10 @@ export function getSessionRows(projectHash: string, limit = 5): SessionRow[] {
 
     if (isLive && !foundLive) {
       foundLive = true;
-      return true; // keep the current live session
+      return true;
     }
-    if (isLive && foundLive) return false; // skip extra live sessions
-    if (isGhost) return false; // skip ghost sessions
+    if (isLive && foundLive) return false;
+    if (isGhost) return false;
     return true;
   });
 
@@ -133,6 +197,7 @@ export function getSessionRows(projectHash: string, limit = 5): SessionRow[] {
     compactionCount: s.compactionCount,
     durationMs: s.durationMs,
     cost: `$${s.estimatedCostUsd.toFixed(2)}`,
+    costNum: s.estimatedCostUsd,
     isLive: !s.endedAt,
   }));
 }
@@ -178,6 +243,80 @@ export function getModelCostRows(projectHash: string): ModelCostRow[] {
   }));
 }
 
+function getHookStatRows(projectHash: string): HookStatRow[] {
+  return getHookEventStats(projectHash);
+}
+
+function getAgentStatRows(projectHash: string): AgentStatRow[] {
+  return getAgentInvocationStats(projectHash);
+}
+
+function getDbStatus(): DbStatusRow[] {
+  const tables = [
+    "sessions",
+    "instincts",
+    "cost_events",
+    "hook_events",
+    "agent_invocations",
+    "sync_queue",
+  ];
+  return tables.map((table) => {
+    const row = getDb().prepare(`SELECT COUNT(*) as cnt FROM ${table}`).get();
+    return { table, count: Number(row?.cnt ?? 0) };
+  });
+}
+
+// ─── Health Score ───
+
+function computeHealthScore(
+  projectHash: string,
+  sessions: SessionRow[],
+  hookStats: HookStatRow[],
+  agentStats: AgentStatRow[],
+): { score: number; label: string; color: string } {
+  let score = 100;
+
+  // Penalize if no recent sessions
+  if (sessions.length === 0) score -= 20;
+
+  // Penalize high hook block rate
+  const totalHookEvents = hookStats.reduce((sum, h) => sum + h.total, 0);
+  const totalBlocks = hookStats.reduce((sum, h) => sum + h.blocks, 0);
+  if (totalHookEvents > 0) {
+    const blockRate = totalBlocks / totalHookEvents;
+    if (blockRate > 0.3) score -= 15;
+    else if (blockRate > 0.1) score -= 5;
+  }
+
+  // Penalize high agent failure rate
+  const failingAgents = agentStats.filter((a) => a.failureRate > 0.5);
+  score -= failingAgents.length * 10;
+
+  // Penalize if instincts are stale (no promotable)
+  const counts = getInstinctCounts(projectHash);
+  if (counts.active === 0) score -= 10;
+
+  score = Math.max(0, Math.min(100, score));
+
+  let label: string;
+  let color: string;
+  if (score >= 90) {
+    label = "EXCELLENT";
+    color = GREEN;
+  } else if (score >= 70) {
+    label = "GOOD";
+    color = GREEN;
+  } else if (score >= 50) {
+    label = "FAIR";
+    color = YELLOW;
+  } else {
+    label = "NEEDS ATTENTION";
+    color = RED;
+  }
+
+  return { score, label, color };
+}
+
 // ─── Full dashboard render ───
 
 export function renderDashboard(
@@ -186,23 +325,47 @@ export function renderDashboard(
 ): string {
   const lines: string[] = [];
 
-  // Header
-  lines.push(`${BOLD}${CYAN}\u2554${"═".repeat(38)}\u2557${RESET}`);
-  lines.push(
-    `${BOLD}${CYAN}\u2551       KADMON HARNESS DASHBOARD       \u2551${RESET}`,
-  );
-  lines.push(`${BOLD}${CYAN}\u255A${"═".repeat(38)}\u255D${RESET}`);
+  // ═══ Header ═══
   lines.push("");
+  lines.push(`${BOLD}${CYAN}  \u2554${"═".repeat(44)}\u2557${RESET}`);
+  lines.push(
+    `${BOLD}${CYAN}  \u2551  \u{1F9E0}  KADMON HARNESS DASHBOARD        \u2551${RESET}`,
+  );
+  lines.push(`${BOLD}${CYAN}  \u255A${"═".repeat(44)}\u255D${RESET}`);
 
-  // Instincts (with promotable markers inline)
+  // Fetch all data
+  const sessions = getSessionRows(projectHash);
+  const hookStats = getHookStatRows(projectHash);
+  const agentStats = getAgentStatRows(projectHash);
   const counts = getInstinctCounts(projectHash);
+  const modelCosts = getModelCostRows(projectHash);
+
+  // Health Score
+  const health = computeHealthScore(
+    projectHash,
+    sessions,
+    hookStats,
+    agentStats,
+  );
+  const grandTotal = modelCosts.reduce((sum, r) => sum + r.totalCost, 0);
+  const totalSessions = sessions.length;
+
+  lines.push("");
+  lines.push(
+    `  ${health.color}${BOLD}\u{1F3AF} Health: ${health.score}/100 ${health.label}${RESET}` +
+      `    ${DIM}|${RESET}  \u{1F4CA} ${totalSessions} sessions` +
+      `    ${DIM}|${RESET}  \u{1F4B0} $${grandTotal.toFixed(2)} total`,
+  );
+  lines.push("");
+  lines.push(separator());
+
+  // ═══ 1. Instincts ═══
   const countLabel =
     counts.promotable > 0
-      ? `${counts.active} active | ${MAGENTA}${counts.promotable} promotable${RESET}`
+      ? `${counts.active} active, ${MAGENTA}${counts.promotable} promotable${RESET}`
       : `${counts.active} active`;
-  lines.push(
-    `${BOLD}\u2500\u2500 INSTINCTS (${countLabel}${BOLD}) \u2500\u2500${RESET}`,
-  );
+  lines.push(sectionHeader("\u{1F52E}", "INSTINCTS", countLabel));
+  lines.push("");
 
   const instincts = getInstinctRows(projectHash);
   if (instincts.length === 0) {
@@ -210,7 +373,7 @@ export function renderDashboard(
   } else {
     for (const row of instincts) {
       const promoTag = row.isPromotable
-        ? ` ${MAGENTA}\u2192 /promote${RESET}`
+        ? ` ${MAGENTA}\u2192 promote${RESET}`
         : "";
       lines.push(
         `  ${row.bar}  ${row.pattern} ${DIM}(${row.occurrences}x)${RESET}${promoTag}`,
@@ -218,16 +381,19 @@ export function renderDashboard(
     }
   }
   lines.push("");
+  lines.push(separator());
 
-  // Sessions (filtered, with duration)
-  lines.push(`${BOLD}\u2500\u2500 SESSIONS \u2500\u2500${RESET}`);
-  const sessions = getSessionRows(projectHash);
+  // ═══ 2. Sessions ═══
+  lines.push(sectionHeader("\u{1F4C5}", "RECENT SESSIONS"));
+  lines.push("");
+
   if (sessions.length === 0) {
     lines.push(`  ${DIM}No recent sessions${RESET}`);
   } else {
     lines.push(
       `  ${DIM}Date        Branch              Files  Msgs  Cmps  Duration  Cost${RESET}`,
     );
+    const maxCost = Math.max(...sessions.map((s) => s.costNum));
     for (const row of sessions) {
       const branch = row.branch.padEnd(18).slice(0, 18);
       const files = String(row.filesCount).padStart(5);
@@ -236,32 +402,33 @@ export function renderDashboard(
       const dur = row.isLive
         ? "\u2014".padStart(8)
         : fmtDuration(row.durationMs).padStart(8);
-      const liveTag = row.isLive ? `  ${YELLOW}*${RESET}` : "";
+      const costBar = miniBar(row.costNum, maxCost, 5);
+      const liveTag = row.isLive ? ` ${YELLOW}\u{26A1}${RESET}` : "";
       lines.push(
-        `  ${row.date}  ${branch} ${files} ${msgs} ${cmps}  ${dur}  ${row.cost}${liveTag}`,
+        `  ${row.date}  ${branch} ${files} ${msgs} ${cmps}  ${dur}  ${row.cost} ${DIM}${costBar}${RESET}${liveTag}`,
       );
     }
-    lines.push(`  ${DIM}* = live session${RESET}`);
+    lines.push(`  ${DIM}\u{26A1} = live session${RESET}`);
   }
   lines.push("");
+  lines.push(separator());
 
-  // Cost Summary by Model
-  lines.push(`${BOLD}\u2500\u2500 COST SUMMARY \u2500\u2500${RESET}`);
-  const modelCosts = getModelCostRows(projectHash);
+  // ═══ 3. Cost Summary ═══
+  lines.push(sectionHeader("\u{1F4B0}", "COST SUMMARY", "by model"));
+  lines.push("");
+
   if (modelCosts.length === 0) {
     lines.push(`  ${DIM}No cost data${RESET}`);
   } else {
     lines.push(
       `  ${DIM}Model              Sessions  Tokens In  Tokens Out   Cost${RESET}`,
     );
-    let grandTotal = 0;
     for (const row of modelCosts) {
       const model = row.model.padEnd(18).slice(0, 18);
       const sess = String(row.sessionCount).padStart(8);
       const tokIn = fmtTokens(row.inputTokens).padStart(10);
       const tokOut = fmtTokens(row.outputTokens).padStart(10);
       const cost = `$${row.totalCost.toFixed(2)}`;
-      grandTotal += row.totalCost;
       lines.push(`  ${model} ${sess} ${tokIn} ${tokOut}  ${cost}`);
     }
     lines.push(`  ${"─".repeat(58)}`);
@@ -270,22 +437,96 @@ export function renderDashboard(
     );
   }
   lines.push("");
+  lines.push(separator());
 
-  // Hook Health (wider tool column)
-  lines.push(`${BOLD}\u2500\u2500 HOOK HEALTH \u2500\u2500${RESET}`);
-  const hooks = getHookHealthRows(events);
-  if (hooks.length === 0) {
-    lines.push(`  ${DIM}No observations${RESET}`);
+  // ═══ 4. Hook Events (from DB — persistent) ═══
+  lines.push(sectionHeader("\u{1F6A8}", "HOOK EVENTS", "persistent"));
+  lines.push("");
+
+  if (hookStats.length === 0) {
+    lines.push(`  ${DIM}No hook events recorded yet${RESET}`);
   } else {
+    lines.push(
+      `  ${DIM}Hook                     Total  Blocks  Avg ms  Status${RESET}`,
+    );
+    for (const row of hookStats) {
+      const name = row.hookName.padEnd(23).slice(0, 23);
+      const total = String(row.total).padStart(5);
+      const blocks = String(row.blocks).padStart(7);
+      const avg = fmtMs(row.avgDurationMs).padStart(7);
+      const blockRate = row.total > 0 ? row.blocks / row.total : 0;
+      let status: "OK" | "WARN" | "FAIL";
+      if (blockRate === 0) status = "OK";
+      else if (blockRate < 0.5) status = "WARN";
+      else status = "FAIL";
+      lines.push(`  ${name} ${total} ${blocks} ${avg}  ${statusBadge(status)}`);
+    }
+  }
+  lines.push("");
+  lines.push(separator());
+
+  // ═══ 5. Agent Usage (from DB — persistent) ═══
+  lines.push(sectionHeader("\u{1F916}", "AGENT USAGE", "persistent"));
+  lines.push("");
+
+  if (agentStats.length === 0) {
+    lines.push(`  ${DIM}No agent invocations recorded yet${RESET}`);
+  } else {
+    lines.push(
+      `  ${DIM}Agent                Total  Avg Duration  Fail%  Status${RESET}`,
+    );
+    for (const row of agentStats) {
+      const name = row.agentType.padEnd(19).slice(0, 19);
+      const total = String(row.total).padStart(5);
+      const avgDur = fmtMs(row.avgDurationMs).padStart(13);
+      const failPct = `${(row.failureRate * 100).toFixed(0)}%`.padStart(6);
+      let status: "OK" | "WARN" | "FAIL";
+      if (row.failureRate === 0) status = "OK";
+      else if (row.failureRate < 0.3) status = "WARN";
+      else status = "FAIL";
+      lines.push(
+        `  ${name}  ${total} ${avgDur} ${failPct}  ${statusBadge(status)}`,
+      );
+    }
+  }
+  lines.push("");
+  lines.push(separator());
+
+  // ═══ 6. Live Session Health (from JSONL — current session only) ═══
+  const hooks = getHookHealthRows(events);
+  if (hooks.length > 0) {
+    lines.push(sectionHeader("\u{26A1}", "LIVE SESSION", "current"));
+    lines.push("");
     lines.push(`  ${DIM}Tool            Total  Fail  Status${RESET}`);
     for (const row of hooks) {
       const tool = row.tool.padEnd(14).slice(0, 14);
       const total = String(row.total).padStart(5);
       const fail = String(row.failures).padStart(5);
-      const color = statusColor(row.status);
-      lines.push(`  ${tool} ${total} ${fail}  ${color}${row.status}${RESET}`);
+      lines.push(`  ${tool} ${total} ${fail}  ${statusBadge(row.status)}`);
     }
+    lines.push("");
+    lines.push(separator());
   }
+
+  // ═══ 7. DB Status ═══
+  lines.push(sectionHeader("\u{1F4BE}", "DATABASE", "kadmon.db"));
+  lines.push("");
+
+  const dbRows = getDbStatus();
+  const maxCount = Math.max(...dbRows.map((r) => r.count));
+  for (const row of dbRows) {
+    const name = row.table.padEnd(22);
+    const count = String(row.count).padStart(6);
+    const bar = miniBar(row.count, maxCount, 10);
+    lines.push(`  ${name} ${count}  ${DIM}${bar}${RESET}`);
+  }
+
+  // Footer
+  lines.push("");
+  lines.push(
+    `  ${DIM}v1.0 | ${new Date().toISOString().slice(0, 19)} | project: ${projectHash.slice(0, 8)}${RESET}`,
+  );
+  lines.push("");
 
   return lines.join("\n");
 }

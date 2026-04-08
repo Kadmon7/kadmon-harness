@@ -477,14 +477,14 @@ describe("dashboard", () => {
       expect(output).toContain("Read first");
       expect(output).toContain("1 active");
       expect(output).toContain("1 promotable");
-      expect(output).toContain("/promote");
-      expect(output).toContain("SESSIONS");
+      expect(output).toContain("promote");
+      expect(output).toContain("RECENT SESSIONS");
       expect(output).toContain("main");
       expect(output).toContain("Msgs");
       expect(output).toContain("Cmps");
       expect(output).toContain("Duration");
       expect(output).toContain("COST SUMMARY");
-      expect(output).toContain("HOOK HEALTH");
+      expect(output).toContain("LIVE SESSION");
       expect(output).toContain("Edit");
     });
 
@@ -493,12 +493,12 @@ describe("dashboard", () => {
       expect(output).toContain("INSTINCTS");
       expect(output).toContain("0 active");
       expect(output).toContain("No active instincts");
-      expect(output).toContain("SESSIONS");
+      expect(output).toContain("RECENT SESSIONS");
       expect(output).toContain("No recent sessions");
       expect(output).toContain("COST SUMMARY");
       expect(output).toContain("No cost data");
-      expect(output).toContain("HOOK HEALTH");
-      expect(output).toContain("No observations");
+      expect(output).toContain("HOOK EVENTS");
+      expect(output).toContain("No hook events recorded yet");
     });
 
     it("renders live indicator for current session", () => {
@@ -522,8 +522,8 @@ describe("dashboard", () => {
       });
 
       const output = renderDashboard("proj1", []);
-      expect(output).toContain("*");
-      expect(output).toContain("* = live session");
+      expect(output).toContain("\u{26A1}");
+      expect(output).toContain("\u{26A1} = live session");
     });
 
     it("shows promotable markers inline in INSTINCTS section", () => {
@@ -549,8 +549,8 @@ describe("dashboard", () => {
       const output = renderDashboard("proj1", []);
       // Should NOT have a separate PROMOTABLE section
       expect(output).not.toMatch(/── PROMOTABLE ──/);
-      // Should have inline /promote marker
-      expect(output).toContain("/promote");
+      // Should have inline promote marker
+      expect(output).toContain("promote");
       // Should show counts in header
       expect(output).toContain("2 active");
       expect(output).toContain("1 promotable");

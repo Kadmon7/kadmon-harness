@@ -73,7 +73,7 @@ alwaysApply: true
 ### Stop — all (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + evaluate patterns + track cost + write marker + daily log (replaces 4 separate hooks to avoid sql.js race condition) | 0 always |
+| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (replaces 4 separate hooks to avoid sql.js race condition) | 0 always |
 
 ## Shared Modules (8)
 
@@ -88,7 +88,7 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 | ensure-dist.js | Detect stale dist/ and auto-rebuild | session-start, session-end-all, pre-compact-save |
 | hook-logger.js | Persist hook errors to ~/.kadmon/hook-errors.log | session-start, session-end-all, pre-compact-save, evaluate-patterns-shared |
 | backup-rotate.js | Maintain 3 timestamped backups of kadmon.db | session-start |
-| log-hook-event.js | Append hook execution events to session-scoped JSONL | 11 blocking/warning hooks (persisted to DB by session-end-all) |
+| log-hook-event.js | Append hook execution events to session-scoped JSONL | 9 blocking/warning hooks (persisted to DB by session-end-all) |
 
 ## Safety
 - NEVER crash Claude Code — always exit(0) on unexpected errors
@@ -103,6 +103,8 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 ## Data
 - Hooks read input from stdin as JSON
 - observe hooks write to JSONL files (file append, no DB)
+- 9 blocking/warning hooks write to `hook-events.jsonl` via `logHookEvent()` (persisted to SQLite by session-end-all)
+- session-end-all extracts agent invocations from `observations.jsonl` and hook events from `hook-events.jsonl`, persists both to DB
 - Lifecycle hooks (session-start, session-end-all) may access SQLite via compiled TypeScript in dist/
 - MUST run `npm run build` before lifecycle hooks can access state-store
 

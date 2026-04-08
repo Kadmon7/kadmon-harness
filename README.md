@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-`289 tests` | `20 hooks` | `15 agents` | `22 skills` | `12 commands` | `19 rules`
+`344 tests` | `20 hooks` | `15 agents` | `22 skills` | `12 commands` | `19 rules` | `6 DB tables`
 
 ## Mantra
 
@@ -86,6 +86,9 @@ On session end: Stop hooks persist to SQLite
 │  ┌────┴────┐  ┌──────────┐  ┌──────────┐             │
 │  │Sessions │  │Instincts │  │  Costs   │ ← SQLite    │
 │  └─────────┘  └──────────┘  └──────────┘             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │HookEvents│  │AgentInvoc│  │SyncQueue │ ← SQLite    │
+│  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
 │  │ 15 Agents│  │ 22 Skills│  │ 19 Rules │             │
@@ -288,7 +291,7 @@ On session end: Stop hooks persist to SQLite
 |------|-------|-------------|
 | **session-start** | SessionStart | Initializes session: loads 3 recent sessions, shows history, "Pending Work" carry-forward, recovers orphaned sessions |
 | **pre-compact-save** | PreCompact | Saves session state and pending tasks before context compaction |
-| **session-end-all** | Stop | Consolidated: persist session + evaluate patterns + track cost + write marker + daily log |
+| **session-end-all** | Stop | Consolidated: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup |
 
 ### MCP monitoring
 
@@ -403,8 +406,8 @@ Example instincts:
 ### Location
 
 ```
-~/.kadmon/kadmon.db     # Persistent data (sessions, instincts, costs)
-$TMPDIR/kadmon/{sid}/   # Ephemeral observations (JSONL per session)
+~/.kadmon/kadmon.db     # Persistent data (sessions, instincts, costs, hook events, agent invocations)
+$TMPDIR/kadmon/{sid}/   # Ephemeral observations + hook events (JSONL per session)
 ```
 
 ### Tables
@@ -480,7 +483,7 @@ Sync queue for future cloud persistence (Supabase v2).
 | **utils.ts** | 54 | `nowISO()`, `generateId()`, `hashString()`, `kadmonDataDir()`, `formatDuration()` | Utilities: timestamps, UUIDs, SHA256 hashing, paths. |
 | **cost-calculator.ts** | 41 | `calculateCost()`, `formatCost()` | LLM cost calculation per model and tokens. |
 | **project-detect.ts** | 29 | `detectProject()` | Detects git project: remote URL, branch, root dir, project hash. |
-| **schema.sql** | 73 | -- | SQL schema: 4 tables + 8 indexes. Applied on DB init. |
+| **schema.sql** | 105 | -- | SQL schema: 6 tables + 14 indexes. Applied on DB init. |
 | **sql.js.d.ts** | 28 | `Database`, `Statement`, `SqlJsStatic` | Type definitions for sql.js (WASM SQLite). |
 
 ---
@@ -600,8 +603,8 @@ Central configuration file. Controls:
 | Commands | 12 |
 | Hooks | 20 |
 | Rules | 19 (9 common + 5 TypeScript + 5 Python) |
-| Tests | 328 passing |
-| SQLite Tables | 4 + 8 indexes |
+| Tests | 344 passing |
+| SQLite Tables | 6 + 14 indexes |
 | MCPs | 1 active (Context7) |
 | Plugins | 4 active |
 
@@ -650,4 +653,4 @@ Built on concepts from [everything-claude-code](https://github.com/affaan-m/ever
 
 ## Status
 
-v1.0 — Production ready (289 tests passing, 20 hooks, 15 agents, 22 skills, 12 commands, 19 rules)
+v1.0 — Production ready (344 tests passing, 37 test files, 20 hooks, 15 agents, 22 skills, 12 commands, 19 rules, 6 DB tables)

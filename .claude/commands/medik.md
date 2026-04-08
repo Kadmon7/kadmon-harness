@@ -27,7 +27,7 @@ Run all 7 health checks and collect findings:
 | 2 | Typecheck | `npx tsc --noEmit` | Type errors (TS2xxx codes) |
 | 3 | Tests | `npx vitest run` | Test failures, timeout errors |
 | 4 | Hook errors | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
-| 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, tables present (sessions, instincts, cost_events), no corruption |
+| 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), no corruption |
 | 6 | dist/ sync | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
 | 7 | Dependencies | `npm audit` | Vulnerable packages, outdated deps |
 

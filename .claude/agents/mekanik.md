@@ -39,7 +39,7 @@ When invoked via /medik (alias /MediK), run these 7 checks before any repair:
 2. **Typecheck**: `npx tsc --noEmit` — catch type errors
 3. **Tests**: `npx vitest run` — catch test failures
 4. **Hook errors**: Read `~/.kadmon/hook-errors.log` — catch hook crashes and errors
-5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, tables present (sessions, instincts, cost_events), not corrupt
+5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), not corrupt
 6. **dist/ sync**: Compare `dist/` timestamps vs `scripts/lib/` — catch stale compiled output
 7. **Dependencies**: `npm audit` — catch vulnerable packages
 
