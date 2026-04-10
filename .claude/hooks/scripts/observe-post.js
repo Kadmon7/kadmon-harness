@@ -8,7 +8,7 @@ import { parseStdin } from "./parse-stdin.js";
 try {
   const input = parseStdin();
   const sid = input.session_id ?? "";
-  if (!sid) process.exit(0);
+  if (!sid || !/^[a-zA-Z0-9_-]+$/.test(sid)) process.exit(0);
   const dir = path.join(os.tmpdir(), "kadmon", sid);
   fs.mkdirSync(dir, { recursive: true });
   const toolError = input.tool_error ?? null;
@@ -19,12 +19,9 @@ try {
     const preTs = parseInt(fs.readFileSync(tsFile, "utf8").trim(), 10);
     if (preTs > 0) durationMs = Date.now() - preTs;
   } catch {}
-  // Bash metadata with secret scrubbing
-  const command = input.tool_input?.command ?? null;
-  let resultSnippet = null;
-  if (input.tool_name === "Bash" && input.tool_result) {
-    resultSnippet = String(input.tool_result)
-      .slice(0, 100)
+  // Secret scrubbing — applied to all fields that may contain credentials
+  function scrubSecrets(str) {
+    return str
       .replace(/(?:sk|pk)[-_](?:live|test)[-_][A-Za-z0-9]{20,}/g, "[REDACTED]")
       .replace(/ghp_[A-Za-z0-9]{36,}/g, "[REDACTED]")
       .replace(/xox[bpas]-[A-Za-z0-9-]{10,}/g, "[REDACTED]")
@@ -33,7 +30,19 @@ try {
         "[REDACTED]",
       );
   }
-  const hasMeta = command || resultSnippet;
+  // Bash metadata with secret scrubbing
+  const command = input.tool_input?.command ?? null;
+  let resultSnippet = null;
+  if (input.tool_name === "Bash" && input.tool_result) {
+    resultSnippet = scrubSecrets(String(input.tool_result).slice(0, 100));
+  }
+  const scrubbedError = toolError
+    ? scrubSecrets(String(toolError)).slice(0, 200)
+    : null;
+  const scrubbedCommand = command
+    ? scrubSecrets(String(command)).slice(0, 200)
+    : null;
+  const hasMeta = scrubbedCommand || resultSnippet;
   const event = {
     timestamp: new Date().toISOString(),
     sessionId: sid,
@@ -41,12 +50,12 @@ try {
     toolName: input.tool_name ?? "",
     filePath: input.tool_input?.file_path ?? input.tool_input?.path ?? null,
     success: !toolError,
-    ...(toolError ? { error: String(toolError).slice(0, 200) } : {}),
+    ...(scrubbedError ? { error: scrubbedError } : {}),
     ...(durationMs !== null ? { durationMs } : {}),
     ...(hasMeta
       ? {
           metadata: {
-            ...(command ? { command: String(command).slice(0, 200) } : {}),
+            ...(scrubbedCommand ? { command: scrubbedCommand } : {}),
             ...(resultSnippet ? { resultSnippet } : {}),
           },
         }

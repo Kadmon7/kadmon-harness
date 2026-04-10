@@ -18,16 +18,20 @@ All-in-one quality gate and commit. Runs mechanical checks, invokes language-awa
 4. Lint: `npx eslint . --ext .ts,.js` (if configured)
 5. Stop at first failure — report which step failed. Do NOT proceed.
 
-### Phase 2: Intelligent Review (parallel)
+### Phase 2a: Specialist Review (parallel)
 1. Get diff: `git diff --staged` or `git diff HEAD~1`
 2. Detect file types in diff
-3. Launch reviewers **in parallel**:
+3. Launch specialist reviewers **in parallel** (single message, multiple Agent calls):
    - TypeScript (.ts/.tsx/.js/.jsx) present -> invoke **typescript-reviewer** (sonnet)
    - Python (.py) present -> invoke **python-reviewer** (sonnet)
    - Both present -> both in parallel
    - **Always**: invoke **spektr** (opus) in parallel
    - **Always**: invoke **orakle** (opus) in parallel
-4. **kody** (sonnet) consolidates all findings with BLOCK / WARN / NOTE severity
+
+### Phase 2b: Consolidation (sequential — AFTER 2a completes)
+1. **WAIT** for ALL Phase 2a reviewers to complete. Do NOT invoke kody in parallel with them.
+2. Invoke **kody** (sonnet) with the findings from every Phase 2a reviewer included in its prompt.
+3. kody deduplicates, prioritizes, and assigns final severity: BLOCK / WARN / NOTE.
 
 ### Phase 3: Gate Decision
 - **Any BLOCK findings** -> STOP. Report issues. Do NOT commit.
@@ -52,10 +56,13 @@ Typecheck: PASS
 Tests:     180 passing, 0 failing
 Lint:      PASS
 
-## Phase 2: Review (3 reviewers)
+## Phase 2a: Specialist Review (3 reviewers)
 typescript-reviewer: 1 NOTE
 spektr:   0 issues
 orakle:   0 issues
+
+## Phase 2b: Consolidation (kody)
+kody: 0 BLOCK, 0 WARN, 1 NOTE — APPROVED
 
 ## Phase 3: Gate
 0 BLOCK, 0 WARN, 1 NOTE — APPROVED

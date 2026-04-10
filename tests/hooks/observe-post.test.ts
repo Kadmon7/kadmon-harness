@@ -234,4 +234,61 @@ describe("observe-post", () => {
       "SuperSecretKeyValue123",
     );
   });
+
+  it("exits 0 and creates no file when session_id contains path traversal chars", () => {
+    // Arrange + Act: traversal with ../
+    const exitCode1 = runHook({
+      session_id: "../../../etc",
+      tool_name: "Read",
+    });
+    expect(exitCode1).toBe(0);
+    // The hook must NOT create a file at the traversal path
+    const traversalFile = path.join(
+      os.tmpdir(),
+      "kadmon",
+      "../../../etc",
+      "observations.jsonl",
+    );
+    expect(fs.existsSync(traversalFile)).toBe(false);
+
+    // Arrange + Act: traversal with embedded slash
+    const exitCode2 = runHook({ session_id: "foo/bar", tool_name: "Read" });
+    expect(exitCode2).toBe(0);
+    // The hook must NOT create a file at the slash path
+    const slashFile = path.join(
+      os.tmpdir(),
+      "kadmon",
+      "foo/bar",
+      "observations.jsonl",
+    );
+    expect(fs.existsSync(slashFile)).toBe(false);
+  });
+
+  it("scrubs secrets from tool_error field", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_error: "Failed: token=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.error).toContain("[REDACTED]");
+    expect(event.error).not.toContain("ghp_");
+  });
+
+  it("scrubs secrets from metadata.command field", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: {
+        command:
+          'curl -H "Authorization: Bearer sk-live-ABCDEFGHIJKLMNOPQRST1234"',
+      },
+      tool_result: "ok",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.command).toContain("[REDACTED]");
+    expect(event.metadata.command).not.toContain("sk-live");
+  });
 });

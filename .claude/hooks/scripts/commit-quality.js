@@ -11,6 +11,9 @@ const SECRET_PATTERNS = [
   /(?:sk|pk)[-_](?:live|test)[-_][A-Za-z0-9]{20,}/,
   /ghp_[A-Za-z0-9]{36,}/,
   /xox[bpas]-[A-Za-z0-9-]{10,}/,
+  /sk-ant-[A-Za-z0-9_-]{20,}/,
+  /AKIA[0-9A-Z]{16}/,
+  /sbp_[a-f0-9]{40,}/,
 ];
 
 try {

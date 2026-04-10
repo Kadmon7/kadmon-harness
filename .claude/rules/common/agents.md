@@ -75,9 +75,9 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ### Orchestration Patterns (12 commands)
 
-#### Parallel (agents run simultaneously)
+#### Parallel then Sequential (mixed)
 ```
-/chekpoint  verify → [ts-reviewer, py-reviewer, spektr, orakle, kody] → gate → commit
+/chekpoint  verify → [ts-reviewer, py-reviewer, spektr, orakle] → kody (consolidate) → gate → commit
 /skanner    [arkonte (perf), kartograf (e2e)] → report
 ```
 

@@ -192,6 +192,54 @@ describe("commit-quality", () => {
     expect(r.stderr).toContain("secret");
   });
 
+  it("blocks when staged diff contains Anthropic API key (sk-ant-)", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/ai.ts"),
+      'const key = "sk-ant-api03-ABCDEFGHIJKLMNOPQRSTUVWXYZabcd";\n',
+    );
+    gitExec("git add src/ai.ts", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: ai"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("secret");
+  });
+
+  it("blocks when staged diff contains AWS access key (AKIA)", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/aws.ts"),
+      'const awsKey = "AKIA1234567890ABCDEF";\n',
+    );
+    gitExec("git add src/aws.ts", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: aws"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("secret");
+  });
+
+  it("blocks when staged diff contains Supabase service key (sbp_)", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/db.ts"),
+      'const sbKey = "sbp_1234567890abcdef1234567890abcdef12345678";\n',
+    );
+    gitExec("git add src/db.ts", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: db"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("secret");
+  });
+
   it("exits 0 on empty input", () => {
     const r = runHook({});
     expect(r.code).toBe(0);
