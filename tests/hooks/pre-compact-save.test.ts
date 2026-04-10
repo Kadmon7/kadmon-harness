@@ -206,4 +206,37 @@ describe("pre-compact-save", () => {
     expect(r.exitCode).toBe(0);
     expect(r.stdout).toContain("Session state saved");
   });
+
+  it("writes daily log entry during compaction", async () => {
+    // Arrange: write observations with Read/Edit/Write activity
+    writeObservations([
+      makeObsLine("tool_pre", "Read", "/test/file1.ts"),
+      makeObsLine("tool_post", "Read"),
+      makeObsLine("tool_pre", "Edit", "/test/file1.ts"),
+      makeObsLine("tool_post", "Edit"),
+      makeObsLine("tool_pre", "Write", "/test/file2.ts"),
+      makeObsLine("tool_post", "Write"),
+    ]);
+
+    // Act: run the hook
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    // Resolve the daily log path — same formula as daily-log.js
+    const today = new Date().toISOString().slice(0, 10);
+    const memoryDir = path.join(
+      os.homedir(),
+      ".claude",
+      "projects",
+      "C--Command-Center-Kadmon-Harness",
+      "memory",
+    );
+    const logFile = path.join(memoryDir, "logs", `${today}.md`);
+
+    // Assert: log file exists and contains our unique session ID prefix
+    expect(fs.existsSync(logFile)).toBe(true);
+    const content = fs.readFileSync(logFile, "utf8");
+    const sid8 = sessionId.slice(0, 8);
+    expect(content).toContain(sid8);
+  });
 });

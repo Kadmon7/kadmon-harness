@@ -104,6 +104,68 @@ describe("logHookError", () => {
     const stackLines = entry.stack.split("\n");
     expect(stackLines.length).toBeLessThanOrEqual(3);
   });
+
+  it("truncates log file when it exceeds MAX_LOG_SIZE (100KB)", () => {
+    setup();
+    const logPath = path.join(TEMP_DIR, "hook-errors.log");
+
+    // Write 200 lines, each ~600 bytes — total ~120KB > 100KB limit
+    const paddedEntry = JSON.stringify({
+      hook: "pre-fill",
+      error: "x".repeat(560),
+      timestamp: new Date().toISOString(),
+    });
+    const prefill =
+      Array.from({ length: 200 }, () => paddedEntry).join("\n") + "\n";
+    fs.writeFileSync(logPath, prefill);
+
+    // Verify pre-condition: file exceeds 100KB
+    expect(fs.statSync(logPath).size).toBeGreaterThan(100_000);
+
+    // Calling logHookError triggers truncation before appending
+    logHookError(
+      "trigger-truncation",
+      new Error("after truncate"),
+      undefined,
+      TEMP_DIR,
+    );
+
+    const lines = fs.readFileSync(logPath, "utf8").trim().split("\n");
+    // 50 kept from original + 1 newly appended = 51
+    expect(lines.length).toBe(51);
+  });
+
+  it("preserves most recent entries during truncation", () => {
+    setup();
+    const logPath = path.join(TEMP_DIR, "hook-errors.log");
+
+    // Write 200 numbered entries, each ~600 bytes → ~120KB > 100KB
+    const pad = "x".repeat(530);
+    const prefillLines = Array.from({ length: 200 }, (_, i) =>
+      JSON.stringify({
+        hook: `hook-${i}`,
+        error: "e",
+        pad,
+        timestamp: new Date().toISOString(),
+      }),
+    );
+    fs.writeFileSync(logPath, prefillLines.join("\n") + "\n");
+
+    expect(fs.statSync(logPath).size).toBeGreaterThan(100_000);
+
+    logHookError(
+      "trigger-truncation",
+      new Error("new entry"),
+      undefined,
+      TEMP_DIR,
+    );
+
+    const entries = getHookErrors(TEMP_DIR);
+    // Last 50 of original (hook-150 to hook-199) + the new trigger entry = 51
+    expect(entries.length).toBe(51);
+    expect(entries[0].hook).toBe("hook-150");
+    expect(entries[50].hook).toBe("trigger-truncation");
+  });
 });
 
 describe("getHookErrors", () => {
@@ -133,5 +195,39 @@ describe("getHookErrors", () => {
     expect(entries.length).toBe(2);
     expect(entries[0].hook).toBe("b");
     expect(entries[1].hook).toBe("c");
+  });
+
+  it("skips corrupted lines and returns valid entries", () => {
+    setup();
+    const logPath = path.join(TEMP_DIR, "hook-errors.log");
+
+    const mixedContent =
+      [
+        JSON.stringify({
+          hook: "valid-1",
+          error: "ok",
+          timestamp: "2026-01-01T00:00:00Z",
+        }),
+        "this is not json",
+        JSON.stringify({
+          hook: "valid-2",
+          error: "also ok",
+          timestamp: "2026-01-01T00:01:00Z",
+        }),
+        "{broken json",
+        JSON.stringify({
+          hook: "valid-3",
+          error: "still ok",
+          timestamp: "2026-01-01T00:02:00Z",
+        }),
+      ].join("\n") + "\n";
+    fs.mkdirSync(TEMP_DIR, { recursive: true });
+    fs.writeFileSync(logPath, mixedContent);
+
+    const entries = getHookErrors(TEMP_DIR);
+    expect(entries.length).toBe(3);
+    expect(entries[0].hook).toBe("valid-1");
+    expect(entries[1].hook).toBe("valid-2");
+    expect(entries[2].hook).toBe("valid-3");
   });
 });

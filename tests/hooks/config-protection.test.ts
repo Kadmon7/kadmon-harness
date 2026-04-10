@@ -126,4 +126,16 @@ describe("config-protection", () => {
     const r = runHook({});
     expect(r.code).toBe(0);
   });
+
+  it("blocks when stdin is truncated (overflow attack vector)", () => {
+    const r = runHook({
+      _truncated: true,
+      tool_input: {
+        file_path: "/project/tsconfig.json",
+        new_string: '{ "compilerOptions": { "strict": true } }',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("truncated");
+  });
 });

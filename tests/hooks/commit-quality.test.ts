@@ -144,6 +144,54 @@ describe("commit-quality", () => {
     expect(r.stderr).toContain("secret");
   });
 
+  it("blocks when staged diff contains GitHub PAT (ghp_)", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/auth.ts"),
+      'const token = "ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij";\n',
+    );
+    gitExec("git add src/auth.ts", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: auth"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("secret");
+  });
+
+  it("blocks when staged diff contains Stripe secret key (sk-live)", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/payment.ts"),
+      'const key = "sk-live-ABCDEFGHIJKLMNOPQRSTUabcdef";\n',
+    );
+    gitExec("git add src/payment.ts", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: payment"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("secret");
+  });
+
+  it("blocks when staged diff contains Slack token (xoxb-)", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/notify.ts"),
+      'const slack = "xoxb-1234567890-abcdefghij";\n',
+    );
+    gitExec("git add src/notify.ts", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: notify"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("secret");
+  });
+
   it("exits 0 on empty input", () => {
     const r = runHook({});
     expect(r.code).toBe(0);

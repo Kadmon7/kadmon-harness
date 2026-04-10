@@ -9,6 +9,8 @@ import {
   upsertInstinct,
   insertCostEvent,
   getInstinctCounts,
+  insertHookEvent,
+  insertAgentInvocation,
 } from "../../scripts/lib/state-store.js";
 import {
   renderConfidenceBar,
@@ -603,6 +605,120 @@ describe("dashboard", () => {
       const output = renderDashboard("proj1", events);
       // Should show "ExitPlanMode" without truncation (14 chars column)
       expect(output).toContain("ExitPlanMode");
+    });
+
+    it("renders HOOK EVENTS section with persistent hook stats", () => {
+      // arrange
+      upsertSession({
+        id: "s1",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-04-01T09:00:00Z",
+        messageCount: 10,
+        estimatedCostUsd: 0.1,
+      });
+      insertHookEvent({
+        sessionId: "s1",
+        hookName: "config-protection",
+        eventType: "pre_tool",
+        toolName: "Edit",
+        exitCode: 2,
+        blocked: true,
+        durationMs: 15,
+        error: "Disabling strict mode",
+        timestamp: "2026-04-01T10:00:00Z",
+      });
+      insertHookEvent({
+        sessionId: "s1",
+        hookName: "no-context-guard",
+        eventType: "pre_tool",
+        toolName: "Write",
+        exitCode: 2,
+        blocked: true,
+        durationMs: 8,
+        error: "no_context",
+        timestamp: "2026-04-01T10:01:00Z",
+      });
+
+      // act
+      const output = renderDashboard("proj1", []);
+
+      // assert
+      expect(output).toContain("HOOK EVENTS");
+      expect(output).toContain("config-protection");
+      expect(output).not.toContain("No hook events recorded yet");
+    });
+
+    it("renders AGENT USAGE section with persistent agent stats", () => {
+      // arrange
+      upsertSession({
+        id: "s1",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-04-01T09:00:00Z",
+        messageCount: 10,
+        estimatedCostUsd: 0.1,
+      });
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "feniks",
+        model: "sonnet",
+        description: "TDD guide",
+        durationMs: 45000,
+        success: true,
+        error: undefined,
+        timestamp: "2026-04-01T10:00:00Z",
+      });
+
+      // act
+      const output = renderDashboard("proj1", []);
+
+      // assert
+      expect(output).toContain("AGENT USAGE");
+      expect(output).toContain("feniks");
+      expect(output).not.toContain("No agent invocations recorded yet");
+    });
+
+    it("renders DATABASE section with row counts for all 6 tables", () => {
+      // arrange — create at least one row to have non-zero counts
+      upsertSession({
+        id: "s1",
+        projectHash: "proj1",
+        branch: "main",
+        startedAt: "2026-04-01T09:00:00Z",
+        messageCount: 5,
+        estimatedCostUsd: 0.05,
+      });
+      upsertInstinct({
+        id: "i1",
+        projectHash: "proj1",
+        pattern: "Read first",
+        action: "Always read",
+        confidence: 0.7,
+        occurrences: 3,
+        status: "active",
+      });
+      insertCostEvent({
+        sessionId: "s1",
+        timestamp: "2026-04-01T10:00:00Z",
+        model: "claude-sonnet-4",
+        inputTokens: 1000,
+        outputTokens: 200,
+        estimatedCostUsd: 0.01,
+      });
+
+      // act
+      const output = renderDashboard("proj1", []);
+
+      // assert — section header present
+      expect(output).toContain("DATABASE");
+      // all 6 table names must appear in the section
+      expect(output).toContain("sessions");
+      expect(output).toContain("instincts");
+      expect(output).toContain("cost_events");
+      expect(output).toContain("hook_events");
+      expect(output).toContain("agent_invocations");
+      expect(output).toContain("sync_queue");
     });
   });
 

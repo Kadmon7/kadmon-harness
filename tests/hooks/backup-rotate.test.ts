@@ -113,4 +113,12 @@ describe("rotateBackup", () => {
     const result = rotateBackup(DB_FILE, 5);
     expect(result.removed).toEqual([]);
   });
+
+  it("returns empty backupPath when source file does not exist", () => {
+    // No setup() — DB_FILE doesn't exist, so rotateBackup hits the catch block
+    fs.mkdirSync(TEMP_DIR, { recursive: true });
+    const result = rotateBackup(path.join(TEMP_DIR, "nonexistent.db"));
+    expect(result.backupPath).toBe("");
+    expect(result.removed).toEqual([]);
+  });
 });

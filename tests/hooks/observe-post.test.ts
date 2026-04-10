@@ -180,4 +180,58 @@ describe("observe-post", () => {
     const event = JSON.parse(lines[0]);
     expect(event.metadata).toBeUndefined();
   });
+
+  it("scrubs GitHub PAT from Bash resultSnippet", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "some command" },
+      tool_result: "token: ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.resultSnippet).toContain("[REDACTED]");
+    expect(event.metadata.resultSnippet).not.toContain("ghp_");
+  });
+
+  it("scrubs Stripe key from Bash resultSnippet", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "some command" },
+      tool_result: "key: sk-live-ABCDEFGHIJKLMNOPQRST1234",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.resultSnippet).toContain("[REDACTED]");
+    expect(event.metadata.resultSnippet).not.toContain("sk-live");
+  });
+
+  it("scrubs Slack token from Bash resultSnippet", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "some command" },
+      tool_result: "auth: xoxb-123456789-abcdefghij",
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.resultSnippet).toContain("[REDACTED]");
+    expect(event.metadata.resultSnippet).not.toContain("xoxb-");
+  });
+
+  it("scrubs generic API key from Bash resultSnippet", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "some command" },
+      tool_result: 'api_key = "SuperSecretKeyValue123"',
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.resultSnippet).toContain("[REDACTED]");
+    expect(event.metadata.resultSnippet).not.toContain(
+      "SuperSecretKeyValue123",
+    );
+  });
 });

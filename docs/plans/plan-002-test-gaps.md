@@ -2,7 +2,7 @@
 number: 2
 title: Test Gap Analysis — Missing Tests for Kadmon Harness
 date: 2026-04-07
-status: in_progress
+status: completed
 needs_tdd: true
 route: B
 adr: none
