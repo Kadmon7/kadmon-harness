@@ -58,7 +58,7 @@ try {
   }
 } catch (err) {
   console.error(
-    JSON.stringify({ error: `commit-format-guard: ${err.message}` }),
+    JSON.stringify({ error: `commit-format-guard: ${err instanceof Error ? err.message : String(err)}` }),
   );
 }
 process.exit(0);

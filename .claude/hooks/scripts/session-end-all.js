@@ -5,13 +5,14 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
-import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
+import {
+  evaluateAndApplyPatterns,
+  gitExec,
+} from "./evaluate-patterns-shared.js";
 import { appendDailyLog } from "./daily-log.js";
-import { ensureDist } from "./ensure-dist.js";
+import { ensureDist, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 
 function estimateTokensFromTranscript(transcriptPath) {
@@ -136,12 +137,7 @@ async function main() {
     }
 
     // Auto-build dist/ if stale (prevents silent data loss)
-    const rootDir = path.resolve(
-      fileURLToPath(new URL(".", import.meta.url)),
-      "..",
-      "..",
-      "..",
-    );
+    const rootDir = resolveRootDir(import.meta.url);
     try {
       const buildResult = ensureDist(rootDir);
       if (buildResult.error) {
@@ -200,21 +196,15 @@ async function main() {
 
       // --- Phase 1b: Write daily log ---
       try {
+        const projectDirName = cwd.replace(/[:\\/]/g, "-");
         const memoryDir = path.join(
           os.homedir(),
           ".claude",
           "projects",
-          "C--Command-Center-Kadmon-Harness",
+          projectDirName,
           "memory",
         );
-        let lastCommit = "";
-        try {
-          lastCommit = execFileSync("git", ["log", "--oneline", "-1"], {
-            cwd,
-            encoding: "utf8",
-            stdio: ["pipe", "pipe", "pipe"],
-          }).trim();
-        } catch {}
+        const lastCommit = gitExec(["log", "--oneline", "-1"], cwd) ?? "";
         appendDailyLog(
           {
             sessionId: sid,
@@ -240,7 +230,7 @@ async function main() {
       } catch (evalErr) {
         logHookError("session-end-all", evalErr, { phase: "pattern-eval" });
         console.error(
-          JSON.stringify({ warn: `session-end-all eval: ${evalErr.message}` }),
+          JSON.stringify({ warn: `session-end-all eval: ${evalErr instanceof Error ? evalErr.message : String(evalErr)}` }),
         );
       }
 
@@ -313,7 +303,7 @@ async function main() {
       } catch (costErr) {
         logHookError("session-end-all", costErr, { phase: "cost-tracking" });
         console.error(
-          JSON.stringify({ warn: `session-end-all cost: ${costErr.message}` }),
+          JSON.stringify({ warn: `session-end-all cost: ${costErr instanceof Error ? costErr.message : String(costErr)}` }),
         );
       }
 
@@ -368,7 +358,7 @@ async function main() {
     } catch (dbErr) {
       logHookError("session-end-all", dbErr, { phase: "db-init" });
       console.error(
-        JSON.stringify({ warn: `session-end-all db: ${dbErr.message}` }),
+        JSON.stringify({ warn: `session-end-all db: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}` }),
       );
     }
 
@@ -406,7 +396,7 @@ async function main() {
       console.log(output.join(" | "));
     }
   } catch (err) {
-    console.error(JSON.stringify({ error: `session-end-all: ${err.message}` }));
+    console.error(JSON.stringify({ error: `session-end-all: ${err instanceof Error ? err.message : String(err)}` }));
   }
   process.exit(0);
 }

@@ -3,6 +3,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+/**
+ * Resolve the project root directory from a hook script's import.meta.url.
+ * @param {string} metaUrl - The import.meta.url of the calling script
+ * @returns {string} Absolute path to the project root
+ */
+export function resolveRootDir(metaUrl) {
+  return path.resolve(fileURLToPath(new URL(".", metaUrl)), "..", "..", "..");
+}
 
 /**
  * Check if dist/scripts/lib/ is stale relative to scripts/lib/.

@@ -61,14 +61,14 @@ try {
       blocked: false,
       error: `${tsEditCount} .ts edits without review`,
     });
-    console.log(
+    console.error(
       `\u{1F50D} ${tsEditCount} .ts edits without review. Consider /chekpoint`,
     );
     process.exit(1);
   }
 } catch (err) {
   console.error(
-    JSON.stringify({ error: `ts-review-reminder: ${err.message}` }),
+    JSON.stringify({ error: `ts-review-reminder: ${err instanceof Error ? err.message : String(err)}` }),
   );
 }
 process.exit(0);

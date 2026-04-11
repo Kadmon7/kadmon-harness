@@ -68,8 +68,12 @@ try {
     }
   }
   if (/"skipLibCheck"\s*:\s*true/.test(content))
-    console.log(`\u{26A0}\u{FE0F} skipLibCheck=true in ${fileName}`);
+    console.error(`\u{26A0}\u{FE0F} skipLibCheck=true in ${fileName}`);
 } catch (err) {
-  console.error(JSON.stringify({ error: `config-protection: ${err.message}` }));
+  console.error(
+    JSON.stringify({
+      error: `config-protection: ${err instanceof Error ? err.message : String(err)}`,
+    }),
+  );
 }
 process.exit(0);

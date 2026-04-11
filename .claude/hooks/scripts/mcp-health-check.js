@@ -21,11 +21,11 @@ try {
     entry.failCount > 2 &&
     new Date(entry.lastFailure).getTime() > fiveMinAgo
   ) {
-    console.log(
+    console.error(
       `\u{26A0}\u{FE0F} MCP server "${server}" has failed ${entry.failCount} times recently.`,
     );
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `mcp-health-check: ${err.message}` }));
+  console.error(JSON.stringify({ error: `mcp-health-check: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

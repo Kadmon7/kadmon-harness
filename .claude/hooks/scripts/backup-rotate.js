@@ -2,6 +2,7 @@
 // Replaces the single kadmon.db.bak with up to N timestamped backups.
 import fs from "node:fs";
 import path from "node:path";
+import { logHookError } from "./hook-logger.js";
 
 /**
  * Create a timestamped backup and remove old backups beyond maxBackups.
@@ -53,6 +54,7 @@ export function rotateBackup(dbPath, maxBackups = 3) {
 
     return { backupPath, removed };
   } catch (err) {
+    logHookError("backup-rotate", err, { dbPath });
     return { backupPath: "", removed: [] };
   }
 }

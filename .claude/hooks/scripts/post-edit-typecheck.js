@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Hook: post-edit-typecheck | Trigger: PostToolUse (Edit|Write)
 // Purpose: Run tsc --noEmit after .ts edits
-import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
@@ -19,12 +18,12 @@ try {
     });
   } catch (tscErr) {
     if (tscErr.stdout)
-      console.log(`\u{1F534} TypeScript errors:\n${tscErr.stdout}`);
-    if (tscErr.stderr) console.log(tscErr.stderr);
+      console.error(`\u{1F534} TypeScript errors:\n${tscErr.stdout}`);
+    if (tscErr.stderr) console.error(tscErr.stderr);
   }
 } catch (err) {
   console.error(
-    JSON.stringify({ error: `post-edit-typecheck: ${err.message}` }),
+    JSON.stringify({ error: `post-edit-typecheck: ${err instanceof Error ? err.message : String(err)}` }),
   );
 }
 process.exit(0);

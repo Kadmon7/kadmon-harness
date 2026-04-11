@@ -38,12 +38,12 @@ try {
       blocked: false,
       error: `console.log() in ${path.basename(filePath)}`,
     });
-    console.log(
+    console.error(
       `\u{26A0}\u{FE0F} console.log() detected in ${path.basename(filePath)} — remove before committing`,
     );
     process.exit(1);
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `console-log-warn: ${err.message}` }));
+  console.error(JSON.stringify({ error: `console-log-warn: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

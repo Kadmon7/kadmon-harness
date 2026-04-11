@@ -4,13 +4,14 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
-import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
+import {
+  evaluateAndApplyPatterns,
+  gitExec,
+} from "./evaluate-patterns-shared.js";
 import { generateSummary } from "./generate-session-summary.js";
 import { appendDailyLog } from "./daily-log.js";
-import { ensureDist } from "./ensure-dist.js";
+import { ensureDist, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 
 async function main() {
@@ -55,17 +56,12 @@ async function main() {
       if (result.tasks.length > 0) tasks = result.tasks;
     } catch (sumErr) {
       console.error(
-        JSON.stringify({ warn: `pre-compact-save summary: ${sumErr.message}` }),
+        JSON.stringify({ warn: `pre-compact-save summary: ${sumErr instanceof Error ? sumErr.message : String(sumErr)}` }),
       );
     }
 
     // Auto-build dist/ if stale
-    const rootDir = path.resolve(
-      fileURLToPath(new URL(".", import.meta.url)),
-      "..",
-      "..",
-      "..",
-    );
+    const rootDir = resolveRootDir(import.meta.url);
     try {
       const buildResult = ensureDist(rootDir);
       if (buildResult.error) {
@@ -101,7 +97,7 @@ async function main() {
     } catch (dbErr) {
       logHookError("pre-compact-save", dbErr, { phase: "db-persist" });
       console.error(
-        JSON.stringify({ warn: `pre-compact-save db: ${dbErr.message}` }),
+        JSON.stringify({ warn: `pre-compact-save db: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}` }),
       );
     }
 
@@ -113,27 +109,25 @@ async function main() {
     } catch (evalErr) {
       logHookError("pre-compact-save", evalErr, { phase: "pattern-eval" });
       console.error(
-        JSON.stringify({ warn: `pre-compact-save eval: ${evalErr.message}` }),
+        JSON.stringify({ warn: `pre-compact-save eval: ${evalErr instanceof Error ? evalErr.message : String(evalErr)}` }),
       );
     }
 
     // Write daily log entry before compaction
     try {
+      const projectDirName = (input.cwd ?? process.cwd()).replace(
+        /[:\\/]/g,
+        "-",
+      );
       const memoryDir = path.join(
         os.homedir(),
         ".claude",
         "projects",
-        "C--Command-Center-Kadmon-Harness",
+        projectDirName,
         "memory",
       );
-      let lastCommit = "";
-      try {
-        lastCommit = execFileSync("git", ["log", "--oneline", "-1"], {
-          cwd: input.cwd ?? process.cwd(),
-          encoding: "utf8",
-          stdio: ["pipe", "pipe", "pipe"],
-        }).trim();
-      } catch {}
+      const lastCommit =
+        gitExec(["log", "--oneline", "-1"], input.cwd ?? process.cwd()) ?? "";
       appendDailyLog(
         {
           sessionId: sid,
@@ -163,7 +157,7 @@ async function main() {
     );
   } catch (err) {
     console.error(
-      JSON.stringify({ error: `pre-compact-save: ${err.message}` }),
+      JSON.stringify({ error: `pre-compact-save: ${err instanceof Error ? err.message : String(err)}` }),
     );
   }
   process.exit(0);

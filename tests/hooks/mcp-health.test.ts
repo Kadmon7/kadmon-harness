@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -13,18 +13,20 @@ const HEALTH_FILE = path.join(HEALTH_DIR, "mcp-health.json");
 
 let backup: string | null = null;
 
-function runCheck(input: object): { code: number; stdout: string } {
-  try {
-    const stdout = execFileSync("node", [CHECK_HOOK], {
-      encoding: "utf8",
-      input: JSON.stringify(input),
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    return { code: 0, stdout };
-  } catch (err: unknown) {
-    const e = err as { status: number; stdout: string };
-    return { code: e.status ?? 1, stdout: e.stdout ?? "" };
-  }
+function runCheck(input: object): {
+  code: number;
+  stdout: string;
+  stderr: string;
+} {
+  const r = spawnSync("node", [CHECK_HOOK], {
+    encoding: "utf8",
+    input: JSON.stringify(input),
+  });
+  return {
+    code: r.status ?? 0,
+    stdout: r.stdout ?? "",
+    stderr: r.stderr ?? "",
+  };
 }
 
 function runFailure(input: object): number {
@@ -126,8 +128,8 @@ describe("mcp-health", () => {
       );
       const r = runCheck({ tool_name: "mcp__context7__query-docs" });
       expect(r.code).toBe(0);
-      expect(r.stdout).toContain("context7");
-      expect(r.stdout).toContain("failed 5 times");
+      expect(r.stderr).toContain("context7");
+      expect(r.stderr).toContain("failed 5 times");
     });
 
     it("exits 0 on empty input", () => {

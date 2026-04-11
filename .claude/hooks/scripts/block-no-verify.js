@@ -23,6 +23,6 @@ try {
     process.exit(2);
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `block-no-verify: ${err.message}` }));
+  console.error(JSON.stringify({ error: `block-no-verify: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

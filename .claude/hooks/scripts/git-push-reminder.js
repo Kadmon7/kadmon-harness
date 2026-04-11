@@ -53,10 +53,14 @@ try {
       blocked: false,
       error: warnings.join("; "),
     });
-    console.log(`\u{26A0}\u{FE0F} Pre-push: ${warnings.join(", ")}`);
+    console.error(`\u{26A0}\u{FE0F} Pre-push: ${warnings.join(", ")}`);
     process.exit(1);
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `git-push-reminder: ${err.message}` }));
+  console.error(
+    JSON.stringify({
+      error: `git-push-reminder: ${err instanceof Error ? err.message : String(err)}`,
+    }),
+  );
 }
 process.exit(0);

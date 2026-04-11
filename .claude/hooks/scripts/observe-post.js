@@ -28,7 +28,10 @@ try {
       .replace(
         /(?:api[_-]?key|secret|token|password)\s*[:=]\s*["']?[^\s"',]{8,}/gi,
         "[REDACTED]",
-      );
+      )
+      .replace(/sk-ant-[A-Za-z0-9_-]{20,}/g, "[REDACTED]")
+      .replace(/AKIA[0-9A-Z]{16}/g, "[REDACTED]")
+      .replace(/sbp_[a-f0-9]{40,}/g, "[REDACTED]");
   }
   // Bash metadata with secret scrubbing
   const command = input.tool_input?.command ?? null;
@@ -72,6 +75,6 @@ try {
   } catch {}
   fs.writeFileSync(tcFile, String(count + 1));
 } catch (err) {
-  console.error(JSON.stringify({ error: `observe-post: ${err.message}` }));
+  console.error(JSON.stringify({ error: `observe-post: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

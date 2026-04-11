@@ -40,7 +40,7 @@ try {
   process.exit(1);
 } catch (err) {
   console.error(
-    JSON.stringify({ error: `deps-change-reminder: ${err.message}` }),
+    JSON.stringify({ error: `deps-change-reminder: ${err instanceof Error ? err.message : String(err)}` }),
   );
 }
 process.exit(0);

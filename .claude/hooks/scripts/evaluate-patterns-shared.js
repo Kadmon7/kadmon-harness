@@ -9,7 +9,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { logHookError } from "./hook-logger.js";
 
-function gitExec(args, cwd) {
+export function gitExec(args, cwd) {
   try {
     return execFileSync("git", args, {
       cwd,

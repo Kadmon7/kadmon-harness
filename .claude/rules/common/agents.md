@@ -36,8 +36,8 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | orakle | opus | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
 | spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard |
 | feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing |
-| mekanik | sonnet | Auto on TS compilation/Vitest failures | /medik | systematic-debugging |
-| kurator | sonnet | /medik clean only | /medik | coding-standards |
+| mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging |
+| kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
 | arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget |
 | python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing |
 | almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research |
@@ -84,7 +84,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 #### Sequential (agents run in order)
 ```
 /abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd) → kody
-/medik    mekanik (7 checks + gate) → kurator (clean)
+/medik    direct (7 checks) → [mekanik, kurator] (parallel analysis) → gate → repair → verify
 /doks     doks
 /evolve   alchemik
 ```

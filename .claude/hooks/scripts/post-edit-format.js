@@ -23,6 +23,6 @@ try {
     /* prettier not installed or failed — non-blocking */
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `post-edit-format: ${err.message}` }));
+  console.error(JSON.stringify({ error: `post-edit-format: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

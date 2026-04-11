@@ -1,25 +1,19 @@
 ---
-description: "Full harness diagnostic — 7 health checks, approval gate, repair, cleanup. Report in docs/diagnostics/. Alias: /MediK"
+description: "Full harness diagnostic — 7 health checks + deep agent analysis + repair. Alias: /MediK"
 agent: mekanik, kurator
 skills: [systematic-debugging, coding-standards]
 ---
 
 ## Purpose
-Full harness health diagnostic with user approval gate. Runs 7 checks, writes a diagnostic report, asks before repairing, then cleans up. Like /abra-kdabra writes to `docs/plans/`, /medik writes to `docs/diagnostics/`.
+Full harness health diagnostic. Runs 7 mechanical checks, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
 
-## Arguments
-- (none) — full diagnostic + repair (all 7 checks)
-- `build` — only checks 1-3 (build, typecheck, tests)
-- `hooks` — only check 4 (hook errors from log)
-- `db` — only check 5 (database health)
-- `clean` — only Phase 3 (kurator cleanup, skip diagnostic)
-- `<file-path>` — target specific file for diagnostic + repair
+Always runs the full pipeline. If you're running /medik, you want the complete picture.
 
 ## Steps
 
-### Phase 1: Diagnostic (mekanik)
+### Phase 1: Health Checks (direct — no agent)
 
-Run all 7 health checks and collect findings:
+Run all 7 checks directly (mechanical commands, no agent needed):
 
 | # | Check | Command / Method | What to look for |
 |---|-------|-----------------|------------------|
@@ -31,100 +25,68 @@ Run all 7 health checks and collect findings:
 | 6 | dist/ sync | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
 | 7 | Dependencies | `npm audit` | Vulnerable packages, outdated deps |
 
-Write diagnostic report to `docs/diagnostics/diag-NNN.md` (scan existing reports and increment highest number, 3-digit zero-padded).
+### Phase 2: Deep Analysis (agents — always runs)
 
-Report format:
-```markdown
-## Diagnostic Report: diag-NNN [mekanik]
+Invoke both agents in parallel, regardless of Phase 1 results:
 
-Date: YYYY-MM-DD HH:MM
-Branch: <current branch>
+1. **mekanik** (sonnet) — Diagnoses any FAIL or WARN from Phase 1. Analyzes root cause, not just symptoms. If all checks pass, analyzes hook-errors.log patterns and build edge cases.
+2. **kurator** (sonnet) — Full code health scan of the codebase area relevant to the /medik scope (hooks, scripts, core lib). Looks for: dead code, duplication, unused imports, security pattern gaps, style inconsistencies, structural issues.
 
-### Health Checks
-| # | Check | Status | Details |
-|---|-------|--------|---------|
-| 1 | Build | PASS/FAIL | <details if failed> |
-| 2 | Typecheck | PASS/FAIL | <N errors> |
-| 3 | Tests | PASS/FAIL | <N passing, N failing> |
-| 4 | Hook errors | PASS/WARN | <N errors in log> |
-| 5 | DB health | PASS/FAIL | <status> |
-| 6 | dist/ sync | PASS/WARN | <stale files> |
-| 7 | Dependencies | PASS/WARN | <N vulnerabilities> |
-
-### Problems Found
-- [severity] [check #] [description]
-
-### Recommended Fixes
-- [fix 1]
-- [fix 2]
-```
+Both agents report findings but do NOT modify any files yet.
 
 ### GATE: User Approval
 
-**MANDATORY STOP.** Present the diagnostic report to the user.
+**MANDATORY STOP.** Present all findings directly in conversation:
+- Phase 1 results table
+- mekanik findings with severity
+- kurator findings with severity
+- Prioritized fix list with owner (mekanik/kurator)
 
-Ask: **"Found N problems in docs/diagnostics/diag-NNN.md. Fix them?"**
+Ask: **"Found N problems. Fix them?"**
 
-Wait for explicit approval. If the user requests changes to the fix plan, adjust and re-present.
+Wait for explicit approval. User may approve all, some, or none.
 
-If all 7 checks pass: report clean health, skip Phase 2 and 3.
+**Escalation rule:** If any finding requires architectural changes (new subsystems, schema changes, multi-component redesign), flag it as "too big for /medik — recommend /abra-kdabra" and exclude from the fix list.
 
-### Phase 2: Repair (mekanik)
+### Phase 3: Repair (agents fix what was approved)
 
-Fix only the problems approved by the user:
-1. Apply minimal fixes (one problem at a time, smallest diff possible)
-2. Re-run the specific check after each fix to confirm resolution
-3. Update the diagnostic report with fix results
+Each agent fixes its own findings:
+- **mekanik** fixes: build errors, race conditions, compilation issues, FAIL-level problems
+- **kurator** fixes: dead code, duplication, unused imports, style, pattern gaps
 
-### Phase 3: Cleanup (kurator)
-
-Only runs if mekanik changed files in Phase 2:
-1. Run tests BEFORE cleanup: `npx vitest run`
-2. Invoke **kurator agent** (sonnet) on files mekanik touched
-3. Agent identifies: unused imports, dead code from fixes, style issues
-4. Apply cleanup changes
-5. Run tests AFTER to verify no behavior change: `npx vitest run`
+Workflow:
+1. mekanik repairs first (build must work before cleanup)
+2. kurator repairs second (cleanup assumes green build)
+3. After each agent's batch: run `npx vitest run` to verify no regressions
 
 ### Phase 4: Verify
 
-Re-run all 7 health checks to confirm everything is green.
-Append final status to the diagnostic report:
-```markdown
-### Post-Fix Verification
-| # | Check | Before | After |
-|---|-------|--------|-------|
-| 1 | Build | FAIL | PASS |
-...
-
-Result: ALL GREEN / N remaining issues
-```
+Re-run all 7 health checks to confirm everything is green. Report final status in conversation.
 
 ## Output
-Diagnostic report path + health check summary + fix results + verification.
+Health check table + agent findings + fix results + verification — all in conversation, no file artifacts.
 
 ## Example
 ```
-Phase 1 — Diagnostic:
-  Report: docs/diagnostics/diag-001.md
-  1. Build:        FAIL (EBUSY: schema.sql locked)
+Phase 1 — Health Checks:
+  1. Build:        PASS
   2. Typecheck:    PASS
-  3. Tests:        PASS (289 passing)
-  4. Hook errors:  WARN (2 errors in log)
+  3. Tests:        PASS (411 passing)
+  4. Hook errors:  WARN (54 ensure-dist EBUSY errors)
   5. DB health:    PASS
-  6. dist/ sync:   WARN (3 stale files)
-  7. Dependencies: PASS
+  6. dist/ sync:   PASS
+  7. Dependencies: WARN (7 vulnerabilities, all dev/transitive)
 
-GATE: "Found 3 problems (1 FAIL, 2 WARN). Fix them?"
+Phase 2 — Deep Analysis:
+  mekanik: 1 finding (EBUSY race condition — root cause: concurrent cpSync)
+  kurator: 12 findings (2 security gaps, 1 portability, 5 duplication, 2 dead code, 2 style)
 
-Phase 2 — Repair:
-  Fixed: EBUSY — added retry logic for schema.sql copy
-  Fixed: dist/ — rebuilt with npm run build
-  Noted: Hook errors — cleared stale entries from log
+GATE: "Found 13 problems. Fix them?"
 
-Phase 3 — Cleanup:
-  kurator: no dead code found in changed files
+Phase 3 — Repair:
+  mekanik: Fixed EBUSY — atomic rename in build script
+  kurator: Fixed 11 items — security guards, dedup, dead code, style
 
 Phase 4 — Verify:
   All 7 checks: PASS
-  Report updated: docs/diagnostics/diag-001.md
 ```

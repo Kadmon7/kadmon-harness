@@ -41,13 +41,6 @@ try {
 
   const issues = [];
 
-  // Only check added lines (lines starting with +, but not +++ headers)
-  const addedLines = diff
-    .split("\n")
-    .filter((l) => l.startsWith("+") && !l.startsWith("+++"));
-
-  // Detect current file being diffed
-  const fileHeaders = diff.split("\n").filter((l) => l.startsWith("+++ b/"));
   const isTestFile = (filePath) =>
     /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filePath);
   const isDocFile = (filePath) => filePath.endsWith(".md");
@@ -112,6 +105,6 @@ try {
     process.exit(2);
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `commit-quality: ${err.message}` }));
+  console.error(JSON.stringify({ error: `commit-quality: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

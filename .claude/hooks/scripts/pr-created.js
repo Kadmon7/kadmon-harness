@@ -26,6 +26,6 @@ try {
     );
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `pr-created: ${err.message}` }));
+  console.error(JSON.stringify({ error: `pr-created: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

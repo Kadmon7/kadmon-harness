@@ -9,17 +9,25 @@ const SESSION_ID = `test-push-${Date.now()}`;
 const OBS_DIR = path.join(os.tmpdir(), "kadmon", SESSION_ID);
 const OBS_FILE = path.join(OBS_DIR, "observations.jsonl");
 
-function runHook(input: object): { code: number; stdout: string } {
+function runHook(input: object): {
+  code: number;
+  stdout: string;
+  stderr: string;
+} {
   try {
     const stdout = execFileSync("node", [HOOK], {
       encoding: "utf8",
       input: JSON.stringify(input),
       stdio: ["pipe", "pipe", "pipe"],
     });
-    return { code: 0, stdout };
+    return { code: 0, stdout, stderr: "" };
   } catch (err: unknown) {
-    const e = err as { status: number; stdout: string };
-    return { code: e.status ?? 1, stdout: e.stdout ?? "" };
+    const e = err as { status: number; stdout: string; stderr: string };
+    return {
+      code: e.status ?? 1,
+      stdout: e.stdout ?? "",
+      stderr: e.stderr ?? "",
+    };
   }
 }
 
@@ -62,8 +70,8 @@ describe("git-push-reminder", () => {
       tool_input: { command: "git push origin main" },
     });
     expect(r.code).toBe(1);
-    expect(r.stdout).toContain("typecheck/tests not run");
-    expect(r.stdout).toContain("kody not invoked");
+    expect(r.stderr).toContain("typecheck/tests not run");
+    expect(r.stderr).toContain("kody not invoked");
   });
 
   it("exits 0 when observations contain verify and review entries", () => {
@@ -99,8 +107,8 @@ describe("git-push-reminder", () => {
       tool_input: { command: "git push origin main" },
     });
     expect(r.code).toBe(1);
-    expect(r.stdout).toContain("kody not invoked");
-    expect(r.stdout).not.toContain("typecheck/tests not run");
+    expect(r.stderr).toContain("kody not invoked");
+    expect(r.stderr).not.toContain("typecheck/tests not run");
   });
 
   it("warns when only review found but no verify", () => {
@@ -116,8 +124,8 @@ describe("git-push-reminder", () => {
       tool_input: { command: "git push origin main" },
     });
     expect(r.code).toBe(1);
-    expect(r.stdout).toContain("typecheck/tests not run");
-    expect(r.stdout).not.toContain("kody not invoked");
+    expect(r.stderr).toContain("typecheck/tests not run");
+    expect(r.stderr).not.toContain("kody not invoked");
   });
 
   it("exits 0 when observations file does not exist", () => {

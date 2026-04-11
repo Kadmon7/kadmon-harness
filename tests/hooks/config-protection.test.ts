@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 
 const HOOK = path.resolve(".claude/hooks/scripts/config-protection.js");
@@ -9,21 +9,15 @@ function runHook(input: object): {
   stdout: string;
   stderr: string;
 } {
-  try {
-    const stdout = execFileSync("node", [HOOK], {
-      encoding: "utf8",
-      input: JSON.stringify(input),
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    return { code: 0, stdout, stderr: "" };
-  } catch (err: unknown) {
-    const e = err as { status: number; stdout: string; stderr: string };
-    return {
-      code: e.status ?? 1,
-      stdout: e.stdout ?? "",
-      stderr: e.stderr ?? "",
-    };
-  }
+  const r = spawnSync("node", [HOOK], {
+    encoding: "utf8",
+    input: JSON.stringify(input),
+  });
+  return {
+    code: r.status ?? 0,
+    stdout: r.stdout ?? "",
+    stderr: r.stderr ?? "",
+  };
 }
 
 describe("config-protection", () => {
@@ -99,7 +93,7 @@ describe("config-protection", () => {
       },
     });
     expect(r.code).toBe(0);
-    expect(r.stdout).toContain("skipLibCheck");
+    expect(r.stderr).toContain("skipLibCheck");
   });
 
   it("protects vitest.config files", () => {

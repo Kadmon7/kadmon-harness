@@ -8,7 +8,7 @@ import { parseStdin } from "./parse-stdin.js";
 try {
   const input = parseStdin();
   const sid = input.session_id ?? "";
-  if (!sid) process.exit(0);
+  if (!sid || !/^[a-zA-Z0-9_-]+$/.test(sid)) process.exit(0);
   const dir = path.join(os.tmpdir(), "kadmon", sid);
   fs.mkdirSync(dir, { recursive: true });
   const toolName = input.tool_name ?? "";
@@ -40,6 +40,6 @@ try {
   );
   fs.writeFileSync(path.join(dir, "last_pre_ts.txt"), String(Date.now()));
 } catch (err) {
-  console.error(JSON.stringify({ error: `observe-pre: ${err.message}` }));
+  console.error(JSON.stringify({ error: `observe-pre: ${err instanceof Error ? err.message : String(err)}` }));
 }
 process.exit(0);

@@ -17,17 +17,25 @@ function writeObs(events: object[]): void {
   );
 }
 
-function runHook(input: object): { code: number; stdout: string } {
+function runHook(input: object): {
+  code: number;
+  stdout: string;
+  stderr: string;
+} {
   try {
     const stdout = execFileSync("node", [HOOK], {
       encoding: "utf8",
       input: JSON.stringify(input),
       stdio: ["pipe", "pipe", "pipe"],
     });
-    return { code: 0, stdout };
+    return { code: 0, stdout, stderr: "" };
   } catch (err: unknown) {
-    const e = err as { status: number; stdout: string };
-    return { code: e.status ?? 1, stdout: e.stdout ?? "" };
+    const e = err as { status: number; stdout: string; stderr: string };
+    return {
+      code: e.status ?? 1,
+      stdout: e.stdout ?? "",
+      stderr: e.stderr ?? "",
+    };
   }
 }
 
@@ -69,7 +77,7 @@ describe("ts-review-reminder", () => {
       tool_input: { file_path: "f.ts" },
     });
     expect(r.code).toBe(1);
-    expect(r.stdout).toContain("review");
+    expect(r.stderr).toContain("review");
   });
 
   it("exits 0 after 5+ edits if kody was invoked", () => {

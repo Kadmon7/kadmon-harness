@@ -2,30 +2,19 @@
 // Hook: session-start | Trigger: SessionStart (*)
 // Purpose: Load previous context, initialize session
 import fs from "node:fs";
-import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
-import { fileURLToPath } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
-import { evaluateAndApplyPatterns } from "./evaluate-patterns-shared.js";
+import {
+  evaluateAndApplyPatterns,
+  gitExec,
+} from "./evaluate-patterns-shared.js";
 import { readTodayLog } from "./daily-log.js";
-import { ensureDist, isDistStale } from "./ensure-dist.js";
+import { ensureDist, isDistStale, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 import { rotateBackup } from "./backup-rotate.js";
-
-function gitExec(args, cwd) {
-  try {
-    return execFileSync("git", args, {
-      cwd,
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-  } catch {
-    return null;
-  }
-}
 
 async function main() {
   try {
@@ -60,12 +49,7 @@ async function main() {
     }
 
     // Auto-build dist/ if stale (prevents silent lifecycle hook failures)
-    const rootDir = path.resolve(
-      fileURLToPath(new URL(".", import.meta.url)),
-      "..",
-      "..",
-      "..",
-    );
+    const rootDir = resolveRootDir(import.meta.url);
     let distRebuilt = false;
     try {
       const buildResult = ensureDist(rootDir);
@@ -161,7 +145,7 @@ async function main() {
         logHookError("session-start", orphanErr, { phase: "orphan-recovery" });
         console.error(
           JSON.stringify({
-            warn: `session-start orphan recovery: ${orphanErr.message}`,
+            warn: `session-start orphan recovery: ${orphanErr instanceof Error ? orphanErr.message : String(orphanErr)}`,
           }),
         );
       }
@@ -297,11 +281,12 @@ async function main() {
 
         // Load today's daily log
         try {
+          const projectDirName = cwd.replace(/[:\\/]/g, "-");
           const memoryDir = path.join(
             os.homedir(),
             ".claude",
             "projects",
-            "C--Command-Center-Kadmon-Harness",
+            projectDirName,
             "memory",
           );
           const todayLog = readTodayLog(memoryDir);
@@ -313,11 +298,12 @@ async function main() {
 
         // Load feedback memories (behavioral corrections)
         try {
+          const projectDirName = cwd.replace(/[:\\/]/g, "-");
           const memoryDir = path.join(
             os.homedir(),
             ".claude",
             "projects",
-            "C--Command-Center-Kadmon-Harness",
+            projectDirName,
             "memory",
           );
           const files = fs
@@ -350,7 +336,7 @@ async function main() {
     } catch (dbErr) {
       logHookError("session-start", dbErr, { phase: "db-init" });
       console.log(
-        `WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr.message})`,
+        `WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr instanceof Error ? dbErr.message : String(dbErr)})`,
       );
     }
 
@@ -412,7 +398,7 @@ async function main() {
     );
   } catch (err) {
     logHookError("session-start", err, { phase: "main" });
-    console.error(JSON.stringify({ error: `session-start: ${err.message}` }));
+    console.error(JSON.stringify({ error: `session-start: ${err instanceof Error ? err.message : String(err)}` }));
   }
   process.exit(0);
 }

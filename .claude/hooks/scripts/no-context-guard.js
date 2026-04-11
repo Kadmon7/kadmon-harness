@@ -82,6 +82,6 @@ try {
   );
   process.exit(2);
 } catch (err) {
-  console.error(JSON.stringify({ error: `no-context-guard: ${err.message}` }));
+  console.error(JSON.stringify({ error: `no-context-guard: ${err instanceof Error ? err.message : String(err)}` }));
   process.exit(0);
 }
