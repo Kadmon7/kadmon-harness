@@ -43,14 +43,13 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 
 **When in doubt:** default to **full**. Err on the side of safety. Never apply `skip` to anything touching runtime behavior.
 
-## Command Reference (12)
+## Command Reference (11)
 
-### Observe Phase (3)
+### Observe Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /kadmon-harness | Show harness dashboard (instincts, sessions, costs, hook health) | — |
 | /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
-| /kompas | Full context rebuild — search git, memory, SQLite, docs, harness state. Use after compact or at session start | — |
 
 ### Plan Phase (1)
 | Command | Purpose | Agent |

@@ -73,7 +73,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)
 - NEVER run agents sequentially when their inputs are independent
 
-### Orchestration Patterns (12 commands)
+### Orchestration Patterns (11 commands)
 
 #### Parallel then Sequential (mixed)
 ```
@@ -93,7 +93,6 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 ```
 /kadmon-harness  script execution
 /kompact         context compaction
-/kompas          context rebuild
 /almanak         almanak (single lookup)
 /akademy         structured evaluation
 /instinct        instinct lifecycle

@@ -55,7 +55,6 @@ Six commands to know on day one:
 /medik               # Full harness diagnostic + repair
 /skanner             # Deep performance + E2E assessment
 /chekpoint           # Verify + review + commit + push
-/kompas              # Full context rebuild (after compact or session start)
 ```
 
 ---
@@ -203,14 +202,13 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>12 Commands</strong> — organized by lifecycle phase</summary>
+<summary><strong>11 Commands</strong> — organized by lifecycle phase</summary>
 
-### Observe (3)
+### Observe (2)
 | Command | Purpose |
 |---------|---------|
 | `/kadmon-harness` | System state: instincts, sessions, costs, hook health |
 | `/kompact` | Smart compaction; `/kompact audit` audits context window usage |
-| `/kompas` | Full context rebuild — search git, memory, SQLite, docs, harness state |
 
 ### Plan (1)
 | Command | Purpose |
@@ -415,6 +413,6 @@ Example instincts:
 ## 📊 Status & Attribution
 
 **v1.0 — Production ready**
-`422 tests passing` · `20 hooks` · `15 agents` · `22 skills` · `12 commands` · `19 rules` · `6 DB tables`
+`422 tests passing` · `20 hooks` · `15 agents` · `22 skills` · `11 commands` · `19 rules` · `6 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.

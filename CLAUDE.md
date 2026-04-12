@@ -32,7 +32,7 @@ Kadmon-Harness/
 |-- .claude/
 |   |-- agents/           # 15 specialist agents (markdown definitions)
 |   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
-|   |-- commands/         # 12 slash commands
+|   |-- commands/         # 11 slash commands
 |   |-- skills/           # 22 reference skills
 |   |-- rules/            # 19 rules (common + typescript + python)
 |   |-- hooks/scripts/    # 20 registered hook scripts + shared modules
@@ -74,8 +74,8 @@ Kadmon-Harness/
 | kartograf | sonnet |
 | alchemik | opus |
 
-## Commands (12)
-- **Observe** (3): /kadmon-harness, /kompact, /kompas
+## Commands (11)
+- **Observe** (2): /kadmon-harness, /kompact
 - **Plan** (1): /abra-kdabra
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
@@ -150,4 +150,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (344 tests passing, 37 test files, 20 hooks, 15 agents, 22 skills, 12 commands, 19 rules, 6 DB tables)
+v1.0 — Production ready (344 tests passing, 37 test files, 20 hooks, 15 agents, 22 skills, 11 commands, 19 rules, 6 DB tables)
