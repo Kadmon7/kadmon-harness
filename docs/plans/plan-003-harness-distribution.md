@@ -16,7 +16,7 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 
 ## Current State
 
-- 15 agents, 12 commands, 22 skills, 3 contexts, 19 rules (3 subdirs), 28 hook scripts, 1 pattern-definitions.json
+- 15 agents, 12 commands, 22 skills, 19 rules (3 subdirs), 28 hook scripts, 1 pattern-definitions.json
 - 10 TypeScript sources + 1 schema.sql + 1 sql.js.d.ts in `scripts/lib/`
 - `settings.json` contains hooks config (6 event types, 20 hooks) + permissions.deny (14 rules)
 - `package.json` has 2 runtime deps (sql.js, zod) + 7 devDependencies
@@ -38,7 +38,7 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 - [x] Read settings.json -- 6 hook event types, 14 deny rules, 4 enabled plugins
 - [x] Read package.json -- runtime deps, build script, postinstall
 - [x] Read tsconfig.json -- ES2022 target, Node16 resolution, include paths
-- [x] Count distributable files: 15 agents + 12 commands + 22 skills + 3 contexts + 19 rules + 28 hooks + 1 pattern-definitions.json + 12 scripts/lib files + 3 scripts-entry + 2 config-files + 1 test-infra = 118 direct files + settings.json (generated) + CLAUDE.md (generated) + .kadmon-version (generated) + .gitignore (generated) + README.md (generated) = 123 managed artifacts
+- [x] Count distributable files: 15 agents + 12 commands + 22 skills + 19 rules + 28 hooks + 1 pattern-definitions.json + 12 scripts/lib files + 3 scripts-entry + 2 config-files + 1 test-infra = 115 direct files + settings.json (generated) + CLAUDE.md (generated) + .kadmon-version (generated) + .gitignore (generated) + README.md (generated) = 120 managed artifacts
 - [x] Read test patterns (utils.test.ts) -- vitest, describe/it, temp dir cleanup in afterEach
 
 ## Phase 1: Core Types and Manifest (S, ~11 tests)
@@ -48,18 +48,17 @@ The foundation: define what gets copied and the data structures the script opera
 - [ ] Step 1.1: Create `scripts/lib/bootstrap-manifest.ts` with copy manifest (S)
   - File: `scripts/lib/bootstrap-manifest.ts`
   - Define `CopyCategory` interface: `{ name: string; sourceRelative: string; targetRelative: string; glob: string }`
-  - Define `COPY_MANIFEST` as `readonly CopyCategory[]` with all 11 categories:
+  - Define `COPY_MANIFEST` as `readonly CopyCategory[]` with all 10 categories:
     1. agents: `.claude/agents/*.md` (15 files)
     2. commands: `.claude/commands/*.md` (12 files)
     3. skills: `.claude/skills/*.md` (22 files)
-    4. contexts: `.claude/contexts/*.md` (3 files)
-    5. rules: `.claude/rules/**/*.md` (19 files, preserves subdirectory structure)
-    6. hook-scripts: `.claude/hooks/scripts/*.js` (28 files)
-    7. pattern-definitions: `.claude/hooks/pattern-definitions.json` (1 file)
-    8. scripts-lib: `scripts/lib/*` (12 files: 10 .ts + 1 .sql + 1 .d.ts)
-    9. scripts-entry: `scripts/dashboard.ts`, `scripts/migrate-v0.4.ts`, `scripts/cleanup-test-sessions.ts` (3 files -- dashboard.ts is critical, runs `/kadmon-harness` command)
-    10. config-files: `vitest.config.ts`, `eslint.config.js` (2 files -- test and lint configuration)
-    11. test-infra: `tests/global-teardown.ts` (1 file -- referenced by vitest.config.ts globalTeardown)
+    4. rules: `.claude/rules/**/*.md` (19 files, preserves subdirectory structure)
+    5. hook-scripts: `.claude/hooks/scripts/*.js` (28 files)
+    6. pattern-definitions: `.claude/hooks/pattern-definitions.json` (1 file)
+    7. scripts-lib: `scripts/lib/*` (12 files: 10 .ts + 1 .sql + 1 .d.ts)
+    8. scripts-entry: `scripts/dashboard.ts`, `scripts/migrate-v0.4.ts`, `scripts/cleanup-test-sessions.ts` (3 files -- dashboard.ts is critical, runs `/kadmon-harness` command)
+    9. config-files: `vitest.config.ts`, `eslint.config.js` (2 files -- test and lint configuration)
+    10. test-infra: `tests/global-teardown.ts` (1 file -- referenced by vitest.config.ts globalTeardown)
   - Define `SKIP_PATTERNS` as readonly string array: `settings.local.json`, `agent-memory/`, `dist/`, `node_modules/`, `tests/` (except global-teardown.ts), `docs/`
   - Define `BootstrapMode` type: `'install' | 'diff' | 'update' | 'force'`
   - Define `BootstrapResult` interface: `{ copied: string[]; skipped: string[]; conflicts: string[]; errors: string[] }`

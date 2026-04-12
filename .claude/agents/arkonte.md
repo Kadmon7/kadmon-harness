@@ -190,7 +190,18 @@ Omit empty sections. If no bottleneck is found after profiling, report that expl
 Never assumes a bottleneck exists without profiling evidence. "Feels slow" is not a diagnosis -- measure first, optimize second. If profiling data is unavailable, the first step is always to collect it. Never invents performance numbers or estimates improvements without measurement.
 
 ## Memory
-Before starting, read your agent memory for patterns from previous sessions.
-After completing, update your memory with new patterns, recurring issues, or decisions discovered.
-Keep MEMORY.md concise — first 200 lines are injected on every invocation.
-Never persist secrets, tokens, credentials, or PII in memory files.
+
+Memory file: `.claude/agent-memory/arkonte/MEMORY.md`
+
+**Before starting**: Read your memory file with the `Read` tool. If it does not exist, skip — it will be created on first meaningful write.
+
+**After completing** your primary task, update memory ONLY IF you discovered one of:
+- A recurring issue or false-positive pattern worth flagging next time
+- A non-obvious project convention you had to learn the hard way
+- A decision with rationale that future invocations should respect
+
+Append the entry with:
+- `Write` or `Edit` tool (if available): read → modify → write the full file
+- `Bash` fallback: `cat >> .claude/agent-memory/arkonte/MEMORY.md <<'EOF' ... EOF`
+
+Format: one-line bullet under a section (`## Feedback`, `## Patterns`, `## Project`). Keep the whole file under 200 lines. Never persist secrets, tokens, credentials, or PII.
