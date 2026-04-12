@@ -385,6 +385,255 @@ describe("Scenario 4 — no-context-guard blocking", () => {
   });
 });
 
+// ─── Scenario 6: hook_events table populated from JSONL ──────────────────────
+describe("Scenario 6 — hook_events persistence", () => {
+  const SID = `test-e2e-s6-${Date.now()}`;
+  let testDb: string;
+
+  beforeEach(async () => {
+    testDb = path.join(os.tmpdir(), `e2e-s6-${Date.now()}.db`);
+
+    // Seed DB with session row
+    const SQL = await initSqlJs();
+    const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
+    const rawDb = new SQL.Database();
+    try {
+      rawDb.exec(schema);
+      rawDb.run(
+        `INSERT INTO sessions (id, project_hash, started_at, message_count)
+         VALUES (?, ?, ?, ?)`,
+        [SID, "hook-events-test-project", new Date().toISOString(), 3],
+      );
+      fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
+    } finally {
+      rawDb.close();
+    }
+
+    // Create session dir with observations.jsonl (minimal, prevents fallback estimator)
+    const sDir = obsDir(SID);
+    fs.mkdirSync(sDir, { recursive: true });
+    const obsLines = [
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        sessionId: SID,
+        eventType: "tool_pre",
+        toolName: "Bash",
+        filePath: null,
+        metadata: { command: "git commit --no-verify" },
+      }),
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        sessionId: SID,
+        eventType: "tool_post",
+        toolName: "Bash",
+        success: false,
+      }),
+    ];
+    fs.writeFileSync(path.join(sDir, "observations.jsonl"), obsLines.join("\n") + "\n");
+
+    // Seed hook-events.jsonl with 3 realistic entries
+    const hookEventsPath = path.join(sDir, "hook-events.jsonl");
+    const hookEntries = [
+      {
+        timestamp: new Date().toISOString(),
+        hookName: "block-no-verify",
+        eventType: "pre_tool",
+        toolName: "Bash",
+        exitCode: 2,
+        blocked: true,
+        durationMs: 45,
+        error: "Blocked: --no-verify flag detected",
+      },
+      {
+        timestamp: new Date().toISOString(),
+        hookName: "commit-quality",
+        eventType: "pre_tool",
+        toolName: "Bash",
+        exitCode: 2,
+        blocked: true,
+        durationMs: 78,
+        error: "Blocked: console.log found in staged changes",
+      },
+      {
+        timestamp: new Date().toISOString(),
+        hookName: "git-push-reminder",
+        eventType: "pre_tool",
+        toolName: "Bash",
+        exitCode: 1,
+        blocked: false,
+        durationMs: 12,
+        error: null,
+      },
+    ];
+    fs.writeFileSync(
+      hookEventsPath,
+      hookEntries.map((e) => JSON.stringify(e)).join("\n") + "\n",
+    );
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(testDb)) fs.unlinkSync(testDb);
+    const sDir = obsDir(SID);
+    if (fs.existsSync(sDir)) fs.rmSync(sDir, { recursive: true, force: true });
+  });
+
+  it("session-end-all reads hook-events.jsonl and persists all rows to hook_events table", async () => {
+    const result = runHook(
+      HOOK_SESSION_END,
+      {
+        session_id: SID,
+        cwd: process.cwd(),
+        usage: { input_tokens: 1000, output_tokens: 500 },
+        model: "claude-sonnet-4",
+      },
+      { KADMON_TEST_DB: testDb },
+    );
+
+    expect(result.exitCode, "session-end-all exits 0").toBe(0);
+
+    // Query hook_events for this session
+    const rows = await readDbRows(
+      testDb,
+      `SELECT session_id, hook_name, blocked, exit_code, duration_ms
+         FROM hook_events WHERE session_id = ? ORDER BY rowid ASC`,
+      [SID],
+    );
+
+    expect(rows.length, "3 hook_event rows persisted from JSONL").toBe(3);
+
+    // Row 0: block-no-verify (blocked=true)
+    expect(String(rows[0].session_id), "session_id matches").toBe(SID);
+    expect(String(rows[0].hook_name), "first hook_name").toBe("block-no-verify");
+    expect(Number(rows[0].blocked), "block-no-verify is blocked (1)").toBe(1);
+    expect(Number(rows[0].exit_code), "block-no-verify exit_code 2").toBe(2);
+
+    // Row 1: commit-quality (blocked=true)
+    expect(String(rows[1].hook_name), "second hook_name").toBe("commit-quality");
+    expect(Number(rows[1].blocked), "commit-quality is blocked (1)").toBe(1);
+
+    // Row 2: git-push-reminder (blocked=false)
+    expect(String(rows[2].hook_name), "third hook_name").toBe("git-push-reminder");
+    expect(Number(rows[2].blocked), "git-push-reminder is not blocked (0)").toBe(0);
+    expect(Number(rows[2].exit_code), "git-push-reminder exit_code 1").toBe(1);
+    expect(Number(rows[2].duration_ms), "duration_ms persisted").toBe(12);
+  }, 30000);
+});
+
+// ─── Scenario 7: agent_invocations table rows from Agent events ───────────────
+describe("Scenario 7 — agent_invocations persistence", () => {
+  const SID = `test-e2e-s7-${Date.now()}`;
+  let testDb: string;
+
+  beforeEach(async () => {
+    testDb = path.join(os.tmpdir(), `e2e-s7-${Date.now()}.db`);
+
+    // Seed DB with session row
+    const SQL = await initSqlJs();
+    const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
+    const rawDb = new SQL.Database();
+    try {
+      rawDb.exec(schema);
+      rawDb.run(
+        `INSERT INTO sessions (id, project_hash, started_at, message_count)
+         VALUES (?, ?, ?, ?)`,
+        [SID, "agent-inv-test-project", new Date().toISOString(), 4],
+      );
+      fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
+    } finally {
+      rawDb.close();
+    }
+
+    // Build observations.jsonl with paired Agent tool_pre/tool_post + one unpaired pre
+    const sDir = obsDir(SID);
+    fs.mkdirSync(sDir, { recursive: true });
+
+    const ts1 = new Date(Date.now() - 5000).toISOString();
+    const ts2 = new Date(Date.now() - 4000).toISOString();
+    const ts3 = new Date(Date.now() - 2000).toISOString();
+    // ts4 would be the post for ts3, but we intentionally omit it (unpaired pre)
+
+    const obsLines = [
+      // Paired: mekanik agent
+      JSON.stringify({
+        timestamp: ts1,
+        sessionId: SID,
+        eventType: "tool_pre",
+        toolName: "Agent",
+        filePath: null,
+        metadata: {
+          agentType: "mekanik",
+          agentDescription: "Fix TypeScript compilation errors",
+        },
+      }),
+      JSON.stringify({
+        timestamp: ts2,
+        sessionId: SID,
+        eventType: "tool_post",
+        toolName: "Agent",
+        durationMs: 4200,
+        success: true,
+      }),
+      // Unpaired: kartograf agent (only tool_pre, no tool_post)
+      JSON.stringify({
+        timestamp: ts3,
+        sessionId: SID,
+        eventType: "tool_pre",
+        toolName: "Agent",
+        filePath: null,
+        metadata: {
+          agentType: "kartograf",
+          agentDescription: "Run E2E test suite",
+        },
+      }),
+    ];
+    fs.writeFileSync(path.join(sDir, "observations.jsonl"), obsLines.join("\n") + "\n");
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(testDb)) fs.unlinkSync(testDb);
+    const sDir = obsDir(SID);
+    if (fs.existsSync(sDir)) fs.rmSync(sDir, { recursive: true, force: true });
+  });
+
+  it("session-end-all extracts paired and unpaired Agent events into agent_invocations", async () => {
+    const result = runHook(
+      HOOK_SESSION_END,
+      {
+        session_id: SID,
+        cwd: process.cwd(),
+        usage: { input_tokens: 2000, output_tokens: 1000 },
+        model: "claude-sonnet-4",
+      },
+      { KADMON_TEST_DB: testDb },
+    );
+
+    expect(result.exitCode, "session-end-all exits 0").toBe(0);
+
+    const rows = await readDbRows(
+      testDb,
+      `SELECT session_id, agent_type, duration_ms, success
+         FROM agent_invocations WHERE session_id = ? ORDER BY rowid ASC`,
+      [SID],
+    );
+
+    // Both the paired and unpaired pre should produce rows
+    expect(rows.length, "2 agent_invocation rows persisted").toBe(2);
+
+    // Paired agent (mekanik) — has duration and success=1
+    const mekanik = rows[0];
+    expect(String(mekanik.session_id), "session_id matches").toBe(SID);
+    expect(String(mekanik.agent_type), "first agent_type is mekanik").toBe("mekanik");
+    expect(Number(mekanik.duration_ms), "duration_ms persisted for paired agent").toBe(4200);
+    expect(Number(mekanik.success), "paired agent success=1").toBe(1);
+
+    // Unpaired agent (kartograf) — success is NULL (no tool_post received)
+    const kartograf = rows[1];
+    expect(String(kartograf.agent_type), "second agent_type is kartograf").toBe("kartograf");
+    expect(kartograf.duration_ms, "unpaired agent duration_ms is null").toBeNull();
+    expect(kartograf.success, "unpaired agent success is null (no tool_post)").toBeNull();
+  }, 30000);
+});
+
 // ─── Scenario 5: Cost tracking via session-end-all ───────────────────────────
 describe("Scenario 5 — cost tracking", () => {
   const SID = `test-e2e-s5-${Date.now()}`;
@@ -486,5 +735,195 @@ describe("Scenario 5 — cost tracking", () => {
       Number(row.estimated_cost_usd),
       "estimated cost matches calculation",
     ).toBeCloseTo(EXPECTED_COST, 7);
+  }, 30000);
+});
+
+// ─── Scenario 8: Cost routing — opus pricing ─────────────────────────────────
+describe("Scenario 8 — cost routing: opus", () => {
+  const SID = `test-e2e-s8-${Date.now()}`;
+  let testDb: string;
+
+  beforeEach(async () => {
+    testDb = path.join(os.tmpdir(), `e2e-s8-${Date.now()}.db`);
+
+    const SQL = await initSqlJs();
+    const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
+    const rawDb = new SQL.Database();
+    try {
+      rawDb.exec(schema);
+      rawDb.run(
+        `INSERT INTO sessions (id, project_hash, started_at, message_count)
+         VALUES (?, ?, ?, ?)`,
+        [SID, "cost-opus-test", new Date().toISOString(), 5],
+      );
+      fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
+    } finally {
+      rawDb.close();
+    }
+
+    fs.mkdirSync(obsDir(SID), { recursive: true });
+    const obsLines = [
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        sessionId: SID,
+        eventType: "tool_pre",
+        toolName: "Read",
+        filePath: "/f.ts",
+        metadata: {},
+      }),
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        sessionId: SID,
+        eventType: "tool_post",
+        toolName: "Read",
+        filePath: "/f.ts",
+        success: true,
+      }),
+    ];
+    fs.writeFileSync(obsPath(SID), obsLines.join("\n") + "\n");
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(testDb)) fs.unlinkSync(testDb);
+    const sDir = obsDir(SID);
+    if (fs.existsSync(sDir)) fs.rmSync(sDir, { recursive: true, force: true });
+  });
+
+  it("inserts cost_event row with correct opus rate ($15 input / $75 output per 1M)", async () => {
+    // Opus pricing (from cost-calculator.ts): input $15/1M, output $75/1M
+    // Use exact counts for clean math: 1000 input + 500 output
+    // Expected = (1000/1e6)*15 + (500/1e6)*75 = 0.000015 + 0.0000375 = $0.0000525
+    const INPUT_TOKENS = 1_000;
+    const OUTPUT_TOKENS = 500;
+    const EXPECTED_COST =
+      (INPUT_TOKENS / 1_000_000) * 15 + (OUTPUT_TOKENS / 1_000_000) * 75;
+
+    const result = runHook(
+      HOOK_SESSION_END,
+      {
+        session_id: SID,
+        cwd: process.cwd(),
+        usage: {
+          input_tokens: INPUT_TOKENS,
+          output_tokens: OUTPUT_TOKENS,
+        },
+        model: "claude-opus-4",
+      },
+      { KADMON_TEST_DB: testDb },
+    );
+
+    expect(result.exitCode, "session-end-all exits 0").toBe(0);
+
+    const rows = await readDbRows(
+      testDb,
+      `SELECT session_id, model, input_tokens, output_tokens, estimated_cost_usd
+         FROM cost_events WHERE session_id = ?`,
+      [SID],
+    );
+
+    expect(rows.length, "one cost_event row for opus").toBe(1);
+    const row = rows[0];
+    expect(String(row.model), "model stored as provided").toBe("claude-opus-4");
+    expect(Number(row.input_tokens), "input_tokens persisted").toBe(INPUT_TOKENS);
+    expect(Number(row.output_tokens), "output_tokens persisted").toBe(OUTPUT_TOKENS);
+    expect(
+      Number(row.estimated_cost_usd),
+      "estimated cost matches opus rate",
+    ).toBeCloseTo(EXPECTED_COST, 8);
+  }, 30000);
+});
+
+// ─── Scenario 9: Cost routing — haiku pricing ────────────────────────────────
+describe("Scenario 9 — cost routing: haiku", () => {
+  const SID = `test-e2e-s9-${Date.now()}`;
+  let testDb: string;
+
+  beforeEach(async () => {
+    testDb = path.join(os.tmpdir(), `e2e-s9-${Date.now()}.db`);
+
+    const SQL = await initSqlJs();
+    const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
+    const rawDb = new SQL.Database();
+    try {
+      rawDb.exec(schema);
+      rawDb.run(
+        `INSERT INTO sessions (id, project_hash, started_at, message_count)
+         VALUES (?, ?, ?, ?)`,
+        [SID, "cost-haiku-test", new Date().toISOString(), 5],
+      );
+      fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
+    } finally {
+      rawDb.close();
+    }
+
+    fs.mkdirSync(obsDir(SID), { recursive: true });
+    const obsLines = [
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        sessionId: SID,
+        eventType: "tool_pre",
+        toolName: "Read",
+        filePath: "/f.ts",
+        metadata: {},
+      }),
+      JSON.stringify({
+        timestamp: new Date().toISOString(),
+        sessionId: SID,
+        eventType: "tool_post",
+        toolName: "Read",
+        filePath: "/f.ts",
+        success: true,
+      }),
+    ];
+    fs.writeFileSync(obsPath(SID), obsLines.join("\n") + "\n");
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(testDb)) fs.unlinkSync(testDb);
+    const sDir = obsDir(SID);
+    if (fs.existsSync(sDir)) fs.rmSync(sDir, { recursive: true, force: true });
+  });
+
+  it("inserts cost_event row with correct haiku rate ($0.80 input / $4 output per 1M)", async () => {
+    // Haiku pricing (from cost-calculator.ts): input $0.8/1M, output $4/1M
+    // Use exact counts for clean math: 1000 input + 500 output
+    // Expected = (1000/1e6)*0.8 + (500/1e6)*4 = 0.0000008 + 0.000002 = $0.0000028
+    const INPUT_TOKENS = 1_000;
+    const OUTPUT_TOKENS = 500;
+    const EXPECTED_COST =
+      (INPUT_TOKENS / 1_000_000) * 0.8 + (OUTPUT_TOKENS / 1_000_000) * 4;
+
+    const result = runHook(
+      HOOK_SESSION_END,
+      {
+        session_id: SID,
+        cwd: process.cwd(),
+        usage: {
+          input_tokens: INPUT_TOKENS,
+          output_tokens: OUTPUT_TOKENS,
+        },
+        model: "claude-haiku-4",
+      },
+      { KADMON_TEST_DB: testDb },
+    );
+
+    expect(result.exitCode, "session-end-all exits 0").toBe(0);
+
+    const rows = await readDbRows(
+      testDb,
+      `SELECT session_id, model, input_tokens, output_tokens, estimated_cost_usd
+         FROM cost_events WHERE session_id = ?`,
+      [SID],
+    );
+
+    expect(rows.length, "one cost_event row for haiku").toBe(1);
+    const row = rows[0];
+    expect(String(row.model), "model stored as provided").toBe("claude-haiku-4");
+    expect(Number(row.input_tokens), "input_tokens persisted").toBe(INPUT_TOKENS);
+    expect(Number(row.output_tokens), "output_tokens persisted").toBe(OUTPUT_TOKENS);
+    expect(
+      Number(row.estimated_cost_usd),
+      "estimated cost matches haiku rate",
+    ).toBeCloseTo(EXPECTED_COST, 9);
   }, 30000);
 });
