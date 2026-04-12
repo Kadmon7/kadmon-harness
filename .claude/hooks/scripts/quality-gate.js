@@ -2,7 +2,7 @@
 // Hook: quality-gate | Trigger: PostToolUse (Edit|Write)
 // Purpose: Run ESLint on edited TS/JS files
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 try {
   if (isDisabled("quality-gate")) process.exit(0);
@@ -18,15 +18,23 @@ try {
   )
     process.exit(0);
   try {
-    execSync(`npx eslint --no-eslintrc --rule "no-unused-vars:warn" "${fp}"`, {
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 10000,
-    });
+    execFileSync(
+      "npx",
+      ["eslint", "--no-eslintrc", "--rule", "no-unused-vars:warn", fp],
+      {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+        timeout: 10000,
+      },
+    );
   } catch (lintErr) {
     if (lintErr.stdout) console.error(`\u{1F4CF} ESLint:\n${lintErr.stdout}`);
   }
 } catch (err) {
-  console.error(JSON.stringify({ error: `quality-gate: ${err instanceof Error ? err.message : String(err)}` }));
+  console.error(
+    JSON.stringify({
+      error: `quality-gate: ${err instanceof Error ? err.message : String(err)}`,
+    }),
+  );
 }
 process.exit(0);

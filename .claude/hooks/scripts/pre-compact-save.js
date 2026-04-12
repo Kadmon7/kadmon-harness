@@ -10,7 +10,7 @@ import {
   gitExec,
 } from "./evaluate-patterns-shared.js";
 import { generateSummary } from "./generate-session-summary.js";
-import { appendDailyLog } from "./daily-log.js";
+import { appendDailyLog, resolveMemoryDir } from "./daily-log.js";
 import { ensureDist, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 
@@ -115,17 +115,7 @@ async function main() {
 
     // Write daily log entry before compaction
     try {
-      const projectDirName = (input.cwd ?? process.cwd()).replace(
-        /[:\\/]/g,
-        "-",
-      );
-      const memoryDir = path.join(
-        os.homedir(),
-        ".claude",
-        "projects",
-        projectDirName,
-        "memory",
-      );
+      const memoryDir = resolveMemoryDir(input.cwd ?? process.cwd());
       const lastCommit =
         gitExec(["log", "--oneline", "-1"], input.cwd ?? process.cwd()) ?? "";
       appendDailyLog(

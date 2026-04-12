@@ -479,7 +479,7 @@ Sync queue for future cloud persistence (Supabase v2).
 | **dashboard.ts** | 212 | `renderDashboard()`, `getInstinctRows()`, `getHookHealthRows()` | CLI dashboard renderer with ANSI colors. |
 | **instinct-manager.ts** | 117 | `createInstinct()`, `reinforceInstinct()`, `contradictInstinct()`, `promoteInstinct()`, `pruneInstincts()` | Instinct lifecycle: create, reinforce, contradict, promote, prune. |
 | **types.ts** | 109 | `Instinct`, `SessionSummary`, `ObservabilityEvent`, `CostEvent`, `ProjectInfo` | TypeScript interfaces for all data models. |
-| **session-manager.ts** | 80 | `startSession()`, `endSession()`, `getLastSession()`, `loadSessionContext()` | Session lifecycle: create, end, load previous context. |
+| **session-manager.ts** | 60 | `startSession()`, `endSession()`, `getLastSession()` | Session lifecycle: create, end, load previous context. |
 | **utils.ts** | 54 | `nowISO()`, `generateId()`, `hashString()`, `kadmonDataDir()`, `formatDuration()` | Utilities: timestamps, UUIDs, SHA256 hashing, paths. |
 | **cost-calculator.ts** | 41 | `calculateCost()`, `formatCost()` | LLM cost calculation per model and tokens. |
 | **project-detect.ts** | 29 | `detectProject()` | Detects git project: remote URL, branch, root dir, project hash. |

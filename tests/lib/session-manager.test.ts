@@ -1,14 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import {
-  openDb,
-  closeDb,
-  upsertInstinct,
-} from "../../scripts/lib/state-store.js";
+import { openDb, closeDb } from "../../scripts/lib/state-store.js";
 import {
   startSession,
   endSession,
   getLastSession,
-  loadSessionContext,
 } from "../../scripts/lib/session-manager.js";
 import type { ProjectInfo } from "../../scripts/lib/types.js";
 
@@ -80,29 +75,6 @@ describe("session-manager", () => {
     const last = getLastSession(PROJECT.projectHash);
     expect(last).not.toBeNull();
     expect(last!.id).toBe("sess-2");
-  });
-
-  it("loadSessionContext returns empty string when no sessions", () => {
-    expect(loadSessionContext("unknown")).toBe("");
-  });
-
-  it("loadSessionContext returns markdown with session and instinct info", () => {
-    startSession("sess-1", PROJECT);
-    endSession("sess-1", { tasks: ["built feature"] });
-
-    upsertInstinct({
-      id: "inst-1",
-      projectHash: PROJECT.projectHash,
-      pattern: "always run tsc",
-      action: "tsc --noEmit",
-      confidence: 0.7,
-    });
-
-    const ctx = loadSessionContext(PROJECT.projectHash);
-    expect(ctx).toContain("## Previous Session Context");
-    expect(ctx).toContain("Branch: main");
-    expect(ctx).toContain("Active instincts: 1");
-    expect(ctx).toContain("[0.7] always run tsc");
   });
 
   it("endSession with undefined fields preserves existing data", () => {

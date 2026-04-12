@@ -11,7 +11,7 @@ import {
   evaluateAndApplyPatterns,
   gitExec,
 } from "./evaluate-patterns-shared.js";
-import { readTodayLog } from "./daily-log.js";
+import { readTodayLog, resolveMemoryDir } from "./daily-log.js";
 import { ensureDist, isDistStale, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 import { rotateBackup } from "./backup-rotate.js";
@@ -26,7 +26,7 @@ async function main() {
     // Detect project
     const remoteUrl = gitExec(["remote", "get-url", "origin"], cwd);
     if (!remoteUrl) {
-      console.log("Kadmon: Not in a git repo — session tracking disabled.");
+      console.error("Kadmon: Not in a git repo — session tracking disabled.");
       process.exit(0);
     }
     const projectHash = crypto
@@ -279,16 +279,11 @@ async function main() {
             context += `\n  - ${t.replace("[pending] ", "")}`;
         }
 
+        // Resolve memory dir once — used by both daily log and feedback blocks below
+        const memoryDir = resolveMemoryDir(cwd);
+
         // Load today's daily log
         try {
-          const projectDirName = cwd.replace(/[:\\/]/g, "-");
-          const memoryDir = path.join(
-            os.homedir(),
-            ".claude",
-            "projects",
-            projectDirName,
-            "memory",
-          );
           const todayLog = readTodayLog(memoryDir);
           if (todayLog) {
             context += "\n\n## Today's Session Log";
@@ -298,14 +293,6 @@ async function main() {
 
         // Load feedback memories (behavioral corrections)
         try {
-          const projectDirName = cwd.replace(/[:\\/]/g, "-");
-          const memoryDir = path.join(
-            os.homedir(),
-            ".claude",
-            "projects",
-            projectDirName,
-            "memory",
-          );
           const files = fs
             .readdirSync(memoryDir)
             .filter((f) => f.startsWith("feedback_") && f.endsWith(".md"));
@@ -335,7 +322,7 @@ async function main() {
       }
     } catch (dbErr) {
       logHookError("session-start", dbErr, { phase: "db-init" });
-      console.log(
+      console.error(
         `WARNING: Kadmon state-store not available. Run 'npm run build' in kadmon-harness. (${dbErr instanceof Error ? dbErr.message : String(dbErr)})`,
       );
     }

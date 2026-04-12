@@ -11,11 +11,11 @@ import {
   evaluateAndApplyPatterns,
   gitExec,
 } from "./evaluate-patterns-shared.js";
-import { appendDailyLog } from "./daily-log.js";
+import { appendDailyLog, resolveMemoryDir } from "./daily-log.js";
 import { ensureDist, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 
-function estimateTokensFromTranscript(transcriptPath) {
+async function estimateTokensFromTranscript(transcriptPath) {
   try {
     if (!transcriptPath || !fs.existsSync(transcriptPath)) return null;
     const content = fs.readFileSync(transcriptPath, "utf8");
@@ -43,9 +43,13 @@ function estimateTokensFromTranscript(transcriptPath) {
       }
     }
 
-    const codeChars = (content.match(/[{}\[\]();=]/g) ?? []).length;
-    const codeRatio = content.length > 0 ? codeChars / content.length : 0;
-    const charsPerToken = codeRatio > 0.05 ? 3.0 : 4.0;
+    const { estimateCharsPerToken } = await import(
+      new URL(
+        "../../../dist/scripts/lib/cost-calculator.js",
+        import.meta.url,
+      ).href
+    );
+    const charsPerToken = estimateCharsPerToken(content);
     return {
       inputTokens: Math.ceil(inputChars / charsPerToken),
       outputTokens: Math.ceil(outputChars / charsPerToken),
@@ -196,14 +200,7 @@ async function main() {
 
       // --- Phase 1b: Write daily log ---
       try {
-        const projectDirName = cwd.replace(/[:\\/]/g, "-");
-        const memoryDir = path.join(
-          os.homedir(),
-          ".claude",
-          "projects",
-          projectDirName,
-          "memory",
-        );
+        const memoryDir = resolveMemoryDir(cwd);
         const lastCommit = gitExec(["log", "--oneline", "-1"], cwd) ?? "";
         appendDailyLog(
           {
@@ -244,7 +241,7 @@ async function main() {
 
         // Fallback 1: estimate from transcript
         if (!inputTokens && !outputTokens && input.transcript_path) {
-          const estimate = estimateTokensFromTranscript(input.transcript_path);
+          const estimate = await estimateTokensFromTranscript(input.transcript_path);
           if (estimate) {
             inputTokens = estimate.inputTokens;
             outputTokens = estimate.outputTokens;

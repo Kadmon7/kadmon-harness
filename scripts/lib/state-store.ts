@@ -534,6 +534,7 @@ export function getCostSummaryByModel(projectHash: string): Array<{
 }
 
 // ─── Sync queue operations ───
+// v2: Supabase sync layer — infrastructure for planned v2 migration, not invoked in v1 production code.
 
 export function queueSync(
   table: string,

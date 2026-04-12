@@ -1,7 +1,20 @@
 // Module: daily-log | Shared utility for daily session logs
 // Used by: pre-compact-save.js, session-end-all.js, session-start.js
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+
+/**
+ * Resolve the Claude memory directory path for a given working directory.
+ * Converts path separators to hyphens to match Claude's project directory naming.
+ *
+ * @param {string} cwd - Working directory path
+ * @returns {string} Full path to the memory directory
+ */
+export function resolveMemoryDir(cwd) {
+  const projectDirName = cwd.replace(/[:\\/]/g, "-");
+  return path.join(os.homedir(), ".claude", "projects", projectDirName, "memory");
+}
 
 /**
  * Get today's date as YYYY-MM-DD string.

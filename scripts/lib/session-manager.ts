@@ -3,7 +3,6 @@ import {
   upsertSession,
   getSession,
   getRecentSessions,
-  getActiveInstincts,
 } from "./state-store.js";
 import { nowISO, nowMs, sessionDir, ensureDir } from "./utils.js";
 
@@ -83,31 +82,4 @@ export function endSession(
 export function getLastSession(projectHash: string): SessionSummary | null {
   const sessions = getRecentSessions(projectHash, 1);
   return sessions.length > 0 ? sessions[0] : null;
-}
-
-export function loadSessionContext(projectHash: string): string {
-  const last = getLastSession(projectHash);
-  if (!last) return "";
-
-  const instincts = getActiveInstincts(projectHash);
-
-  const lines = [
-    "## Previous Session Context",
-    `- Date: ${last.startedAt} | Branch: ${last.branch}`,
-  ];
-  if (last.summary) lines.push(`- Summary: ${last.summary}`);
-  if (last.tasks.length > 0) lines.push(`- Tasks: ${last.tasks.join(", ")}`);
-  lines.push(
-    `- Files modified: ${last.filesModified.length}`,
-    `- Active instincts: ${instincts.length}`,
-  );
-
-  if (instincts.length > 0) {
-    lines.push("", "### Top Instincts");
-    for (const inst of instincts.slice(0, 5)) {
-      lines.push(`- [${inst.confidence.toFixed(1)}] ${inst.pattern}`);
-    }
-  }
-
-  return lines.join("\n");
 }

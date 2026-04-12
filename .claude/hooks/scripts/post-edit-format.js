@@ -3,7 +3,7 @@
 // Purpose: Auto-format TS/JS/JSON files with Prettier
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 try {
   if (isDisabled("post-edit-format")) process.exit(0);
@@ -15,7 +15,7 @@ try {
   if (fp.includes("node_modules") || fp.includes("dist")) process.exit(0);
   if (!fs.existsSync(fp)) process.exit(0);
   try {
-    execSync(`npx prettier --write "${fp}"`, {
+    execFileSync("npx", ["prettier", "--write", fp], {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
     });
