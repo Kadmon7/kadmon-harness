@@ -20,8 +20,8 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - When auto-invoking an agent, also load the skills associated with its command (see catalog below)
 
 ## Routing
-- MUST use opus model for: arkitect, konstruct, spektr, orakle, alchemik
-- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf
+- MUST use opus model for: arkitect, konstruct, spektr, alchemik
+- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf, orakle
 - MUST use opus model for doks (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
@@ -33,7 +33,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records |
 | kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review |
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /chekpoint | coding-standards, frontend-patterns |
-| orakle | opus | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
+| orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
 | spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard |
 | feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing |
 | mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging |

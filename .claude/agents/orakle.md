@@ -1,7 +1,7 @@
 ---
 name: orakle
 description: Use PROACTIVELY when editing SQL queries, schema definitions, migration files, or Supabase/sql.js client code. No dedicated command — auto-invoked. Reviews indexes, RLS, and query performance.
-model: opus
+model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project
 skills: database-migrations, postgres-patterns
