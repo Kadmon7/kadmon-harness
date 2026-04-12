@@ -306,41 +306,46 @@ async function main() {
 
       // --- Phase 1c: Persist hook events and agent invocations ---
       try {
-        const { insertHookEvent, insertAgentInvocation } = await import(
+        const { insertHookEvent, insertAgentInvocation, getDb } = await import(
           new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
             .href
         );
 
         let hookCount = 0;
-        for (const he of extractedHookEvents) {
-          insertHookEvent({
-            sessionId: sid,
-            hookName: he.hookName ?? "unknown",
-            eventType: he.eventType ?? "pre_tool",
-            toolName: he.toolName ?? null,
-            exitCode: he.exitCode ?? 0,
-            blocked: Boolean(he.blocked),
-            durationMs: he.durationMs ?? null,
-            error: he.error ?? null,
-            timestamp: he.timestamp ?? new Date().toISOString(),
-          });
-          hookCount++;
-        }
-
         let agentCount = 0;
-        for (const ai of extractedAgents) {
-          insertAgentInvocation({
-            sessionId: sid,
-            agentType: ai.agentType ?? "general-purpose",
-            model: null,
-            description: ai.description ?? null,
-            durationMs: ai.durationMs ?? null,
-            success: ai.success,
-            error: ai.error ?? null,
-            timestamp: ai.timestamp ?? new Date().toISOString(),
-          });
-          agentCount++;
-        }
+
+        // Batch all inserts in one transaction — suppresses per-insert saveToDisk()
+        const db = getDb();
+        db.transaction(() => {
+          for (const he of extractedHookEvents) {
+            insertHookEvent({
+              sessionId: sid,
+              hookName: he.hookName ?? "unknown",
+              eventType: he.eventType ?? "pre_tool",
+              toolName: he.toolName ?? null,
+              exitCode: he.exitCode ?? 0,
+              blocked: Boolean(he.blocked),
+              durationMs: he.durationMs ?? null,
+              error: he.error ?? null,
+              timestamp: he.timestamp ?? new Date().toISOString(),
+            });
+            hookCount++;
+          }
+
+          for (const ai of extractedAgents) {
+            insertAgentInvocation({
+              sessionId: sid,
+              agentType: ai.agentType ?? "general-purpose",
+              model: null,
+              description: ai.description ?? null,
+              durationMs: ai.durationMs ?? null,
+              success: ai.success,
+              error: ai.error ?? null,
+              timestamp: ai.timestamp ?? new Date().toISOString(),
+            });
+            agentCount++;
+          }
+        })();
 
         if (hookCount > 0 || agentCount > 0) {
           output.push(
@@ -351,6 +356,9 @@ async function main() {
         logHookError("session-end-all", persistErr, {
           phase: "hook-agent-persist",
         });
+        console.error(
+          JSON.stringify({ warn: `session-end-all persist: ${persistErr instanceof Error ? persistErr.message : String(persistErr)}` }),
+        );
       }
     } catch (dbErr) {
       logHookError("session-end-all", dbErr, { phase: "db-init" });

@@ -166,14 +166,17 @@ export async function openDb(customPath?: string): Promise<WrappedDb> {
   db.pragma("foreign_keys = ON");
   db.pragma("journal_mode = WAL");
 
-  // Apply schema
+  // Apply schema — one saveToDisk() at commit instead of one per statement
   const { fileURLToPath } = await import("node:url");
   const thisDir = path.dirname(fileURLToPath(import.meta.url));
   const schemaPath = path.join(thisDir, "schema.sql");
   const schema = fs.readFileSync(schemaPath, "utf-8");
-  for (const stmt of schema.split(";").filter((s) => s.trim())) {
-    db.exec(stmt + ";");
-  }
+  const stmts = schema.split(";").filter((s) => s.trim());
+  db.transaction(() => {
+    for (const stmt of stmts) {
+      db!.exec(stmt + ";");
+    }
+  })();
 
   return db;
 }
