@@ -5,6 +5,8 @@ globs: ["**/*.ts", "**/*.tsx"]
 
 # TypeScript Pattern Rules
 
+> This file extends [common/patterns.md](../common/patterns.md) with TypeScript-specific content.
+
 ## Error Handling
 - PREFER Result pattern over throwing for expected errors
 - MUST use typed error classes for domain errors

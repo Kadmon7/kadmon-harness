@@ -5,6 +5,8 @@ globs: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 
 # TypeScript Testing Rules
 
+> This file extends [common/testing.md](../common/testing.md) with TypeScript-specific content.
+
 ## Mocking
 - PREFER vi.fn() over manual mock objects
 - MUST mock external dependencies (git commands, file system) in unit tests

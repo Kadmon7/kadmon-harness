@@ -5,6 +5,8 @@ globs: ["**/*.ts", "**/*.tsx"]
 
 # TypeScript Security Rules
 
+> This file extends [common/security.md](../common/security.md) with TypeScript-specific content.
+
 ## Type Safety as Security
 - NEVER cast user input to a type without Zod validation first
 - MUST use branded types or newtypes for security-sensitive values (e.g., ProjectHash)

@@ -5,6 +5,8 @@ globs: [".claude/hooks/scripts/*.js"]
 
 # TypeScript Hook Rules
 
+> This file extends [common/hooks.md](../common/hooks.md) with TypeScript-specific content.
+
 ## Compilation
 - Hook scripts are .js files that run directly via Node.js
 - Lifecycle hooks import compiled TypeScript from dist/scripts/lib/

@@ -5,6 +5,8 @@ globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
 
 # TypeScript/JavaScript Coding Style Rules
 
+> This file extends [common/coding-style.md](../common/coding-style.md) with TypeScript-specific content.
+
 ## Strict Mode
 - MUST enable strict mode in tsconfig.json
 - NEVER use non-null assertion (!) without justification comment
