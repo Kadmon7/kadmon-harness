@@ -17,7 +17,7 @@ alwaysApply: true
 | block-no-verify | block-no-verify.js | Blocks git commands with --no-verify flag | 2 on match |
 | commit-format-guard | commit-format-guard.js | Blocks git commits that don't follow conventional commit format | 2 on violation |
 | commit-quality | commit-quality.js | Scans staged changes for console.log, debugger, secrets (skips .md, test, and hook files) | 2 on violation |
-| git-push-reminder | git-push-reminder.js | Reminds to run /chekpoint before git push | 1 as warning |
+| git-push-reminder | git-push-reminder.js | Warns before git push if typecheck/tests not run in session, OR if unpushed commits contain production code (scripts/lib/** or .claude/hooks/scripts/** .ts/.js) or touch 10+ files without review. Docs/metadata/config commits are legitimate skip-tier and no longer trigger false warnings. | 1 as warning |
 
 ### PreToolUse — Edit|Write matcher (2)
 | Hook | Script | Purpose | Exit |

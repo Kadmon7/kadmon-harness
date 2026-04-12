@@ -16,12 +16,12 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 
 ## Current State
 
-- 15 agents, 12 commands, 22 skills, 19 rules (3 subdirs), 28 hook scripts, 1 pattern-definitions.json
+- 15 agents, 11 commands, 22 skills, 19 rules (3 subdirs), 28 hook scripts, 1 pattern-definitions.json
 - 10 TypeScript sources + 1 schema.sql + 1 sql.js.d.ts in `scripts/lib/`
 - `settings.json` contains hooks config (6 event types, 20 hooks) + permissions.deny (14 rules)
 - `package.json` has 2 runtime deps (sql.js, zod) + 7 devDependencies
 - Existing scripts follow pattern: async `main()`, try/catch with `process.exit(1)`, imports from `./lib/*.js`
-- 344 tests across 37 files, all passing. Tests use `vitest`, arrange-act-assert, temp dirs with cleanup
+- 422 tests across 42 files, all passing. Tests use `vitest`, arrange-act-assert, temp dirs with cleanup
 
 ## Assumptions
 
@@ -38,7 +38,7 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 - [x] Read settings.json -- 6 hook event types, 14 deny rules, 4 enabled plugins
 - [x] Read package.json -- runtime deps, build script, postinstall
 - [x] Read tsconfig.json -- ES2022 target, Node16 resolution, include paths
-- [x] Count distributable files: 15 agents + 12 commands + 22 skills + 19 rules + 28 hooks + 1 pattern-definitions.json + 12 scripts/lib files + 3 scripts-entry + 2 config-files + 1 test-infra = 115 direct files + settings.json (generated) + CLAUDE.md (generated) + .kadmon-version (generated) + .gitignore (generated) + README.md (generated) = 120 managed artifacts
+- [x] Count distributable files: 15 agents + 11 commands + 22 skills + 19 rules + 28 hooks + 1 pattern-definitions.json + 12 scripts/lib files + 3 scripts-entry + 2 config-files + 1 test-infra = 114 direct files + settings.json (generated) + CLAUDE.md (generated) + .kadmon-version (generated) + .gitignore (generated) + README.md (generated) = 119 managed artifacts
 - [x] Read test patterns (utils.test.ts) -- vitest, describe/it, temp dir cleanup in afterEach
 
 ## Phase 1: Core Types and Manifest (S, ~11 tests)
@@ -50,7 +50,7 @@ The foundation: define what gets copied and the data structures the script opera
   - Define `CopyCategory` interface: `{ name: string; sourceRelative: string; targetRelative: string; glob: string }`
   - Define `COPY_MANIFEST` as `readonly CopyCategory[]` with all 10 categories:
     1. agents: `.claude/agents/*.md` (15 files)
-    2. commands: `.claude/commands/*.md` (12 files)
+    2. commands: `.claude/commands/*.md` (11 files)
     3. skills: `.claude/skills/*.md` (22 files)
     4. rules: `.claude/rules/**/*.md` (19 files, preserves subdirectory structure)
     5. hook-scripts: `.claude/hooks/scripts/*.js` (28 files)
@@ -63,14 +63,14 @@ The foundation: define what gets copied and the data structures the script opera
   - Define `BootstrapMode` type: `'install' | 'diff' | 'update' | 'force'`
   - Define `BootstrapResult` interface: `{ copied: string[]; skipped: string[]; conflicts: string[]; errors: string[] }`
   - Define `VersionMarker` interface matching ADR-003 spec: `{ version: string; bootstrapDate: string; sourceCommit: string; files: number }`
-  - Verify: `npx tsc --noEmit` compiles; unit test imports and checks all 11 categories exist, SKIP_PATTERNS length, type assertions
+  - Verify: `npx tsc --noEmit` compiles; unit test imports and checks all 10 categories exist, SKIP_PATTERNS length, type assertions
   - Depends on: none
   - Risk: Low
 
 - [ ] Step 1.2: Write tests for bootstrap-manifest (S)
   - File: `tests/lib/bootstrap-manifest.test.ts`
   - Tests (~11):
-    - COPY_MANIFEST has exactly 11 categories
+    - COPY_MANIFEST has exactly 10 categories
     - Each category has non-empty name, sourceRelative, targetRelative, glob
     - No category sourceRelative overlaps with SKIP_PATTERNS
     - SKIP_PATTERNS contains all expected entries
@@ -199,7 +199,7 @@ Generate project-specific CLAUDE.md and version tracking.
       - Core Principle (no_context)
       - Environment Variables section
       - Agent table (15 agents with model tiers) -- hardcoded from manifest
-      - Command catalog (12 commands by phase)
+      - Command catalog (11 commands by phase)
       - Skill catalog (22 skills by domain)
       - Hook summary (20 registered + 8 shared)
       - Common Pitfalls (DB path, dist/ imports, Windows PATH)
@@ -270,7 +270,7 @@ The main script that ties everything together: argument parsing, mode dispatch, 
     - `runInstall(targetRoot: string, mode: BootstrapMode): Promise<BootstrapResult>` -- orchestrates fresh install:
       1. Scaffold project directories (src/, tests/, docs/decisions/, docs/plans/, docs/diagnostics/)
       2. Generate .gitignore and README.md (only if not exists)
-      3. Resolve all source files from manifest (11 categories)
+      3. Resolve all source files from manifest (10 categories)
       4. Copy all files to target (create dirs as needed)
       5. Smart-merge settings.json (with universal cross-platform hook commands)
       6. Merge package.json
@@ -323,7 +323,7 @@ The main script that ties everything together: argument parsing, mode dispatch, 
   - File: `tests/lib/bootstrap-integration.test.ts`
   - Tests (~12):
     - **Install mode:**
-      - Copies all 11 categories to empty target dir
+      - Copies all 10 categories to empty target dir
       - Creates .claude/agents/ directory structure in target
       - Creates .claude/rules/common/ and .claude/rules/typescript/ and .claude/rules/python/ subdirs
       - Creates scripts/lib/ directory in target
@@ -430,7 +430,7 @@ Handle error scenarios, validation, and boundary conditions.
 
 | Module | Lines (est.) | Functions |
 |--------|-------------|-----------|
-| bootstrap-manifest.ts | ~70 | Types + constants (11 categories) |
+| bootstrap-manifest.ts | ~70 | Types + constants (10 categories) |
 | bootstrap-files.ts | ~80 | 5 functions |
 | bootstrap-merge.ts | ~140 | 4 functions (includes generateHookCommand) |
 | bootstrap-template.ts | ~100 | 3 functions |
@@ -453,7 +453,7 @@ Handle error scenarios, validation, and boundary conditions.
 
 ## Success Criteria
 
-- [ ] `npx tsx scripts/bootstrap.ts /tmp/test-target` successfully copies all 11 categories to a fresh temp directory
+- [ ] `npx tsx scripts/bootstrap.ts /tmp/test-target` successfully copies all 10 categories to a fresh temp directory
 - [ ] Target has scaffolded directories: `src/`, `tests/`, `docs/decisions/`, `docs/plans/`, `docs/diagnostics/`
 - [ ] Target has generated `.gitignore` with node_modules, dist, .env, *.db, agent-memory entries
 - [ ] Target has generated `README.md` with project name
@@ -467,5 +467,5 @@ Handle error scenarios, validation, and boundary conditions.
 - [ ] `--force` mode skips confirmation prompts
 - [ ] All new tests pass: `npx vitest run tests/lib/bootstrap*.test.ts`
 - [ ] TypeScript compiles: `npx tsc --noEmit`
-- [ ] Existing 344 tests remain passing: `npx vitest run`
+- [ ] Existing 422 tests remain passing: `npx vitest run`
 - [ ] Total new test count: ~73 tests across 8 files

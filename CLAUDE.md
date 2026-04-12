@@ -41,7 +41,7 @@ Kadmon-Harness/
 |   |-- lib/              # TypeScript sources (state-store, instincts, etc)
 |   |-- dashboard.ts      # /kadmon-harness entry point
 |   `-- *.ts              # Migration + cleanup scripts
-|-- tests/                # Vitest suite (419 passing)
+|-- tests/                # Vitest suite (422 passing, 42 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
@@ -150,4 +150,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (344 tests passing, 37 test files, 20 hooks, 15 agents, 22 skills, 11 commands, 19 rules, 6 DB tables)
+v1.0 — Production ready (422 tests passing, 42 test files, 20 hooks, 15 agents, 22 skills, 11 commands, 19 rules, 6 DB tables)

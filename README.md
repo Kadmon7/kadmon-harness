@@ -120,7 +120,7 @@ Six commands to know on day one:
 |--------|-------|
 | Agents | **15** (5 opus, 10 sonnet) |
 | Skills | **22** |
-| Commands | **12** |
+| Commands | **11** |
 | Hooks | **20** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
 | Tests | **422 passing** |

@@ -44,7 +44,7 @@ User may override by saying `"chekpoint lite"`, `"skip chekpoint"`, etc. Documen
    - Python (.py) present -> invoke **python-reviewer** (sonnet)
    - Both present -> both in parallel
    - **Always**: invoke **spektr** (opus) in parallel
-   - **Always**: invoke **orakle** (opus) in parallel
+   - **Always**: invoke **orakle** (sonnet) in parallel
 
 ### Phase 2b: Consolidation (sequential — AFTER 2a completes)
 1. **WAIT** for ALL Phase 2a reviewers to complete. Do NOT invoke kody in parallel with them.
