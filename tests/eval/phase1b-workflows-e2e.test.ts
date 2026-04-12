@@ -11,6 +11,8 @@ import os from "node:os";
 import path from "node:path";
 import initSqlJs from "sql.js";
 
+type SqlValue = number | string | Uint8Array | null;
+
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const HOOKS_DIR = path.resolve(".claude/hooks/scripts");
 const HOOK_OBSERVE_PRE = path.join(HOOKS_DIR, "observe-pre.js");
@@ -48,16 +50,26 @@ function runHook(
 async function readDbRows(
   dbPath: string,
   sql: string,
+  params: SqlValue[] = [],
 ): Promise<Record<string, unknown>[]> {
   const SQL = await initSqlJs();
   const data = fs.readFileSync(dbPath);
   const db = new SQL.Database(data);
-  const [result] = db.exec(sql);
-  if (!result) return [];
-  const { columns, values } = result;
-  return values.map((row) =>
-    Object.fromEntries(columns.map((col, i) => [col, row[i]])),
-  );
+  try {
+    const stmt = db.prepare(sql);
+    try {
+      if (params.length > 0) stmt.bind(params);
+      const rows: Record<string, unknown>[] = [];
+      while (stmt.step()) {
+        rows.push(stmt.getAsObject());
+      }
+      return rows;
+    } finally {
+      stmt.free();
+    }
+  } finally {
+    db.close();
+  }
 }
 
 function obsDir(sid: string): string {
@@ -106,15 +118,17 @@ describe("Scenario 1 — session lifecycle", () => {
     const SQL = await initSqlJs();
     const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
     const rawDb = new SQL.Database();
-    for (const stmt of schema.split(";").filter((s) => s.trim())) {
-      rawDb.run(stmt + ";");
+    try {
+      rawDb.exec(schema);
+      rawDb.run(
+        `INSERT INTO sessions (id, project_hash, started_at, message_count)
+           VALUES (?, ?, ?, ?)`,
+        [SID, "test-project-hash", new Date().toISOString(), 0],
+      );
+      fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
+    } finally {
+      rawDb.close();
     }
-    rawDb.run(
-      `INSERT INTO sessions (id, project_hash, started_at, message_count)
-         VALUES (?, ?, ?, ?)`,
-      [SID, "test-project-hash", new Date().toISOString(), 0],
-    );
-    fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
 
     // Step 3: observe-pre writes to JSONL
     const preResult = runHook(HOOK_OBSERVE_PRE, {
@@ -152,7 +166,8 @@ describe("Scenario 1 — session lifecycle", () => {
     // Step 5: verify session row in DB has been updated
     const rows = await readDbRows(
       testDb,
-      `SELECT id, ended_at FROM sessions WHERE id = '${SID}'`,
+      `SELECT id, ended_at FROM sessions WHERE id = ?`,
+      [SID],
     );
     expect(rows.length, "session row exists").toBe(1);
     expect(String(rows[0].id), "session id matches").toBe(SID);
@@ -382,15 +397,17 @@ describe("Scenario 5 — cost tracking", () => {
     const SQL = await initSqlJs();
     const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
     const rawDb = new SQL.Database();
-    for (const stmt of schema.split(";").filter((s) => s.trim())) {
-      rawDb.run(stmt + ";");
+    try {
+      rawDb.exec(schema);
+      rawDb.run(
+        `INSERT INTO sessions (id, project_hash, started_at, message_count)
+         VALUES (?, ?, ?, ?)`,
+        [SID, "cost-test-project", new Date().toISOString(), 5],
+      );
+      fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
+    } finally {
+      rawDb.close();
     }
-    rawDb.run(
-      `INSERT INTO sessions (id, project_hash, started_at, message_count)
-       VALUES (?, ?, ?, ?)`,
-      [SID, "cost-test-project", new Date().toISOString(), 5],
-    );
-    fs.writeFileSync(testDb, Buffer.from(rawDb.export()));
 
     // Create minimal observations dir (so session-end-all doesn't skip)
     fs.mkdirSync(obsDir(SID), { recursive: true });
@@ -453,7 +470,8 @@ describe("Scenario 5 — cost tracking", () => {
     const rows = await readDbRows(
       testDb,
       `SELECT session_id, model, input_tokens, output_tokens, estimated_cost_usd
-         FROM cost_events WHERE session_id = '${SID}'`,
+         FROM cost_events WHERE session_id = ?`,
+      [SID],
     );
 
     expect(rows.length, "one cost_event row inserted").toBe(1);
