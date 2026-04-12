@@ -19,7 +19,7 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 - 15 agents, 11 commands, 22 skills, 19 rules (3 subdirs), 28 hook scripts, 1 pattern-definitions.json
 - 10 TypeScript sources + 1 schema.sql + 1 sql.js.d.ts in `scripts/lib/`
 - `settings.json` contains hooks config (6 event types, 20 hooks) + permissions.deny (14 rules)
-- `package.json` has 2 runtime deps (sql.js, zod) + 7 devDependencies
+- `package.json` has 2 runtime deps (sql.js ^1.x, zod ^4.0.1) + 7 devDependencies
 - Existing scripts follow pattern: async `main()`, try/catch with `process.exit(1)`, imports from `./lib/*.js`
 - 422 tests across 42 files, all passing. Tests use `vitest`, arrange-act-assert, temp dirs with cleanup
 
@@ -138,7 +138,7 @@ The most delicate part: merging settings.json and package.json without losing ta
       3. **enabledPlugins**: Preserve target plugins, add harness defaults if not present
       4. All other top-level keys in target: preserve as-is
     - `mergePackageJson(harnessPackage: Record<string, unknown>, targetPackage: Record<string, unknown>): { merged: Record<string, unknown>; warnings: string[] }` -- implements ADR-003 algorithm:
-      1. Add `sql.js` and `zod` to `dependencies` (warn if target has different version range)
+      1. Add `sql.js` and `zod@^4.0.1` to `dependencies` (warn if target has different version range). Zod v4 is pinned because plan-003 starts new projects with a clean slate -- no migration cost, and v4 delivers 100x fewer tsc instantiations than v3 per the upstream changelog.
       2. Add `typescript` to `devDependencies` (warn if target has different version range)
       3. Add/merge `build` script that includes the `tsc && cpSync` pattern
       4. Add `postinstall` script if not present (warn if exists and differs)
@@ -173,7 +173,7 @@ The most delicate part: merging settings.json and package.json without losing ta
 - [ ] Step 3.3: Write tests for mergePackageJson and mergeTsconfig (S)
   - File: `tests/lib/bootstrap-merge.test.ts` (append to same file)
   - Tests (~8):
-    - Adds sql.js and zod to dependencies
+    - Adds sql.js and zod@^4.0.1 to dependencies
     - Adds typescript to devDependencies
     - Warns when target has conflicting version for sql.js
     - Preserves target's existing dependencies untouched
@@ -459,7 +459,7 @@ Handle error scenarios, validation, and boundary conditions.
 - [ ] Target has generated `README.md` with project name
 - [ ] `settings.json` in target contains all 20 hooks with universal cross-platform commands and 14+ deny rules
 - [ ] Hook commands use universal format by default (works on both Windows and Mac/Linux)
-- [ ] `package.json` in target includes sql.js, zod as dependencies and typescript as devDependency
+- [ ] `package.json` in target includes sql.js, zod@^4.0.1 as dependencies and typescript as devDependency
 - [ ] `CLAUDE.md` is generated with agent table, command catalog, and TODO placeholders
 - [ ] `.claude/.kadmon-version` is written with correct version, date, and commit hash
 - [ ] `--diff` mode shows changes without modifying any target files
