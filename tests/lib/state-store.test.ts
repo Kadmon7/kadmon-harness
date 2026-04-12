@@ -317,4 +317,54 @@ describe("state-store", () => {
     expect(deleted).toBe(0);
     expect(getSession("test-running")).not.toBeNull();
   });
+
+  // ─── Transaction rollback ───
+
+  it("db.transaction() rolls back on error, resets inTransaction, re-throws", async () => {
+    // Grab the already-opened :memory: singleton (beforeEach opened it)
+    const db = await openDb(":memory:");
+
+    // Seed a baseline row so we can verify rollback only affects the
+    // transaction's writes, not pre-existing state.
+    upsertSession({
+      id: "rollback-baseline",
+      projectHash: "test-project",
+      startedAt: "2026-01-01T00:00:00Z",
+    });
+
+    // Run a transaction that performs a write then throws partway through.
+    let caughtError: Error | null = null;
+    try {
+      db.transaction(() => {
+        db.prepare(
+          "INSERT INTO sessions (id, project_hash, started_at) VALUES (@id, @ph, @st)",
+        ).run({
+          id: "rollback-victim",
+          ph: "test-project",
+          st: "2026-01-01T00:00:00Z",
+        });
+        throw new Error("boom");
+      })();
+    } catch (err) {
+      caughtError = err as Error;
+    }
+
+    // 1. Error propagates unchanged (re-throw)
+    expect(caughtError).not.toBeNull();
+    expect(caughtError?.message).toBe("boom");
+
+    // 2. The sentinel row is NOT visible — rollback was applied
+    expect(getSession("rollback-victim")).toBeNull();
+
+    // 3. The baseline row IS still visible — unrelated state preserved
+    expect(getSession("rollback-baseline")).not.toBeNull();
+
+    // 4. inTransaction flag was reset — a subsequent normal write must persist
+    upsertSession({
+      id: "post-rollback",
+      projectHash: "test-project",
+      startedAt: "2026-01-02T00:00:00Z",
+    });
+    expect(getSession("post-rollback")).not.toBeNull();
+  });
 });

@@ -163,8 +163,13 @@ export async function openDb(customPath?: string): Promise<WrappedDb> {
   }
 
   db = wrapSqlJsDb(rawDb, dbPath);
-  db.pragma("foreign_keys = ON");
-  db.pragma("journal_mode = WAL");
+  // Capture the just-assigned singleton in a local const so the transaction
+  // closure below does not need a non-null assertion on the module-level `db`
+  // (TypeScript cannot narrow a `let db: WrappedDb | null` across closure
+  // boundaries). See rules/common/coding-style.md — no `!` without justification.
+  const localDb = db;
+  localDb.pragma("foreign_keys = ON");
+  localDb.pragma("journal_mode = WAL");
 
   // Apply schema — one saveToDisk() at commit instead of one per statement
   const { fileURLToPath } = await import("node:url");
@@ -172,13 +177,13 @@ export async function openDb(customPath?: string): Promise<WrappedDb> {
   const schemaPath = path.join(thisDir, "schema.sql");
   const schema = fs.readFileSync(schemaPath, "utf-8");
   const stmts = schema.split(";").filter((s) => s.trim());
-  db.transaction(() => {
+  localDb.transaction(() => {
     for (const stmt of stmts) {
-      db!.exec(stmt + ";");
+      localDb.exec(stmt + ";");
     }
   })();
 
-  return db;
+  return localDb;
 }
 
 export function getDb(): WrappedDb {

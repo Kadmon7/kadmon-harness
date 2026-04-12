@@ -32,14 +32,23 @@ export function extractBashFiles(cmd) {
 /**
  * Generate a heuristic session summary from observations.
  * @param {string} obsPath - Path to observations.jsonl
+ * @param {string} obsPath - Path to observations JSONL file
+ * @param {string|null} [preReadContent] - Optional pre-read JSONL content (avoids redundant disk I/O)
  * @returns {{ summary: string, tasks: string[], topFiles: string[], bashFiles: string[] }}
  */
-export function generateSummary(obsPath) {
-  if (!fs.existsSync(obsPath)) {
-    return { summary: "", tasks: [], topFiles: [], bashFiles: [] };
+export function generateSummary(obsPath, preReadContent = null) {
+  // Prefer pre-read content when caller already has it; fall back to disk read.
+  let rawContent;
+  if (preReadContent !== null && preReadContent !== undefined) {
+    rawContent = preReadContent;
+  } else {
+    if (!fs.existsSync(obsPath)) {
+      return { summary: "", tasks: [], topFiles: [], bashFiles: [] };
+    }
+    rawContent = fs.readFileSync(obsPath, "utf8");
   }
 
-  const lines = fs.readFileSync(obsPath, "utf8").split("\n").filter(Boolean);
+  const lines = rawContent.split("\n").filter(Boolean);
   if (lines.length === 0) {
     return { summary: "", tasks: [], topFiles: [], bashFiles: [] };
   }

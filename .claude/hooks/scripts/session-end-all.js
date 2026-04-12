@@ -76,11 +76,14 @@ async function main() {
     const agentPre = new Map(); // track Agent tool_pre events by timestamp for duration pairing
     const extractedAgents = [];
 
-    if (fs.existsSync(obsPath)) {
-      for (const line of fs
-        .readFileSync(obsPath, "utf8")
-        .split("\n")
-        .filter(Boolean)) {
+    // Read observations.jsonl once and reuse — avoids redundant disk I/O in the 3
+    // downstream consumers (this loop, generateSummary, Fallback 2 line count).
+    const obsContent = fs.existsSync(obsPath)
+      ? fs.readFileSync(obsPath, "utf8")
+      : null;
+
+    if (obsContent !== null) {
+      for (const line of obsContent.split("\n").filter(Boolean)) {
         try {
           const e = JSON.parse(line);
           if (e.eventType === "tool_pre") {
@@ -158,7 +161,7 @@ async function main() {
       summary,
       tasks: extractedTasks,
       bashFiles,
-    } = generateSummary(obsPath);
+    } = generateSummary(obsPath, obsContent);
     // Merge bash-extracted file paths into filesModified
     if (bashFiles && bashFiles.length > 0) {
       for (const f of bashFiles) filesModified.add(f);
@@ -248,12 +251,9 @@ async function main() {
           }
         }
 
-        // Fallback 2: estimate from observations
-        if (!inputTokens && !outputTokens && fs.existsSync(obsPath)) {
-          const lineCount = fs
-            .readFileSync(obsPath, "utf8")
-            .split("\n")
-            .filter(Boolean).length;
+        // Fallback 2: estimate from observations (reuse the pre-read content)
+        if (!inputTokens && !outputTokens && obsContent !== null) {
+          const lineCount = obsContent.split("\n").filter(Boolean).length;
           const toolCalls = Math.ceil(lineCount / 2);
           if (toolCalls > 0) {
             inputTokens = toolCalls * 1200;

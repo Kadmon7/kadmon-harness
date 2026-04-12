@@ -2,6 +2,10 @@
 
 > User-level config at `~/.claude/CLAUDE.md` (identity, language, environment)
 
+## Project Overview
+
+Kadmon Harness is Claude Code's operative layer — a portable set of agents, commands, skills, hooks, and rules that encode how Claude should work on any project. Built once, carried to every new project via bootstrap. Not a product; infrastructure.
+
 ## Quick Start
 ```bash
 npm install && npm run build && npx vitest run
@@ -19,6 +23,32 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 - Runtime: Claude Code CLI on Windows (Git Bash)
 - MCPs: Context7 (live documentation)
 - GitHub: `gh` CLI (Kadmon7, no MCP plugin)
+- File size: < 200 lines preferred, 400 normal max, 800 hard limit (refactor required)
+
+## File Structure
+
+```
+Kadmon-Harness/
+|-- .claude/
+|   |-- agents/           # 15 specialist agents (markdown definitions)
+|   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
+|   |-- commands/         # 12 slash commands
+|   |-- skills/           # 22 reference skills
+|   |-- rules/            # 19 rules (common + typescript + python)
+|   |-- hooks/scripts/    # 20 registered hook scripts + shared modules
+|   `-- settings.json     # Hook registration + permissions
+|-- scripts/
+|   |-- lib/              # TypeScript sources (state-store, instincts, etc)
+|   |-- dashboard.ts      # /kadmon-harness entry point
+|   `-- *.ts              # Migration + cleanup scripts
+|-- tests/                # Vitest suite (419 passing)
+|-- docs/
+|   |-- decisions/        # ADRs
+|   |-- plans/            # Implementation plans
+|   `-- roadmap/          # Future version planning
+|-- CLAUDE.md             # This file
+`-- package.json
+```
 
 ## Environment Variables
 - `KADMON_TEST_DB` — Override SQLite DB path (`:memory:` in tests)
@@ -87,6 +117,15 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 | `gh` | GitHub (PRs, issues) — no MCP needed |
 | `node` / `npm` / `npx` | Runtime, packages |
 | `git` | Version control |
+
+## Rules
+
+19 rules organized by scope in `.claude/rules/`:
+- `common/` — coding-style, security, testing, patterns, performance, git-workflow, development-workflow, agents, hooks
+- `typescript/` — ts-specific coding-style, patterns, security, testing, hooks
+- `python/` — py-specific coding-style, patterns, security, testing, hooks
+
+Rules auto-load based on file context. See `.claude/rules/common/agents.md` for agent orchestration rules.
 
 ## Hooks
 20 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
