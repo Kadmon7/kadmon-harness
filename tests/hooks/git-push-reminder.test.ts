@@ -9,7 +9,10 @@ const SESSION_ID = `test-push-${Date.now()}`;
 const OBS_DIR = path.join(os.tmpdir(), "kadmon", SESSION_ID);
 const OBS_FILE = path.join(OBS_DIR, "observations.jsonl");
 
-function runHook(input: object): {
+function runHook(
+  input: object,
+  env: Record<string, string> = {},
+): {
   code: number;
   stdout: string;
   stderr: string;
@@ -19,6 +22,7 @@ function runHook(input: object): {
       encoding: "utf8",
       input: JSON.stringify(input),
       stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env, ...env },
     });
     return { code: 0, stdout, stderr: "" };
   } catch (err: unknown) {
@@ -61,17 +65,20 @@ describe("git-push-reminder", () => {
     expect(r.code).toBe(0);
   });
 
-  it("warns when git push and no verify/review in observations", () => {
+  it("warns when git push and no verify/review in observations (production code)", () => {
     writeObservations([
       { eventType: "tool_pre", toolName: "Read", metadata: { command: null } },
     ]);
-    const r = runHook({
-      session_id: SESSION_ID,
-      tool_input: { command: "git push origin main" },
-    });
+    const r = runHook(
+      {
+        session_id: SESSION_ID,
+        tool_input: { command: "git push origin main" },
+      },
+      { KADMON_TEST_PUSH_FILES: "scripts/lib/state-store.ts" },
+    );
     expect(r.code).toBe(1);
     expect(r.stderr).toContain("typecheck/tests not run");
-    expect(r.stderr).toContain("kody not invoked");
+    expect(r.stderr).toContain("production code unreviewed");
   });
 
   it("exits 0 when observations contain verify and review entries", () => {
@@ -94,7 +101,7 @@ describe("git-push-reminder", () => {
     expect(r.code).toBe(0);
   });
 
-  it("warns when only verify found but no review", () => {
+  it("warns when only verify found but no review (production code)", () => {
     writeObservations([
       {
         eventType: "tool_pre",
@@ -102,16 +109,60 @@ describe("git-push-reminder", () => {
         metadata: { command: "npx vitest run" },
       },
     ]);
-    const r = runHook({
-      session_id: SESSION_ID,
-      tool_input: { command: "git push origin main" },
-    });
+    const r = runHook(
+      {
+        session_id: SESSION_ID,
+        tool_input: { command: "git push origin main" },
+      },
+      { KADMON_TEST_PUSH_FILES: ".claude/hooks/scripts/quality-gate.js" },
+    );
     expect(r.code).toBe(1);
-    expect(r.stderr).toContain("kody not invoked");
+    expect(r.stderr).toContain("production code unreviewed");
     expect(r.stderr).not.toContain("typecheck/tests not run");
   });
 
-  it("warns when only review found but no verify", () => {
+  it("does NOT warn about review for docs-only commits (skip tier)", () => {
+    writeObservations([
+      {
+        eventType: "tool_pre",
+        toolName: "Bash",
+        metadata: { command: "npx vitest run" },
+      },
+    ]);
+    const r = runHook(
+      {
+        session_id: SESSION_ID,
+        tool_input: { command: "git push origin main" },
+      },
+      { KADMON_TEST_PUSH_FILES: "README.md:docs/roadmap/v1.1-learning-system.md" },
+    );
+    // No production code, verify present, review absent — skip tier is legitimate
+    expect(r.code).toBe(0);
+    expect(r.stderr).not.toContain("production code unreviewed");
+    expect(r.stderr).not.toContain("kody not invoked");
+  });
+
+  it("warns when 10+ files unreviewed even without production code (refactor catch)", () => {
+    writeObservations([
+      {
+        eventType: "tool_pre",
+        toolName: "Bash",
+        metadata: { command: "npx vitest run" },
+      },
+    ]);
+    const tenFiles = Array.from({ length: 10 }, (_, i) => `docs/file-${i}.md`).join(":");
+    const r = runHook(
+      {
+        session_id: SESSION_ID,
+        tool_input: { command: "git push origin main" },
+      },
+      { KADMON_TEST_PUSH_FILES: tenFiles },
+    );
+    expect(r.code).toBe(1);
+    expect(r.stderr).toContain("10 files unreviewed");
+  });
+
+  it("warns when only review found but no verify (skip tier files)", () => {
     writeObservations([
       {
         eventType: "tool_pre",
@@ -119,13 +170,18 @@ describe("git-push-reminder", () => {
         metadata: { agentType: "kody", command: null },
       },
     ]);
-    const r = runHook({
-      session_id: SESSION_ID,
-      tool_input: { command: "git push origin main" },
-    });
+    // Empty file list simulates a skip-tier commit (no production code, no
+    // large refactor). Only the verify warning should fire.
+    const r = runHook(
+      {
+        session_id: SESSION_ID,
+        tool_input: { command: "git push origin main" },
+      },
+      { KADMON_TEST_PUSH_FILES: "" },
+    );
     expect(r.code).toBe(1);
     expect(r.stderr).toContain("typecheck/tests not run");
-    expect(r.stderr).not.toContain("kody not invoked");
+    expect(r.stderr).not.toContain("production code unreviewed");
   });
 
   it("exits 0 when observations file does not exist", () => {

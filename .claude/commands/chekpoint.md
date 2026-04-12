@@ -1,13 +1,31 @@
 ---
-description: Save progress — full verification + intelligent review + commit and push
+description: Save progress — tiered verification + review + commit and push (full/lite/skip)
 agent: kody, typescript-reviewer, python-reviewer, spektr, orakle
 skills: [verification-loop, coding-standards, receiving-code-review, safety-guard]
 ---
 
 ## Purpose
-All-in-one quality gate and commit. Runs mechanical checks, invokes language-aware reviewers in parallel, consolidates findings, and only commits if everything passes. Absorbs the former /kcheck pipeline.
+All-in-one quality gate and commit. Runs mechanical checks, invokes language-aware reviewers at the appropriate tier, consolidates findings, and only commits if everything passes. Absorbs the former /kcheck pipeline.
 
 > **Note:** The command name `/chekpoint` (one 'c') is intentional — stylistic K-naming convention used across all harness commands.
+
+## Tier Selection
+
+Before executing, classify the diff scope and choose a tier. The authoritative tier matrix lives in `.claude/rules/common/development-workflow.md` (section "/chekpoint Tiers"). Summary:
+
+- **Full** (default) — production code, refactors, schema, security, multi-file changes (5+). Runs all 4 phases with 4 reviewers in parallel + kody consolidation.
+- **Lite** — test-only additions, single-file TS refactor <50 lines, small hook edits. Runs Phase 1 + ONE scope-matched reviewer only.
+- **Skip** — docs-only, config-only, agent/rules metadata, typos, reverts. Runs Phase 1 verification + manual `git diff` review by Claude. No reviewers.
+
+**Default when ambiguous: full.** Never apply Skip to anything touching runtime behavior.
+
+User may override by saying `"chekpoint lite"`, `"skip chekpoint"`, etc. Document the selected tier in the commit message footer: `Reviewed: full` or `Reviewed: lite (ts-reviewer)` or `Reviewed: skip (verified mechanically)`.
+
+### Tier branching
+
+- **Full tier** → execute Phase 1, Phase 2a, Phase 2b, Phase 3, Phase 4 (all steps below)
+- **Lite tier** → execute Phase 1, then a SINGLE Phase 2a reviewer (typescript-reviewer for test/TS; add spektr only if hook edit has security surface), skip Phase 2b (no consolidation needed), skip Phase 3 BLOCK gate unless that single reviewer reports BLOCK, execute Phase 4
+- **Skip tier** → execute Phase 1 only, then do a manual `git diff` scan yourself (Claude), execute Phase 4 directly
 
 ## Steps
 

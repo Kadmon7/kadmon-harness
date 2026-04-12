@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Hook: git-push-reminder | Trigger: PreToolUse (Bash)
-// Purpose: Warn before git push if /verify or code-review wasn't run. Exit 1 as warning.
+// Purpose: Warn before git push if /verify wasn't run, or if production code will push without review. Exit 1 as warning.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
 try {
@@ -40,7 +41,59 @@ try {
       }
       if (!hasVerify)
         warnings.push("typecheck/tests not run — run /chekpoint first");
-      if (!hasReview) warnings.push("kody not invoked — run /chekpoint first");
+
+      // Relaxed review check: only warn if unpushed commits contain production
+      // code OR large refactors (>= 10 files). Docs/metadata/config commits are
+      // legitimate "skip tier" commits and should not trigger a false alarm.
+      // See .claude/rules/common/development-workflow.md "/chekpoint Tiers".
+      if (!hasReview) {
+        let hasProductionCode = false;
+        let fileCount = 0;
+        // Test hook: inject a colon-separated file list to bypass git diff.
+        // Production code never sets this env var.
+        const testFiles = process.env.KADMON_TEST_PUSH_FILES;
+        if (testFiles !== undefined) {
+          const files = testFiles.split(":").filter(Boolean);
+          fileCount = files.length;
+          hasProductionCode = files.some(
+            (f) =>
+              (f.startsWith("scripts/lib/") ||
+                f.startsWith(".claude/hooks/scripts/")) &&
+              (f.endsWith(".ts") || f.endsWith(".js")),
+          );
+        } else {
+          try {
+            const diffOutput = execFileSync(
+              "git",
+              ["diff", "@{u}..HEAD", "--name-only"],
+              { encoding: "utf8", timeout: 3000, stdio: ["ignore", "pipe", "ignore"] },
+            );
+            const files = diffOutput.split("\n").filter(Boolean);
+            fileCount = files.length;
+            hasProductionCode = files.some(
+              (f) =>
+                (f.startsWith("scripts/lib/") ||
+                  f.startsWith(".claude/hooks/scripts/")) &&
+                (f.endsWith(".ts") || f.endsWith(".js")),
+            );
+          } catch {
+            // No upstream tracked, or not a git repo, or git unavailable —
+            // fall back to warning (safe default: assume review needed).
+            hasProductionCode = true;
+          }
+        }
+
+        if (hasProductionCode) {
+          warnings.push(
+            "production code unreviewed — run /chekpoint (full tier) first",
+          );
+        } else if (fileCount >= 10) {
+          warnings.push(
+            `${fileCount} files unreviewed — run /chekpoint (full tier) first`,
+          );
+        }
+        // else: docs/metadata/typo commits — no warning (legitimate skip tier)
+      }
     }
   }
 
