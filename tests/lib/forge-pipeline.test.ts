@@ -377,7 +377,7 @@ describe("forge-pipeline", () => {
 
     expect(after).toHaveLength(before.length);
     expect(countsAfter.active).toBe(countsBefore.active);
-    expect(countsAfter.promoted).toBe(countsBefore.promoted);
+    expect(countsAfter.promotable).toBe(countsBefore.promotable);
     expect(countsAfter.archived).toBe(countsBefore.archived);
   });
 
