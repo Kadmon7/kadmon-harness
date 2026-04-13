@@ -291,4 +291,32 @@ describe("forge-report-writer", () => {
     expect(fs.existsSync(nested)).toBe(true);
     expect(fs.existsSync(written)).toBe(true);
   });
+
+  // ─── Security hardening ───
+
+  it("writeClusterReport rejects sessionId with path traversal", () => {
+    const report = makeReport({ sessionId: "../../etc" });
+    expect(() => writeClusterReport(report, tmpDir)).toThrowError(
+      /unsafe sessionId/i,
+    );
+  });
+
+  it("writeClusterReport rejects baseDir outside ~/.kadmon and tmpdir", () => {
+    const report = makeReport({ sessionId: "sess-safe" });
+    expect(() => writeClusterReport(report, "/etc")).toThrowError(
+      /unsafe baseDir/i,
+    );
+  });
+
+  it("pruneOldReports rejects baseDir outside ~/.kadmon and tmpdir", () => {
+    expect(() => pruneOldReports("/etc", 20)).toThrowError(
+      /unsafe baseDir/i,
+    );
+  });
+
+  it("readClusterReport wraps JSON parse errors with file path context", () => {
+    const badPath = path.join(tmpDir, "forge-clusters-sess-bad.json");
+    fs.writeFileSync(badPath, "{not valid json}");
+    expect(() => readClusterReport(badPath)).toThrowError(/failed to parse/i);
+  });
 });

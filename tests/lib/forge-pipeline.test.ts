@@ -381,6 +381,26 @@ describe("forge-pipeline", () => {
     expect(countsAfter.archived).toBe(countsBefore.archived);
   });
 
+  // ─── Security hardening: sessionId validation ───
+
+  it("rejects path-traversal sessionId with clear error", async () => {
+    await expect(
+      runForgePipeline({
+        projectHash: "proj-sec",
+        sessionId: "../../etc",
+      }),
+    ).rejects.toThrowError(/unsafe sessionId/i);
+  });
+
+  it("rejects sessionId containing slash", async () => {
+    await expect(
+      runForgePipeline({
+        projectHash: "proj-sec",
+        sessionId: "foo/bar",
+      }),
+    ).rejects.toThrowError(/unsafe sessionId/i);
+  });
+
   // ─── Determinism of clustering ───
 
   it("T13: computeClusterReport — deterministic output for same input (pure function)", () => {

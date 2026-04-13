@@ -61,6 +61,19 @@ export interface ForgePreview {
 
 // ─── Thresholds (mirror instinct-manager semantics) ───
 
+// Whitelist sessionId to block path traversal through the filesystem
+// helpers (observations JSONL path, cluster report filename). UUID-ish
+// shape: alphanumeric + dash + underscore only.
+const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeSessionId(sessionId: string): void {
+  if (!SAFE_ID_PATTERN.test(sessionId)) {
+    throw new Error(
+      `forge-pipeline: unsafe sessionId "${sessionId}" — must match /^[A-Za-z0-9_-]+$/`,
+    );
+  }
+}
+
 const INITIAL_CONFIDENCE = 0.3;
 const REINFORCE_DELTA = 0.1;
 const MAX_CONFIDENCE = 0.9;
@@ -75,6 +88,7 @@ export async function runForgePipeline(
   opts: ForgePipelineOptions,
 ): Promise<ForgePreview> {
   const { projectHash, sessionId } = opts;
+  assertSafeSessionId(sessionId);
 
   // Step 1: Read observations
   const { toolSeq, lines } = readObservationsForSession(sessionId);

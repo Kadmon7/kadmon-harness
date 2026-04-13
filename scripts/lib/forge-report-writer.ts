@@ -15,8 +15,44 @@ import { nowISO } from "./utils.js";
 const DEFAULT_KEEP = 20;
 const EXPORT_SCHEMA_VERSION = 1;
 
+// Whitelist sessionId to block path traversal via the filename.
+const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeSessionId(sessionId: string): void {
+  if (!SAFE_ID_PATTERN.test(sessionId)) {
+    throw new Error(
+      `forge-report-writer: unsafe sessionId "${sessionId}" — must match /^[A-Za-z0-9_-]+$/`,
+    );
+  }
+}
+
+// Constrain baseDir to the kadmon root (production) or the OS tmpdir
+// (tests). pruneOldReports unlinks matching files, so a future caller
+// passing a user-derived path could wipe arbitrary files without this.
+function kadmonRoot(): string {
+  return path.join(os.homedir(), ".kadmon");
+}
+
+function isUnder(target: string, root: string): boolean {
+  const resolved = path.resolve(target);
+  const rootResolved = path.resolve(root);
+  return (
+    resolved === rootResolved ||
+    resolved.startsWith(rootResolved + path.sep)
+  );
+}
+
+function assertSafeBaseDir(baseDir: string): void {
+  if (isUnder(baseDir, kadmonRoot()) || isUnder(baseDir, os.tmpdir())) {
+    return;
+  }
+  throw new Error(
+    `forge-report-writer: unsafe baseDir "${baseDir}" — must resolve under ~/.kadmon or os.tmpdir()`,
+  );
+}
+
 function defaultBaseDir(): string {
-  return path.join(os.homedir(), ".kadmon", "forge-reports");
+  return path.join(kadmonRoot(), "forge-reports");
 }
 
 // ─── Writer ───
@@ -25,6 +61,8 @@ export function writeClusterReport(
   report: ClusterReport,
   baseDir: string = defaultBaseDir(),
 ): string {
+  assertSafeBaseDir(baseDir);
+  assertSafeSessionId(report.sessionId);
   fs.mkdirSync(baseDir, { recursive: true });
   const destPath = path.join(baseDir, `forge-clusters-${report.sessionId}.json`);
   fs.writeFileSync(destPath, JSON.stringify(report, null, 2) + "\n", "utf8");
@@ -35,7 +73,16 @@ export function writeClusterReport(
 
 export function readClusterReport(filePath: string): ClusterReport {
   const raw = fs.readFileSync(filePath, "utf8");
-  const parsed: unknown = JSON.parse(raw);
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error: unknown) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `forge-report-writer: failed to parse ${filePath} as JSON — ${detail}`,
+    );
+  }
 
   if (
     typeof parsed !== "object" ||
@@ -63,6 +110,7 @@ export function pruneOldReports(
   baseDir: string,
   keep: number = DEFAULT_KEEP,
 ): number {
+  assertSafeBaseDir(baseDir);
   if (!fs.existsSync(baseDir)) return 0;
 
   const entries = fs
