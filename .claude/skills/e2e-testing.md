@@ -1,6 +1,6 @@
 ---
 name: e2e-testing
-description: Full workflow testing with real dependencies — session lifecycle, instinct lifecycle, hook chains, SQLite integration. Use this skill whenever writing tests that span multiple components, testing hook stdin/stdout/exit codes, verifying database operations end-to-end, or when the user says "E2E", "integration test", "full workflow test", or "test the whole flow". Also use when deciding what to mock vs use real (the decision matrix inside covers SQLite, file system, Supabase, GitHub, hooks).
+description: Full workflow testing with real dependencies — session lifecycle, instinct lifecycle, hook chains, SQLite integration, Windows-safe hook stdin harness. Use this skill whenever writing tests that span multiple components, testing hook stdin/stdout/exit codes via execFileSync, verifying database operations end-to-end, testing the session -> instinct -> hook chain, testing Playwright browser flows, or when the user says "E2E", "integration test", "full workflow test", "end to end", "test the whole flow", "hook test", or "instinct promotion test". Also use when deciding what to mock vs use real — the decision matrix inside covers SQLite, file system, Supabase, GitHub API, and hooks. Do not mock the state-store — the harness learned this the hard way.
 ---
 
 # E2E Testing
@@ -66,5 +66,81 @@ it('create -> reinforce -> promote', async () => {
 - NEVER mock the local state-store — test against real `:memory:` DB
 - MUST use `execFileSync` with `input` option for hook testing (Windows-safe)
 
+### Hook Testing (Windows-safe)
+
+Hooks are `.js` scripts that read JSON from stdin and exit with a specific code. Test them as real subprocesses — never by importing the module. The harness learned this the hard way: pipes and string interpolation of stdin do not work reliably on Windows; `execFileSync` with the `input` option is the only path that works everywhere.
+
+```typescript
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+
+it('block-no-verify blocks git commit --no-verify (exit 2)', () => {
+  const input = JSON.stringify({
+    tool_name: 'Bash',
+    tool_input: { command: 'git commit --no-verify -m "bypass"' }
+  });
+  try {
+    execFileSync('node', ['.claude/hooks/scripts/block-no-verify.js'], {
+      input,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${process.env.PATH}:/c/Program Files/nodejs` }
+    });
+    expect.unreachable('hook should have blocked');
+  } catch (e: unknown) {
+    const err = e as { status: number; stderr: string };
+    expect(err.status).toBe(2);
+    expect(err.stderr).toContain('--no-verify is not allowed');
+  }
+});
+
+it('block-no-verify allows a normal git commit (exit 0)', () => {
+  const input = JSON.stringify({
+    tool_name: 'Bash',
+    tool_input: { command: 'git commit -m "feat: ok"' }
+  });
+  // No throw means exit 0
+  execFileSync('node', ['.claude/hooks/scripts/block-no-verify.js'], {
+    input, encoding: 'utf8'
+  });
+});
+```
+
+Read both branches: exit 0 and exit 2. A hook that only tests one path has a silent failure mode.
+
+## Anti-Patterns
+
+| Anti-Pattern | Why it fails | Fix |
+|---|---|---|
+| Sharing a DB handle between tests | State bleeds between cases — one test sees the other's rows and passes by accident | `await openDb(':memory:')` inside `beforeEach`; new DB per test |
+| Mocking the state-store | The SQL layer is where most bugs live; mocking it means your test validates nothing real | Use `:memory:` SQLite — it's faster than you think and catches real query bugs |
+| Tests that depend on order | Reordering or focusing a single test breaks the suite | Each `it()` arranges its own fixtures; never reuse state from a previous case |
+| Missing cleanup | Temp files accumulate, DB handles leak, Windows refuses to delete locked files later | `afterEach` closes DB handles and removes any temp dirs created in the test |
+| Piping hook stdin via shell `echo` | Works on macOS, silently fails or truncates on Windows Git Bash | `execFileSync('node', [script], { input: jsonString })` — let Node pipe stdin |
+| Testing only the happy path for a hook | Exit 0 is trivial; exit 2 / stderr is where regressions hide | Test both the blocking case and the allowing case for every guard hook |
+
+## Gotchas
+
+- **Windows PATH for Node**: subprocess invocations must extend `PATH` with `/c/Program Files/nodejs` or `execFileSync` may fail to find `node` when Vitest spawns it
+- **`execFileSync` throws on non-zero exit**: wrap in `try/catch` and read `.status` and `.stderr` from the error object; do not expect a return value for blocking hooks
+- **`npx tsx -e` produces no output on Windows**: for inline TypeScript scripts use a temp `.ts` file and run it with `npx tsx path/to/file.ts`
+- **`new URL('...').pathname` encodes spaces as `%20`**: when a test path contains spaces (e.g., `C:\Command Center\...`), use `fileURLToPath()` from `node:url` to get a filesystem-safe string
+- **Stop hooks only fire on clean termination**: a crashed Claude Code session does NOT trigger `session-end-all`; tests that rely on end-of-session behavior must invoke the hook directly
+- **sql.js saveToDisk in tests**: tests use `:memory:` so persistence is a no-op, but production writes require `saveToDisk()` after every mutation — verify this in integration tests that exercise the production code path
+
+## Integration
+
+- **kartograf agent** (sonnet) — owner of this skill. kartograf specializes in full workflow tests: Vitest for the harness itself, Playwright for web apps. Invoked via `/skanner` (Phase 1b). Never auto-invoked — E2E runs are expensive.
+- **/skanner command** — runs `kartograf` in parallel with `arkonte` (performance). Phase 1b executes the critical harness workflows: session lifecycle, instinct lifecycle, hook chain, no-context-guard, cost tracking.
+- **/abra-kdabra command** — when `needs_tdd: true` and the plan mentions E2E scope, feniks consults this skill during the red phase to structure workflow-level tests alongside unit tests.
+- **tdd-workflow skill** — unit tests are the default; E2E is the escalation when a workflow spans multiple modules (session + hook + instinct + DB). This skill picks up where tdd-workflow stops.
+
+## Rules
+- Always set up `:memory:` SQLite in `beforeEach` and tear it down in `afterEach`
+- Never share test state between `describe` blocks — each test is an island
+- Always verify observable outcomes: SQLite rows, files written, exit codes, stderr text
+- Always use `execFileSync` with `input` for hook tests — pipes fail on Windows
+- Never mock the local `state-store` — real `:memory:` is cheaper and catches real bugs
+- Test both pass and fail branches for every guard hook
+
 ## no_context Application
-E2E tests verify actual system behavior, not assumed behavior.
+E2E tests verify actual system behavior, not assumed behavior. A unit test can pass while the real workflow is broken at the boundary where two modules meet; an E2E test walks the actual path a session takes through the harness. If a hook claims to block `--no-verify`, the E2E test proves it does by running the real hook with real stdin and checking the real exit code — not by reading the source and assuming. That's `no_context` at the workflow level: evidence, not assumption.

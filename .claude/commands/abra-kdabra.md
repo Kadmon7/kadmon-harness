@@ -1,7 +1,7 @@
 ---
 description: Smart planning for complex tasks — arkitect -> konstruct -> feniks (if TDD) -> kody chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
 agent: arkitect, konstruct, feniks, kody
-skills: [architecture-decision-records, tdd-workflow]
+skills: [architecture-decision-records, tdd-workflow, eval-harness]
 ---
 
 ## Purpose

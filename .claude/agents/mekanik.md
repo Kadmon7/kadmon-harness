@@ -4,7 +4,7 @@ description: Use PROACTIVELY when TypeScript compilation fails, Vitest tests err
 model: sonnet
 tools: Read, Grep, Glob, Bash, Edit
 memory: project
-skills: systematic-debugging
+skills: systematic-debugging, agent-introspection-debugging
 ---
 
 ## Skill Reference

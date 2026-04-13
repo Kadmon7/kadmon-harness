@@ -1,6 +1,6 @@
 ---
 name: receiving-code-review
-description: Evaluate code review feedback with technical rigor before implementing. Use when receiving code review feedback, especially if suggestions seem unclear, technically questionable, or conflict with project conventions. Prevents blind acceptance and performative agreement. Use before implementing ANY code review suggestions from external reviewers or automated tools.
+description: Evaluate code review feedback with technical rigor before implementing. Use this skill whenever receiving code review feedback from kody, typescript-reviewer, spektr, external reviewers, GitHub PR comments, or any automated tool; especially when suggestions seem unclear, technically questionable, YAGNI-violating, or conflict with project conventions; when the user says "review fixes", "address PR comments", "the reviewer said", or when tempted to respond with "you're absolutely right!"; and always before implementing ANY review suggestion. The skill blocks performative agreement ("great catch!") and forces verification against the actual codebase — wrong suggestions get technical pushback, not compliance.
 ---
 
 # Code Review Reception
@@ -127,3 +127,8 @@ gh api repos/{owner}/{repo}/pulls/{pr}/comments/{id}/replies
 
 **Project agents:**
 - kody — produces the review feedback this skill helps process
+- typescript-reviewer, spektr, orakle, python-reviewer — also produce feedback that runs through this evaluation pattern
+
+## no_context Application
+
+A reviewer's comment is a claim, not a verdict. The `no_context` principle demands evidence: before implementing a suggestion, verify it against the actual codebase — grep for the symbol, read the surrounding code, check whether the condition the reviewer assumes is actually true. External reviewers (especially automated tools) often lack context about Windows-specific constraints, project conventions, or prior architectural decisions. "The reviewer said so" is not evidence; running the code and checking the result is.

@@ -4,7 +4,7 @@ description: Use PROACTIVELY after commits that add features, change behavior, o
 model: opus
 tools: Read, Grep, Glob, Write, Bash, Edit
 memory: project
-skills: docs-sync
+skills: docs-sync, skill-stocktake, rules-distill
 ---
 
 ## Skill Reference

@@ -149,6 +149,13 @@ ORDER BY n_dead_tup DESC;
 - `EXPLAIN ANALYZE` is your friend -- always test queries before deploying
 - Connection pooling (Supavisor/PgBouncer) is essential for serverless -- direct connections exhaust `max_connections`
 
+## Integration
+- **orakle agent** (sonnet) — primary consumer. Auto-invoked on SQL/schema/migration/Supabase edits. Reads this skill to validate indexes, RLS wraps, and query shapes during `/chekpoint`.
+- **arkonte agent** (sonnet) — performance profiling. Uses the slow-query detection block in this skill to surface O(n^2) queries and unindexed foreign keys as part of `/skanner`.
+- **database-migrations skill** — companion for schema evolution; postgres-patterns is the query side, database-migrations is the schema side.
+- **almanak agent** — when a pgvector or Supabase feature is unfamiliar, escalate to almanak (`/almanak`) for live Context7 docs instead of guessing the API shape.
+- **`/chekpoint` command** — when the diff touches `*.sql`, `supabase/`, or any file importing a Supabase client, orakle loads this skill as its reference.
+
 ## Rules
 - Always index foreign keys
 - Use JSONB over JSON (indexable, faster)
@@ -157,4 +164,4 @@ ORDER BY n_dead_tup DESC;
 - Test queries with EXPLAIN ANALYZE before deploying
 
 ## no_context Application
-Before writing queries, read the actual schema (schema.sql or Supabase dashboard). Never assume table structure or column names.
+Before writing queries, read the actual schema (schema.sql or Supabase dashboard). Never assume table structure or column names. When an index is proposed, confirm with `EXPLAIN ANALYZE` that the query planner actually uses it — assuming an index is used is the single most common PostgreSQL performance mistake.

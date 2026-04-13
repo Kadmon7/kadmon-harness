@@ -123,3 +123,7 @@ If you catch yourself thinking:
 **Project agents:**
 - feniks — guides test-first discipline in Phase 4
 - mekanik — specialized for TypeScript compilation and Vitest errors
+
+## no_context Application
+
+Systematic debugging is the `no_context` principle applied to broken code. A symptom is not evidence of the cause — it is evidence that *something* is wrong. Phase 1 exists to gather actual evidence (stack traces, reproductions, recent diffs, data-flow traces) before forming any hypothesis. A fix proposed without Phase 1 is by definition a guess, and guesses are what `no_context` forbids. The reason "guess-and-check" feels faster is an illusion: every wrong guess adds a new unknown, widening the search space. Investigation narrows it.

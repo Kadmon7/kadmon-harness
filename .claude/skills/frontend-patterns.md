@@ -1,6 +1,6 @@
 ---
 name: frontend-patterns
-description: React and React Native patterns — component composition, compound components, custom hooks, Context+Reducer state, performance (memo/lazy/Suspense/virtualization), Error Boundary, and accessibility. Use when building or reviewing React/TSX code.
+description: React and React Native patterns — component composition, compound components via Context, custom hooks (useToggle/useDebounce/useQuery), Context+Reducer state management, performance (memo, useMemo, lazy/Suspense for web, virtualization), Error Boundary, accessibility (keyboard nav, focus management), form handling, Framer Motion / Reanimated animations, and React Native-specific caveats. Use this skill whenever building or reviewing .tsx/.jsx files, web dashboards, or KAIRON mobile components; whenever the user says "React", "React Native", "component", "hook", "state management", "a11y", "Suspense", "memo", or "performance"; and when typescript-reviewer or kody is reviewing frontend code. Also use before picking a data-fetching pattern (custom hook vs SWR vs React Query).
 ---
 
 # Frontend Development Patterns

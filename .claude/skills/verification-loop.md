@@ -87,11 +87,15 @@ The `/chekpoint` command automates this entire flow: verify -> review -> commit 
 - **Re-running the whole loop after fixing one step** — Restart from the failed step, not from the beginning. Build does not need to re-run if you only fixed a type error.
 
 ## Integration
-- **/chekpoint** command runs this loop as Phase 1 (verify), then Phase 2 (review), then commits
-- Verification is now embedded in /chekpoint — no separate /verify command needed
-- **mekanik** agent handles failures in the build and typecheck steps
-- **post-edit-typecheck** hook runs a quick typecheck after every Edit/Write as early warning
+
+This is a **command-level skill** — it has no agent owner on purpose. `/chekpoint` loads it directly in Phase 1 (verify) before handing off to the review agents. Delegating verification to a single agent would add unnecessary indirection: the build/typecheck/lint/test loop is deterministic and belongs to the command, not to any reviewer.
+
+- **/chekpoint** command loads this skill as Phase 1 (verify), then Phase 2 (parallel reviewers), then commits. The skill defines the sequence; the command executes it.
+- **mekanik** agent handles failures in the build and typecheck steps — delegated only when a step fails, not as the verification driver
+- **post-edit-typecheck** hook runs a quick typecheck after every Edit/Write as early warning — same sequence, smaller scope
 - **session-end-all** hook (pattern evaluation phase) tracks this pattern: Bash commands containing `vitest` or `tsc --noEmit` before `git commit` or `git push`
+
+If you are auditing the skill catalog and find `verification-loop` has zero agents in its `skills:` frontmatter fields, that is by design — not a routing bug.
 
 ## Rules
 - Never skip steps — each catches a different bug class

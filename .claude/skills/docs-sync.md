@@ -1,6 +1,6 @@
 ---
 name: docs-sync
-description: Documentation synchronization principles — 4-layer model (public docs, rules, commands, skills), behavior-over-counts philosophy, staleness detection, and verification checklists. Use when updating documentation after code changes.
+description: Documentation synchronization principles — 4-layer model (public docs, rules, commands, skills), behavior-over-counts philosophy, staleness detection, and verification checklists. Use this skill whenever updating documentation after a commit that adds features, changes behavior, or modifies structure; whenever running /doks or /chekpoint with docs in the diff; when the user says "update docs", "sync docs", "docs are stale", "drift", "counts don't match", or "descriptions are outdated"; and after adding/removing agents, skills, commands, or hooks. The skill enforces description-over-count discipline: matching counts is the easy part, but descriptions drift silently and mislead future sessions — that's what this skill catches.
 ---
 
 # Documentation Synchronization

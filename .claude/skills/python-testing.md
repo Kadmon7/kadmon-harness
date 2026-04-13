@@ -1,6 +1,6 @@
 ---
 name: python-testing
-description: Python testing patterns with pytest — fixtures (scopes, autouse, parameterized), async testing (pytest-asyncio), advanced mocking (autospec, PropertyMock, context managers), side effects (tmp_path), and coverage. Companion to rules/python/testing.md.
+description: Python testing patterns with pytest — fixtures (function/module/session scopes, autouse, parameterized, conftest), async testing (pytest-asyncio, assert_awaited_once), advanced mocking (autospec to catch API misuse, PropertyMock, context managers, exceptions), side effects via tmp_path, and coverage reporting. Use this skill whenever writing or reviewing Python tests for ToratNetz, KAIRON backend, or any Python module; when the user says "pytest", "fixture", "mock", "async test", "parametrize", or "coverage"; and when feniks is guiding TDD on a Python project. Companion to rules/python/testing.md — the rules file has the basics, this skill has the advanced patterns for real test suites.
 ---
 
 # Python Testing Patterns

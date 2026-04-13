@@ -161,7 +161,7 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>22 Skills</strong> — domain knowledge loaded on demand</summary>
+<summary><strong>30 Skills</strong> — domain knowledge loaded on demand</summary>
 
 ### TypeScript / Code Quality
 - **coding-standards** — Naming, `node:` prefix imports, .js extensions
@@ -179,7 +179,7 @@ Full component details are below (collapsed by default). For the operational cat
 - **tdd-workflow** — Red-green-refactor cycle, 80%+ coverage, `:memory:` SQLite
 - **e2e-testing** — Mock vs real matrix, lifecycle rules, cleanup patterns
 - **verification-loop** — 6-step pipeline: build, typecheck, test, lint, format, review
-- **eval-harness** — Evaluation framework: EvalCase interface, scoring rubric 1-5
+- **eval-harness** — EDD framework: define pass/fail before implementing, capability + regression evals, pass@k metrics, code/model/human graders
 
 ### Python
 - **python-patterns** — Type hints (3.9+, Protocol, TypeVar), error handling, context managers, dataclasses
@@ -198,6 +198,16 @@ Full component details are below (collapsed by default). For the operational cat
 - **mcp-server-patterns** — MCP configuration, health checks, secrets management
 - **systematic-debugging** — Structured diagnosis: reproduce, isolate, hypothesize, verify
 - **receiving-code-review** — Receiving and applying code review feedback
+
+### Harness Self-Improvement (Sprint F — ECC import)
+- **skill-stocktake** — Audit skills for quality/drift with Keep/Improve/Update/Retire/Merge verdicts
+- **agent-eval** — Head-to-head coding agent comparison with pass rate, cost, time, consistency
+- **agent-introspection-debugging** — 4-phase self-debug workflow for agent failures (capture, diagnose, recover, report)
+- **prompt-optimizer** — Rewrite raw prompts into harness-optimized versions with right commands/skills/agents
+- **skill-comply** — Measure whether rules and skills are actually followed, not just documented
+- **rules-distill** — Extract cross-cutting principles from 2+ skills into new rules
+- **workspace-surface-audit** — Inventory repo + MCP + plugins + hooks and recommend next moves
+- **codebase-onboarding** — Generate architecture map + starter CLAUDE.md for unfamiliar repos
 
 </details>
 

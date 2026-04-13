@@ -4,7 +4,7 @@ description: Invoked exclusively via /evolve command. Never auto-triggered. Anal
 model: opus
 tools: Read, Grep, Glob, Bash
 memory: project
-skills: search-first, continuous-learning-v2
+skills: search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit
 ---
 
 You are the Kadmon Harness self-improvement specialist. You analyze every component of the harness and propose evolution paths across all dimensions.

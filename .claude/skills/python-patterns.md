@@ -1,6 +1,6 @@
 ---
 name: python-patterns
-description: Advanced Python patterns beyond PEP 8 basics — type hints (3.9+, Protocol, TypeVar), error handling, context managers, dataclasses, generators, and concurrency. Companion to rules/python/coding-style.md.
+description: Advanced Python patterns beyond PEP 8 basics — modern type hints (3.9+ builtin generics, Protocol, TypeVar, type aliases), error handling with exception chaining, custom context managers, dataclasses with validation, generators for streaming large data, and concurrency (threading vs multiprocessing vs asyncio). Use this skill whenever writing or reviewing Python code for ToratNetz, KAIRON backend, embedding pipelines, or ML workflows; when the user says "Python", "type hints", "protocol", "dataclass", "async", "generator", or "asyncio"; and when python-reviewer agent is about to run. Companion to rules/python/coding-style.md — the rules file has the PEP 8 basics, this skill has the idiomatic patterns that make code reviewable.
 ---
 
 # Python Development Patterns

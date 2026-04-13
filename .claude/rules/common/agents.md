@@ -30,20 +30,20 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
 | arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records, api-design |
-| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness |
+| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness, codebase-onboarding |
 | kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review |
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /chekpoint | coding-standards, frontend-patterns |
 | orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
 | spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard |
 | feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing, eval-harness |
-| mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging |
+| mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging, agent-introspection-debugging |
 | kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
 | arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget |
 | python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing, claude-api |
 | almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research |
-| doks | opus | /doks, after feature/structural commits | /doks | docs-sync |
+| doks | opus | /doks, after feature/structural commits | /doks | docs-sync, skill-stocktake, rules-distill |
 | kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
-| alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2 |
+| alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → spektr

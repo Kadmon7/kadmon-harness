@@ -1,7 +1,7 @@
 ---
 description: "Deep system assessment — performance profiling + E2E workflow tests in parallel. Optional agent evaluation."
 agent: arkonte, kartograf
-skills: [context-budget, e2e-testing, eval-harness]
+skills: [context-budget, e2e-testing]
 ---
 
 ## Purpose
@@ -12,7 +12,7 @@ Deep system assessment that goes beyond code review (chekpoint). Runs performanc
 - `perf` — only Phase 1a (arkonte performance profiling)
 - `e2e` — only Phase 1b (kartograf E2E tests)
 - `hooks` — only arkonte hook latency benchmarking
-- `<agent-name>` — run Phase 1 + Phase 2 eval of specific agent (e.g., `/skanner kody`)
+- `<agent-name>` — run Phase 1 + Phase 2 ad-hoc eval of specific agent (e.g., `/skanner kody`)
 
 ## Steps
 
@@ -48,11 +48,12 @@ Ask: **"Assessment complete. N performance issues, M/T E2E tests passing. Fix pe
 
 Only runs if an agent name is passed as argument.
 
-1. Load eval-harness skill for methodology
-2. Define test cases for the specified agent
-3. Run agent against each test case
-4. Score: pass/fail per criterion with pass@k metrics
-5. Report with recommendations
+1. Define test cases for the specified agent
+2. Run agent against each test case
+3. Score: pass/fail per criterion
+4. Report with recommendations
+
+Note: agent quality evaluation is the responsibility of `/akademy` (to be redesigned). `/skanner` only keeps a lightweight ad-hoc mode here for quick single-agent checks.
 
 ## Output
 Performance report + E2E results + optional agent eval + system health score.
