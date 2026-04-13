@@ -26,6 +26,9 @@ try {
     metadata.taskStatus = input.tool_input?.status ?? null;
     metadata.taskSubject = input.tool_input?.subject ?? null;
   }
+  if (toolName === "Skill") {
+    metadata.skillName = input.tool_input?.skill ?? null;
+  }
   const event = {
     timestamp: new Date().toISOString(),
     sessionId: sid,

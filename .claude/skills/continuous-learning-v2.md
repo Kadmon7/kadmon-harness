@@ -20,10 +20,10 @@ The instinct-based learning system. Observes sessions, creates atomic instincts 
 ### Observation Flow
 1. **observe-pre hook** logs every tool call to JSONL (file append, <50ms); captures Agent, TaskCreate, and TaskUpdate metadata
 2. **observe-post hook** logs tool results to the same JSONL; captures error messages on failures
-3. **session-end-all hook (pattern evaluation phase)** (at Stop) analyzes observations against 13 pattern definitions in `.claude/hooks/pattern-definitions.json`
+3. **session-end-all hook (pattern evaluation phase)** (at Stop) analyzes observations against 12 pattern definitions in `.claude/hooks/pattern-definitions.json`
 4. Matched patterns become instincts in SQLite via instinct-manager.ts
 
-The session-end-all hook (pattern evaluation phase) is the brain of the system. It reads observation logs, matches them against pattern definitions (sequence patterns, cluster patterns, command sequences), and creates or reinforces instincts. Without it, no learning happens — and it only fires on clean session termination.
+The session-end-all hook (pattern evaluation phase) is the brain of the system. It reads observation logs, matches them against pattern definitions (file_sequence, tool_arg_presence, cluster, and the legacy sequence/command_sequence types), and creates or reinforces instincts. Without it, no learning happens — and it only fires on clean session termination.
 
 ### Why Hooks, Not Skills?
 
@@ -128,7 +128,7 @@ After 7 days: /forge prunes it (prune phase, gated)
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| Pattern not detected | No matching definition in pattern-definitions.json | Check the 13 patterns. If your pattern type is not there, add a new definition. |
+| Pattern not detected | No matching definition in pattern-definitions.json | Check the 12 patterns. If your pattern type is not there, add a new definition. |
 | Confidence dropped | Contradictions observed | Run `/forge --dry-run` to see contradiction counts in the preview. If genuinely wrong, let it die. |
 | Instinct not created after session | Stop hooks did not fire | Stop hooks only fire on clean termination. Crashes, terminal close, and /kompact do NOT trigger them. |
 | session-end-all throws errors | dist/ is stale | Run `npm run build` -- lifecycle hooks import from compiled dist/. |
@@ -145,14 +145,14 @@ After 7 days: /forge prunes it (prune phase, gated)
 - One session with 10 occurrences of a pattern is still just 1 reinforcement. Confidence grows across sessions, not within a single session.
 - Stop hooks only fire on clean termination. If you close the terminal or Claude Code crashes, session-end-all never runs and patterns are lost.
 - `npm run build` must be run before lifecycle hooks work -- they import from `dist/`, not `scripts/lib/` directly.
-- Pattern-definitions.json has 13 definitions. If you expect a pattern to be detected but it isn't, the definition might not cover that specific sequence type.
+- Pattern-definitions.json has 12 definitions (ADR-006 domain rewrite, 2026-04-13). If you expect a pattern to be detected but it isn't, the definition might not cover that specific sequence type.
 
 ## Integration
 - **/forge** command -- unified pipeline with preview gate (Read → Extract → Reinforce/Create → Evaluate → Cluster → Gate → Apply → Report). Flags: `--dry-run` (no mutation), `export` (cross-project scaffold). See ADR-005 and `scripts/lib/forge-pipeline.ts`.
 - **/instinct** -- deprecated alias for /forge until 2026-04-20
 - **session-end-all** hook (pattern evaluation phase) -- fires at Stop, analyzes observations against pattern-definitions.json
 - **observe-pre / observe-post** hooks -- log tool calls and results to JSONL
-- **pattern-definitions.json** -- 13 pattern definitions (sequence, cluster, command_sequence types)
+- **pattern-definitions.json** -- 12 pattern definitions (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006)
 - **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates. Future step 6 "Generate" will consume `ClusterReport` JSON from `~/.kadmon/forge-reports/` written by /forge.
 - **session-start** hook -- loads 3 recent sessions with history trajectory and active instincts
 - **skill-creator:skill-creator** plugin -- required for any skill generation from promoted instincts

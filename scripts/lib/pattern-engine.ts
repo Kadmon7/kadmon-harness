@@ -5,6 +5,48 @@
 import fs from "node:fs";
 import type { PatternDefinition, PatternResult } from "./types.js";
 
+// ─── Path helpers (for file_sequence) ───
+// Globs are declaration-only in pattern-definitions.json — never user input —
+// so injection concerns do not apply. Supports **/ prefix, *.ext, and * within a segment.
+
+function normalizePath(p: string): string {
+  return p.replace(/\\/g, "/");
+}
+
+function globToRegExp(glob: string): RegExp {
+  // Escape regex specials except *
+  let re = "";
+  let i = 0;
+  while (i < glob.length) {
+    const c = glob[i];
+    if (c === "*") {
+      if (glob[i + 1] === "*") {
+        // ** matches any sequence (including /)
+        re += ".*";
+        i += 2;
+        // consume a trailing slash after ** (so **/ matches zero or more directory segments)
+        if (glob[i] === "/") i++;
+        continue;
+      }
+      // single * matches within a segment (no /)
+      re += "[^/]*";
+      i++;
+      continue;
+    }
+    if (/[.+?^${}()|[\]\\]/.test(c)) re += "\\" + c;
+    else re += c;
+    i++;
+  }
+  return new RegExp("^" + re + "$");
+}
+
+function matchGlob(filePath: string, glob: string): boolean {
+  if (!filePath) return false;
+  const normalized = normalizePath(filePath);
+  const re = globToRegExp(glob);
+  return re.test(normalized);
+}
+
 // ─── Detectors ───
 
 export function detectSequence(
@@ -64,6 +106,85 @@ export function detectCommandSequence(
   return count;
 }
 
+export function detectFileSequencePattern(
+  lines: string[],
+  def: {
+    editTools: string[];
+    filePathGlob: string;
+    followedByCommands: string[];
+    withinToolCalls: number;
+  },
+): number {
+  interface PendingEdit {
+    index: number;
+    consumed: boolean;
+  }
+  const pending: PendingEdit[] = [];
+  let count = 0;
+  let obsIndex = -1;
+  for (const line of lines) {
+    try {
+      const e = JSON.parse(line);
+      if (e.eventType !== "tool_pre") continue;
+      obsIndex++;
+      const toolName: string = e.toolName ?? "";
+      if (
+        def.editTools.includes(toolName) &&
+        matchGlob(e.filePath ?? "", def.filePathGlob)
+      ) {
+        pending.push({ index: obsIndex, consumed: false });
+        continue;
+      }
+      if (toolName === "Bash") {
+        const cmd: string = e.metadata?.command ?? "";
+        if (def.followedByCommands.some((f: string) => cmd.includes(f))) {
+          for (const entry of pending) {
+            if (entry.consumed) continue;
+            if (obsIndex - entry.index > def.withinToolCalls) continue;
+            entry.consumed = true;
+            count++;
+            break;
+          }
+        }
+      }
+      // prune stale edits outside the window
+      while (
+        pending.length > 0 &&
+        obsIndex - pending[0].index > def.withinToolCalls
+      ) {
+        pending.shift();
+      }
+    } catch {
+      /* skip malformed */
+    }
+  }
+  return count;
+}
+
+export function detectToolArgPresencePattern(
+  lines: string[],
+  def: {
+    toolName: string;
+    metadataKey: string;
+    expectedValues: string[];
+  },
+): number {
+  let count = 0;
+  for (const line of lines) {
+    try {
+      const e = JSON.parse(line);
+      if (e.eventType !== "tool_pre") continue;
+      if (e.toolName !== def.toolName) continue;
+      const val = e.metadata?.[def.metadataKey];
+      if (typeof val !== "string") continue;
+      if (def.expectedValues.some((v: string) => val.includes(v))) count++;
+    } catch {
+      /* skip malformed */
+    }
+  }
+  return count;
+}
+
 export function detectCluster(
   toolSeq: string[],
   tool: string,
@@ -106,6 +227,21 @@ export function evaluatePatterns(
         break;
       case "cluster":
         count = detectCluster(toolSeq, def.tool, def.minClusterSize);
+        break;
+      case "file_sequence":
+        count = detectFileSequencePattern(lines, {
+          editTools: def.editTools,
+          filePathGlob: def.filePathGlob,
+          followedByCommands: def.followedByCommands,
+          withinToolCalls: def.withinToolCalls,
+        });
+        break;
+      case "tool_arg_presence":
+        count = detectToolArgPresencePattern(lines, {
+          toolName: def.toolName,
+          metadataKey: def.metadataKey,
+          expectedValues: def.expectedValues,
+        });
         break;
     }
 

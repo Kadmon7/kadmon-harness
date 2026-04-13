@@ -112,4 +112,60 @@ describe("observe-pre", () => {
     expect(ts).toBeGreaterThanOrEqual(before);
     expect(ts).toBeLessThanOrEqual(Date.now());
   });
+
+  // Phase 1 RED — Skill.skill capture (plan-006 Phase 1)
+
+  it("captures Skill.skill as metadata.skillName when toolName === 'Skill'", () => {
+    const sid = "sess-phase1-red-a";
+    const dir = path.join(os.tmpdir(), "kadmon", sid);
+    const obsFile = path.join(dir, "observations.jsonl");
+    try {
+      runHook({
+        session_id: sid,
+        tool_name: "Skill",
+        tool_input: { skill: "skill-creator:skill-creator" },
+      });
+      const lines = fs.readFileSync(obsFile, "utf8").trim().split("\n");
+      const event = JSON.parse(lines[lines.length - 1]);
+      expect(event.metadata.skillName).toBe("skill-creator:skill-creator");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("leaves skillName undefined for non-Skill tools", () => {
+    const sid = "sess-phase1-red-b";
+    const dir = path.join(os.tmpdir(), "kadmon", sid);
+    const obsFile = path.join(dir, "observations.jsonl");
+    try {
+      runHook({
+        session_id: sid,
+        tool_name: "Edit",
+        tool_input: { file_path: "/tmp/x.ts" },
+      });
+      const lines = fs.readFileSync(obsFile, "utf8").trim().split("\n");
+      const event = JSON.parse(lines[lines.length - 1]);
+      expect(event.metadata.skillName).toBeUndefined();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("sets skillName to null when Skill tool is invoked with no skill arg", () => {
+    const sid = "sess-phase1-red-c";
+    const dir = path.join(os.tmpdir(), "kadmon", sid);
+    const obsFile = path.join(dir, "observations.jsonl");
+    try {
+      runHook({
+        session_id: sid,
+        tool_name: "Skill",
+        tool_input: {},
+      });
+      const lines = fs.readFileSync(obsFile, "utf8").trim().split("\n");
+      const event = JSON.parse(lines[lines.length - 1]);
+      expect(event.metadata.skillName).toBeNull();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

@@ -46,13 +46,29 @@ function toolPreLine(toolName: string): string {
   return JSON.stringify({ eventType: "tool_pre", toolName });
 }
 
-function readEditPattern(times: number): string[] {
+// Generates Edit scripts/lib/types.ts → Bash vitest pairs that match the
+// file_sequence pattern "Build + test after editing types.ts" (follows the
+// active pattern-definitions.json — updated for ADR-006).
+function editTypesPattern(times: number): string[] {
   const out: string[] = [];
   for (let i = 0; i < times; i++) {
-    out.push(toolPreLine("Read"));
-    out.push(toolPreLine("Edit"));
+    out.push(
+      JSON.stringify({
+        eventType: "tool_pre",
+        toolName: "Edit",
+        filePath: "scripts/lib/types.ts",
+        metadata: { command: null },
+      }),
+    );
+    out.push(
+      JSON.stringify({
+        eventType: "tool_pre",
+        toolName: "Bash",
+        filePath: null,
+        metadata: { command: "vitest" },
+      }),
+    );
   }
-  // Pad to satisfy OBS_MIN_LINES (evaluate-patterns-shared requires >=10)
   while (out.length < OBS_MIN_LINES) {
     out.push(toolPreLine("Bash"));
   }
@@ -103,15 +119,16 @@ describe("forge-pipeline", () => {
       makeInstinct({
         id: "inst-1",
         projectHash,
-        pattern: "Read files before editing them",
-        action: "Always Read target file before Edit/Write",
+        pattern: "Build + test after editing types.ts",
+        action:
+          "Run npm run build / tsc / vitest after editing scripts/lib/types.ts — ripple risk across consumers",
         confidence: 0.4,
         occurrences: 2,
-        domain: "workflow",
+        domain: "harness-maintenance",
       }),
     );
 
-    seedObservations(sessionId, readEditPattern(3));
+    seedObservations(sessionId, editTypesPattern(3));
 
     const preview = await runForgePipeline({ projectHash, sessionId });
     applyForgePreview(preview, { projectHash, sessionId });
@@ -132,15 +149,16 @@ describe("forge-pipeline", () => {
       makeInstinct({
         id: "inst-d1",
         projectHash,
-        pattern: "Read files before editing them",
-        action: "Always Read target file before Edit/Write",
+        pattern: "Build + test after editing types.ts",
+        action:
+          "Run npm run build / tsc / vitest after editing scripts/lib/types.ts — ripple risk across consumers",
         confidence: 0.5,
         occurrences: 3,
-        domain: "workflow",
+        domain: "harness-maintenance",
       }),
     );
 
-    seedObservations(sessionId, readEditPattern(3));
+    seedObservations(sessionId, editTypesPattern(3));
 
     const before = getActiveInstincts(projectHash);
     const countsBefore = getInstinctCounts(projectHash);
@@ -173,13 +191,13 @@ describe("forge-pipeline", () => {
     const sessionId = "sess-t5";
     sessionIds.push(sessionId);
 
-    seedObservations(sessionId, readEditPattern(3));
+    seedObservations(sessionId, editTypesPattern(3));
 
     const preview = await runForgePipeline({ projectHash, sessionId });
 
     expect(preview.would.create.length).toBeGreaterThanOrEqual(1);
     const created = preview.would.create.find(
-      (i) => i.pattern === "Read files before editing them",
+      (i) => i.pattern === "Build + test after editing types.ts",
     );
     expect(created).toBeDefined();
     expect(created!.confidence).toBe(0.3);
@@ -196,15 +214,16 @@ describe("forge-pipeline", () => {
       makeInstinct({
         id: "inst-reinf",
         projectHash,
-        pattern: "Read files before editing them",
-        action: "Always Read target file before Edit/Write",
+        pattern: "Build + test after editing types.ts",
+        action:
+          "Run npm run build / tsc / vitest after editing scripts/lib/types.ts — ripple risk across consumers",
         confidence: 0.5,
         occurrences: 3,
-        domain: "workflow",
+        domain: "harness-maintenance",
       }),
     );
 
-    seedObservations(sessionId, readEditPattern(3));
+    seedObservations(sessionId, editTypesPattern(3));
 
     const preview = await runForgePipeline({ projectHash, sessionId });
 
@@ -364,7 +383,7 @@ describe("forge-pipeline", () => {
     const sessionId = "sess-t12";
     sessionIds.push(sessionId);
 
-    seedObservations(sessionId, readEditPattern(3));
+    seedObservations(sessionId, editTypesPattern(3));
 
     const before = getActiveInstincts(projectHash);
     const countsBefore = getInstinctCounts(projectHash);

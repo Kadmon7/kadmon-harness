@@ -1,119 +1,131 @@
 [
   {
-    "type": "sequence",
-    "name": "Read files before editing them",
-    "action": "Always Read target file before Edit/Write",
-    "before": "Read",
-    "after": "Edit",
-    "threshold": 3,
-    "domain": "workflow"
-  },
-  {
-    "type": "command_sequence",
-    "name": "Verify before committing code",
-    "action": "Run vitest/tsc before git commit or push",
-    "triggerCommands": ["vitest", "tsc --noEmit"],
-    "followedByCommands": ["git commit", "git push"],
+    "type": "file_sequence",
+    "name": "Build + test after editing types.ts",
+    "action": "Run npm run build / tsc / vitest after editing scripts/lib/types.ts — ripple risk across consumers",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/scripts/lib/types.ts",
+    "followedByCommands": ["npm run build", "tsc", "vitest"],
+    "withinToolCalls": 10,
     "threshold": 1,
-    "domain": "git"
+    "domain": "harness-maintenance"
   },
   {
-    "type": "cluster",
-    "name": "Explore multiple files before taking action",
-    "action": "Read 3+ related files to build context before running commands or editing",
-    "tool": "Read",
-    "minClusterSize": 3,
-    "threshold": 3,
-    "domain": "workflow"
-  },
-  {
-    "type": "sequence",
-    "name": "Search before writing new code",
-    "action": "Use Grep/Glob to find existing implementations before creating new files",
-    "before": "Grep",
-    "after": "Write",
-    "threshold": 2,
-    "domain": "workflow"
-  },
-  {
-    "type": "command_sequence",
-    "name": "Test after implementing changes",
-    "action": "Run vitest after editing source files to catch regressions immediately",
-    "triggerCommands": ["vitest"],
-    "followedByCommands": [],
-    "threshold": 3,
-    "domain": "testing"
-  },
-  {
-    "type": "command_sequence",
-    "name": "Check dashboard for system health",
-    "action": "Run /kadmon-harness or npx tsx scripts/dashboard.ts to verify harness state",
-    "triggerCommands": ["dashboard"],
-    "followedByCommands": [],
-    "threshold": 2,
-    "domain": "observability"
-  },
-  {
-    "type": "sequence",
-    "name": "Plan before implementing changes",
-    "action": "Use /abra-kdabra or Agent to break complex tasks into steps before editing code",
-    "before": "Agent",
-    "after": "Edit",
+    "type": "file_sequence",
+    "name": "Schema check after editing state-store.ts",
+    "action": "Run db-health-check or vitest after editing scripts/lib/state-store.ts",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/scripts/lib/state-store.ts",
+    "followedByCommands": ["db-health", "PRAGMA", "vitest"],
+    "withinToolCalls": 10,
     "threshold": 1,
-    "domain": "workflow"
+    "domain": "data-layer"
   },
   {
-    "type": "sequence",
-    "name": "Read tests alongside source code",
-    "action": "Read the test file for a module to understand expected behavior and edge cases",
-    "before": "Read",
-    "after": "Bash",
-    "threshold": 3,
-    "domain": "testing"
-  },
-  {
-    "type": "command_sequence",
-    "name": "Commit before pushing",
-    "action": "Always commit changes before pushing to remote",
-    "triggerCommands": ["git commit"],
-    "followedByCommands": ["git push"],
+    "type": "file_sequence",
+    "name": "/doks after editing agent definition",
+    "action": "Run /doks after editing any .claude/agents/*.md to keep catalogs in sync",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/.claude/agents/*.md",
+    "followedByCommands": ["doks", "/doks"],
+    "withinToolCalls": 15,
     "threshold": 1,
-    "domain": "git"
+    "domain": "harness-maintenance"
   },
   {
-    "type": "command_sequence",
-    "name": "Re-run tests after fixing failures",
-    "action": "When tests fail, edit code and re-run tests to confirm the fix",
-    "triggerCommands": ["vitest"],
+    "type": "file_sequence",
+    "name": "/doks after editing skill definition",
+    "action": "Run /doks after editing any .claude/skills/*.md to keep catalogs in sync",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/.claude/skills/*.md",
+    "followedByCommands": ["doks", "/doks"],
+    "withinToolCalls": 15,
+    "threshold": 1,
+    "domain": "harness-maintenance"
+  },
+  {
+    "type": "file_sequence",
+    "name": "/doks after editing command definition",
+    "action": "Run /doks after editing any .claude/commands/*.md to keep catalogs in sync",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/.claude/commands/*.md",
+    "followedByCommands": ["doks", "/doks"],
+    "withinToolCalls": 15,
+    "threshold": 1,
+    "domain": "harness-maintenance"
+  },
+  {
+    "type": "file_sequence",
+    "name": "vitest after editing hook script",
+    "action": "Run vitest after editing .claude/hooks/scripts/*.js to catch hook regressions",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/.claude/hooks/scripts/*.js",
     "followedByCommands": ["vitest"],
+    "withinToolCalls": 10,
     "threshold": 1,
-    "domain": "testing"
+    "domain": "harness-maintenance"
+  },
+  {
+    "type": "tool_arg_presence",
+    "name": "Skill creation must use skill-creator",
+    "action": "All skill creation or editing MUST go through skill-creator:skill-creator plugin",
+    "toolName": "Skill",
+    "metadataKey": "skillName",
+    "expectedValues": ["skill-creator"],
+    "threshold": 1,
+    "domain": "harness-maintenance"
+  },
+  {
+    "type": "file_sequence",
+    "name": "/doks after editing CLAUDE.md",
+    "action": "Run /doks after editing CLAUDE.md to catch drift vs code reality",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/CLAUDE.md",
+    "followedByCommands": ["doks", "/doks"],
+    "withinToolCalls": 15,
+    "threshold": 1,
+    "domain": "docs"
+  },
+  {
+    "type": "file_sequence",
+    "name": "/forge --dry-run after editing pattern-definitions.json",
+    "action": "Sanity-check the learning engine's own input with /forge --dry-run before shipping",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/pattern-definitions.json",
+    "followedByCommands": ["forge", "/forge"],
+    "withinToolCalls": 15,
+    "threshold": 1,
+    "domain": "learning-meta"
+  },
+  {
+    "type": "file_sequence",
+    "name": "npm install + almanak after editing package.json",
+    "action": "After editing package.json, run npm install and look up dependency changes via /almanak",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/package.json",
+    "followedByCommands": ["npm install", "almanak", "/almanak"],
+    "withinToolCalls": 15,
+    "threshold": 1,
+    "domain": "harness-maintenance"
+  },
+  {
+    "type": "file_sequence",
+    "name": "npm run build after editing types.ts",
+    "action": "Run npm run build after editing scripts/lib/types.ts so lifecycle hooks pick up the new compiled types from dist/",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/scripts/lib/types.ts",
+    "followedByCommands": ["npm run build", "tsc"],
+    "withinToolCalls": 10,
+    "threshold": 1,
+    "domain": "harness-maintenance"
   },
   {
     "type": "cluster",
-    "name": "Multi-file refactor pattern",
-    "action": "When editing 3+ files in sequence, consider using a structured refactor plan",
+    "name": "Consecutive Edit cluster — consider checkpoint",
+    "action": "When editing 3+ files in a row, consider /chekpoint to gate review before going further",
     "tool": "Edit",
     "minClusterSize": 3,
     "threshold": 2,
     "domain": "refactoring"
-  },
-  {
-    "type": "sequence",
-    "name": "Glob search before editing",
-    "action": "Use Glob to find files by pattern before editing them",
-    "before": "Glob",
-    "after": "Edit",
-    "threshold": 2,
-    "domain": "workflow"
-  },
-  {
-    "type": "command_sequence",
-    "name": "Build after editing TypeScript",
-    "action": "Run npm run build or tsc after editing TypeScript to verify compilation",
-    "triggerCommands": ["tsc", "npm run build"],
-    "followedByCommands": [],
-    "threshold": 2,
-    "domain": "build"
   }
 ]

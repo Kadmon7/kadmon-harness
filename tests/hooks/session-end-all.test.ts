@@ -83,6 +83,24 @@ function generateObsLines(count: number): string[] {
   return lines;
 }
 
+/**
+ * Generate lines that reliably trigger the file_sequence pattern
+ * "Build + test after editing types.ts" (ADR-006 pattern A). Each iteration
+ * adds Edit scripts/lib/types.ts followed by Bash vitest (4 lines).
+ */
+function generatePatternALines(pairs: number): string[] {
+  const lines: string[] = [];
+  for (let i = 0; i < pairs; i++) {
+    lines.push(
+      makeObsLine("tool_pre", "Edit", "scripts/lib/types.ts"),
+      makeObsLine("tool_post", "Edit"),
+      makeObsLine("tool_pre", "Bash", "", { command: "vitest" }),
+      makeObsLine("tool_post", "Bash"),
+    );
+  }
+  return lines;
+}
+
 async function seedDb(): Promise<void> {
   const SQL = await initSqlJs();
   const db = new SQL.Database();
@@ -170,13 +188,14 @@ describe("session-end-all", () => {
   });
 
   it("evaluates patterns with 10+ observations", async () => {
-    // Generate 20 observation lines (10 tool_pre + 10 tool_post)
-    writeObservations(generateObsLines(20));
+    // 5 pairs of Edit types.ts + Bash vitest = 20 lines, well above minLines
+    // and reliably triggers pattern A "Build + test after editing types.ts".
+    writeObservations(generatePatternALines(5));
 
     const r = runHook({ session_id: sessionId, cwd: process.cwd() });
     expect(r.exitCode).toBe(0);
 
-    // 20 lines with Read→Edit→Write sequences trigger pattern definitions
+    // Pattern A should trigger and create at least one instinct
     const db = await readDb();
     const stmt = db.prepare("SELECT COUNT(*) as cnt FROM instincts");
     stmt.step();

@@ -112,16 +112,54 @@ async function openReadDb(): Promise<
   return new SQL.Database(data);
 }
 
-/** Build 20+ observation lines that reliably trigger Read→Edit→Write sequences */
+/**
+ * Build observation lines that reliably trigger the file_sequence pattern
+ * "Build + test after editing types.ts" (ADR-006 pattern A).
+ * Each iteration adds one Edit on scripts/lib/types.ts followed by a Bash
+ * vitest invocation. Returns at least 4*count lines, well above minLines.
+ */
 function buildReadEditWriteLines(count: number): string[] {
   const lines: string[] = [];
   for (let i = 0; i < count; i++) {
-    // Cycle: Read → Edit → Write → Read → Edit → Write …
-    const cycle = i % 3;
-    const tool = cycle === 0 ? "Read" : cycle === 1 ? "Edit" : "Write";
     lines.push(
-      makeObsLine("tool_pre", tool, `/project/file${i}.ts`),
-      makeObsLine("tool_post", tool),
+      makeObsLine("tool_pre", "Edit", "scripts/lib/types.ts"),
+      makeObsLine("tool_post", "Edit"),
+      makeObsLine("tool_pre", "Bash", "", { command: "vitest" }),
+      makeObsLine("tool_post", "Bash"),
+    );
+  }
+  return lines;
+}
+
+/**
+ * Build observation lines that trigger "Schema check after editing state-store.ts"
+ * (file_sequence pattern B from pattern-definitions.json).
+ */
+function buildStateStoreLines(count: number): string[] {
+  const lines: string[] = [];
+  for (let i = 0; i < count; i++) {
+    lines.push(
+      makeObsLine("tool_pre", "Edit", "scripts/lib/state-store.ts"),
+      makeObsLine("tool_post", "Edit"),
+      makeObsLine("tool_pre", "Bash", "", { command: "vitest state-store" }),
+      makeObsLine("tool_post", "Bash"),
+    );
+  }
+  return lines;
+}
+
+/**
+ * Build observation lines that trigger "/doks after editing agent definition"
+ * (file_sequence pattern C from pattern-definitions.json).
+ */
+function buildAgentDocsLines(count: number): string[] {
+  const lines: string[] = [];
+  for (let i = 0; i < count; i++) {
+    lines.push(
+      makeObsLine("tool_pre", "Edit", `.claude/agents/sample${i}.md`),
+      makeObsLine("tool_post", "Edit"),
+      makeObsLine("tool_pre", "Bash", "", { command: "/doks" }),
+      makeObsLine("tool_post", "Bash"),
     );
   }
   return lines;
@@ -274,37 +312,18 @@ describe("evaluate-patterns-shared (via session-end-all)", () => {
   // Test 3: multiple distinct patterns → multiple instincts created
   // -------------------------------------------------------------------------
   it("creates multiple instincts from diverse tool sequences", async () => {
-    // Build observations that trigger multiple distinct pattern definitions:
-    //   - "Read files before editing them"  (Read → Edit sequence)
-    //   - "Search before writing new code"  (Grep → Write sequence)
-    //   - "Explore multiple files"          (cluster of 3+ Read)
-    const lines: string[] = [];
+    // Build observations that trigger three distinct file_sequence patterns
+    // from the new domain-pattern JSON (ADR-006):
+    //   - "Build + test after editing types.ts"        (pattern A)
+    //   - "Schema check after editing state-store.ts"  (pattern B)
+    //   - "/doks after editing agent definition"       (pattern C)
+    const lines: string[] = [
+      ...buildReadEditWriteLines(3),
+      ...buildStateStoreLines(3),
+      ...buildAgentDocsLines(3),
+    ];
 
-    // 4× Read→Edit pairs (triggers "Read files before editing them", threshold 3)
-    for (let i = 0; i < 4; i++) {
-      lines.push(makeObsLine("tool_pre", "Read", `/src/a${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Read"));
-      lines.push(makeObsLine("tool_pre", "Edit", `/src/a${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Edit"));
-    }
-
-    // 3× Grep→Write pairs (triggers "Search before writing new code", threshold 2)
-    for (let i = 0; i < 3; i++) {
-      lines.push(
-        makeObsLine("tool_pre", "Grep", undefined, { pattern: "foo" }),
-      );
-      lines.push(makeObsLine("tool_post", "Grep"));
-      lines.push(makeObsLine("tool_pre", "Write", `/src/new${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Write"));
-    }
-
-    // 3× consecutive Read calls (triggers "Explore multiple files", minClusterSize 3, threshold 3)
-    for (let i = 0; i < 4; i++) {
-      lines.push(makeObsLine("tool_pre", "Read", `/docs/file${i}.md`));
-      lines.push(makeObsLine("tool_post", "Read"));
-    }
-
-    // Ensure at least 10 lines (well above that — we have 44 total)
+    // Ensure well above minLines (36 total)
     expect(lines.length).toBeGreaterThanOrEqual(10);
 
     writeObservations(lines);
@@ -337,29 +356,15 @@ describe("evaluate-patterns-shared (via session-end-all)", () => {
   // Test 4: malformed JSON lines mixed in → no crash, valid lines processed
   // -------------------------------------------------------------------------
   it("handles malformed observation lines gracefully and processes valid ones", async () => {
+    // Base: pattern A (Edit types.ts + Bash vitest) — triggers "Build + test after editing types.ts"
+    const valid = buildReadEditWriteLines(6);
     const lines: string[] = [];
 
-    // Inject malformed lines at positions 0, 5, 10
+    // Inject malformed lines at positions 0, 5, 10 — bad JSON must not crash the hook
     lines.push("{ this is not valid json }");
-
-    // 4× Read→Edit pairs (triggers pattern even with bad lines present)
-    for (let i = 0; i < 4; i++) {
-      lines.push(makeObsLine("tool_pre", "Read", `/src/b${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Read"));
-      lines.push(makeObsLine("tool_pre", "Edit", `/src/b${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Edit"));
-    }
-
+    lines.push(...valid.slice(0, 10));
     lines.push("INVALID LINE");
-
-    // 2× more Read→Edit to push well past threshold
-    for (let i = 4; i < 6; i++) {
-      lines.push(makeObsLine("tool_pre", "Read", `/src/b${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Read"));
-      lines.push(makeObsLine("tool_pre", "Edit", `/src/b${i}.ts`));
-      lines.push(makeObsLine("tool_post", "Edit"));
-    }
-
+    lines.push(...valid.slice(10));
     lines.push('{"incomplete": true');
 
     writeObservations(lines);
@@ -368,7 +373,7 @@ describe("evaluate-patterns-shared (via session-end-all)", () => {
     const r = runHook({ session_id: sessionId, cwd: process.cwd() });
     expect(r.exitCode).toBe(0);
 
-    // And valid lines should still have been processed — patterns triggered
+    // And valid lines should still have been processed — pattern A should trigger
     const db = await openReadDb();
     const stmt = db.prepare("SELECT COUNT(*) as cnt FROM instincts");
     stmt.step();
@@ -376,7 +381,6 @@ describe("evaluate-patterns-shared (via session-end-all)", () => {
     stmt.free();
     db.close();
 
-    // The Read→Edit pattern (threshold 3) should have triggered despite bad lines
     expect(count).toBeGreaterThan(0);
   });
 });

@@ -111,13 +111,62 @@ describe('pattern-engine', () => {
 
   // ─── loadPatternDefinitions ───
 
+  const DEFS_PATH = path.resolve('.claude/hooks/pattern-definitions.json');
+
   it('loads definitions from JSON file', () => {
-    const defsPath = path.resolve('.claude/hooks/pattern-definitions.json');
-    const defs = loadPatternDefinitions(defsPath);
-    expect(defs.length).toBeGreaterThanOrEqual(8);
+    const defs = loadPatternDefinitions(DEFS_PATH);
+
+    // Assertion 1 — exact count (ADR-006: 12 domain-specific entries)
+    expect(defs.length).toBe(12);
+
+    // Structural sanity — every def has the required base fields
     expect(defs[0]).toHaveProperty('type');
     expect(defs[0]).toHaveProperty('name');
     expect(defs[0]).toHaveProperty('action');
     expect(defs[0]).toHaveProperty('threshold');
+
+    // Assertion 2 — banned hygiene names (regression guard)
+    const banned = [
+      "Read files before editing them",
+      "Verify before committing code",
+      "Explore multiple files before taking action",
+      "Search before writing new code",
+      "Test after implementing changes",
+      "Check dashboard for system health",
+      "Plan before implementing changes",
+      "Read tests alongside source code",
+      "Commit before pushing",
+      "Re-run tests after fixing failures",
+      "Multi-file refactor pattern",
+      "Glob search before editing",
+      "Build after editing TypeScript",
+    ];
+    for (const def of defs) {
+      expect(banned).not.toContain(def.name);
+    }
+
+    // Assertion 3 — every def has a valid type
+    const validTypes = ["sequence", "command_sequence", "cluster", "file_sequence", "tool_arg_presence"];
+    for (const def of defs) {
+      expect(validTypes).toContain(def.type);
+    }
+
+    // Assertion 4 — type distribution per ADR-006 Decision 1
+    const counts = { file_sequence: 0, tool_arg_presence: 0, cluster: 0 };
+    for (const def of defs) {
+      if (def.type in counts) counts[def.type as keyof typeof counts]++;
+    }
+    expect(counts.file_sequence).toBe(10);
+    expect(counts.tool_arg_presence).toBe(1);
+    expect(counts.cluster).toBe(1);
+  });
+
+  it('all file_sequence definitions start at threshold 1', () => {
+    const defs = loadPatternDefinitions(DEFS_PATH);
+    for (const def of defs) {
+      if (def.type === 'file_sequence') {
+        expect(def.threshold).toBe(1);
+      }
+    }
   });
 });

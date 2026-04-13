@@ -247,6 +247,27 @@ export type PatternDefinition =
       minClusterSize: number;
       threshold: number;
       domain?: string;
+    }
+  | {
+      type: "file_sequence";
+      name: string;
+      action: string;
+      editTools: string[];
+      filePathGlob: string;
+      followedByCommands: string[];
+      withinToolCalls: number;
+      threshold: number;
+      domain?: string;
+    }
+  | {
+      type: "tool_arg_presence";
+      name: string;
+      action: string;
+      toolName: string;
+      metadataKey: string;
+      expectedValues: string[];
+      threshold: number;
+      domain?: string;
     };
 
 export interface PatternResult {
