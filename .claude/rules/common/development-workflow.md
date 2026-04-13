@@ -77,7 +77,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /akademy | Run structured evaluation of agent or skill quality | — |
-| /instinct | Manage instinct lifecycle — status, eval, learn, promote, prune, export (subcommands) | — |
+| /forge | Forge session observations into instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`. (/instinct is a deprecated alias until 2026-04-20) | — |
 | /evolve | Run harness self-optimization analysis | alchemik |
 
 ## Commits

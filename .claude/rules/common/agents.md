@@ -29,17 +29,17 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
-| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records |
-| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records |
+| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records, api-design |
+| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness |
 | kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review |
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /chekpoint | coding-standards, frontend-patterns |
 | orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
 | spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard |
-| feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing |
+| feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing, eval-harness |
 | mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging |
 | kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
 | arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget |
-| python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing |
+| python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing, claude-api |
 | almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research |
 | doks | opus | /doks, after feature/structural commits | /doks | docs-sync |
 | kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
@@ -95,7 +95,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 /kompact         context compaction
 /almanak         almanak (single lookup)
 /akademy         structured evaluation
-/instinct        instinct lifecycle
+/forge           unified instinct pipeline (preview gate; /instinct is deprecated alias until 2026-04-20)
 ```
 
 ## Approval Criteria
@@ -107,3 +107,13 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - Agents return structured output (markdown with sections)
 - MUST include severity levels in reviews (BLOCK/WARN/NOTE or CRITICAL/HIGH/MEDIUM/LOW)
 - NEVER let an agent modify code without explicit approval from the user
+
+## Command-Level Skills (no agent owner by design)
+
+Not every skill is owned by an agent. Some skills are loaded directly by commands because the work is deterministic and indirection through an agent adds no value. These are **not** routing bugs — doks and audit tools should treat them as intentional.
+
+| Skill | Loaded by | Why no agent |
+|---|---|---|
+| `verification-loop` | `/chekpoint` (Phase 1) | Build → typecheck → lint → test is a deterministic sequence. A reviewer agent is already invoked in Phase 2; verification is the command's job. |
+
+When adding new command-level skills, document the rationale here so future audits don't flag them as orphaned.

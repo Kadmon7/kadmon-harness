@@ -80,12 +80,12 @@ Kadmon-Harness/
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
 - **Remember** (3): /chekpoint, /almanak, /doks
-- **Evolve** (3): /akademy, /instinct, /evolve
+- **Evolve** (3): /akademy, /forge, /evolve (/instinct is a deprecated alias until 2026-04-20)
 
 ## Skills (22)
 - **Workflow**: search-first, context-budget
-- **Quality**: coding-standards, tdd-workflow, verification-loop, e2e-testing
-- **Learning**: continuous-learning-v2, eval-harness
+- **Quality**: coding-standards, tdd-workflow, verification-loop, e2e-testing, eval-harness
+- **Learning**: continuous-learning-v2
 - **Architecture**: architecture-decision-records, api-design
 - **Data**: database-migrations, postgres-patterns
 - **Integration**: claude-api, mcp-server-patterns
