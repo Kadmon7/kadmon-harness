@@ -1,6 +1,6 @@
 ---
 name: continuous-learning-v2
-description: How the instinct learning system works — observation, confidence scoring (0.3->0.9), promotion to skills. Use this skill whenever working with /instinct subcommands (learn, status, eval, promote, prune, export), when debugging why an instinct was or wasn't created, understanding the pattern evaluation in session-end-all, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
+description: How the instinct learning system works — observation, confidence scoring (0.3->0.9), promotion to skills. Use this skill whenever working with /forge (unified preview-gated pipeline: detect, reinforce, promote, prune, export), when debugging why an instinct was or wasn't created, understanding the pattern evaluation in session-end-all, or when the user asks about "instincts", "patterns", "confidence", or "how does the harness learn". Also use when promoting instincts via skill-creator.
 ---
 
 # Continuous Learning v2
@@ -8,9 +8,9 @@ description: How the instinct learning system works — observation, confidence 
 The instinct-based learning system. Observes sessions, creates atomic instincts with confidence scoring, and promotes proven patterns into permanent skills. The system learns from real behavior — never from assumptions.
 
 ## When to Use
-- Understanding how instincts are created (/instinct learn)
-- Checking instinct status (/instinct status, /instinct eval)
-- Promoting instincts to skills (/instinct promote)
+- Understanding how instincts are created (/forge pipeline — learn phase)
+- Checking instinct status (/forge --dry-run)
+- Promoting instincts to skills (/forge pipeline — promote phase)
 - Diagnosing why an instinct was contradicted or not created
 - Planning which instincts to keep project-scoped vs promote globally
 - Connecting instinct quality to /evolve analysis
@@ -35,7 +35,7 @@ Create (confidence: 0.3, occurrences: 1)
   | reinforced (+0.1 confidence, +1 occurrence)
   | ... repeated across sessions ...
 Promotable (confidence >= 0.7, occurrences >= 3, status: active)
-  | /instinct promote
+  | /forge (promote phase, approved via gate)
 Promoted (status: promoted, promotedTo: "skill-name")
 ```
 
@@ -45,7 +45,7 @@ Active instinct
   | contradicted (+1 contradiction)
   | if contradictions > occurrences
 Contradicted (status: contradicted)
-  | after 7 days via /instinct prune
+  | after 7 days via /forge (prune phase)
 Archived (status: archived)
 ```
 
@@ -86,9 +86,9 @@ Instincts are **project-scoped** by default (projectHash derived from git remote
 ## Promotion Workflow
 When an instinct reaches promotable status (confidence >= 0.7, occurrences >= 3):
 
-1. Run `/instinct eval` to see which instincts are ready
-2. Run `/instinct promote` and select the candidate
-3. The skill-creator:skill-creator plugin is invoked automatically — it drafts the skill, optimizes the description, and validates structure
+1. Run `/forge --dry-run` to see which instincts are ready (preview gate shows `would.promote[]`)
+2. Run `/forge` and approve the gate — the pipeline applies reinforce/promote/prune in one pass
+3. The skill-creator:skill-creator plugin is invoked automatically for each promoted candidate — it drafts the skill, optimizes the description, and validates structure
 4. Review the generated skill file in `.claude/skills/`
 5. The instinct is marked `status: promoted` with `promotedTo` pointing to the new skill name
 6. The promoted instinct stops being reinforced — the skill now carries the knowledge permanently
@@ -121,7 +121,7 @@ Session 5: same pattern observed -> reinforced (0.7) -- now promotable
 Session 6: instinct says "always lint before tests"
 Session 7: user skips lint, tests pass fine -> contradiction recorded
 Session 8: skipped again -> contradictions (2) > occurrences (1) -> status: contradicted
-After 7 days: /instinct prune archives it
+After 7 days: /forge prunes it (prune phase, gated)
 ```
 
 ## Troubleshooting
@@ -129,7 +129,7 @@ After 7 days: /instinct prune archives it
 | Problem | Cause | Fix |
 |---------|-------|-----|
 | Pattern not detected | No matching definition in pattern-definitions.json | Check the 13 patterns. If your pattern type is not there, add a new definition. |
-| Confidence dropped | Contradictions observed | Run `/instinct eval` to see contradiction counts. If genuinely wrong, let it die. |
+| Confidence dropped | Contradictions observed | Run `/forge --dry-run` to see contradiction counts in the preview. If genuinely wrong, let it die. |
 | Instinct not created after session | Stop hooks did not fire | Stop hooks only fire on clean termination. Crashes, terminal close, and /kompact do NOT trigger them. |
 | session-end-all throws errors | dist/ is stale | Run `npm run build` -- lifecycle hooks import from compiled dist/. |
 | Instinct stuck at low confidence | Pattern occurs rarely | Needs to appear in multiple sessions. One session with 10 occurrences is still just 1 reinforcement. |
@@ -148,18 +148,19 @@ After 7 days: /instinct prune archives it
 - Pattern-definitions.json has 13 definitions. If you expect a pattern to be detected but it isn't, the definition might not cover that specific sequence type.
 
 ## Integration
-- **/instinct** command -- 6 subcommands: status (default), eval, learn, promote, prune, export
+- **/forge** command -- unified pipeline with preview gate (Read → Extract → Reinforce/Create → Evaluate → Cluster → Gate → Apply → Report). Flags: `--dry-run` (no mutation), `export` (cross-project scaffold). See ADR-005 and `scripts/lib/forge-pipeline.ts`.
+- **/instinct** -- deprecated alias for /forge until 2026-04-20
 - **session-end-all** hook (pattern evaluation phase) -- fires at Stop, analyzes observations against pattern-definitions.json
 - **observe-pre / observe-post** hooks -- log tool calls and results to JSONL
 - **pattern-definitions.json** -- 13 pattern definitions (sequence, cluster, command_sequence types)
-- **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates
+- **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates. Future step 6 "Generate" will consume `ClusterReport` JSON from `~/.kadmon/forge-reports/` written by /forge.
 - **session-start** hook -- loads 3 recent sessions with history trajectory and active instincts
-- **skill-creator:skill-creator** plugin -- required for /instinct promote
+- **skill-creator:skill-creator** plugin -- required for any skill generation from promoted instincts
 
 ## Rules
 - Observations are ephemeral JSONL -- summarized at session end, not kept forever
 - Instincts persist in SQLite across sessions
-- Promotion requires user approval (/instinct promote is manual, never automatic)
+- Promotion requires user approval (/forge always gates before mutation — never automatic)
 - Contradictions are tracked -- instincts can and should die when they are wrong
 - All skill creation from instincts MUST use the skill-creator:skill-creator plugin
 - End sessions cleanly to ensure session-end-all fires and patterns are captured

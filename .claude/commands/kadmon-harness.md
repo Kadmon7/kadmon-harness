@@ -19,8 +19,8 @@ ANSI-colored dashboard with 4 sections: Instincts (with inline promotable marker
 ╚══════════════════════════════════════╝
 
 ── INSTINCTS (15 active | 10 promotable) ──
-  [█████████░] 0.9  Check dashboard for system health (12x) → /instinct promote
-  [█████████░] 0.9  Build after editing TypeScript (15x) → /instinct promote
+  [█████████░] 0.9  Check dashboard for system health (12x) → /forge
+  [█████████░] 0.9  Build after editing TypeScript (15x) → /forge
   [███░░░░░░░] 0.3  Research before building (1x)
 
 ── SESSIONS ──
