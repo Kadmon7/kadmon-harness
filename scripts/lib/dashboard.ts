@@ -378,6 +378,7 @@ export function renderDashboard(
     lines.push(`  ${DIM}No active instincts${RESET}`);
   } else {
     for (const row of instincts) {
+      // Hint target is /forge (was /instinct promote pre-2026-04-13, see ADR-005)
       const promoTag = row.isPromotable
         ? ` ${MAGENTA}\u2192 promote${RESET}`
         : "";
