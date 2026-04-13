@@ -16,10 +16,12 @@ function fileSeqLine({
   toolName,
   filePath,
   command,
+  skillName,
 }: {
   toolName: string;
   filePath?: string;
   command?: string;
+  skillName?: string;
 }): string {
   const event: Record<string, unknown> = {
     timestamp: "2026-04-12T10:00:00.000Z",
@@ -29,6 +31,7 @@ function fileSeqLine({
   };
   if (filePath !== undefined) event["filePath"] = filePath;
   if (command !== undefined) event["metadata"] = { command };
+  if (skillName !== undefined) event["metadata"] = { skillName };
   return JSON.stringify(event);
 }
 
@@ -203,5 +206,63 @@ describe("detectFileSequencePattern", () => {
     expect(results[0].name).toBe("edit-then-build");
     expect(results[0].count).toBe(1);
     expect(results[0].triggered).toBe(true);
+  });
+
+  // ─── Skill follow-up branch (dogfood fix 2026-04-13) ───
+  // Slash commands like /doks, /forge, /almanak are invoked via the Skill tool,
+  // not Bash. detectFileSequencePattern must recognize Skill.metadata.skillName
+  // as a valid follow-up surface, otherwise 5 of the 12 domain patterns can
+  // never fire in real Claude Code usage.
+
+  it("detects Edit on matching glob followed by Skill matching followedByCommand", () => {
+    const lines = [
+      fileSeqLine({ toolName: "Edit", filePath: "CLAUDE.md" }),
+      fileSeqLine({ toolName: "Skill", skillName: "doks" }),
+    ];
+    const result = detectFileSequencePattern(lines, {
+      editTools: ["Edit", "Write"],
+      filePathGlob: "**/CLAUDE.md",
+      followedByCommands: ["doks", "/doks"],
+      withinToolCalls: 15,
+    });
+    expect(result).toBe(1);
+  });
+
+  it("does not count Skill call whose skillName does not match followedByCommand", () => {
+    const lines = [
+      fileSeqLine({ toolName: "Edit", filePath: "CLAUDE.md" }),
+      fileSeqLine({ toolName: "Skill", skillName: "kadmon-harness" }),
+    ];
+    const result = detectFileSequencePattern(lines, {
+      editTools: ["Edit", "Write"],
+      filePathGlob: "**/CLAUDE.md",
+      followedByCommands: ["doks", "/doks"],
+      withinToolCalls: 15,
+    });
+    expect(result).toBe(0);
+  });
+
+  it("counts Bash and Skill follow-ups interchangeably across multiple edits", () => {
+    const lines = [
+      fileSeqLine({ toolName: "Edit", filePath: "scripts/lib/types.ts" }),
+      fileSeqLine({ toolName: "Bash", command: "npm run build" }),
+      fileSeqLine({ toolName: "Edit", filePath: "CLAUDE.md" }),
+      fileSeqLine({ toolName: "Skill", skillName: "doks" }),
+    ];
+    const typesResult = detectFileSequencePattern(lines, {
+      editTools: ["Edit", "Write"],
+      filePathGlob: "**/types.ts",
+      followedByCommands: ["npm run build"],
+      withinToolCalls: 5,
+    });
+    expect(typesResult).toBe(1);
+
+    const claudeResult = detectFileSequencePattern(lines, {
+      editTools: ["Edit", "Write"],
+      filePathGlob: "**/CLAUDE.md",
+      followedByCommands: ["doks", "/doks"],
+      withinToolCalls: 15,
+    });
+    expect(claudeResult).toBe(1);
   });
 });

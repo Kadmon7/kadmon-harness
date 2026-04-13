@@ -135,16 +135,29 @@ export function detectFileSequencePattern(
         pending.push({ index: obsIndex, consumed: false });
         continue;
       }
+      // Follow-up can be either:
+      //   - a Bash call whose metadata.command contains one of followedByCommands, or
+      //   - a Skill call whose metadata.skillName contains one of followedByCommands.
+      // Slash commands like /doks, /forge, /almanak are invoked via the Skill tool in
+      // Claude Code — they are NOT Bash commands — so we must check both surfaces.
+      let followUpText: string | null = null;
       if (toolName === "Bash") {
-        const cmd: string = e.metadata?.command ?? "";
-        if (def.followedByCommands.some((f: string) => cmd.includes(f))) {
-          for (const entry of pending) {
-            if (entry.consumed) continue;
-            if (obsIndex - entry.index > def.withinToolCalls) continue;
-            entry.consumed = true;
-            count++;
-            break;
-          }
+        followUpText = (e.metadata?.command as string | undefined) ?? "";
+      } else if (toolName === "Skill") {
+        followUpText = (e.metadata?.skillName as string | undefined) ?? "";
+      }
+      if (
+        followUpText !== null &&
+        def.followedByCommands.some((f: string) =>
+          (followUpText as string).includes(f),
+        )
+      ) {
+        for (const entry of pending) {
+          if (entry.consumed) continue;
+          if (obsIndex - entry.index > def.withinToolCalls) continue;
+          entry.consumed = true;
+          count++;
+          break;
         }
       }
       // prune stale edits outside the window

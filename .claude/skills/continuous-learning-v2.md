@@ -152,7 +152,7 @@ After 7 days: /forge prunes it (prune phase, gated)
 - **/instinct** -- deprecated alias for /forge until 2026-04-20
 - **session-end-all** hook (pattern evaluation phase) -- fires at Stop, analyzes observations against pattern-definitions.json
 - **observe-pre / observe-post** hooks -- log tool calls and results to JSONL
-- **pattern-definitions.json** -- 12 pattern definitions (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006)
+- **pattern-definitions.json** -- 12 pattern definitions (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006). `file_sequence` follow-up matching is dual-surface: it checks both `Bash.metadata.command` and `Skill.metadata.skillName`, because slash commands like `/doks`, `/forge`, `/almanak` are Skill tool calls, not Bash.
 - **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates. Future step 6 "Generate" will consume `ClusterReport` JSON from `~/.kadmon/forge-reports/` written by /forge.
 - **session-start** hook -- loads 3 recent sessions with history trajectory and active instincts
 - **skill-creator:skill-creator** plugin -- required for any skill generation from promoted instincts

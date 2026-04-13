@@ -337,3 +337,15 @@ Revisit this ADR after 2 full `/forge` dogfood sessions (estimated by 2026-04-20
 4. Did `file_sequence` introduce any Windows path-normalization bugs?
 
 If all four answers are positive, this ADR closes as "validated." Otherwise, amendments belong in ADR-007, not a retrofit of this one.
+
+## Post-Ship Follow-Up
+
+**2026-04-13 — `file_sequence` follow-up matching: Bash-only → Bash + Skill (dual-surface).**
+
+During the Phase 7 verification window after plan-006 shipped (commit `6a4fe16`), dogfood surfaced a silent gap in `detectFileSequencePattern`: follow-up matching only checked `Bash.metadata.command`. But slash commands like `/doks`, `/forge`, `/almanak` are invoked as **Skill tool calls** in Claude Code, not as Bash commands — their name lives in `Skill.metadata.skillName`. As a result, 5 of the 12 domain patterns shipped in this ADR (C, D, E, H, I, and the `/almanak` half of J) could never fire in real usage, despite their definitions being correct.
+
+The fix extends the detector to inspect **both** `Bash.metadata.command` and `Skill.metadata.skillName`, using the same `followedByCommands` substring match for either surface. This is additive — no definitions change, no existing tests regress — and was covered by 3 new tests in `tests/lib/pattern-engine-file-sequence.test.ts` (Skill branch matches, Skill branch doesn't match, Bash and Skill are interchangeable).
+
+This does not invalidate the Review Date checklist above; question #1 ("Are the 12 patterns firing often enough?") should simply now be answerable with real signal from the 5 previously-dead patterns. Question #4 ("Did `file_sequence` introduce any Windows path-normalization bugs?") remains open.
+
+**Maintenance note for future editors of `detectFileSequencePattern`**: both the Bash branch and the Skill branch must stay in sync. When adding a new follow-up surface (e.g. a hypothetical `SlashCommand` tool), update both the detector and `tests/lib/pattern-engine-file-sequence.test.ts`. CLAUDE.md "Common Pitfalls" records this invariant.

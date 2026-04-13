@@ -146,9 +146,10 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Hook latency budgets are for logic only — Node.js cold start adds ~236ms on Windows
 - ORDER BY needs `rowid` tiebreaker for deterministic results when timestamps collide
 - Pattern evaluation uses 12 definitions from `.claude/hooks/pattern-definitions.json` (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006)
+- `file_sequence` follow-up matching checks BOTH `Bash.metadata.command` AND `Skill.metadata.skillName` — slash commands like `/doks`, `/forge`, `/almanak` are Skill tool calls, not Bash. Editing this detector requires updating both branches.
 - `new URL().pathname` encodes spaces as `%20` — use `fileURLToPath()` for file paths
 - Stop hooks only fire on clean session termination — crashes do NOT trigger them
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (493 tests passing, 50 test files, 20 hooks, 15 agents, 22 skills, 11 commands, 19 rules, 6 DB tables)
+v1.0 — Production ready (496 tests passing, 50 test files, 20 hooks, 15 agents, 22 skills, 11 commands, 19 rules, 6 DB tables)
