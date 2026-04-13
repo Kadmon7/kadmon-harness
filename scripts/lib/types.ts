@@ -29,6 +29,80 @@ export interface Instinct {
 // 5. Promoted: status='promoted', promotedTo='skill-name'
 // 6. Archived: manually or when contradictions dominate
 
+// ─── Forge → Evolve Handoff Contract (ADR-005) ───
+// Produced by /forge pipeline step 7 (apply).
+// Consumed by /evolve step 6 "Generate" (v1.1 Sprint B, not yet implemented).
+// Stored as JSON file at ~/.kadmon/forge-reports/forge-clusters-<sessionId>.json
+// NOT persisted to SQL — clusters are derived data (see patterns.md rule).
+
+/** Sentinel export so consumers can import a runtime schema version check. */
+export const CLUSTER_REPORT_SCHEMA_VERSION = 1;
+
+export type EvolutionCategory =
+  | "PROMOTE" // instinct(s) → skill
+  | "CREATE_AGENT" // cluster → agent
+  | "CREATE_COMMAND" // cluster → command
+  | "CREATE_RULE" // cluster → rule
+  | "CREATE_HOOK" // cluster → hook (new in Sprint B)
+  | "OPTIMIZE"; // cluster → component tweak
+
+export interface ClusterMemberRef {
+  /** FK to instincts.id — never a copy of the row */
+  instinctId: string;
+  /** Confidence of this member inside the cluster (0..1). May differ from instinct.confidence */
+  membership: number;
+}
+
+export interface Cluster {
+  /** Stable ID within this report. Not persisted, not reused across reports. */
+  id: string;
+  /** Suggested evolution category for this cluster. A hint for step 6, not a mandate. */
+  suggestedCategory: EvolutionCategory;
+  /** Human-readable label, e.g. "read-before-edit patterns" */
+  label: string;
+  /** Optional domain tag (TypeScript, SQL, Python, hooks, git, ...) if derivable */
+  domain?: string;
+  /** Member instincts (by ID). At least one member required. */
+  members: ClusterMemberRef[];
+  /** Aggregate metrics, recomputed each run */
+  metrics: {
+    /** Mean confidence across member instincts */
+    meanConfidence: number;
+    /** Sum of occurrences across members — proxy for evidence strength */
+    totalOccurrences: number;
+    /** Count of contradicted instincts in this cluster — proxy for pattern instability */
+    contradictionCount: number;
+    /** Sessions that contributed at least one member observation */
+    distinctSessions: number;
+  };
+  /** Free-form rationale for the clustering decision. Used by alchemik to explain proposals. */
+  rationale: string;
+}
+
+export interface ClusterReport {
+  /** Contract version. Bump on breaking changes. Alchemik MUST check this on read. */
+  schemaVersion: 1;
+  /** Project hash at the time the report was generated */
+  projectHash: string;
+  /** Session that produced the report */
+  sessionId: string;
+  /** ISO 8601 timestamp */
+  generatedAt: string;
+  /** All clusters found this run. May be empty. */
+  clusters: Cluster[];
+  /** Instincts considered but not placed into any cluster (singletons below support threshold) */
+  unclustered: ClusterMemberRef[];
+  /** Aggregate totals for quick inspection without re-walking the report */
+  totals: {
+    activeInstincts: number;
+    clusteredInstincts: number;
+    unclusteredInstincts: number;
+    promotableInstincts: number;
+  };
+  /** Escape hatch for future fields without bumping schemaVersion. Producers may populate; consumers MAY ignore. */
+  meta?: Record<string, unknown>;
+}
+
 // ─── Session Summary ───
 
 export interface SessionSummary {
