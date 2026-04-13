@@ -9,6 +9,8 @@ plan: plan-005-forge-evolve-pipeline.md
 
 # ADR-005: Refactor /instinct to /forge with unified pipeline and /evolve handoff contract
 
+> **Implementation Status:** Shipped 2026-04-13 via plan-005 (commits 6eae906…6a4fe16). `/forge` end-to-end live. `/instinct` alias deprecated until 2026-04-20. Frontmatter `status: proposed` retained per repo convention (no `accepted` precedent yet).
+
 **Deciders**: Ych-Kadmon (architect), arkitect (agent)
 
 ## Context

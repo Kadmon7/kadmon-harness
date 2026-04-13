@@ -2,7 +2,10 @@
 number: 6
 title: Domain pattern engine — Sprint A v1.1
 date: 2026-04-13
-status: pending
+status: completed
+completed_at: 2026-04-13
+shipped_in: [6a4fe16, a62290c]
+dogfood_review: 2026-04-20
 needs_tdd: true
 route: A
 adr: ADR-006-domain-pattern-engine.md

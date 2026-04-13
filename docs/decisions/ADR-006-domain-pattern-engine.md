@@ -9,6 +9,8 @@ plan: plan-006-domain-pattern-engine.md
 
 # ADR-006: Replace hygiene pattern definitions with domain-specific patterns and extend the engine minimally
 
+> **Implementation Status:** Shipped 2026-04-13 via plan-006 (commits 6a4fe16 + a62290c). 12 domain patterns active. 11 hygiene instincts archived via one-shot migration. First domain instinct (`bac7fbce` `/doks after editing CLAUDE.md`) created live in production DB. Dogfood window ends 2026-04-20 — re-review pattern G (`tool_arg_presence`) and any unfired patterns then.
+
 **Deciders**: Ych-Kadmon (architect), arkitect (agent)
 
 ## Context

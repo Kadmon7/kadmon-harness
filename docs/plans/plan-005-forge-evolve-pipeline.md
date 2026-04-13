@@ -2,7 +2,9 @@
 number: 5
 title: Refactor /instinct to /forge with unified pipeline
 date: 2026-04-13
-status: pending
+status: completed
+completed_at: 2026-04-13
+shipped_in: [6eae906, 0f609da, 5599694, dcc87fe, 0273ff3, 71c06a1, 5967ac4, 6a4fe16]
 needs_tdd: true
 route: A
 adr: ADR-005-forge-evolve-pipeline.md

@@ -7,6 +7,7 @@ alwaysApply: true
 ## Commits
 - MUST use conventional commit format: `type(scope): description`
 - Types: feat, fix, docs, chore, refactor, test, style, perf
+- MUST include `Reviewed: full|lite|skip` footer in every commit body — no exceptions. The chosen tier MUST match the diff scope per the table in `development-workflow.md`. Inferring from the body is not enough; the footer is the audit trail.
 - NEVER use --no-verify (enforced by block-no-verify hook)
 - ALWAYS run typecheck before pushing
 
