@@ -10,6 +10,8 @@ plan: plan-006-domain-pattern-engine.md
 # ADR-006: Replace hygiene pattern definitions with domain-specific patterns and extend the engine minimally
 
 > **Implementation Status:** Shipped 2026-04-13 via plan-006 (commits 6a4fe16 + a62290c). 12 domain patterns active. 11 hygiene instincts archived via one-shot migration. First domain instinct (`bac7fbce` `/doks after editing CLAUDE.md`) created live in production DB. Dogfood window ends 2026-04-20 — re-review pattern G (`tool_arg_presence`) and any unfired patterns then.
+>
+> **Retroactive review audit (2026-04-13):** commit `a62290c` was originally marked `Reviewed: skip` despite touching production `pattern-engine.ts`. Post-hoc review by typescript-reviewer + spektr found **0 issues** — both agents approved retroactively. ts-reviewer confirmed type safety / null handling / test coverage on the dual-surface branch. spektr confirmed LOW risk with 0 findings across trust boundary, ReDoS, prototype pollution, DoS, and info disclosure — the `Skill.skillName` source shares the same trust level as `Bash.command` (both come from Claude Code's own tool dispatch). Audit gap closed for paper-trail purposes only; no code changes required.
 
 **Deciders**: Ych-Kadmon (architect), arkitect (agent)
 
