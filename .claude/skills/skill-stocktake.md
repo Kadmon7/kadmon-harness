@@ -12,6 +12,7 @@ Audit `.claude/skills/` for quality, currency, uniqueness, and actionability. Pr
 - After adding 5+ new skills, to detect overlap and drift
 - When a skill has not been invoked in months and you suspect it is stale
 - When `/evolve` reports that instinct promotion is creating duplicated skills
+- Before approving `/evolve` step 6 Generate PROMOTE proposals — run skill-stocktake first to check whether the proposed skill already exists under a different name (step 6 Generate shipped 2026-04-14 via ADR-008; EXPERIMENTAL through 2026-04-28)
 - When the user asks "which skills are we actually using" or "can we consolidate"
 
 ## Two Modes

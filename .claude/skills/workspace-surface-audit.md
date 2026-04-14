@@ -108,7 +108,7 @@ Return five sections in this exact order:
 What is already usable right now. Focus on workflow capabilities, not brand names.
 
 ### 2. Parity
-Where the harness already matches or exceeds a benchmark (e.g., the 22 skills cover most common TS/Python patterns; the 20 hooks cover security, quality, and observability).
+Where the harness already matches or exceeds a benchmark (e.g., the 46 skills cover most common TS/Python patterns; the 21 hooks cover security, quality, and observability).
 
 ### 3. Primitive-Only Gaps
 Tools exist but the harness lacks a clean operator skill:

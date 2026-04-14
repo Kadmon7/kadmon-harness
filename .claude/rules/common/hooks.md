@@ -44,7 +44,7 @@ alwaysApply: true
 | ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts edits without code review in session | 1 as warning |
 | console-log-warn | console-log-warn.js | Warns about console.log() in production code | 1 as warning |
 | deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json dependencies change | 1 as warning |
-| agent-metadata-sync | agent-metadata-sync.js | Auto-syncs agent frontmatter changes to CLAUDE.md + agents.md catalogs | 1 on warning |
+| agent-metadata-sync | agent-metadata-sync.js | Detects edits to `.claude/agents/*.md`, parses YAML frontmatter, and auto-syncs model/trigger changes into the CLAUDE.md agents table + `rules/common/agents.md` catalog. Fast-bails for non-agent files. Test env vars `KADMON_SYNC_CLAUDE_MD_PATH` / `KADMON_SYNC_AGENTS_MD_PATH` are gated to VITEST/NODE_ENV=test. Never exits 2. | 0 ok / 1 on warning |
 
 ### PostToolUse — Bash matcher (1)
 | Hook | Script | Purpose | Exit |
@@ -82,7 +82,7 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 
 | Module | Purpose | Used By |
 |--------|---------|---------|
-| parse-stdin.js | Sanitize Windows backslashes in JSON stdin | All 20 hooks |
+| parse-stdin.js | Sanitize Windows backslashes in JSON stdin | All 21 hooks |
 | evaluate-patterns-shared.js | Pattern evaluation against definitions | session-start, session-end-all, pre-compact-save |
 | generate-session-summary.js | Heuristic session summary from observations | session-start, session-end-all, pre-compact-save |
 | daily-log.js | Append/read daily session logs in memory/logs/ | session-start, session-end-all, pre-compact-save |
@@ -105,11 +105,12 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 - Hooks read input from stdin as JSON
 - observe hooks write to JSONL files (file append, no DB)
 - 9 blocking/warning hooks write to `hook-events.jsonl` via `logHookEvent()` (persisted to SQLite by session-end-all)
+- Sprint C (2026-04-14) instrumented 9 hooks with `durationMs = Date.now() - start` on every `logHookEvent` call: block-no-verify, commit-format-guard, commit-quality, config-protection, console-log-warn, deps-change-reminder, git-push-reminder, no-context-guard, ts-review-reminder. The `log-hook-event.js` JSDoc now documents `durationMs` as required. ADR-007 fixes the prior bug where `hook_events.duration_ms` was always NULL.
 - session-end-all extracts agent invocations from `observations.jsonl` and hook events from `hook-events.jsonl`, persists both to DB
 - Lifecycle hooks (session-start, session-end-all) may access SQLite via compiled TypeScript in dist/
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
 ## Windows Compatibility
-- All 20 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 21 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

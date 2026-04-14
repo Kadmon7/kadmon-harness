@@ -2,8 +2,8 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-422%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-1.0-blue)]()
+[![Tests](https://img.shields.io/badge/tests-549%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-1.1-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
@@ -27,8 +27,8 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/kadmon-harness` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
-| **Specialize** | Domain agents, curated skill catalog | 15 agents, 22 skills, `/abra-kdabra` |
-| **Evolve** | Learn from sessions, promote patterns to skills | `/instinct learn`, `/evolve`, `/instinct promote` |
+| **Specialize** | Domain agents, curated skill catalog | 15 agents, 46 skills, `/abra-kdabra` |
+| **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate EXPERIMENTAL through 2026-04-28) |
 
 ---
 
@@ -68,7 +68,7 @@ Six commands to know on day one:
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
 │  │ PreTool  │→ │  Tool    │→ │ PostTool │             │
-│  │ Hooks(8) │  │ Execute  │  │ Hooks(8) │             │
+│  │ Hooks(8) │  │ Execute  │  │ Hooks(10)│             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │       │                            │                    │
 │       ▼                            ▼                    │
@@ -84,7 +84,7 @@ Six commands to know on day one:
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 15 Agents│  │ 22 Skills│  │ 19 Rules │             │
+│  │ 15 Agents│  │ 46 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -104,12 +104,12 @@ Six commands to know on day one:
 | Check harness state | `/kadmon-harness` |
 | Look up API documentation | `/almanak supabase-js insert` → almanak + Context7 MCP |
 | Fix build errors | `/medik` → mekanik agent |
-| Learn from session | `/instinct learn` |
-| Evolve the harness | `/evolve` → alchemik agent (opus) |
+| Forge session observations into instincts | `/forge` (unified pipeline, preview gate) |
+| Evolve the harness | `/evolve` → alchemik agent (opus) — step 6 Generate EXPERIMENTAL |
 | Design architecture | `/abra-kdabra` with design signals → arkitect agent |
 | Audit security | `/chekpoint` → spektr agent (opus) |
-| Check instincts | `/instinct status` |
-| Export instincts | `/instinct export` |
+| Dry-run instinct forge | `/forge --dry-run` |
+| Export instincts | `/forge export` |
 | Refactor code | `/medik clean` → kurator agent (sonnet) |
 
 ---
@@ -119,11 +119,11 @@ Six commands to know on day one:
 | Metric | Value |
 |--------|-------|
 | Agents | **15** (5 opus, 10 sonnet) |
-| Skills | **22** |
+| Skills | **46** |
 | Commands | **11** |
-| Hooks | **20** |
+| Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **422 passing** |
+| Tests | **549 passing** (54 files) |
 | SQLite Tables | **6** + 14 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -161,7 +161,7 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>30 Skills</strong> — domain knowledge loaded on demand</summary>
+<summary><strong>46 Skills</strong> — domain knowledge loaded on demand</summary>
 
 ### TypeScript / Code Quality
 - **coding-standards** — Naming, `node:` prefix imports, .js extensions
@@ -246,13 +246,13 @@ Full component details are below (collapsed by default). For the operational cat
 | Command | Purpose |
 |---------|---------|
 | `/akademy` | Evaluate agent/skill quality with structured tests |
-| `/instinct` | Manage instinct lifecycle: learn, status, promote, prune, export |
-| `/evolve` | Harness self-optimization analysis |
+| `/forge` | Unified instinct pipeline (read → extract → cluster → preview gate → apply). Flags: `--dry-run`, `export`. Writes ClusterReport JSON consumed by `/evolve` step 6. (`/instinct` remains as a deprecated alias until 2026-04-20.) |
+| `/evolve` | Harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads `/forge` ClusterReports and proposes new skills/commands/agents/rules through a preview gate. |
 
 </details>
 
 <details>
-<summary><strong>20 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
+<summary><strong>21 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
 
 ### Security — block dangerous operations (exit 2)
 | Hook | Event | What It Does |
@@ -270,6 +270,7 @@ Full component details are below (collapsed by default). For the operational cat
 | **ts-review-reminder** | PostToolUse | Warns after 5+ `.ts` edits without code review |
 | **console-log-warn** | PostToolUse | Warns about `console.log()` in production code |
 | **deps-change-reminder** | PostToolUse | Reminds to run `/almanak` when package.json changes |
+| **agent-metadata-sync** | PostToolUse Edit/Write | Auto-syncs `.claude/agents/*.md` frontmatter changes to CLAUDE.md + `rules/common/agents.md` catalogs (never exit 2) |
 
 ### Observation — log everything (exit 0)
 | Hook | Event | What It Does |
@@ -359,13 +360,13 @@ Instincts are patterns learned from sessions. They start weak and grow with evid
 Created:    confidence 0.3, occurrences 1
 Reinforced: confidence += 0.1 per matching session
 Promotable: confidence >= 0.7 AND occurrences >= 3
-Promoted:   becomes a permanent skill via /instinct promote
+Promoted:   becomes a permanent skill via /forge (preview gate approves promotion; /evolve step 6 Generate can then scaffold the skill from ClusterReports)
 ```
 
 Example instincts:
 ```
-[█████████░] 0.9  Build after editing TypeScript (14x)  → /instinct promote
-[████████░░] 0.8  Re-run tests after fixing failures (12x) → /instinct promote
+[█████████░] 0.9  Build after editing TypeScript (14x)  → /forge (promote)
+[████████░░] 0.8  Re-run tests after fixing failures (12x) → /forge (promote)
 [███░░░░░░░] 0.3  Research before building (1x)
 ```
 
@@ -380,8 +381,8 @@ Example instincts:
 ╚══════════════════════════════════════╝
 
 ── INSTINCTS (10 active | 10 promotable) ──
-  [█████████░] 0.9  Build after editing TypeScript (14x) → /instinct promote
-  [█████████░] 0.9  Re-run tests after fixing failures (14x) → /instinct promote
+  [█████████░] 0.9  Build after editing TypeScript (14x) → /forge (promote)
+  [█████████░] 0.9  Re-run tests after fixing failures (14x) → /forge (promote)
   [███░░░░░░░] 0.3  Research before building (1x)
 
 ── SESSIONS ──
@@ -422,7 +423,7 @@ Example instincts:
 
 ## 📊 Status & Attribution
 
-**v1.0 — Production ready**
-`422 tests passing` · `20 hooks` · `15 agents` · `22 skills` · `11 commands` · `19 rules` · `6 DB tables`
+**v1.1 Sprint B/C shipped 2026-04-14**
+`549 tests passing` · `21 hooks` · `15 agents` · `46 skills` · `11 commands` · `19 rules` · `6 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.

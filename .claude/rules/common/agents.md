@@ -116,5 +116,6 @@ Not every skill is owned by an agent. Some skills are loaded directly by command
 |---|---|---|
 | `verification-loop` | `/chekpoint` (Phase 1) | Build → typecheck → lint → test is a deterministic sequence. A reviewer agent is already invoked in Phase 2; verification is the command's job. |
 | `strategic-compact` | `/kompact` | The compaction-decision matrix is deterministic enough that routing through an agent adds no value. The skill is loaded directly when the user (or another skill) needs the decision guide. |
+| `skill-creator:skill-creator` (plugin) | `/evolve` step 6 Generate (PROMOTE proposals only) | Alchemik proposes `SkillSpec` objects in a JSON fence but NEVER invokes the mutator or plugin itself (ADR-008 Q2). The `/evolve` command parses the fence, renders the approval gate, then invokes the skill-creator plugin for PROMOTE proposals or calls `applyEvolveGenerate` for non-skill types. This orchestration lives at command level to keep alchemik pure-analysis and to centralize collision handling. |
 
 When adding new command-level skills, document the rationale here so future audits don't flag them as orphaned.

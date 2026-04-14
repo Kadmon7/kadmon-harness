@@ -35,13 +35,15 @@ Kadmon-Harness/
 |   |-- commands/         # 11 slash commands
 |   |-- skills/           # 46 reference skills
 |   |-- rules/            # 19 rules (common + typescript + python)
-|   |-- hooks/scripts/    # 20 registered hook scripts + shared modules
+|   |-- hooks/scripts/    # 21 registered hook scripts + 8 shared modules
 |   `-- settings.json     # Hook registration + permissions
 |-- scripts/
-|   |-- lib/              # TypeScript sources (state-store, instincts, etc)
+|   |-- lib/              # TypeScript sources (state-store, instincts, evolve-generate, evolve-report-reader, ...)
+|   |   `-- evolve-generate-templates/  # 4 markdown templates (skill/command/agent/rule)
 |   |-- dashboard.ts      # /kadmon-harness entry point
+|   |-- migrate-fix-session-inversion.ts  # Sprint C repair script (--apply gate)
 |   `-- *.ts              # Migration + cleanup scripts
-|-- tests/                # Vitest suite (422 passing, 42 files)
+|-- tests/                # Vitest suite (549 passing, 54 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
@@ -155,6 +157,8 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - `new URL().pathname` encodes spaces as `%20` — use `fileURLToPath()` for file paths
 - Stop hooks only fire on clean session termination — crashes do NOT trigger them
 - `npx tsx -e` produces no output on Windows — use temp script files
+- /evolve Generate (step 6) is cross-project: `readClusterReportsInWindow` filters ClusterReports by the caller's `projectHash` before merging. Never write generated artifacts to a directory that escapes `cwd` — `applyEvolveGenerate` aborts the ENTIRE batch transactionally if any proposal target path exists OR escapes the project root (ADR-008).
+- Sprint C Bug B fix: `startSession()` resume branch MUST call `clearSessionEndState(id)` before upserting, and MUST clear `merged.durationMs`, otherwise `COALESCE` restores the prior `ended_at`/`duration_ms` and produces the timestamp inversion.
 
 ## Status
-v1.1 Sprint B/C shipped 2026-04-14 — 542+ tests passing, 54+ test files, 21 hooks, 15 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation
+v1.1 Sprint B/C shipped 2026-04-14 — 549 tests passing, 54 test files, 21 hooks, 15 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline)

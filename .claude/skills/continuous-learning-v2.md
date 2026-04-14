@@ -153,7 +153,7 @@ After 7 days: /forge prunes it (prune phase, gated)
 - **session-end-all** hook (pattern evaluation phase) -- fires at Stop, analyzes observations against pattern-definitions.json
 - **observe-pre / observe-post** hooks -- log tool calls and results to JSONL
 - **pattern-definitions.json** -- 12 pattern definitions (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006). `file_sequence` follow-up matching is dual-surface: it checks both `Bash.metadata.command` and `Skill.metadata.skillName`, because slash commands like `/doks`, `/forge`, `/almanak` are Skill tool calls, not Bash.
-- **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates. Future step 6 "Generate" will consume `ClusterReport` JSON from `~/.kadmon/forge-reports/` written by /forge.
+- **/evolve** command -- alchemik agent analyzes instinct quality, contradiction rates, and promotion candidates. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28, shipped 2026-04-14 via ADR-008) consumes `ClusterReport` JSON from `~/.kadmon/forge-reports/` written by /forge: alchemik proposes `GenerateProposal[]`, the `/evolve` command parses the fence, renders a preview gate, and on approval invokes `skill-creator:skill-creator` for PROMOTE proposals or `applyEvolveGenerate` for CREATE_COMMAND/CREATE_AGENT/CREATE_RULE. CreateHook is deferred to Sprint B.1; OPTIMIZE stays report-only. Reports are filtered by `projectHash` and merged over a 7-day window (`KADMON_EVOLVE_WINDOW_DAYS`).
 - **session-start** hook -- loads 3 recent sessions with history trajectory and active instincts
 - **skill-creator:skill-creator** plugin -- required for any skill generation from promoted instincts
 
