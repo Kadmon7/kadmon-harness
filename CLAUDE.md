@@ -58,6 +58,11 @@ Kadmon-Harness/
 - `KADMON_NO_CONTEXT_GUARD` — Set to `"off"` to disable no-context enforcement
 - `KADMON_EVOLVE_WINDOW_DAYS` — /evolve Generate ClusterReport read window (default: 7)
 
+## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
+- `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all your projects (absolute paths, platform-specific commands like `winget`). Not committed.
+- `.claude/settings.json` — **Project team-shared**. Hooks, deny rules, enabledPlugins, and the `permissions.allow` block with generic tools (Bash utilities, public docs WebFetch, Skill, MCP). Committed — distributed via plan-003 bootstrap.
+- `.claude/settings.local.json` — **Project personal**. Gitignored per Claude Code convention. Reserved for truly machine-specific overrides of *this* repo; empty by default.
+
 ## Agents (15)
 | Agent | Model |
 |-------|-------|

@@ -135,8 +135,9 @@ The most delicate part: merging settings.json and package.json without losing ta
     - `mergeSettings(harnessSettings: Record<string, unknown>, targetSettings: Record<string, unknown>): Record<string, unknown>` -- implements ADR-003 algorithm:
       1. **hooks**: Replace entire `hooks` section with harness hooks. Hook command strings are generated via `generateHookCommand()` using the universal cross-platform format by default (canonical source of truth).
       2. **permissions.deny**: Union of harness deny rules + target deny rules (deduplicate). Generalize user-specific paths (e.g., `/c/Users/kadmo/.ssh/**` becomes `~/.ssh/**`) so deny rules are portable across collaborators and platforms.
-      3. **enabledPlugins**: Preserve target plugins, add harness defaults if not present
-      4. All other top-level keys in target: preserve as-is
+      3. **permissions.allow**: Union of harness allow rules + target allow rules (deduplicate). Added 2026-04-14 when the harness started committing 55 generic `allow` rules (Bash utilities, public docs WebFetch, Skill, WebSearch, MCP context7) to `.claude/settings.json` so collaborators receive them automatically. Target-specific allows (user-added post-bootstrap) are preserved. Machine-specific allow rules (absolute user paths, platform-only commands) stay in the user's `~/.claude/settings.json`, never in the project file.
+      4. **enabledPlugins**: Preserve target plugins, add harness defaults if not present
+      5. All other top-level keys in target: preserve as-is
     - `mergePackageJson(harnessPackage: Record<string, unknown>, targetPackage: Record<string, unknown>): { merged: Record<string, unknown>; warnings: string[] }` -- implements ADR-003 algorithm:
       1. Add `sql.js` and `zod@^4.0.1` to `dependencies` (warn if target has different version range). Zod v4 is pinned because plan-003 starts new projects with a clean slate -- no migration cost, and v4 delivers 100x fewer tsc instantiations than v3 per the upstream changelog.
       2. Add `typescript` to `devDependencies` (warn if target has different version range)

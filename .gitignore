@@ -9,3 +9,5 @@ Thumbs.db
 *.db-journal
 .claude.local.md
 .claude/agent-memory/
+# Personal overrides — NEVER commit (per Claude Code best practice)
+.claude/settings.local.json
