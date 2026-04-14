@@ -2,6 +2,7 @@
 number: 3
 title: Harness Distribution -- Bootstrap Script
 date: 2026-04-08
+refreshed: 2026-04-14
 status: pending
 needs_tdd: true
 route: A
@@ -10,18 +11,22 @@ adr: ADR-003-harness-distribution.md
 
 # Plan 003: Harness Distribution -- Bootstrap Script [konstruct]
 
+> **Refreshed 2026-04-14** after Sprint B (/evolve Generate), Sprint C (data-integrity fixes), and Sprint F Tier A+S (24 new skills). Counts, manifest categories, and CLAUDE.md template were updated to reflect v1.1 state. Core architecture (Option A, copy-based bootstrap) is unchanged -- almanak verification 2026-04-14 confirmed Claude Code plugins still do not distribute `rules/` or `permissions.deny`. See ADR-003 "Refresh Note" section.
+
 ## Overview
 
 Implement the bootstrap script decided in ADR-003. A single TypeScript file (`scripts/bootstrap.ts`) that copies the Kadmon Harness operative layer to a target project directory, smart-merges `settings.json` and `package.json`, generates a CLAUDE.md template, writes a version marker, and runs the build system. Supports four modes: default (interactive), `--diff` (preview), `--update` (apply changes to existing install), and `--force` (no confirmation).
 
-## Current State
+## Current State (v1.1, 2026-04-14)
 
-- 15 agents, 11 commands, 22 skills, 19 rules (3 subdirs), 28 hook scripts, 1 pattern-definitions.json
-- 10 TypeScript sources + 1 schema.sql + 1 sql.js.d.ts in `scripts/lib/`
-- `settings.json` contains hooks config (6 event types, 20 hooks) + permissions.deny (14 rules)
-- `package.json` has 2 runtime deps (sql.js ^1.x, zod ^4.0.1) + 7 devDependencies
+- 15 agents, 12 commands (11 active + `/instinct` deprecated alias until 2026-04-20), 46 skills, 19 rules (3 subdirs), 29 hook scripts (21 registered + 8 shared modules), 1 pattern-definitions.json, 4 evolve-generate templates
+- 18 TypeScript/SQL/d.ts files in `scripts/lib/` (was 10 in Sprint A)
+- `settings.json` contains hooks config (6 event types, 21 hooks) + permissions.deny
+- `package.json` has runtime deps (sql.js, zod) + devDependencies (typescript, vitest, eslint, etc.)
+- Environment variables: `KADMON_TEST_DB`, `KADMON_DISABLED_HOOKS`, `KADMON_NO_CONTEXT_GUARD`, `KADMON_EVOLVE_WINDOW_DAYS`
 - Existing scripts follow pattern: async `main()`, try/catch with `process.exit(1)`, imports from `./lib/*.js`
-- 422 tests across 42 files, all passing. Tests use `vitest`, arrange-act-assert, temp dirs with cleanup
+- 549 tests across 55 files, all passing. Tests use `vitest`, arrange-act-assert, temp dirs with cleanup
+- `.claude/contexts/` directory was removed during v1.0 consolidation (previously had 3 files)
 
 ## Assumptions
 
@@ -31,15 +36,16 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 - Updated: Small team with mixed OS -- Windows (Abraham, Ych-Kadmon) and Mac (Joe, Eden). Hook commands must work cross-platform.
 - Needs confirmation: Whether `enabledPlugins` from settings.json should be merged or skipped (plan assumes merge/preserve, matching ADR-003 description)
 
-## Phase 0: Research (complete)
+## Phase 0: Research (complete, refreshed 2026-04-14)
 
 - [x] Read ADR-003-harness-distribution.md -- full distribution surface, merge strategies, version tracking
-- [x] Read existing scripts (dashboard.ts, migrate-v0.4.ts) -- async main(), import patterns, error handling
-- [x] Read settings.json -- 6 hook event types, 14 deny rules, 4 enabled plugins
+- [x] Read existing scripts (dashboard.ts, db-health-check.ts) -- async main(), import patterns, error handling
+- [x] Read settings.json -- 6 hook event types, deny rules, enabled plugins
 - [x] Read package.json -- runtime deps, build script, postinstall
 - [x] Read tsconfig.json -- ES2022 target, Node16 resolution, include paths
-- [x] Count distributable files: 15 agents + 11 commands + 22 skills + 19 rules + 28 hooks + 1 pattern-definitions.json + 12 scripts/lib files + 3 scripts-entry + 2 config-files + 1 test-infra = 114 direct files + settings.json (generated) + CLAUDE.md (generated) + .kadmon-version (generated) + .gitignore (generated) + README.md (generated) = 119 managed artifacts
+- [x] Count distributable files (v1.1): 15 agents + 12 commands + 46 skills + 19 rules + 29 hooks + 1 pattern-definitions.json + 18 scripts/lib files + 4 evolve-generate templates + 3 scripts-entry + 2 config-files + 1 test-infra = **150 direct files** + settings.json (generated) + CLAUDE.md (generated) + .kadmon-version (generated) + .gitignore (generated) + README.md (generated) = **155 managed artifacts**
 - [x] Read test patterns (utils.test.ts) -- vitest, describe/it, temp dir cleanup in afterEach
+- [x] Verified 2026-04-14 with almanak: Claude Code plugin system still does not support distributing `.claude/rules/**` or `permissions.deny` -- Option A bootstrap remains the only viable approach for v1.1
 
 ## Phase 1: Core Types and Manifest (S, ~11 tests)
 
@@ -48,37 +54,39 @@ The foundation: define what gets copied and the data structures the script opera
 - [ ] Step 1.1: Create `scripts/lib/bootstrap-manifest.ts` with copy manifest (S)
   - File: `scripts/lib/bootstrap-manifest.ts`
   - Define `CopyCategory` interface: `{ name: string; sourceRelative: string; targetRelative: string; glob: string }`
-  - Define `COPY_MANIFEST` as `readonly CopyCategory[]` with all 10 categories:
+  - Define `COPY_MANIFEST` as `readonly CopyCategory[]` with all 11 categories:
     1. agents: `.claude/agents/*.md` (15 files)
-    2. commands: `.claude/commands/*.md` (11 files)
-    3. skills: `.claude/skills/*.md` (22 files)
+    2. commands: `.claude/commands/*.md` (12 files -- includes `/instinct` deprecated alias through 2026-04-20)
+    3. skills: `.claude/skills/*.md` (46 files -- Sprint F Tier A+S shipped 24 new skills)
     4. rules: `.claude/rules/**/*.md` (19 files, preserves subdirectory structure)
-    5. hook-scripts: `.claude/hooks/scripts/*.js` (28 files)
+    5. hook-scripts: `.claude/hooks/scripts/*.js` (29 files -- 21 registered + 8 shared modules; `agent-metadata-sync.js` added Sprint B)
     6. pattern-definitions: `.claude/hooks/pattern-definitions.json` (1 file)
-    7. scripts-lib: `scripts/lib/*` (12 files: 10 .ts + 1 .sql + 1 .d.ts)
-    8. scripts-entry: `scripts/dashboard.ts`, `scripts/migrate-v0.4.ts`, `scripts/cleanup-test-sessions.ts` (3 files -- dashboard.ts is critical, runs `/kadmon-harness` command)
-    9. config-files: `vitest.config.ts`, `eslint.config.js` (2 files -- test and lint configuration)
-    10. test-infra: `tests/global-teardown.ts` (1 file -- referenced by vitest.config.ts globalTeardown)
-  - Define `SKIP_PATTERNS` as readonly string array: `settings.local.json`, `agent-memory/`, `dist/`, `node_modules/`, `tests/` (except global-teardown.ts), `docs/`
+    7. scripts-lib: `scripts/lib/*.{ts,sql,d.ts}` (18 files -- excludes `evolve-generate-templates/` which is its own category). Includes Sprint B additions: `evolve-generate.ts`, `evolve-report-reader.ts`, `forge-pipeline.ts`, `forge-report-writer.ts`.
+    8. evolve-templates: `scripts/lib/evolve-generate-templates/*.md` (4 files: agent/command/rule/skill templates). NEW category -- these markdown templates are read at runtime by `evolve-generate.ts` and must ship alongside the TypeScript.
+    9. scripts-entry: `scripts/dashboard.ts`, `scripts/db-health-check.ts`, `scripts/cleanup-test-sessions.ts` (3 files -- dashboard.ts runs `/kadmon-harness`, db-health-check.ts is used by `/medik`, cleanup-test-sessions.ts is test infra). **NOTE:** migration scripts (`migrate-v0.3.ts`, `migrate-v0.4.ts`, `migrate-archive-hygiene-instincts.ts`, `migrate-fix-session-inversion.ts`) are intentionally EXCLUDED -- fresh installs start at current schema, shared `~/.kadmon/kadmon.db` means migrations have already run on the user's machine during harness development.
+    10. config-files: `vitest.config.ts`, `eslint.config.js` (2 files -- test and lint configuration)
+    11. test-infra: `tests/global-teardown.ts` (1 file -- referenced by vitest.config.ts globalTeardown)
+  - Define `SKIP_PATTERNS` as readonly string array: `settings.local.json`, `agent-memory/`, `dist/`, `node_modules/`, `tests/` (except global-teardown.ts), `docs/`, `scripts/migrate-*.ts`, `scripts/lib/evolve-generate-templates/` (handled by its own category, not by scripts-lib recursion)
   - Define `BootstrapMode` type: `'install' | 'diff' | 'update' | 'force'`
   - Define `BootstrapResult` interface: `{ copied: string[]; skipped: string[]; conflicts: string[]; errors: string[] }`
   - Define `VersionMarker` interface matching ADR-003 spec: `{ version: string; bootstrapDate: string; sourceCommit: string; files: number }`
-  - Verify: `npx tsc --noEmit` compiles; unit test imports and checks all 10 categories exist, SKIP_PATTERNS length, type assertions
+  - Verify: `npx tsc --noEmit` compiles; unit test imports and checks all 11 categories exist, SKIP_PATTERNS length, type assertions
   - Depends on: none
   - Risk: Low
 
 - [ ] Step 1.2: Write tests for bootstrap-manifest (S)
   - File: `tests/lib/bootstrap-manifest.test.ts`
-  - Tests (~11):
-    - COPY_MANIFEST has exactly 10 categories
+  - Tests (~12):
+    - COPY_MANIFEST has exactly 11 categories
     - Each category has non-empty name, sourceRelative, targetRelative, glob
     - No category sourceRelative overlaps with SKIP_PATTERNS
-    - SKIP_PATTERNS contains all expected entries
+    - SKIP_PATTERNS contains all expected entries (including `scripts/migrate-*.ts` and `evolve-generate-templates/`)
     - BootstrapMode type accepts valid modes (type-level, expectTypeOf)
     - All category names are unique
     - rules category glob uses `**/*.md` pattern (recursive)
-    - scripts-lib category glob captures .ts, .sql, .d.ts extensions
-    - scripts-entry category includes dashboard.ts
+    - scripts-lib category glob captures .ts, .sql, .d.ts extensions but NOT the templates subdirectory
+    - scripts-entry category includes dashboard.ts, db-health-check.ts, cleanup-test-sessions.ts (exactly these 3, no migrations)
+    - evolve-templates category includes 4 .md files (agent, command, rule, skill)
     - config-files category includes vitest.config.ts and eslint.config.js
     - test-infra category includes global-teardown.ts
   - Verify: `npx vitest run tests/lib/bootstrap-manifest.test.ts` -- all pass
@@ -198,12 +206,12 @@ Generate project-specific CLAUDE.md and version tracking.
     - `generateClaudeMd(projectName: string): string` -- generates a CLAUDE.md template based on the harness CLAUDE.md structure. Includes:
       - Quick Start section (npm install + build)
       - Core Principle (no_context)
-      - Environment Variables section
+      - Environment Variables section: `KADMON_TEST_DB`, `KADMON_DISABLED_HOOKS`, `KADMON_NO_CONTEXT_GUARD`, `KADMON_EVOLVE_WINDOW_DAYS`
       - Agent table (15 agents with model tiers) -- hardcoded from manifest
-      - Command catalog (11 commands by phase)
-      - Skill catalog (22 skills by domain)
-      - Hook summary (20 registered + 8 shared)
-      - Common Pitfalls (DB path, dist/ imports, Windows PATH)
+      - Command catalog (11 commands by phase, note `/instinct` is a deprecated alias)
+      - Skill catalog (46 skills by domain, grouped per v1.1 CLAUDE.md taxonomy)
+      - Hook summary (21 registered + 8 shared modules)
+      - Common Pitfalls: DB path, dist/ imports, Windows PATH, Sprint C session-resume fix (clearSessionEndState + merged object durationMs), cross-project isolation (`/evolve` Generate filters by projectHash), `file_sequence` pattern detector dual-branch (Bash + Skill metadata), `fileURLToPath` on Windows, Stop hooks only fire on clean termination
       - Placeholder sections: `## Stack`, `## MCPs`, `## Project-Specific Pitfalls` with `<!-- TODO: fill in -->` markers
     - `generateVersionMarker(harnessRoot: string, fileCount: number): VersionMarker` -- reads git commit hash from `harnessRoot`, assembles marker object
     - `writeVersionMarker(targetRoot: string, marker: VersionMarker): void` -- writes `.claude/.kadmon-version` as JSON
@@ -213,10 +221,12 @@ Generate project-specific CLAUDE.md and version tracking.
 
 - [ ] Step 4.2: Write tests for template generation (S)
   - File: `tests/lib/bootstrap-template.test.ts`
-  - Tests (~6):
+  - Tests (~8):
     - generateClaudeMd includes project name in title
     - generateClaudeMd includes Quick Start section
     - generateClaudeMd includes Agent table with 15 entries
+    - generateClaudeMd includes all 4 env vars (KADMON_TEST_DB, KADMON_DISABLED_HOOKS, KADMON_NO_CONTEXT_GUARD, KADMON_EVOLVE_WINDOW_DAYS)
+    - generateClaudeMd includes Sprint C pitfall about session-resume
     - generateClaudeMd includes placeholder sections with TODO markers
     - generateVersionMarker produces valid ISO date
     - writeVersionMarker creates .kadmon-version file with correct JSON structure
@@ -391,12 +401,13 @@ Handle error scenarios, validation, and boundary conditions.
 
 ## Testing Strategy
 
-- **Unit tests** (5 files, ~45 tests): bootstrap-manifest, bootstrap-files, bootstrap-merge, bootstrap-template, bootstrap-scaffold -- each module tested in isolation with temp directories
-- **Integration tests** (2 files, ~20 tests): bootstrap.test.ts (parseArgs), bootstrap-integration.test.ts (full orchestration with temp source+target dirs, including scaffolding, .gitignore/.README generation, and universal hook commands)
+- **Unit tests** (5 files, ~46 tests): bootstrap-manifest (~12), bootstrap-files (~14), bootstrap-merge (~21), bootstrap-template (~8), bootstrap-scaffold (~6) -- each module tested in isolation with temp directories
+- **Integration tests** (2 files, ~20 tests): bootstrap.test.ts (parseArgs), bootstrap-integration.test.ts (full orchestration with temp source+target dirs, including scaffolding, .gitignore/.README generation, evolve-templates copying, and universal hook commands)
 - **Edge case tests** (1 file, ~8 tests): malformed input, missing files, backup behavior
-- **Total: ~73 new tests across 8 test files**
-- **Not tested**: actual `npm install` execution (mocked in integration tests). Verified manually during first real bootstrap to ToratNetz.
+- **Total: ~74 new tests across 8 test files**, bringing suite from 549 → ~623
+- **Not tested**: actual `npm install` execution (mocked in integration tests). Verified manually during first real bootstrap to Kadmon-Sports.
 - **Cross-platform**: generateHookCommand tests verify universal format (default) and clean format (explicit non-win32 platform parameter). No need to mock process.platform -- the function accepts platform as an explicit parameter.
+- **Evolve-templates integration**: at least one test asserts that after bootstrap the target has `scripts/lib/evolve-generate-templates/` with 4 .md files, so `/evolve` Generate works end-to-end in the target project.
 
 ### Test infrastructure notes
 
@@ -431,13 +442,13 @@ Handle error scenarios, validation, and boundary conditions.
 
 | Module | Lines (est.) | Functions |
 |--------|-------------|-----------|
-| bootstrap-manifest.ts | ~70 | Types + constants (10 categories) |
+| bootstrap-manifest.ts | ~80 | Types + constants (11 categories) |
 | bootstrap-files.ts | ~80 | 5 functions |
 | bootstrap-merge.ts | ~140 | 4 functions (includes generateHookCommand) |
-| bootstrap-template.ts | ~100 | 3 functions |
+| bootstrap-template.ts | ~120 | 3 functions (template grew with Sprint C pitfalls + 4 env vars) |
 | bootstrap-scaffold.ts | ~60 | 3 functions |
-| bootstrap.ts (main) | ~200 | 6 functions + main (includes scaffolding call) |
-| **Total** | **~650** | **21 functions** |
+| bootstrap.ts (main) | ~210 | 6 functions + main (includes scaffolding + evolve-templates copy) |
+| **Total** | **~690** | **21 functions** |
 
 ## Risks and Mitigations
 
@@ -454,19 +465,21 @@ Handle error scenarios, validation, and boundary conditions.
 
 ## Success Criteria
 
-- [ ] `npx tsx scripts/bootstrap.ts /tmp/test-target` successfully copies all 10 categories to a fresh temp directory
+- [ ] `npx tsx scripts/bootstrap.ts /tmp/test-target` successfully copies all 11 categories to a fresh temp directory
 - [ ] Target has scaffolded directories: `src/`, `tests/`, `docs/decisions/`, `docs/plans/`, `docs/diagnostics/`
 - [ ] Target has generated `.gitignore` with node_modules, dist, .env, *.db, agent-memory entries
 - [ ] Target has generated `README.md` with project name
-- [ ] `settings.json` in target contains all 20 hooks with universal cross-platform commands and 14+ deny rules
+- [ ] `settings.json` in target contains all 21 hooks with universal cross-platform commands and all harness deny rules
 - [ ] Hook commands use universal format by default (works on both Windows and Mac/Linux)
 - [ ] `package.json` in target includes sql.js, zod@^4.0.1 as dependencies and typescript as devDependency
-- [ ] `CLAUDE.md` is generated with agent table, command catalog, and TODO placeholders
-- [ ] `.claude/.kadmon-version` is written with correct version, date, and commit hash
+- [ ] `CLAUDE.md` is generated with agent table (15), command catalog (11 active), skill catalog (46), env vars (4 including `KADMON_EVOLVE_WINDOW_DAYS`), and TODO placeholders
+- [ ] `.claude/.kadmon-version` is written with correct version (`1.1.0`), date, and commit hash
+- [ ] Target has `scripts/lib/evolve-generate-templates/` with 4 .md files so `/evolve` Generate works
 - [ ] `--diff` mode shows changes without modifying any target files
 - [ ] `--update` mode only copies modified files and updates the version marker
 - [ ] `--force` mode skips confirmation prompts
 - [ ] All new tests pass: `npx vitest run tests/lib/bootstrap*.test.ts`
 - [ ] TypeScript compiles: `npx tsc --noEmit`
-- [ ] Existing 422 tests remain passing: `npx vitest run`
-- [ ] Total new test count: ~73 tests across 8 files
+- [ ] Existing 549 tests remain passing: `npx vitest run`
+- [ ] Total new test count: ~74 tests across 8 files, bringing suite to ~623
+- [ ] **End-to-end dogfood**: `npx tsx scripts/bootstrap.ts ~/Command-Center/Kadmon-Sports` succeeds; from Kadmon-Sports `/forge` runs, writes ClusterReport to `~/.kadmon/forge-reports/`, `/evolve` Generate reads it back and proposes Kadmon-Sports-specific artifacts. Confirms cross-project isolation via projectHash.

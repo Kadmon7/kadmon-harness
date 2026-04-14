@@ -2,43 +2,49 @@
 number: 3
 title: Harness Distribution Strategy
 date: 2026-04-08
-status: proposed
+refreshed: 2026-04-14
+status: accepted
 route: A
 plan: plan-003-harness-distribution.md
 ---
 
 # ADR-003: Harness Distribution Strategy
 
+> **Refresh 2026-04-14:** Status promoted `proposed` → `accepted` after Sprint B/C shipped and almanak re-verified Claude Code plugin system capabilities. Counts in the Distribution Surface table were updated to reflect v1.1 state. The core decision (Option A, copy-based bootstrap) is **unchanged**. See "Refresh Note (2026-04-14)" section at the end of this ADR.
+
 ## Context
 
-Kadmon Harness is an operative layer built on top of Claude Code. It is infrastructure, not a product -- built once in `Kadmon-Harness/`, then carried to every project (ToratNetz, KAIRON, future projects). The harness is v1.0 production-ready with 344 tests passing.
+Kadmon Harness is an operative layer built on top of Claude Code. It is infrastructure, not a product -- built once in `Kadmon-Harness/`, then carried to every project (Kadmon-Sports, ToratNetz, KAIRON, future projects). The harness is v1.1 production-ready with 549 tests passing across 55 files (as of 2026-04-14).
 
 ### Distribution Surface
 
-The harness consists of **170+ distributable files** across several categories:
+The harness consists of **~155 managed artifacts** (150 direct files + 5 generated) across the following categories. Counts are v1.1 (2026-04-14); the 2026-04-08 v1.0 counts are shown in parentheses where they differ.
 
 | Category | Count | Path | Plugin-distributable? |
 |----------|-------|------|-----------------------|
 | Agents | 15 | `.claude/agents/*.md` | Yes |
-| Commands | 12 | `.claude/commands/*.md` | Yes |
-| Skills | 22 | `.claude/skills/*.md` | Yes |
-| Contexts | 3 | `.claude/contexts/*.md` | Yes |
+| Commands | 12 (11 active + `/instinct` deprecated alias) | `.claude/commands/*.md` | Yes |
+| Skills | 46 (was 22) | `.claude/skills/*.md` | Yes |
 | Rules (common) | 9 | `.claude/rules/common/*.md` | **No** |
 | Rules (TypeScript) | 5 | `.claude/rules/typescript/*.md` | **No** |
 | Rules (Python) | 5 | `.claude/rules/python/*.md` | **No** |
-| Hook scripts (registered) | 20 | `.claude/hooks/scripts/*.js` | Via hooks.json |
+| Hook scripts (registered) | 21 (was 20) | `.claude/hooks/scripts/*.js` | Via hooks.json |
 | Hook scripts (shared) | 8 | `.claude/hooks/scripts/*.js` | Via hooks.json |
 | Pattern definitions | 1 | `.claude/hooks/pattern-definitions.json` | Via hooks.json |
 | settings.json | 1 | `.claude/settings.json` | **Partial** (hooks yes, permissions no) |
-| TypeScript sources | 10 | `scripts/lib/*.ts` | No (build system) |
-| Script entry points | 3 | `scripts/dashboard.ts`, `scripts/migrate-v0.4.ts`, `scripts/cleanup-test-sessions.ts` | No (build system) |
-| SQL schema | 1 | `scripts/lib/schema.sql` | No (build system) |
+| TypeScript/SQL/d.ts sources | 18 (was 10) | `scripts/lib/*.{ts,sql,d.ts}` | No (build system) |
+| Evolve-generate templates | 4 (new) | `scripts/lib/evolve-generate-templates/*.md` | No (runtime read by evolve-generate.ts) |
+| Script entry points | 3 | `scripts/dashboard.ts`, `scripts/db-health-check.ts`, `scripts/cleanup-test-sessions.ts` | No (build system) |
 | Config: vitest | 1 | `vitest.config.ts` | No (test runner config) |
 | Config: eslint | 1 | `eslint.config.js` | No (linter config) |
 | Test support | 1 | `tests/global-teardown.ts` | No (referenced by vitest.config.ts) |
 | package.json | 1 | `package.json` | No (target has its own) |
 | tsconfig.json | 1 | `tsconfig.json` | No (target has its own) |
 | CLAUDE.md | 1 | `CLAUDE.md` | **No** (needs per-project customization) |
+
+**Removed since v1.0:** `.claude/contexts/` (3 files) was consolidated during v1.0 cleanup and no longer exists.
+
+**Added since v1.0:** `agent-metadata-sync.js` hook (Sprint B), `scripts/lib/evolve-generate.ts`, `scripts/lib/evolve-report-reader.ts`, `scripts/lib/forge-pipeline.ts`, `scripts/lib/forge-report-writer.ts`, `scripts/lib/evolve-generate-templates/` directory with 4 templates.
 
 **Files that must NOT be distributed:**
 - `.claude/settings.local.json` -- machine-specific allow rules, user paths (each collaborator creates their own)
@@ -326,10 +332,10 @@ Template is only written if target has no CLAUDE.md. If one exists, bootstrap wa
 Bootstrap writes `.claude/.kadmon-version`:
 ```json
 {
-  "version": "1.0.0",
-  "bootstrapDate": "2026-04-08T00:00:00.000Z",
-  "sourceCommit": "c34339c",
-  "files": 170
+  "version": "1.1.0",
+  "bootstrapDate": "2026-04-14T00:00:00.000Z",
+  "sourceCommit": "f407907",
+  "files": 150
 }
 ```
 
@@ -413,4 +419,47 @@ The file layout chosen for Option A is intentionally compatible with plugin stru
 
 ### Review Date
 
-Revisit this decision after deploying to ToratNetz (target: 2026-04-15). If the bootstrap experience is poor or Claude Code announces plugin rules support, evaluate migrating to Option C.
+Revisit this decision after deploying to Kadmon-Sports (target: 2026-04-15) and ToratNetz. If the bootstrap experience is poor or Claude Code announces plugin rules support, evaluate migrating to Option C.
+
+## Refresh Note (2026-04-14)
+
+### What changed since 2026-04-08
+
+1. **Sprint B shipped** (`/evolve` Generate step 6, EXPERIMENTAL through 2026-04-28) — closes the `/forge` → `/evolve` loop for cross-project artifact generation. Adds `scripts/lib/evolve-generate.ts`, `scripts/lib/evolve-report-reader.ts`, `scripts/lib/evolve-generate-templates/` (4 markdown templates), `agent-metadata-sync.js` hook, `KADMON_EVOLVE_WINDOW_DAYS` env var. ADR-008 is the source of truth.
+2. **Sprint C shipped** (data-integrity fixes) — instrumented 9 hooks with duration telemetry (`hook_events.duration_ms` no longer NULL) and fixed session-resume timestamp inversion (new `clearSessionEndState` helper + merged-object `durationMs` reset in `session-manager.ts`). Migration `migrate-fix-session-inversion.ts` repaired 22 historical inverted rows. ADR-007 is the source of truth.
+3. **Sprint F Tier A+S shipped** — added 24 new skills, bringing the catalog from 22 → 46. Includes meta-skills (skill-stocktake, agent-eval, prompt-optimizer, workspace-surface-audit, etc.) that make the harness self-auditing.
+4. **`.claude/contexts/` removed** — consolidation during v1.0 cleanup; previously listed as 3 distributable files, now 0.
+5. **Test suite grew** — 422 → 549 tests across 42 → 55 files.
+6. **Commands** — now 12 `.md` files: 11 active commands + `/instinct` deprecated alias scheduled for removal 2026-04-20. Bootstrap copies all 12 until the alias is deleted from source.
+
+### Why the decision still holds
+
+The refresh was triggered by a legitimate question: "given that the Claude Code plugin ecosystem has matured (user has 4+ plugins installed from the official marketplace), should we revisit Option B (native plugin) instead of shipping Option A (bootstrap script)?"
+
+almanak verified current Claude Code plugin documentation on 2026-04-14 (sources: code.claude.com/docs/en/plugins-reference, plugin-marketplaces, settings, sub-agents). Findings:
+
+| Requirement | Plugin support (2026-04-14) | Bootstrap support |
+|---|---|---|
+| `.claude/rules/**/*.md` distribution | **NO** — no `rules` field in plugin.json, no directory convention, not documented | Yes |
+| `permissions.deny` merge into target | **PARTIAL** — plugins can ship `settings.json` at root, but merge precedence for plugin-contributed permissions is not documented | Yes |
+| `SessionStart` / `Stop` / `PreCompact` hooks fire in plugin context | **NO CONTEXT** — only `SubagentStart` / `SubagentStop` appear in plugin hook docs; lifecycle events for plugins are undocumented | Yes |
+| `tsc` / `npm install` build step at plugin install time | **NO** — no install lifecycle event, no postinstall hook; best practice is ship pre-compiled artifacts | Yes |
+| Agents, commands, skills, hooks.json (`${CLAUDE_PLUGIN_ROOT}`), mcpServers | **YES** — unchanged from April baseline | Yes |
+
+All three blockers that drove the original ADR-003 decision are **still unresolved**. Specifically:
+
+- **Rules gap is absolute** — no plugin field exists to declare them, no workaround is clean.
+- **Permissions merge is ambiguous** — the docs do not guarantee that plugin-contributed `permissions.deny` is enforced additively in the target project. Security-critical rules cannot ride on ambiguity.
+- **Lifecycle hooks uncertain** — our 3 lifecycle hooks (`session-start.js`, `session-end-all.js`, `pre-compact-save.js`) import from `dist/scripts/lib/` after `tsc`. Plugins don't document a reliable mechanism to run `tsc` at install time nor to register `SessionStart`/`Stop`/`PreCompact` hooks from within a plugin.
+
+**Conclusion:** Option A (bootstrap script) remains the only mechanism with confirmed end-to-end support for all five Kadmon Harness requirements: rules, permissions.deny, lifecycle hooks, compiled TypeScript with native deps (sql.js, zod), and SQLite schema initialization.
+
+### Future migration trigger
+
+Reopen this ADR if and only if Claude Code plugin documentation adds:
+
+1. A documented `rules` field (or equivalent mechanism) in `plugin.json`, AND
+2. An explicit statement that plugin-contributed `permissions.deny` is enforced additively in the target project, AND
+3. Documented support for `SessionStart` / `Stop` / `PreCompact` hooks registered by a plugin.
+
+Until all three are present in the official docs, bootstrap (Option A) is the correct distribution strategy.
