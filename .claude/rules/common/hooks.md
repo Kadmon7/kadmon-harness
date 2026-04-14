@@ -9,7 +9,7 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-## Hook Catalog (20 registered)
+## Hook Catalog (21 registered)
 
 ### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
@@ -35,7 +35,7 @@ alwaysApply: true
 |------|--------|---------|------|
 | observe-pre | observe-pre.js | Logs tool invocation to observations JSONL; captures Agent, TaskCreate, and TaskUpdate metadata | 0 always |
 
-### PostToolUse — Edit|Write matcher (6)
+### PostToolUse — Edit|Write matcher (7)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
@@ -44,6 +44,7 @@ alwaysApply: true
 | ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts edits without code review in session | 1 as warning |
 | console-log-warn | console-log-warn.js | Warns about console.log() in production code | 1 as warning |
 | deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json dependencies change | 1 as warning |
+| agent-metadata-sync | agent-metadata-sync.js | Auto-syncs agent frontmatter changes to CLAUDE.md + agents.md catalogs | 1 on warning |
 
 ### PostToolUse — Bash matcher (1)
 | Hook | Script | Purpose | Exit |

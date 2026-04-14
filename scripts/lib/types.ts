@@ -103,6 +103,77 @@ export interface ClusterReport {
   meta?: Record<string, unknown>;
 }
 
+// ─── Evolve Generate (Sprint B — ADR-008) ───
+
+export type ProposalType = "skill" | "command" | "agent" | "rule";
+export type Complexity = "S" | "M" | "L";
+export type ProposalConfidence = "HIGH" | "MED" | "LOW";
+
+export interface SkillSpec {
+  kind: "skill";
+  pattern: string;
+  action: string;
+  sourceClusterIds: string[];
+}
+
+export interface CommandSpec {
+  kind: "command";
+  workflow: string;
+  agentChain?: string[];
+  sourceClusterIds: string[];
+}
+
+export interface AgentSpec {
+  kind: "agent";
+  role: string;
+  triggers: string[];
+  model: "opus" | "sonnet" | "haiku";
+  sourceClusterIds: string[];
+}
+
+export interface RuleSpec {
+  kind: "rule";
+  scope: "common" | "typescript" | "python";
+  category: string;
+  sourceClusterIds: string[];
+}
+
+export interface GenerateProposal {
+  index: number;
+  type: ProposalType;
+  slug: string;
+  name: string;
+  targetPath: string;
+  sourceClusterIds: string[];
+  sourceInstinctIds: string[];
+  suggestedCategory: EvolutionCategory;
+  complexity: Complexity;
+  confidence: ProposalConfidence;
+  rationale: string;
+  spec: SkillSpec | CommandSpec | AgentSpec | RuleSpec;
+}
+
+export interface EvolveGeneratePreview {
+  proposals: GenerateProposal[];
+  sourceReportCount: number;
+  sourceWindow: { from: string; to: string };
+  deferredHookCount: number;
+  skipped?: "no-reports-in-window";
+  staleInstinctIds?: string[];
+  meta?: Record<string, unknown>;
+}
+
+export interface ApplyApprovals {
+  approvedIndices: number[];
+}
+
+export interface ApplyResult {
+  written: Array<{ type: ProposalType; targetPath: string }>;
+  pluginInvocations: Array<{ slug: string; spec: SkillSpec }>;
+  collisions: string[];
+  errors: string[];
+}
+
 // ─── Session Summary ───
 
 export interface SessionSummary {

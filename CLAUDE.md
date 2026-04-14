@@ -54,6 +54,7 @@ Kadmon-Harness/
 - `KADMON_TEST_DB` — Override SQLite DB path (`:memory:` in tests)
 - `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip
 - `KADMON_NO_CONTEXT_GUARD` — Set to `"off"` to disable no-context enforcement
+- `KADMON_EVOLVE_WINDOW_DAYS` — /evolve Generate ClusterReport read window (default: 7)
 
 ## Agents (15)
 | Agent | Model |
@@ -80,7 +81,7 @@ Kadmon-Harness/
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
 - **Remember** (3): /chekpoint, /almanak, /doks
-- **Evolve** (3): /akademy, /forge, /evolve (/instinct is a deprecated alias until 2026-04-20)
+- **Evolve** (3): /akademy, /forge, /evolve (step 6 Generate is EXPERIMENTAL through 2026-04-28; /instinct is a deprecated alias until 2026-04-20)
 
 ## Skills (46)
 - **Workflow**: search-first, context-budget, token-budget-advisor, strategic-compact
@@ -133,7 +134,7 @@ Kadmon-Harness/
 Rules auto-load based on file context. See `.claude/rules/common/agents.md` for agent orchestration rules.
 
 ## Hooks
-20 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
+21 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
 
 ## Memory
 - **SQLite**: sessions, instincts, cost events, hook events, agent invocations at `~/.kadmon/kadmon.db` (6 tables)
@@ -156,4 +157,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (496 tests passing, 50 test files, 20 hooks, 15 agents, 46 skills, 11 commands, 19 rules, 6 DB tables)
+v1.1 Sprint B/C shipped 2026-04-14 — 542+ tests passing, 54+ test files, 21 hooks, 15 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation

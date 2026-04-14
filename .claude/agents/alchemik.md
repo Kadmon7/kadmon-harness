@@ -58,6 +58,20 @@ Follow these five steps in order for every /evolve invocation.
    - Include confidence level (HIGH/MEDIUM/LOW) per recommendation
    - Flag any proposals that require arkitect review before implementation
 
+6. **Generate (EXPERIMENTAL — refining heuristics through 2026-04-28)** — Propose concrete artifacts (skill/command/agent/rule) from ClusterReports written by `/forge`:
+   - Read `~/.kadmon/forge-reports/forge-clusters-*.json` via `readClusterReportsInWindow` (7 days, filtered by current `projectHash`)
+   - Walk merged clusters via `runEvolveGenerate` (pure, never writes files) → emits `GenerateProposal[]`
+   - Propose ONLY — alchemik NEVER invokes the mutator or plugin. The `/evolve` command handles orchestration: gate rendering, user approval, `applyEvolveGenerate` call, and `skill-creator:skill-creator` plugin invocation for PROMOTE proposals (ADR-008 Q2).
+   - Emit proposals in a machine-parseable JSON fence for the command to parse:
+     ```json-generate-proposals
+     [
+       { "index": 1, "type": "skill", "slug": "...", "name": "...", "targetPath": ".claude/skills/...", "sourceClusterIds": [...], "sourceInstinctIds": [...], "suggestedCategory": "PROMOTE", "complexity": "S", "confidence": "HIGH", "rationale": "...", "spec": { ... } }
+     ]
+     ```
+   - Cap at **10 proposals per run** to avoid change fatigue
+   - `CREATE_HOOK` clusters surfaced as informational only via `deferredHookCount` (not actionable in Sprint B — deferred to Sprint B.1)
+   - `OPTIMIZE` clusters stay in the Report section (step 5), NOT in Generate
+
 ## Analysis Dimensions
 
 ### Hooks
