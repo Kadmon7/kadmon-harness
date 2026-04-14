@@ -2,7 +2,7 @@
 number: 6
 title: Replace hygiene pattern definitions with domain-specific patterns and extend the engine minimally
 date: 2026-04-13
-status: proposed
+status: accepted
 route: A
 plan: plan-006-domain-pattern-engine.md
 ---

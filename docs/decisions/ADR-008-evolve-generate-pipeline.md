@@ -2,12 +2,14 @@
 number: 8
 title: /evolve Generate step 6 — cross-project artifact generation pipeline
 date: 2026-04-14
-status: proposed
+status: accepted
 route: A
 plan: plan-008-evolve-generate-pipeline.md
 ---
 
 # ADR-008: /evolve Generate step 6 — cross-project artifact generation pipeline
+
+> **Implementation Status:** Shipped 2026-04-14 via plan-008 (commit `ecc1a14` — "feat(v1.1): Sprint B — /evolve Generate step 6 cross-project pipeline"). Decision is `accepted`; the `/evolve` Generate feature itself is in an EXPERIMENTAL observation window through 2026-04-28 per CLAUDE.md, to be re-evaluated against real cross-project ClusterReports before the window closes.
 
 **Deciders**: Ych-Kadmon (architect), arkitect (agent)
 

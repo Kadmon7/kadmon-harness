@@ -2,13 +2,15 @@
 number: 8
 title: Sprint B — /evolve Generate step 6 cross-project pipeline
 date: 2026-04-14
-status: pending
+status: shipped
 needs_tdd: true
 route: A
 adr: ADR-008-evolve-generate-pipeline.md
 ---
 
 # Plan 008: Sprint B — /evolve Generate step 6 cross-project pipeline [konstruct]
+
+> **Shipped 2026-04-14** via commit `ecc1a14` ("feat(v1.1): Sprint B — /evolve Generate step 6 cross-project pipeline"). `/evolve` Generate step 6 is in an EXPERIMENTAL observation window through 2026-04-28 per CLAUDE.md — to be re-evaluated against real cross-project ClusterReports before the window closes.
 
 ## Goal
 
