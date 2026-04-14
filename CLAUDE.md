@@ -17,6 +17,17 @@ no_context — if no evidence exists, respond `no_context` and flag what is miss
 
 Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 
+## Self-Improvement Loop (mid-session)
+
+Commit-time + session-end learning is handled by `/forge` (observations → instincts) and `/evolve` (instincts → skills/agents/commands). This loop is for **immediate in-session reaction** — the model you are right now, not the pipeline that runs at the end.
+
+- **On correction** ("no así", "stop doing X", "esto estuvo mal"): write to auto-memory (`feedback` type) BEFORE continuing the task. Do not batch corrections until commit time — the next tool call should already reflect the correction.
+- **On validation** ("sí, perfecto, sigue así", or the user accepting a non-obvious choice without pushback): save it as a positive feedback memory. Validated judgment calls are as valuable as corrections — `/forge` tends to bias toward failures, so you must capture successes manually.
+- **On déjà-vu** (you feel you are about to repeat a pattern from a previous session): stop, read `memory/feedback_*.md` and `memory/project_*.md` before the next tool call, and adjust.
+- **Never skip the loop to save tokens.** A 3-line memory write now is cheaper than re-learning the same lesson in the next 5 sessions.
+
+See also: `continuous-learning-v2` skill and `~/.claude/projects/<project>/memory/MEMORY.md` index.
+
 ## Stack
 - Language: TypeScript / JavaScript (primary)
 - Persistence: SQLite at `~/.kadmon/kadmon.db` (v1) — Supabase planned for v2
