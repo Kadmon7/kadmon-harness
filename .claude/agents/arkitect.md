@@ -4,7 +4,7 @@ description: Use PROACTIVELY when designing system architecture, evaluating trad
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project
-skills: architecture-decision-records, api-design
+skills: architecture-decision-records, api-design, docker-patterns, hexagonal-architecture
 ---
 
 ## Skill Reference

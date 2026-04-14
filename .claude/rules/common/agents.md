@@ -29,21 +29,21 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
-| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records, api-design |
-| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness, codebase-onboarding |
-| kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review |
+| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records, api-design, docker-patterns, hexagonal-architecture |
+| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness, codebase-onboarding, council |
+| kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review, git-workflow, github-ops, regex-vs-llm-structured-text |
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /chekpoint | coding-standards, frontend-patterns |
-| orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns |
-| spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard |
-| feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing, eval-harness |
+| orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns, content-hash-cache-pattern |
+| spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard, security-review, security-scan |
+| feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing, eval-harness, ai-regression-testing |
 | mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging, agent-introspection-debugging |
 | kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
-| arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget |
+| arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget, token-budget-advisor, benchmark |
 | python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing, claude-api |
-| almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research |
-| doks | opus | /doks, after feature/structural commits | /doks | docs-sync, skill-stocktake, rules-distill |
+| almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research, documentation-lookup |
+| doks | opus | /doks, after feature/structural commits | /doks | docs-sync, skill-stocktake, rules-distill, code-tour |
 | kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
-| alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit |
+| alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit, cost-aware-llm-pipeline |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → spektr
@@ -115,5 +115,6 @@ Not every skill is owned by an agent. Some skills are loaded directly by command
 | Skill | Loaded by | Why no agent |
 |---|---|---|
 | `verification-loop` | `/chekpoint` (Phase 1) | Build → typecheck → lint → test is a deterministic sequence. A reviewer agent is already invoked in Phase 2; verification is the command's job. |
+| `strategic-compact` | `/kompact` | The compaction-decision matrix is deterministic enough that routing through an agent adds no value. The skill is loaded directly when the user (or another skill) needs the decision guide. |
 
 When adding new command-level skills, document the rationale here so future audits don't flag them as orphaned.

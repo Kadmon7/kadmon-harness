@@ -33,7 +33,7 @@ Kadmon-Harness/
 |   |-- agents/           # 15 specialist agents (markdown definitions)
 |   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
 |   |-- commands/         # 11 slash commands
-|   |-- skills/           # 22 reference skills
+|   |-- skills/           # 46 reference skills
 |   |-- rules/            # 19 rules (common + typescript + python)
 |   |-- hooks/scripts/    # 20 registered hook scripts + shared modules
 |   `-- settings.json     # Hook registration + permissions
@@ -82,19 +82,23 @@ Kadmon-Harness/
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (3): /akademy, /forge, /evolve (/instinct is a deprecated alias until 2026-04-20)
 
-## Skills (30)
-- **Workflow**: search-first, context-budget
-- **Quality**: coding-standards, tdd-workflow, verification-loop, e2e-testing, eval-harness
+## Skills (46)
+- **Workflow**: search-first, context-budget, token-budget-advisor, strategic-compact
+- **Quality**: coding-standards, tdd-workflow, verification-loop, e2e-testing, eval-harness, ai-regression-testing
 - **Learning**: continuous-learning-v2
-- **Architecture**: architecture-decision-records, api-design
-- **Data**: database-migrations, postgres-patterns
-- **Integration**: claude-api, mcp-server-patterns
-- **Meta (Sprint F)**: skill-stocktake, agent-eval, agent-introspection-debugging, prompt-optimizer, skill-comply, rules-distill, workspace-surface-audit, codebase-onboarding
+- **Architecture**: architecture-decision-records, api-design, hexagonal-architecture, docker-patterns
+- **Data**: database-migrations, postgres-patterns, content-hash-cache-pattern
+- **Integration**: claude-api, mcp-server-patterns, documentation-lookup
+- **Meta (Sprint F Tier S)**: skill-stocktake, agent-eval, agent-introspection-debugging, prompt-optimizer, skill-comply, rules-distill, workspace-surface-audit, codebase-onboarding
 - **Python**: python-patterns, python-testing
 - **Frontend**: frontend-patterns
 - **Research**: deep-research
-- **Documentation**: docs-sync
-- **Other**: systematic-debugging, receiving-code-review, safety-guard
+- **Documentation**: docs-sync, code-tour
+- **Cost / Performance**: cost-aware-llm-pipeline, benchmark
+- **Security**: safety-guard, security-review, security-scan
+- **Git / GitHub**: git-workflow, github-ops
+- **Decision-making**: council, regex-vs-llm-structured-text
+- **Other**: systematic-debugging, receiving-code-review
 
 ## External Tools
 
@@ -152,4 +156,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - `npx tsx -e` produces no output on Windows — use temp script files
 
 ## Status
-v1.0 — Production ready (496 tests passing, 50 test files, 20 hooks, 15 agents, 22 skills, 11 commands, 19 rules, 6 DB tables)
+v1.0 — Production ready (496 tests passing, 50 test files, 20 hooks, 15 agents, 46 skills, 11 commands, 19 rules, 6 DB tables)

@@ -4,7 +4,7 @@ description: Use PROACTIVELY when editing code that handles authentication, API 
 model: opus
 tools: Read, Grep, Glob, Bash
 memory: project
-skills: safety-guard
+skills: safety-guard, security-review, security-scan
 ---
 
 ## Skill Reference

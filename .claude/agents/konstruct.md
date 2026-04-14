@@ -4,7 +4,7 @@ description: Use PROACTIVELY when breaking down complex tasks into implementatio
 model: opus
 tools: Read, Grep, Glob, Write
 memory: project
-skills: architecture-decision-records, eval-harness, codebase-onboarding
+skills: architecture-decision-records, eval-harness, codebase-onboarding, council
 ---
 
 ## Skill Reference

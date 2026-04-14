@@ -4,7 +4,7 @@ description: Use PROACTIVELY when editing SQL queries, schema definitions, migra
 model: sonnet
 tools: Read, Grep, Glob, Bash
 memory: project
-skills: database-migrations, postgres-patterns
+skills: database-migrations, postgres-patterns, content-hash-cache-pattern
 ---
 
 ## Skill Reference

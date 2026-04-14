@@ -4,7 +4,7 @@ description: Expert code review specialist. Proactively reviews code for quality
 tools: Read, Grep, Glob, Bash
 model: sonnet
 memory: project
-skills: coding-standards, receiving-code-review
+skills: coding-standards, receiving-code-review, git-workflow, github-ops, regex-vs-llm-structured-text
 ---
 
 ## Skill Reference
