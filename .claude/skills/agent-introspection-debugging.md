@@ -137,7 +137,7 @@ Prefer these interventions in order:
 - **mekanik agent** (sonnet) — primary owner. mekanik is the harness's diagnostic agent for build/test failures; this skill gives it a workflow for the class of failures that are not compile errors but agent loops, context drift, or state mismatch.
 - **systematic-debugging skill** — sibling skill. `systematic-debugging` applies to code bugs (4 phases: root cause → pattern → hypothesis → implementation). `agent-introspection-debugging` applies to **agent runtime failures**. When you can't tell which applies, start with this one: if the diagnosis reveals a code bug, hand off to `systematic-debugging`.
 - **verification-loop skill** — use after recovery if code was changed during the contained recovery action.
-- **continuous-learning-v2 skill** — when a failure pattern recurs across multiple sessions, promote it to an instinct via `/instinct learn` so the harness catches the next occurrence.
+- **continuous-learning-v2 skill** — when a failure pattern recurs across multiple sessions, promote it to an instinct via `/forge` so the harness catches the next occurrence.
 - **/medik command** — if the failure is a harness health issue (stale `dist/`, broken hooks, corrupt DB), escalate via `/medik` instead of hand-fixing.
 
 ## no_context Application

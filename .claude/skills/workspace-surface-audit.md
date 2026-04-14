@@ -67,7 +67,7 @@ Produce a compact inventory:
 - Env surfaces (keys detected, values not shown):
   - ANTHROPIC_API_KEY
   - SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (disabled)
-- Harness: 15 agents, 22 skills, 11 commands, 20 hooks, 19 rules
+- Harness: N agents, M skills, K commands, H hooks, R rules (count at audit time — do not hardcode)
 ```
 
 If a surface exists only as a primitive, call that out:
