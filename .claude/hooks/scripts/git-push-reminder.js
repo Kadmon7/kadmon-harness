@@ -9,6 +9,7 @@ import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
 try {
   if (isDisabled("git-push-reminder")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
   if (!cmd.includes("git push")) process.exit(0);
@@ -104,6 +105,7 @@ try {
       toolName: "Bash",
       exitCode: 1,
       blocked: false,
+      durationMs: Date.now() - start,
       error: warnings.join("; "),
     });
     console.error(`\u{26A0}\u{FE0F} Pre-push: ${warnings.join(", ")}`);

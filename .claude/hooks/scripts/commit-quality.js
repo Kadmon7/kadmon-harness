@@ -18,6 +18,7 @@ const SECRET_PATTERNS = [
 
 try {
   if (isDisabled("commit-quality")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
 
@@ -94,6 +95,7 @@ try {
       toolName: "Bash",
       exitCode: 2,
       blocked: true,
+      durationMs: Date.now() - start,
       error,
     });
     console.error(

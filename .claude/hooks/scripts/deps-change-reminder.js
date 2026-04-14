@@ -7,6 +7,7 @@ import { logHookEvent } from "./log-hook-event.js";
 
 try {
   if (isDisabled("deps-change-reminder")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   const filePath = input.tool_input?.file_path ?? "";
 
@@ -28,6 +29,7 @@ try {
     toolName: input.tool_name,
     exitCode: 1,
     blocked: false,
+    durationMs: Date.now() - start,
     error: "package.json deps modified",
   });
   console.error(

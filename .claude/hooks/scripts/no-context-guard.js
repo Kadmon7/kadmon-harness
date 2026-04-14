@@ -39,6 +39,7 @@ function getResearched(obsPath) {
 }
 try {
   if (process.env.KADMON_NO_CONTEXT_GUARD === "off") process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   if (wasTruncated(input)) {
     logHookEvent(input.session_id, {
@@ -47,6 +48,7 @@ try {
       toolName: input.tool_name,
       exitCode: 2,
       blocked: true,
+      durationMs: Date.now() - start,
       error: "stdin truncated",
     });
     console.error(
@@ -72,6 +74,7 @@ try {
     toolName: input.tool_name,
     exitCode: 2,
     blocked: true,
+    durationMs: Date.now() - start,
     error: `no_context: ${target}`,
   });
   console.error(

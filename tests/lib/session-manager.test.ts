@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { openDb, closeDb } from "../../scripts/lib/state-store.js";
+import { openDb, closeDb, getDb } from "../../scripts/lib/state-store.js";
 import {
   startSession,
   endSession,
@@ -100,5 +100,99 @@ describe("session-manager", () => {
     expect(result!.filesModified).toEqual(["a.ts", "b.ts"]);
     expect(result!.toolsUsed).toEqual(["Read", "Edit"]);
     expect(result!.tasks).toEqual(["initial task"]);
+  });
+
+  // ─── ADR-007 Bug B: session timestamp inversion on resume ───
+
+  it("(a) fresh session: ended_at >= started_at after endSession", () => {
+    // Regression guard — should pass both before and after the fix.
+    startSession("inv-a", PROJECT);
+    endSession("inv-a", {});
+
+    const row = getDb()
+      .prepare("SELECT started_at, ended_at FROM sessions WHERE id = ?")
+      .get("inv-a") as { started_at: string; ended_at: string | null } | null;
+    expect(row).not.toBeNull();
+    expect(row!.ended_at).not.toBeNull();
+    expect(row!.ended_at! >= row!.started_at).toBe(true);
+  });
+
+  it("(b) resume after end: ended_at and duration_ms are NULL after second startSession", () => {
+    // Bug B: without the fix, COALESCE preserves the old ended_at (T1) while
+    // started_at is overwritten to T2, producing started_at > ended_at.
+    // The fix calls clearSessionEndState before upsertSession so COALESCE
+    // no longer sees a stale ended_at.
+    startSession("inv-b", PROJECT);
+    endSession("inv-b", {}); // sets ended_at = T1
+
+    // Resume (simulate /compact → SessionStart with same ID)
+    startSession("inv-b", PROJECT); // sets started_at = T2 > T1
+
+    const row = getDb()
+      .prepare(
+        "SELECT started_at, ended_at, duration_ms FROM sessions WHERE id = ?",
+      )
+      .get("inv-b") as {
+      started_at: string;
+      ended_at: string | null;
+      duration_ms: number | null;
+    } | null;
+    expect(row).not.toBeNull();
+    // ADR-007: after resume, end state must be cleared — not retained from previous cycle
+    expect(row!.ended_at).toBeNull();
+    expect(row!.duration_ms).toBeNull();
+  });
+
+  it("(c) full cycle start→end→resume→end: final ended_at >= started_at (T2)", () => {
+    // Bug B: without the fix, the final ended_at would be compared against the
+    // T3 started_at from resume, but duration_ms still reflects T2 - T1.
+    // With the fix, started_at = T2 (resume) and ended_at = T3 (second end),
+    // so ended_at >= started_at must hold.
+    startSession("inv-c", PROJECT);
+    endSession("inv-c", {}); // T1 end
+
+    startSession("inv-c", PROJECT); // T2 resume — started_at moves forward
+    const secondEnd = endSession("inv-c", {}); // T3 end
+
+    expect(secondEnd).not.toBeNull();
+
+    const row = getDb()
+      .prepare(
+        "SELECT started_at, ended_at, duration_ms FROM sessions WHERE id = ?",
+      )
+      .get("inv-c") as {
+      started_at: string;
+      ended_at: string | null;
+      duration_ms: number | null;
+    } | null;
+    expect(row).not.toBeNull();
+    expect(row!.ended_at).not.toBeNull();
+    // The invariant: ended_at must be at or after the resume's started_at
+    expect(row!.ended_at! >= row!.started_at).toBe(true);
+    // duration_ms must reflect T3 - T2, not T1 - T_original
+    expect(row!.duration_ms).not.toBeNull();
+    expect(row!.duration_ms).toBeGreaterThanOrEqual(0);
+  });
+
+  it("(d) invariant scan: no row has ended_at < started_at", () => {
+    // Perma-guard: run several session lifecycles and assert the DB is clean.
+    startSession("scan-1", PROJECT);
+    endSession("scan-1", {});
+
+    startSession("scan-2", PROJECT);
+    endSession("scan-2", {});
+    startSession("scan-2", PROJECT); // resume
+    endSession("scan-2", {});
+
+    startSession("scan-3", PROJECT);
+    endSession("scan-3", {});
+    startSession("scan-3", PROJECT); // resume, stays open
+
+    const rows = getDb()
+      .prepare(
+        "SELECT id, started_at, ended_at FROM sessions WHERE ended_at IS NOT NULL AND ended_at < started_at",
+      )
+      .all() as Array<{ id: string; started_at: string; ended_at: string }>;
+    expect(rows).toHaveLength(0);
   });
 });

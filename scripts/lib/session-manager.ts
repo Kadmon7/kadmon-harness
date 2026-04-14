@@ -3,6 +3,7 @@ import {
   upsertSession,
   getSession,
   getRecentSessions,
+  clearSessionEndState,
 } from "./state-store.js";
 import { nowISO, nowMs, sessionDir, ensureDir } from "./utils.js";
 
@@ -17,10 +18,16 @@ export function startSession(
   const existing = getSession(sessionId);
   if (existing) {
     // MERGE: keep accumulated data, increment compactionCount, clear endedAt
+    // ADR-007: clear stale end state before resume to prevent inversion.
+    // clearSessionEndState NULLs ended_at/duration_ms in DB first; we also
+    // exclude them from the merged object so upsertSession's COALESCE does not
+    // immediately restore the stale values from excluded.duration_ms.
+    clearSessionEndState(existing.id);
     const merged: SessionSummary = {
       ...existing,
       startedAt: now,
       endedAt: undefined as unknown as string, // null in DB → COALESCE preserves
+      durationMs: undefined as unknown as number, // cleared — will stay NULL in DB
       branch: projectInfo.branch,
       compactionCount: (existing.compactionCount ?? 0) + 1,
     };

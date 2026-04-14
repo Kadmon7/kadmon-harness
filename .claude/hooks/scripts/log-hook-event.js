@@ -14,7 +14,7 @@ import path from "node:path";
  * @param {string} [event.toolName] - Tool that triggered the hook
  * @param {number} event.exitCode - Hook exit code (0=pass, 1=warn, 2=block)
  * @param {boolean} event.blocked - Whether the hook blocked the operation
- * @param {number} [event.durationMs] - Hook execution time in ms
+ * @param {number} event.durationMs - Hook execution time in ms (REQUIRED — caller must capture start = Date.now() and pass Date.now() - start)
  * @param {string} [event.error] - Error or warning message
  */
 export function logHookEvent(sessionId, event) {

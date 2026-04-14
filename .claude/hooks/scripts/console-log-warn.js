@@ -16,6 +16,7 @@ const CODE_EXT = [".ts", ".js", ".tsx", ".jsx"];
 
 try {
   if (isDisabled("console-log-warn")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   const filePath = input.tool_input?.file_path ?? "";
   if (!filePath) process.exit(0);
@@ -36,6 +37,7 @@ try {
       toolName: input.tool_name,
       exitCode: 1,
       blocked: false,
+      durationMs: Date.now() - start,
       error: `console.log() in ${path.basename(filePath)}`,
     });
     console.error(

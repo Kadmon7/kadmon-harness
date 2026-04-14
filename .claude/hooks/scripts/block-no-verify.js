@@ -5,6 +5,7 @@ import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
 try {
   if (isDisabled("block-no-verify")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   const command = input.tool_input?.command ?? "";
   const blocked = ["--no-verify", "--no-gpg-sign"];
@@ -17,6 +18,7 @@ try {
       toolName: "Bash",
       exitCode: 2,
       blocked: true,
+      durationMs: Date.now() - start,
       error: msg,
     });
     console.error(JSON.stringify({ block: true, message: `\u{1F6AB} ${msg}` }));

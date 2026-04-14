@@ -23,6 +23,7 @@ const DANGEROUS = [
 ];
 try {
   if (isDisabled("config-protection")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   // Block on truncated input — attacker could bypass by overflowing stdin
   if (wasTruncated(input)) {
@@ -32,6 +33,7 @@ try {
       toolName: input.tool_name,
       exitCode: 2,
       blocked: true,
+      durationMs: Date.now() - start,
       error: "stdin truncated",
     });
     console.error(
@@ -56,6 +58,7 @@ try {
         toolName: input.tool_name,
         exitCode: 2,
         blocked: true,
+        durationMs: Date.now() - start,
         error: `${msg} in ${fileName}`,
       });
       console.error(

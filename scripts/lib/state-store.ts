@@ -677,6 +677,20 @@ export function getHookEventStats(
     }));
 }
 
+/**
+ * Clears the end-state fields (ended_at, duration_ms) for a session.
+ * Called by startSession on the resume/merge path to prevent COALESCE from
+ * preserving a stale ended_at from the previous lifecycle, which would produce
+ * started_at > ended_at inversion. See ADR-007, Option B1.
+ */
+export function clearSessionEndState(id: string): void {
+  getDb()
+    .prepare(
+      "UPDATE sessions SET ended_at = NULL, duration_ms = NULL WHERE id = @id",
+    )
+    .run({ id });
+}
+
 // ─── Agent invocation operations ───
 
 function mapAgentInvocationRow(row: Record<string, unknown>): AgentInvocation {

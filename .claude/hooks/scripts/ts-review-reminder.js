@@ -12,6 +12,7 @@ const REVIEWER_TYPES = ["kody", "typescript-reviewer"];
 
 try {
   if (isDisabled("ts-review-reminder")) process.exit(0);
+  const start = Date.now();
   const input = parseStdin();
   const filePath = input.tool_input?.file_path ?? "";
 
@@ -59,6 +60,7 @@ try {
       toolName: "Edit",
       exitCode: 1,
       blocked: false,
+      durationMs: Date.now() - start,
       error: `${tsEditCount} .ts edits without review`,
     });
     console.error(
