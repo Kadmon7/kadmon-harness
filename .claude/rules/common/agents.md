@@ -21,11 +21,11 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Routing
 - MUST use opus model for: arkitect, konstruct, spektr, alchemik
-- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf, orakle
+- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf, orakle, kerka
 - MUST use opus model for doks (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
-## Agent Catalog (15)
+## Agent Catalog (16)
 
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
@@ -40,10 +40,11 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 | kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
 | arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget, token-budget-advisor, benchmark |
 | python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing, claude-api |
-| almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, deep-research, documentation-lookup |
+| almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, documentation-lookup |
 | doks | opus | /doks, after feature/structural commits | /doks | docs-sync, skill-stocktake, rules-distill, code-tour |
 | kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
 | alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit, cost-aware-llm-pipeline |
+| kerka | sonnet | /research, research/investigate/deep-dive intent | /research | deep-research |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → spektr
@@ -54,6 +55,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - Performance concerns (O(n^2), slow queries, memory patterns) → arkonte
 - /abra-kdabra with architecture signals → arkitect before konstruct
 - Encountering unfamiliar external API or library → almanak (via /almanak)
+- User asks to research/investigate/deep-dive/compare/analyze topics beyond the current codebase → kerka (via /research)
 
 ## Manual Rules
 - MUST invoke kody before any commit via /chekpoint
@@ -68,12 +70,13 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 - NEVER invoke alchemik without explicit /evolve command
 - NEVER invoke kartograf without explicit /skanner command (tests are expensive)
 - NEVER invoke kurator without explicit /medik clean command
+- MUST invoke kerka via /research for multi-source investigation; NEVER fall back to raw WebSearch when /research is the appropriate entry point
 
 ## Parallel Execution
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)
 - NEVER run agents sequentially when their inputs are independent
 
-### Orchestration Patterns (11 commands)
+### Orchestration Patterns (12 commands)
 
 #### Parallel then Sequential (mixed)
 ```
@@ -94,6 +97,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 /kadmon-harness  script execution
 /kompact         context compaction
 /almanak         almanak (single lookup)
+/research        kerka (single researcher, loads deep-research skill)
 /akademy         structured evaluation
 /forge           unified instinct pipeline (preview gate; /instinct is deprecated alias until 2026-04-20)
 ```

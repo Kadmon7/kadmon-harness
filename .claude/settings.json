@@ -14,6 +14,7 @@
       "Bash(ls:*)",
       "Bash(pwd:*)",
       "Bash(which:*)",
+      "Bash(yt-dlp:*)",
       "Bash(mkdir:*)",
       "Bash(rm:*)",
       "Bash(cp:*)",
@@ -54,6 +55,10 @@
       "WebFetch(domain:elevenlabs.io)",
       "WebFetch(domain:esm.sh)",
       "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:www.youtube.com)",
+      "WebFetch(domain:youtube.com)",
+      "WebFetch(domain:youtu.be)",
+      "WebFetch(domain:arxiv.org)",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs"
     ],

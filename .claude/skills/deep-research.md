@@ -132,3 +132,14 @@ Each agent searches, reads sources, and returns findings. The main session synth
 ## no_context Application
 
 This skill is fundamentally about evidence-based claims. Every assertion must be traceable to a source. When sources conflict, present both sides. When data is insufficient, say so explicitly rather than filling gaps with assumptions.
+
+## Execution caps (kerka)
+
+When this skill is executed by the kerka agent via /research, the following iteration caps apply (prompt-enforced, see ADR-009 D5):
+
+- Sub-questions: 5 max
+- WebSearch calls per sub-question: 3 max
+- WebFetch calls total: 5 max
+- youtube-transcript calls per URL: 1 max
+
+Exceeding a cap: stop and return partial results with a `caps_hit` footer listing which cap was reached and what remained unexplored. Caps are observable in the final report's Methodology section. A partial report with transparency beats a complete-looking report built on inference.

@@ -41,9 +41,9 @@ See also: `continuous-learning-v2` skill and `~/.claude/projects/<project>/memor
 ```
 Kadmon-Harness/
 |-- .claude/
-|   |-- agents/           # 15 specialist agents (markdown definitions)
+|   |-- agents/           # 16 specialist agents (markdown definitions)
 |   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
-|   |-- commands/         # 11 slash commands
+|   |-- commands/         # 12 slash commands
 |   |-- skills/           # 46 reference skills
 |   |-- rules/            # 19 rules (common + typescript + python)
 |   |-- hooks/scripts/    # 21 registered hook scripts + 8 shared modules
@@ -54,7 +54,7 @@ Kadmon-Harness/
 |   |-- dashboard.ts      # /kadmon-harness entry point
 |   |-- migrate-fix-session-inversion.ts  # Sprint C repair script (--apply gate)
 |   `-- *.ts              # Migration + cleanup scripts
-|-- tests/                # Vitest suite (549 passing, 54 files)
+|-- tests/                # Vitest suite (560 passing, 55 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
@@ -74,7 +74,7 @@ Kadmon-Harness/
 - `.claude/settings.json` — **Project team-shared**. Hooks, deny rules, enabledPlugins, and the `permissions.allow` block with generic tools (Bash utilities, public docs WebFetch, Skill, MCP). Committed — distributed via plan-003 bootstrap.
 - `.claude/settings.local.json` — **Project personal**. Gitignored per Claude Code convention. Reserved for truly machine-specific overrides of *this* repo; empty by default.
 
-## Agents (15)
+## Agents (16)
 | Agent | Model |
 |-------|-------|
 | arkitect | opus |
@@ -92,12 +92,14 @@ Kadmon-Harness/
 | doks | opus |
 | kartograf | sonnet |
 | alchemik | opus |
+| kerka | sonnet |
 
-## Commands (11)
+## Commands (12)
 - **Observe** (2): /kadmon-harness, /kompact
 - **Plan** (1): /abra-kdabra
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
+- **Research** (1): /research
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (3): /akademy, /forge, /evolve (step 6 Generate is EXPERIMENTAL through 2026-04-28; /instinct is a deprecated alias until 2026-04-20)
 
@@ -177,4 +179,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Sprint C Bug B fix: `startSession()` resume branch MUST call `clearSessionEndState(id)` before upserting, and MUST clear `merged.durationMs`, otherwise `COALESCE` restores the prior `ended_at`/`duration_ms` and produces the timestamp inversion.
 
 ## Status
-v1.1 Sprint B/C shipped 2026-04-14 — 549 tests passing, 54 test files, 21 hooks, 15 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline)
+v1.1 Sprint B/C/D shipped 2026-04-14 — 560 tests passing, 55 test files, 21 hooks, 16 agents, 46 skills, 12 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability — kerka agent + /research command + yt-dlp helper)

@@ -43,7 +43,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 
 **When in doubt:** default to **full**. Err on the side of safety. Never apply `skip` to anything touching runtime behavior.
 
-## Command Reference (11)
+## Command Reference (12)
 
 ### Observe Phase (2)
 | Command | Purpose | Agent |
@@ -65,6 +65,11 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 | Command | Purpose | Agent |
 |---------|---------|-------|
 | /skanner | Deep system assessment — performance profiling + E2E workflow tests in parallel. Optional agent evaluation. | arkonte, kartograf |
+
+### Research Phase (1)
+| Command | Purpose | Agent |
+|---------|---------|-------|
+| /research | Multi-source deep research — web, YouTube transcripts, PDFs. Detects input type and synthesizes cited reports with caps enforced (ADR-009 D5). Flags: `--premium` (Fase 2, not yet wired). | kerka |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |
