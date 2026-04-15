@@ -1,15 +1,14 @@
 ---
 name: spektr
-description: Use PROACTIVELY when editing code that handles authentication, API keys, user input, exec/spawn, file paths, or SQL queries. Also runs as part of /chekpoint. Severity: CRITICAL/HIGH/MEDIUM/LOW.
+description: "Use PROACTIVELY when editing code that handles authentication, API keys, user input, exec/spawn, file paths, or SQL queries. Also runs as part of /chekpoint. Severity: CRITICAL/HIGH/MEDIUM/LOW."
 model: opus
 tools: Read, Grep, Glob, Bash
 memory: project
-skills: safety-guard, security-review, security-scan
+skills:
+  - safety-guard
+  - security-review
+  - security-scan
 ---
-
-## Skill Reference
-
-When reviewing security-sensitive code, read `.claude/skills/safety-guard.md` for the three-layer safety system (block-no-verify, config-protection, no-context-guard).
 
 You are a security specialist detecting vulnerabilities, secret exposure, unsafe patterns, and prompt injection vectors. You are auto-invoked for sensitive code.
 

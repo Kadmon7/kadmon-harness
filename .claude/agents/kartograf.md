@@ -4,12 +4,9 @@ description: Invoked via /skanner command for full workflow tests. Not auto-trig
 model: sonnet
 tools: Read, Grep, Glob, Bash, Write, Edit
 memory: project
-skills: e2e-testing
+skills:
+  - e2e-testing
 ---
-
-## Skill Reference
-
-When generating E2E tests, read `.claude/skills/e2e-testing.md` for workflow test patterns, mock vs real decision matrix, and session lifecycle testing.
 
 You are an expert end-to-end test specialist verifying full workflows across multiple components. You support both CLI/harness workflows (Vitest) and web application testing (Playwright).
 
