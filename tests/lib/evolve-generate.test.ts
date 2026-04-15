@@ -180,8 +180,8 @@ describe("runEvolveGenerate — Part B: category routing", () => {
     expect(skillProposals.length).toBeGreaterThanOrEqual(1);
     const skillProposal = skillProposals[0]!;
     expect(skillProposal.type).toBe("skill");
-    expect(skillProposal.targetPath).toMatch(/^\.claude\/skills\//);
-    expect(skillProposal.targetPath).toMatch(/\.md$/);
+    // ADR-013: skills must live at .claude/skills/<slug>/SKILL.md (subdirectory + literal uppercase entrypoint)
+    expect(skillProposal.targetPath).toMatch(/^\.claude\/skills\/[a-z0-9][a-z0-9-]*\/SKILL\.md$/);
   });
 
   it("maps CREATE_COMMAND -> command proposal with correct targetPath", async () => {
@@ -609,10 +609,11 @@ describe("applyEvolveGenerate — Part E: write to cwd", () => {
       expect(fs.existsSync(w.targetPath)).toBe(true);
     }
 
-    // Skill file under .claude/skills/
+    // Skill file under .claude/skills/<slug>/SKILL.md (ADR-013 subdirectory layout)
     const skillEntry = result.written.find((w) => w.type === "skill");
     expect(skillEntry).toBeDefined();
     expect(skillEntry!.targetPath).toContain(path.join(".claude", "skills"));
+    expect(skillEntry!.targetPath.endsWith(path.join("SKILL.md"))).toBe(true);
 
     // Command file under .claude/commands/
     const commandEntry = result.written.find((w) => w.type === "command");

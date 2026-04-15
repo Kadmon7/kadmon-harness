@@ -99,6 +99,23 @@ const typeToDir: Record<ProposalType, string> = {
   rule: "rules/common",
 };
 
+/**
+ * Build the relative target path for a proposed artifact.
+ *
+ * ADR-013 — skills live at `.claude/skills/<slug>/SKILL.md` (subdirectory
+ * + literal uppercase entrypoint, resolved by the native sub-agent
+ * loader). Commands, agents, and rules remain flat `<slug>.md` files
+ * (ADR-013 non-goals — these are resolved differently by Claude Code
+ * and backward-compat is preserved).
+ */
+function buildTargetPath(type: ProposalType, slug: string): string {
+  const joined =
+    type === "skill"
+      ? path.join(".claude", "skills", slug, "SKILL.md")
+      : path.join(".claude", typeToDir[type], `${slug}.md`);
+  return joined.replace(/\\/g, "/");
+}
+
 // ─── Complexity heuristic ───
 
 /**
@@ -282,8 +299,7 @@ export async function runEvolveGenerate(
     }
 
     // Build target path (relative — absolute resolution is Phase 3's responsibility)
-    const dir = typeToDir[type];
-    const targetPath = path.join(".claude", dir, `${slug}.md`).replace(/\\/g, "/");
+    const targetPath = buildTargetPath(type, slug);
 
     // Derive complexity and confidence from live members
     const complexity = deriveComplexity(liveMembers.length);
