@@ -164,6 +164,8 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>46 Skills</strong> — domain knowledge loaded on demand</summary>
 
+> Each skill lives at `.claude/skills/<name>/SKILL.md` (subdirectory layout with literal uppercase `SKILL.md`, per ADR-013). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. Layout enforced by `/medik` Check #8.
+
 ### TypeScript / Code Quality
 - **coding-standards** — Naming, `node:` prefix imports, .js extensions
 - **api-design** — REST/RPC patterns with Zod schemas, error handling, versioning

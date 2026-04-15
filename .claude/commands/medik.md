@@ -24,7 +24,7 @@ Run all 8 checks directly (mechanical commands, no agent needed):
 | 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), no corruption |
 | 6 | dist/ sync | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
 | 7 | Dependencies | `npm audit` | Vulnerable packages, outdated deps |
-| 8 | Agent frontmatter | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill exists under `.claude/skills/` |
+| 8 | Agent frontmatter | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
 
 ### Phase 2: Deep Analysis (agents — always runs)
 

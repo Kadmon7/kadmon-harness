@@ -31,7 +31,7 @@ Invoke alchemik agent to analyze every harness component and propose evolution p
    - Render approval gate (table format matching /forge step 6): one row per proposal with `#`, type, name, target path, complexity, confidence, source clusters
    - Await user input: `all` / `none` / `1,3,5` (subset) / `abort`
    - For approved subset:
-     - For `suggestedCategory === "PROMOTE"` (type: skill) — invoke `skill: "skill-creator:skill-creator"` with the proposal's `SkillSpec`
+     - For `suggestedCategory === "PROMOTE"` (type: skill) — invoke `skill: "skill-creator:skill-creator"` with the proposal's `SkillSpec`. Target path resolves to `.claude/skills/<slug>/SKILL.md` per ADR-013 (subdirectory layout, literal uppercase `SKILL.md`); commands/agents/rules stay flat. `buildTargetPath()` in `scripts/lib/evolve-generate.ts` is the single source of truth.
      - For all other types — `applyEvolveGenerate(preview, { approvedIndices }, { projectHash, cwd })` writes markdown directly from templates at `scripts/lib/evolve-generate-templates/*.md`
    - Collision handling: `applyEvolveGenerate` aborts the ENTIRE batch transactionally if ANY target path exists (ADR-008:62). User must resolve collisions manually before re-running.
    - Fallback if `skill-creator:skill-creator` plugin invocation fails: command emits the `SkillSpec` as inline markdown for manual use (ADR-008 Q2)
