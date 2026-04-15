@@ -2,7 +2,7 @@
 number: 12
 title: Skill frontmatter YAML syntax fix — 16 agents migration
 date: 2026-04-14
-status: pending
+status: completed
 needs_tdd: false
 route: A
 adr: ADR-012-skill-frontmatter-syntax-fix.md

@@ -2,7 +2,7 @@
 number: 12
 title: Skill frontmatter YAML syntax fix — migrate to list format for native preloading
 date: 2026-04-14
-status: proposed
+status: accepted
 route: A
 plan: plan-012-skill-frontmatter-syntax-fix.md
 supersedes: ADR-011-skill-loading-enforcement.md
