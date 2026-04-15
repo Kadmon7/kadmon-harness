@@ -59,7 +59,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Build Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /medik | Full harness diagnostic — 7 health checks, approval gate, repair, cleanup. Alias: /MediK. Use `/medik build`, `/medik hooks`, `/medik db`, or `/medik clean` for single phase | mekanik, kurator |
+| /medik | Full harness diagnostic — 8 health checks, approval gate, repair, cleanup. Alias: /MediK. Use `/medik build`, `/medik hooks`, `/medik db`, or `/medik clean` for single phase | mekanik, kurator |
 
 ### Scan Phase (1)
 | Command | Purpose | Agent |

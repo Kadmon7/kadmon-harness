@@ -62,7 +62,7 @@ Workflow:
 
 ### Phase 4: Verify
 
-Re-run all 7 health checks to confirm everything is green. Report final status in conversation.
+Re-run all 8 health checks to confirm everything is green. Report final status in conversation.
 
 ## Output
 Health check table + agent findings + fix results + verification — all in conversation, no file artifacts.
@@ -70,13 +70,14 @@ Health check table + agent findings + fix results + verification — all in conv
 ## Example
 ```
 Phase 1 — Health Checks:
-  1. Build:        PASS
-  2. Typecheck:    PASS
-  3. Tests:        PASS (411 passing)
-  4. Hook errors:  WARN (54 ensure-dist EBUSY errors)
-  5. DB health:    PASS
-  6. dist/ sync:   PASS
-  7. Dependencies: WARN (7 vulnerabilities, all dev/transitive)
+  1. Build:               PASS
+  2. Typecheck:           PASS
+  3. Tests:               PASS (411 passing)
+  4. Hook errors:         WARN (54 ensure-dist EBUSY errors)
+  5. DB health:           PASS
+  6. dist/ sync:          PASS
+  7. Dependencies:        WARN (7 vulnerabilities, all dev/transitive)
+  8. Agent frontmatter:   PASS
 
 Phase 2 — Deep Analysis:
   mekanik: 1 finding (EBUSY race condition — root cause: concurrent cpSync)
@@ -89,5 +90,5 @@ Phase 3 — Repair:
   kurator: Fixed 11 items — security guards, dedup, dead code, style
 
 Phase 4 — Verify:
-  All 7 checks: PASS
+  All 8 checks: PASS
 ```

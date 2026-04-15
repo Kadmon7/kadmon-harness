@@ -43,7 +43,7 @@ Kadmon-Harness/
 |-- .claude/
 |   |-- agents/           # 16 specialist agents (markdown definitions)
 |   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
-|   |-- commands/         # 12 slash commands
+|   |-- commands/         # 11 slash commands
 |   |-- skills/           # 46 reference skills
 |   |-- rules/            # 19 rules (common + typescript + python)
 |   |-- hooks/scripts/    # 21 registered hook scripts + 8 shared modules
@@ -54,7 +54,7 @@ Kadmon-Harness/
 |   |-- dashboard.ts      # /kadmon-harness entry point
 |   |-- migrate-fix-session-inversion.ts  # Sprint C repair script (--apply gate)
 |   `-- *.ts              # Migration + cleanup scripts
-|-- tests/                # Vitest suite (560 passing, 55 files)
+|-- tests/                # Vitest suite (576 passing, 57 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
@@ -179,4 +179,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Sprint C Bug B fix: `startSession()` resume branch MUST call `clearSessionEndState(id)` before upserting, and MUST clear `merged.durationMs`, otherwise `COALESCE` restores the prior `ended_at`/`duration_ms` and produces the timestamp inversion.
 
 ## Status
-v1.1 Sprint B/C/D shipped 2026-04-14 — 560 tests passing, 55 test files, 21 hooks, 16 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability — kerka agent + /research command + yt-dlp helper)
+v1.1 Sprint B/C/D shipped 2026-04-14 — 576 tests passing, 57 test files, 21 hooks, 16 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability — kerka agent + /research command + yt-dlp helper)

@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-549%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-576%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.1-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -27,7 +27,7 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/kadmon-harness` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
-| **Specialize** | Domain agents, curated skill catalog | 15 agents, 46 skills, `/abra-kdabra` |
+| **Specialize** | Domain agents, curated skill catalog | 16 agents, 46 skills, `/abra-kdabra` |
 | **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate EXPERIMENTAL through 2026-04-28) |
 
 ---
@@ -84,7 +84,7 @@ Six commands to know on day one:
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 15 Agents│  │ 46 Skills│  │ 19 Rules │             │
+│  │ 16 Agents│  │ 46 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -118,12 +118,12 @@ Six commands to know on day one:
 
 | Metric | Value |
 |--------|-------|
-| Agents | **15** (5 opus, 10 sonnet) |
+| Agents | **16** (5 opus, 11 sonnet) |
 | Skills | **46** |
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **549 passing** (54 files) |
+| Tests | **576 passing** (57 files) |
 | SQLite Tables | **6** + 14 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -131,7 +131,7 @@ Six commands to know on day one:
 Full component details are below (collapsed by default). For the operational catalog see [`CLAUDE.md`](CLAUDE.md).
 
 <details>
-<summary><strong>15 Agents</strong> — 5 opus + 10 sonnet (click to expand)</summary>
+<summary><strong>16 Agents</strong> — 5 opus + 11 sonnet (click to expand)</summary>
 
 ### Opus Agents (5) — complex decisions
 
@@ -143,7 +143,7 @@ Full component details are below (collapsed by default). For the operational cat
 | **alchemik** | Evolution Analyst | Analyzes hook latency, instinct quality, skill gaps. | Never | `/evolve` |
 | **doks** | Doc Sync | Syncs all 4 documentation layers. Behavior-over-counts. | After structural commits | `/doks` |
 
-### Sonnet Agents (10) — implementation and review
+### Sonnet Agents (11) — implementation and review
 
 | Agent | Role | Purpose | Auto-invokes when... | Manual |
 |-------|------|---------|---------------------|--------|
@@ -157,6 +157,7 @@ Full component details are below (collapsed by default). For the operational cat
 | **python-reviewer** | Python Specialist | Reviews Python: PEP 8, type hints, ML, security. | On `.py` edits | `/chekpoint` |
 | **almanak** | Docs Lookup | Searches live documentation via Context7 MCP. | On unfamiliar APIs | `/almanak` |
 | **kartograf** | E2E Testing | Writes and runs E2E tests: Vitest (harness), Playwright (web). | Never | `/skanner` |
+| **kerka** | Researcher | Multi-source deep research: web, YouTube transcripts, PDFs. Synthesizes cited reports. | On research/investigate/deep-dive intent | `/research` |
 
 </details>
 
@@ -228,12 +229,17 @@ Full component details are below (collapsed by default). For the operational cat
 ### Build (1)
 | Command | Purpose |
 |---------|---------|
-| `/medik` | Full harness diagnostic — 7 health checks, repair, cleanup |
+| `/medik` | Full harness diagnostic — 8 health checks, repair, cleanup |
 
 ### Scan (1)
 | Command | Purpose |
 |---------|---------|
 | `/skanner` | Deep system assessment — performance + E2E workflow tests |
+
+### Research (1)
+| Command | Purpose |
+|---------|---------|
+| `/research` | Multi-source deep research (web, YouTube transcripts, PDFs) — kerka agent loads `deep-research` skill, enforces ADR-009 D5 caps, returns cited synthesis |
 
 ### Remember (3)
 | Command | Purpose |
@@ -422,7 +428,7 @@ Example instincts:
 
 ## 📊 Status & Attribution
 
-**v1.1 Sprint B/C shipped 2026-04-14**
-`549 tests passing` · `21 hooks` · `15 agents` · `46 skills` · `11 commands` · `19 rules` · `6 DB tables`
+**v1.1 Sprint B/C/D shipped 2026-04-14**
+`576 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `6 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.

@@ -110,7 +110,7 @@ If the harness has network access and the user wants a deeper automated pass, an
 
 - **spektr agent** (opus) — primary owner. spektr is the harness's security specialist; this skill is the config-surface variant of its work (as opposed to `safety-guard`, which targets runtime code). When the user asks to audit `.claude/`, spektr runs this skill's phases and produces the severity-ranked report.
 - **config-protection hook** — complementary. The `config-protection` hook blocks *accidental* edits to critical config files; `security-scan` audits the current state of those files for defects. Defense in depth: hook prevents regressions, scan finds pre-existing issues.
-- **/medik command** — entry point. `/medik` runs 7 health checks; spektr can load this skill during the agent-analysis phase to add a security lens to the harness-health report.
+- **/medik command** — entry point. `/medik` runs 8 health checks; spektr can load this skill during the agent-analysis phase to add a security lens to the harness-health report.
 - **Related skills**: `security-review` (runtime code), `safety-guard` (agent-level guardrails). Load together when auditing a repo end-to-end.
 
 ## no_context Application

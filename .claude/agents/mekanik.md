@@ -29,9 +29,9 @@ cat ~/.kadmon/hook-errors.log              # Recent hook errors
 npm audit                                  # Dependency vulnerabilities
 ```
 
-## Full Health Check (7 checks for /MediK)
+## Full Health Check (8 checks for /MediK)
 
-When invoked via /medik (alias /MediK), run these 7 checks before any repair:
+When invoked via /medik (alias /MediK), run these 8 checks before any repair:
 
 1. **Build**: `npm run build` — catch compilation errors, EBUSY locks, missing files
 2. **Typecheck**: `npx tsc --noEmit` — catch type errors
@@ -40,6 +40,7 @@ When invoked via /medik (alias /MediK), run these 7 checks before any repair:
 5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), not corrupt
 6. **dist/ sync**: Compare `dist/` timestamps vs `scripts/lib/` — catch stale compiled output
 7. **Dependencies**: `npm audit` — catch vulnerable packages
+8. **Agent frontmatter**: `npx tsx scripts/lint-agent-frontmatter.ts` — verify `skills:` parses as YAML list (ADR-012) and every declared skill exists under `.claude/skills/`
 
 Write report to `docs/diagnostics/diag-NNN.md` (3-digit zero-padded, increment from highest existing).
 STOP and present report to user before repairing anything.
