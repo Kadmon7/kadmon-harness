@@ -98,7 +98,7 @@ Rules:
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)
 - NEVER run agents sequentially when their inputs are independent
 
-### Orchestration Patterns (12 commands)
+### Orchestration Patterns (11 commands)
 
 #### Parallel then Sequential (mixed)
 ```
@@ -120,7 +120,6 @@ Rules:
 /kompact         context compaction
 /almanak         almanak (single lookup)
 /research        kerka (single researcher, loads deep-research skill)
-/akademy         structured evaluation
 /forge           unified instinct pipeline (preview gate; /instinct is deprecated alias until 2026-04-20)
 ```
 

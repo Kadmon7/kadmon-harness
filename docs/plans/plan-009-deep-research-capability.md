@@ -282,7 +282,7 @@ Phase 1.2 defines 5 cases in `tests/lib/youtube-transcript.test.ts`:
 4. **Non-YouTube URL** — direct call `fetchYouTubeTranscript({ url: "https://example.com/foo" })`. Expected: `{ ok:false, source:"error", error:/not a youtube url/ }` with ZERO subprocess spawn (verified by stub NOT being called — stub writes a marker file if invoked).
 5. **yt-dlp exits 0 but no VTT** — `STUB_MODE: "empty"`. Expected: `{ ok:true, source:"fallback", language:null, text:null, videoId:"abc123" }`.
 
-No other test files created. kerka agent and `/research` command are markdown — they pass `no-context-guard` + `post-edit-typecheck` (no-op on .md) and do not need Vitest coverage. Agent quality is validated in Phase 5 E2E + a follow-up `/akademy` session (out of scope for this plan).
+No other test files created. kerka agent and `/research` command are markdown — they pass `no-context-guard` + `post-edit-typecheck` (no-op on .md) and do not need Vitest coverage. Agent quality is validated in Phase 5 E2E via `/skanner` (out of scope for this plan).
 
 ## 7. E2E Verification (manual, post-implementation)
 

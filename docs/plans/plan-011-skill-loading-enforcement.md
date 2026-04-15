@@ -37,7 +37,7 @@ Implements ADR-011 (Option 5 Hybrid). Ship two coordinated changes: (a) a unifor
 - No schema changes to YAML `skills:` frontmatter; `agent-metadata-sync` still treats it as the declarative catalog source of truth.
 - No edits to the 4 command-level skills (`verification-loop`, `strategic-compact`, `skill-creator:skill-creator` plugin) — they remain direct-loaded per `rules/common/agents.md` "Command-Level Skills" section.
 - No skill content edits. Catalog stays at 46.
-- No validation that sub-agents correctly *apply* skill guidance — only that they Read the declared files. Application quality is `/akademy` / `agent-eval` territory.
+- No validation that sub-agents correctly *apply* skill guidance — only that they Read the declared files. Application quality is `agent-eval` (via `/evolve`) and `/chekpoint` territory.
 
 ## 3. Prerequisites
 
@@ -128,7 +128,6 @@ Sequential order. Sizes: S (trivial), M (multi-file or nontrivial logic), L (cro
 Grep `.claude/commands/*.md` for `^skills:` in frontmatter. Current verified output (2026-04-14):
 
 - `abra-kdabra.md` — `architecture-decision-records, tdd-workflow, eval-harness` — multi-agent chain (arkitect→konstruct→feniks→kody). Main session runs orchestration logic. **Needs Step 0.**
-- `akademy.md` — `eval-harness` — direct (no agent). Main session runs the eval. **Needs Step 0.**
 - `chekpoint.md` — `verification-loop, coding-standards, receiving-code-review, safety-guard` — multi-agent chain (5 reviewers). `verification-loop` is a command-level skill (see `rules/common/agents.md` Command-Level Skills section) loaded directly by the command's Phase 1. **Needs Step 0** for the remaining three.
 - `forge.md` — `continuous-learning-v2` — direct (no agent). **Needs Step 0.**
 - `kompact.md` — `context-budget` — direct (no agent). `context-budget` + `strategic-compact` are the decision-matrix guides for compaction. **Needs Step 0.**
@@ -138,7 +137,7 @@ Grep `.claude/commands/*.md` for `^skills:` in frontmatter. Current verified out
 
 Commands that lack `skills:` frontmatter entirely (`almanak.md`, `doks.md`, `evolve.md`, `kadmon-harness.md`) are out of scope for Step 0 because they have no command-level skills to load. Their sub-agents still fire Phase 0 for agent-level skills.
 
-**Final Step 5 rollout list: 7 commands** (`abra-kdabra`, `akademy`, `chekpoint`, `forge`, `kompact`, `medik`, `skanner`). `research` is excluded by delegation.
+**Final Step 5 rollout list: 6 commands** (`abra-kdabra`, `chekpoint`, `forge`, `kompact`, `medik`, `skanner`). `research` is excluded by delegation.
 
 - File: `.claude/commands/*.md` (read-only grep)
 - Verify: the bullet list above matches `grep -n '^skills:' .claude/commands/*.md` output exactly.
@@ -190,12 +189,12 @@ Each PR uses `/chekpoint lite` with ts-reviewer only — the rule "docs-only →
 
 ### Step 5 — Apply Step 0 to commands (S)
 
-Single PR applying the command template to the 7 commands identified in Step 1: `abra-kdabra`, `akademy`, `chekpoint`, `forge`, `kompact`, `medik`, `skanner`. For `chekpoint`, the Step 0 block lists `coding-standards`, `receiving-code-review`, `safety-guard` only — `verification-loop` is already loaded inline as a command-level skill per `rules/common/agents.md` and should not be duplicated.
+Single PR applying the command template to the 6 commands identified in Step 1: `abra-kdabra`, `chekpoint`, `forge`, `kompact`, `medik`, `skanner`. For `chekpoint`, the Step 0 block lists `coding-standards`, `receiving-code-review`, `safety-guard` only — `verification-loop` is already loaded inline as a command-level skill per `rules/common/agents.md` and should not be duplicated.
 
 `/chekpoint skip` with a manual `git diff` review is the appropriate tier (commands are routing metadata and the edit is mechanical). Reviewed footer: `Reviewed: skip (verified mechanically)`.
 
-- File: 7 files across `.claude/commands/*.md`.
-- Verify: `grep -l "Step 0 — Load Command Skills" .claude/commands/*.md` returns exactly 7 files (not `research.md`). Full Vitest suite green.
+- File: 6 files across `.claude/commands/*.md`.
+- Verify: `grep -l "Step 0 — Load Command Skills" .claude/commands/*.md` returns exactly 6 files (not `research.md`). Full Vitest suite green.
 - Depends on: Step 4.
 - Risk: Low.
 
@@ -289,7 +288,7 @@ Add a pattern definition in `.claude/hooks/pattern-definitions.json` that matche
 - `.claude/agents/arkitect.md`, `konstruct.md`, `feniks.md` (Step 4 PR-B)
 - `.claude/agents/mekanik.md`, `kurator.md`, `arkonte.md`, `kartograf.md` (Step 4 PR-C)
 - `.claude/agents/almanak.md`, `kerka.md`, `doks.md`, `alchemik.md` (Step 4 PR-D)
-- `.claude/commands/abra-kdabra.md`, `akademy.md`, `chekpoint.md`, `forge.md`, `kompact.md`, `medik.md`, `skanner.md` (Step 5)
+- `.claude/commands/abra-kdabra.md`, `chekpoint.md`, `forge.md`, `kompact.md`, `medik.md`, `skanner.md` (Step 5)
 - `.claude/settings.json` (Step 7)
 - `.claude/rules/common/agents.md` (Step 8)
 - `.claude/rules/common/hooks.md` (Step 8)
@@ -374,8 +373,8 @@ Ordered commits. Each is independently revertible. All use conventional commit f
 5. **Step 4 PR-D** — `feat(agents): Phase 0 skill loading on research/evolve agents`
    - Files: `.claude/agents/{almanak,kerka,doks,alchemik}.md` (includes ADR-009 deep-research cleanup on almanak)
    - Reviewed: lite (ts-reviewer)
-6. **Step 5** — `feat(commands): Step 0 skill loading on 7 commands`
-   - Files: `.claude/commands/{abra-kdabra,akademy,chekpoint,forge,kompact,medik,skanner}.md`
+6. **Step 5** — `feat(commands): Step 0 skill loading on 6 commands`
+   - Files: `.claude/commands/{abra-kdabra,chekpoint,forge,kompact,medik,skanner}.md`
    - Reviewed: skip (verified mechanically)
 7. **Steps 6 + 7** — `feat(hooks): skill-load-audit PostToolUse hook + Vitest test`
    - Files: `.claude/hooks/scripts/skill-load-audit.js` (new), `tests/hooks/skill-load-audit.test.ts` (new), `.claude/settings.json` (register hook).

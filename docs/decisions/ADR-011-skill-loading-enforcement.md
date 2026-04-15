@@ -153,7 +153,7 @@ Fully additive and staged. No schema changes. No dist/ rebuild required for the 
 - NOT implementing a `PreAgentUse` hook (Claude Code does not expose one).
 - NOT inlining skill content into agent files (rejected as Option 3).
 - NOT pre-reading into Task prompts (rejected as Option 4).
-- NOT validating that sub-agents correctly *apply* skill guidance — only that they Read the declared files. Application quality is `/akademy` and `agent-eval` territory.
+- NOT validating that sub-agents correctly *apply* skill guidance — only that they Read the declared files. Application quality is `agent-eval` (via `/evolve`) and `/chekpoint` territory.
 - NOT changing the YAML `skills:` frontmatter schema; `agent-metadata-sync` still treats it as the declarative source of truth.
 - NOT introducing blocking (`exit 2`) enforcement. Phase 0 skipping is a quality issue, not a safety issue — the hook exits 1 (warning) at most.
 - NOT touching the 4 command-level skills (`verification-loop`, `strategic-compact`, `skill-creator:skill-creator` plugin).

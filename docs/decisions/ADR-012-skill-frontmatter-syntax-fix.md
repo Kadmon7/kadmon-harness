@@ -64,7 +64,7 @@ Pilot on `kody` first. Verify via a real `/chekpoint lite` run that the sub-agen
 
 - **Phase 0 imperative reads.** The official documentation explicitly says skills are injected at startup, not read on demand. Instructing sub-agents to read files that are already in their context is an antipattern — it wastes tokens and fights the native mechanism. Rejected.
 - **`skill-load-audit.js` runtime hook.** There is nothing to audit at the `Task` tool boundary once the native loader is doing the work. Rejected as runtime enforcement.
-- **Hard cap of 2 always-load skills per agent.** Context-budget discipline is still valuable, but it belongs to `skill-stocktake` and `/akademy`, not to a loader workaround. Rejected.
+- **Hard cap of 2 always-load skills per agent.** Context-budget discipline is still valuable, but it belongs to `skill-stocktake` and `/evolve`, not to a loader workaround. Rejected.
 - **Template rewrites of 8 command files.** Out of scope. This ADR touches only agents. Commands are addressed separately if `skill-stocktake` surfaces bloat.
 
 ### Preserved from ADR-011 (reoriented)
@@ -91,7 +91,7 @@ Pilot on `kody` first. Verify via a real `/chekpoint lite` run that the sub-agen
 | R1: Claude Code's YAML parser is lenient and silently tolerates the current scalar syntax (splits on commas). | Pilot on `kody` first; if the scalar already works, nothing breaks in the rewrite because block-list is a strict superset. |
 | R2: A listed skill name is a typo or doesn't exist on disk. | Follow-up frontmatter linter catches this. In the meantime, the pilot verification step on `kody` surfaces any missing skill by log inspection. |
 | R3: `agent-metadata-sync` tests break on the list-format fixtures. | Update fixtures and sync serializer in the same PR as the rewrite. |
-| R4: `skill-stocktake` flags context bloat once the native loader is actually working for agents with 5–8 declared skills. | Exactly the outcome we want. Bloat discussions move to `/akademy` and skill consolidation, not to loader workarounds. |
+| R4: `skill-stocktake` flags context bloat once the native loader is actually working for agents with 5–8 declared skills. | Exactly the outcome we want. Bloat discussions move to `/evolve` and skill consolidation, not to loader workarounds. |
 | R5: The `/evolve` skill-loading pattern-definitions proposed in ADR-011 are no longer justified. | None were implemented — ADR-011 did not ship code — so there is nothing to roll back. |
 
 **What this enables.** For the first time, the harness actually uses the native Anthropic mechanism it claims to use. The 46-skill catalog becomes functional knowledge-in-context. Sub-agent behavior should improve on the next invocation after the fix lands, without any further ceremony.
@@ -119,7 +119,7 @@ The correct decision was the one neither iteration considered: **check the offic
 - NOT implementing custom hooks for skill loading.
 - NOT inlining skill content into agent files.
 - NOT touching command files, rule body content, or skill files themselves.
-- NOT validating skill *application quality* — only that the loader receives parseable frontmatter. Application quality is `/akademy` and `agent-eval` territory.
+- NOT validating skill *application quality* — only that the loader receives parseable frontmatter. Application quality is `agent-eval` (via `/evolve`) and `/chekpoint` territory.
 - NOT changing the declared skill lists per agent. The sets stay identical; only the YAML shape changes.
 - NOT registering the `SubagentStart` hook referenced in follow-ups. That hook is available in Claude Code's hook catalog and is worth documenting in `rules/common/hooks.md` for future use, but it is out of scope for this fix.
 

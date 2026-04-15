@@ -53,7 +53,7 @@ Only runs if an agent name is passed as argument.
 3. Score: pass/fail per criterion
 4. Report with recommendations
 
-Note: agent quality evaluation is the responsibility of `/akademy` (to be redesigned). `/skanner` only keeps a lightweight ad-hoc mode here for quick single-agent checks.
+Note: structured agent quality evaluation is the responsibility of `/evolve` (via the `agent-eval` skill loaded by alchemik). `/skanner` only keeps a lightweight ad-hoc mode here for quick single-agent checks.
 
 ## Output
 Performance report + E2E results + optional agent eval + system health score.

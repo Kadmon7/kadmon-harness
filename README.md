@@ -242,10 +242,9 @@ Full component details are below (collapsed by default). For the operational cat
 | `/almanak` | Search live documentation (Context7) |
 | `/doks` | Sync project documentation with code changes (4-layer) |
 
-### Evolve (3)
+### Evolve (2)
 | Command | Purpose |
 |---------|---------|
-| `/akademy` | Evaluate agent/skill quality with structured tests |
 | `/forge` | Unified instinct pipeline (read → extract → cluster → preview gate → apply). Flags: `--dry-run`, `export`. Writes ClusterReport JSON consumed by `/evolve` step 6. (`/instinct` remains as a deprecated alias until 2026-04-20.) |
 | `/evolve` | Harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads `/forge` ClusterReports and proposes new skills/commands/agents/rules through a preview gate. |
 

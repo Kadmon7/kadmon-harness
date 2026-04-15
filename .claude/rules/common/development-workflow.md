@@ -43,7 +43,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 
 **When in doubt:** default to **full**. Err on the side of safety. Never apply `skip` to anything touching runtime behavior.
 
-## Command Reference (12)
+## Command Reference (11)
 
 ### Observe Phase (2)
 | Command | Purpose | Agent |
@@ -78,10 +78,9 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 | /almanak | Look up live documentation for any library or framework | almanak |
 | /doks | Sync project documentation with code changes (4-layer sync) | doks |
 
-### Evolve Phase (3)
+### Evolve Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /akademy | Run structured evaluation of agent or skill quality | — |
 | /forge | Forge session observations into instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`. (/instinct is a deprecated alias until 2026-04-20) | — |
 | /evolve | Run harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads ClusterReports written by `/forge` and proposes new skills/commands/agents/rules through a preview gate; `/evolve` command invokes `skill-creator:skill-creator` plugin for PROMOTE proposals and `applyEvolveGenerate` for the rest. | alchemik |
 

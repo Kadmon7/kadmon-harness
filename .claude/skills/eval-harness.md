@@ -162,7 +162,7 @@ Status: READY FOR REVIEW
 
 ## Conceptual Workflow Commands
 
-These are *conceptual* stages, not implemented slash commands. In the Kadmon Harness the same flow is driven by `/abra-kdabra` (plan + TDD) and will be surfaced through the upcoming `/akademy` redesign. Use them as a mental model when narrating your progress:
+These are *conceptual* stages, not implemented slash commands. In the Kadmon Harness the same flow is driven by `/abra-kdabra` (konstruct drafts the eval definition during planning, feniks executes it during red-green-refactor cycles) and closed by `/chekpoint` (kody reviews the final state). Use them as a mental model when narrating your progress:
 
 - **Pre-implementation (define)** — write the eval definition file at `.claude/evals/<feature>.md` before touching any production code
 - **During implementation (check)** — re-run the eval definition against the evolving code after each green step
@@ -259,8 +259,7 @@ Recommended thresholds:
 
 - **feniks agent** (sonnet) — primary owner. feniks already enforces red-green-refactor at the unit level; this skill extends the same discipline to feature-level acceptance. When `/abra-kdabra` routes to feniks with `needs_tdd: true`, feniks writes capability + regression evals *before* any production code lands.
 - **konstruct agent** (opus) — secondary. Before decomposing a feature into steps, konstruct reads this skill to express the feature's success in measurable pass/fail evals. The eval definition becomes the north star for the step breakdown.
-- **/abra-kdabra command** — the chain `arkitect → konstruct → feniks → kody` is where EDD actually runs. konstruct drafts the evals as part of the plan; feniks implements them; kody reviews both production code and eval quality.
-- **/akademy command** — currently in redesign. When the user reworks `/akademy`, it will likely become the user-facing entry point for defining and running EDD evals on a specific feature.
+- **/abra-kdabra command** — the chain `arkitect → konstruct → feniks → kody` is where EDD actually runs. konstruct drafts the evals as part of the plan; feniks implements them; kody reviews both production code and eval quality. This is the user-facing entry point for defining and running EDD evals on a feature.
 - **/chekpoint command** — run evals as part of the verification loop before committing; treat failing capability or regression evals as BLOCK-level issues.
 
 ## no_context Application

@@ -285,7 +285,7 @@ Konstruct will own plan-009. Expected surface, specified here only so the plan c
 - [x] User workflow mapped (`/research <topic>` -> kerka -> deep-research skill -> cited report).
 - [x] Component responsibilities defined (command orchestrates, kerka executes, skill provides methodology, helper handles videos).
 - [x] Error handling strategy (yt-dlp missing -> `source: "unavailable"`; kerka continues; never throws into the agent).
-- [x] Testing strategy (unit tests on helper with mocked execFileSync; kerka itself validated via `/akademy` in a follow-up session).
+- [x] Testing strategy (unit tests on helper with mocked execFileSync; kerka itself validated via `/chekpoint` + `/skanner` E2E in a follow-up session).
 - [x] Migration path: none needed, additive.
 - [x] Performance targets: no hook latency involved; `/research` is user-initiated, not hook-time.
 - [x] Security requirements (no eval, no shell interpolation — `execFileSync` with argument array per `rules/common/security.md`).
