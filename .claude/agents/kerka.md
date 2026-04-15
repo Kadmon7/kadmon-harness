@@ -72,7 +72,7 @@ For any other input (free-text topic, question, comparison request, mixed text w
 
 ### Step 2–6: Execute the deep-research skill
 
-Follow `.claude/skills/deep-research.md` Steps 2 (Plan), 3 (Execute Multi-Source Search), 4 (Deep-Read Key Sources), 5 (Synthesize and Write Report), and 6 (Deliver). Apply the caps below.
+Follow `.claude/skills/deep-research/SKILL.md` Steps 2 (Plan), 3 (Execute Multi-Source Search), 4 (Deep-Read Key Sources), 5 (Synthesize and Write Report), and 6 (Deliver). Apply the caps below.
 
 ## Execution Caps (prompt-enforced)
 

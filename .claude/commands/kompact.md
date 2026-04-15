@@ -57,7 +57,7 @@ Summary:
   Task: Optimizing skill descriptions using skill-creator.
   Working on: .claude/skills/*.md (Batch 2+3)
   Next: commit optimized skills, then Phase 2 B-grade skills.
-  Reload after compact: scripts/lib/types.ts, .claude/skills/postgres-patterns.md
+  Reload after compact: scripts/lib/types.ts, .claude/skills/postgres-patterns/SKILL.md
 
 Ready to compact. Run: /compact
 ━━━━━━━━━━━━━━━━━━━━━━
