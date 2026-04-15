@@ -2,7 +2,7 @@
 number: 13
 title: Skills live at .claude/skills/<name>/SKILL.md (subdirectory structure)
 date: 2026-04-14
-status: proposed
+status: accepted
 route: A
 plan: plan-013-skills-subdirectory-structure.md
 supersedes_partial: ADR-012-skill-frontmatter-syntax-fix.md
@@ -206,6 +206,88 @@ This ADR and plan-013 explicitly do **not** cover:
 - [x] **Windows compatibility.** R1 (case-folding) addressed by `core.ignorecase=false` local session setting plus post-mv verification via `git ls-files`. No hook latency concerns. No new runtime code paths.
 - [x] **Observability planned.** Success measurable via the post-migration kody spawn. Formal telemetry is the linter; ad-hoc telemetry is inspecting sub-agent output for skill-informed behavior.
 - [x] **Rollback plan.** `git revert` on the three plan-013 commits. No stateful changes to undo.
+
+### Post-Migration Empirical Proof (2026-04-14)
+
+Post-migration kody spawn with the canonical injection probe, executed immediately after Commit 2 (`909f0f9`) landed on `origin/main`. Kody was instructed to perform introspection without any tool calls and to quote verbatim content from its declared `coding-standards` skill. **Result: WORKING.** The R5 go/no-go gate passed.
+
+```
+Bien. Ahora procedo al análisis de introspección puro, sin más herramientas.
+
+---
+
+## Introspection Probe — R5 Gate for plan-013
+
+### What I can see in my context
+
+The 5 declared skill files arrived as full readable body content in my
+context, injected via <command-message> / <skill-format>true blocks.
+
+---
+
+### Task 1 — First 3 rules from `coding-standards` SKILL.md
+
+The content I see is from .claude/skills/coding-standards/SKILL.md (the
+skill file itself — not the rules file at
+.claude/rules/common/coding-style.md). The two are distinguishable: the
+rules file uses bullet-point directives; the skill file uses narrative
+prose with rationale.
+
+Rule 1 — TypeScript Strict Mode, first bullet:
+> "No `any` types — use `unknown` and narrow with type guards, because
+> `any` disables the compiler's ability to catch mistakes"
+
+Rule 2 — TypeScript Strict Mode, second bullet:
+> "No `!` non-null assertions without a justification comment, because
+> they hide null-safety bugs"
+
+Rule 3 — TypeScript Strict Mode, third bullet:
+> "Prefer `interface` over `type` for object shapes — interfaces produce
+> better error messages and support declaration merging"
+
+---
+
+### Task 2 — Is the skill content present?
+
+Yes. All 5 declared skills arrived as full file bodies:
+
+- coding-standards — present, full SKILL.md body with sections:
+  TypeScript Strict Mode, Naming, Immutability, Zod Validation, Error
+  Handling, Imports, Files, Code Smells, JSDoc, Testing, Anti-Patterns,
+  Integration, Rules, Gotchas
+- receiving-code-review — present, full body
+- git-workflow — present, full body
+- github-ops — present, full body
+- regex-vs-llm-structured-text — present, full body
+
+---
+
+### Task 3 — Source distinction
+
+| Content source | What I see | How I distinguish it |
+|---|---|---|
+| CLAUDE.md / rules injection (.claude/rules/common/coding-style.md) | Present in system-reminder block as `# Coding Style Rules` with MUST/NEVER directives | Directive style, no prose rationale, sourced from rules/common/ path |
+| Kody agent body (kody.md system prompt) | I am kody — my identity and operating instructions are my system prompt, not visible as injected text blocks in the way skill content is |
+| Skill files (.claude/skills/*/SKILL.md) | Present as full narrative SKILL.md content injected via the <command-message> mechanism with <skill-format>true</skill-format> | Narrative prose, includes rationale, has ## Integration, ## Anti-Patterns, ## no_context Application sections — these are characteristic of skill files, not rules files |
+
+The `coding-standards` SKILL.md is distinguishable from
+rules/common/coding-style.md because:
+- The rules file opens with `# Coding Style Rules` and uses
+  `- MUST use camelCase...` directives
+- The skill file opens with `# Coding Standards` and explains *why* each
+  rule exists (e.g., "Strict mode is always enabled in tsconfig.json.
+  This catches null/undefined bugs at compile time instead of runtime.")
+
+---
+
+INJECTION_STATUS: WORKING
+```
+
+**Interpretation.** Kody's reply makes three independently-verifiable claims: (1) skill files are present as readable content in the sub-agent context — not just referenced by name, not just visible as rules file content, but as the actual SKILL.md bodies; (2) kody can quote verbatim from those bodies including section headers and rule text; (3) kody can distinguish the skill body from the similarly-named rules file, which is the exact discriminator that would fail if only the rules file were present. The `INJECTION_STATUS: WORKING` sentinel on the final line is the unambiguous success signal the plan-013 probe prompt required.
+
+**Before/after pair.** The pre-migration baseline (same probe prompt, run against the flat layout earlier the same day) reported `INJECTION_STATUS: BROKEN` with kody explicitly listing all 5 declared skills as NOT present as file content. The post-migration run reports WORKING with verbatim quotes. The delta is exactly the file-system layout change committed in plan-013 Commits 1+2 (`b27fe08` + `909f0f9`).
+
+This satisfies ADR-013 Risk R5 (the go/no-go gate) and the Testing strategy checklist item (5) above.
 
 ## Review date
 

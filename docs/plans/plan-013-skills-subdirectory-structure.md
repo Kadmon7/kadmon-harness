@@ -2,7 +2,7 @@
 number: 13
 title: Skills migration from .claude/skills/<name>.md to .claude/skills/<name>/SKILL.md
 date: 2026-04-14
-status: pending
+status: completed
 needs_tdd: false
 route: A
 adr: ADR-013-skills-subdirectory-structure.md

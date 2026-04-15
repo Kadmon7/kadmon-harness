@@ -15,9 +15,23 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 ## Skill Loading
 
-Agents declare their skills in YAML frontmatter. Claude Code's native sub-agent loader parses the `skills:` field as a YAML list and **injects the full skill content into the sub-agent's context at spawn** (per [Anthropic docs](https://docs.claude.com/en/docs/claude-code/sub-agents)). Sub-agents do NOT inherit skills from the parent conversation — the frontmatter is the only channel.
+Agents declare their skills in YAML frontmatter. Claude Code's native sub-agent loader parses the `skills:` field as a YAML list, resolves each name to a file on disk, and **injects the full skill content into the sub-agent's context at spawn** (per [Anthropic docs — Skills](https://code.claude.com/docs/en/skills) and [sub-agents](https://docs.claude.com/en/docs/claude-code/sub-agents)). Sub-agents do NOT inherit skills from the parent conversation — the frontmatter is the only channel.
 
-**Authoritative syntax — YAML block list**:
+**Authoritative layout — subdirectory + literal `SKILL.md`** (per ADR-013):
+
+```
+.claude/skills/
+├── coding-standards/
+│   └── SKILL.md            ← entrypoint, literal uppercase filename
+├── git-workflow/
+│   └── SKILL.md
+└── ...
+```
+
+Each skill is a directory, the entrypoint is always `SKILL.md` (literal uppercase), and the frontmatter must contain at minimum `name` and `description`. The project-scope path is `.claude/skills/<skill-name>/SKILL.md`. Flat files like `.claude/skills/<name>.md` are invisible to the loader — it silently injects nothing, no error.
+
+**Authoritative syntax — YAML block list** (per ADR-012):
+
 ```yaml
 ---
 name: kody
@@ -28,18 +42,25 @@ skills:
 ---
 ```
 
-**Anti-pattern — comma-separated scalar** (parses as a single string, loader silently drops it):
+**Anti-pattern 1 — comma-separated scalar** (parses as a single string, loader silently drops it):
 ```yaml
 skills: coding-standards, receiving-code-review, git-workflow   # BROKEN
 ```
 
+**Anti-pattern 2 — flat file layout** (loader resolves to `<name>/SKILL.md` and finds nothing):
+```
+.claude/skills/coding-standards.md   # BROKEN — invisible to the loader
+```
+
 Rules:
 - MUST declare every skill used by an agent in its `skills:` frontmatter as a YAML list (see ADR-012)
+- MUST place each skill at `.claude/skills/<name>/SKILL.md` with literal uppercase `SKILL.md` filename (see ADR-013)
 - MUST quote `description:` fields that contain embedded colons (e.g. `"... Command: /foo. Severity: HIGH."`) — unquoted colons break YAML parsing silently
 - MUST read skill files listed in **command** frontmatter when executing the command (commands run in the main session, not a sub-agent — the agent-level injection does not apply)
 - MUST use skill-creator:skill-creator plugin for ALL skill work (create, edit, optimize, evaluate). Invoke via Skill tool: `skill: "skill-creator:skill-creator"`. The plugin handles: interview, drafting, test cases, evaluation loop, and description optimization. Never create skill files manually.
 - Skills are domain knowledge — agents are the executors that USE that knowledge
 - The `rules/common/agents.md` catalog table below lists skills in comma-separated shorthand for human readability; the **authoritative declaration lives in each agent's frontmatter**
+- Both layout and syntax are enforced by `scripts/lint-agent-frontmatter.ts` as Check #8 of `/medik`
 
 ## Routing
 - MUST use opus model for: arkitect, konstruct, spektr, alchemik
