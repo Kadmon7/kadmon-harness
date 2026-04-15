@@ -25,7 +25,7 @@ function runHook(
       encoding: "utf8",
       input: JSON.stringify(input),
       stdio: ["pipe", "pipe", "pipe"],
-      timeout: 15000,
+      timeout: 30000,
       env: env ? { ...baseEnv, ...env } : baseEnv,
     });
     return { stdout, stderr: "", exitCode: 0 };
