@@ -3,7 +3,8 @@ number: 3
 title: Harness Distribution Strategy
 date: 2026-04-08
 refreshed: 2026-04-14
-status: accepted
+status: superseded
+superseded_by: ADR-010-harness-distribution-hybrid.md
 route: A
 plan: plan-003-harness-distribution.md
 ---

@@ -2,7 +2,8 @@
 number: 11
 title: Skill loading enforcement — Phase 0 + audit hook rollout
 date: 2026-04-14
-status: pending
+status: superseded
+superseded_by: plan-012-skill-frontmatter-syntax-fix.md
 needs_tdd: false
 route: A
 adr: ADR-011-skill-loading-enforcement.md

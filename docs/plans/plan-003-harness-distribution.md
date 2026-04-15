@@ -3,7 +3,8 @@ number: 3
 title: Harness Distribution -- Bootstrap Script
 date: 2026-04-08
 refreshed: 2026-04-14
-status: pending
+status: superseded
+superseded_by: plan-010-harness-distribution-hybrid.md
 needs_tdd: true
 route: A
 adr: ADR-003-harness-distribution.md

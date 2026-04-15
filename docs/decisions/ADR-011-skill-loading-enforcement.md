@@ -2,7 +2,8 @@
 number: 11
 title: Skill loading enforcement — Phase 0 imperative + diagnostic audit hook
 date: 2026-04-14
-status: proposed
+status: superseded
+superseded_by: ADR-012-skill-frontmatter-syntax-fix.md
 route: A
 plan: plan-011-skill-loading-enforcement.md
 ---
