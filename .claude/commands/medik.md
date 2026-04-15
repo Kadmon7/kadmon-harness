@@ -1,11 +1,11 @@
 ---
-description: "Full harness diagnostic — 7 health checks + deep agent analysis + repair. Alias: /MediK"
+description: "Full harness diagnostic — 8 health checks + deep agent analysis + repair. Alias: /MediK"
 agent: mekanik, kurator
 skills: [systematic-debugging, coding-standards]
 ---
 
 ## Purpose
-Full harness health diagnostic. Runs 7 mechanical checks, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
+Full harness health diagnostic. Runs 8 mechanical checks, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
 
 Always runs the full pipeline. If you're running /medik, you want the complete picture.
 
@@ -13,7 +13,7 @@ Always runs the full pipeline. If you're running /medik, you want the complete p
 
 ### Phase 1: Health Checks (direct — no agent)
 
-Run all 7 checks directly (mechanical commands, no agent needed):
+Run all 8 checks directly (mechanical commands, no agent needed):
 
 | # | Check | Command / Method | What to look for |
 |---|-------|-----------------|------------------|
@@ -24,6 +24,7 @@ Run all 7 checks directly (mechanical commands, no agent needed):
 | 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), no corruption |
 | 6 | dist/ sync | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
 | 7 | Dependencies | `npm audit` | Vulnerable packages, outdated deps |
+| 8 | Agent frontmatter | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill exists under `.claude/skills/` |
 
 ### Phase 2: Deep Analysis (agents — always runs)
 
