@@ -29,7 +29,8 @@ describe("lint-agent-frontmatter", () => {
   }
 
   function writeSkill(name: string): void {
-    writeFileSync(join(skillsDir, `${name}.md`), "# skill\n");
+    mkdirSync(join(skillsDir, name), { recursive: true });
+    writeFileSync(join(skillsDir, name, "SKILL.md"), "# skill\n");
   }
 
   it("happy path: block list with all skills existing is OK", () => {

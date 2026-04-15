@@ -1,9 +1,13 @@
 // Agent frontmatter linter for the Kadmon Harness.
 //
-// Enforces ADR-012: every agent declares its skills: field as a YAML block
-// list, and every declared skill has a matching file in .claude/skills/.
-// Prevents regression of the scalar bug where `skills: a, b, c` was silently
-// parsed as a single string and dropped by Claude Code's sub-agent loader.
+// Enforces ADR-012 (YAML block-list syntax) and ADR-013 (subdirectory
+// path resolution): every agent declares its skills: field as a YAML
+// block list, and every declared skill exists at
+// `.claude/skills/<name>/SKILL.md` (per Anthropic's native sub-agent
+// loader contract at https://code.claude.com/docs/en/skills). Prevents
+// regression of the scalar bug where `skills: a, b, c` was silently
+// parsed as a single string AND the flat-path bug where the loader
+// silently dropped skills that weren't in the subdirectory layout.
 
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -106,11 +110,11 @@ export function lintAgentFrontmatter(options: LintOptions): LintResult {
         });
         continue;
       }
-      const skillPath = join(skillsDir, `${skill}.md`);
+      const skillPath = join(skillsDir, skill, "SKILL.md");
       if (!existsSync(skillPath)) {
         violations.push({
           file,
-          message: `declared skill not found: ${skill}.md`,
+          message: `declared skill not found: ${skill}/SKILL.md`,
         });
       }
     }
