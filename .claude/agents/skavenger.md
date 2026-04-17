@@ -291,7 +291,7 @@ Rules:
 - `confidence` ≥ 0.7 only. If the evidence is weaker, the claim belongs in the report body + Open Questions, not in this fence.
 - Every finding must cite at least one source that appears verbatim in the report's Sources section.
 - MAX 5 findings per report. The goal is high-signal density, not exhaustive extraction.
-- The `/research` command parses this fence and writes each finding as one `research_finding` observation event to `observations.jsonl`. These are invisible to ClusterReport pattern evaluation (R5 filter) but available to alchemik during `/evolve`.
+- The `/research` command parses this fence and writes each finding as one `research_finding` observation event to `observations.jsonl`. These are invisible to ClusterReport pattern evaluation (R5 filter). Persistence-to-SQLite and alchemik consumption are reserved for a follow-up commit — today the events live only within the session JSONL and are discarded at session end. Emit the fence anyway when you have durable claims; the data model is in place, only the consumer is deferred.
 - Omit the fence entirely if no finding meets the bar. Silence is the correct output for weak or exploratory research.
 - No emoji in headers or body.
 - Tag the header with `[skavenger]` for transparency.

@@ -2,7 +2,7 @@
 number: 15
 title: Skavenger ULTIMATE Researcher
 date: 2026-04-17
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-015-skavenger-ultimate-researcher.md

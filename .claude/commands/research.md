@@ -187,7 +187,7 @@ If the fence is present (and autowrite is NOT `off`):
    ```json
    {"timestamp": "<now ISO>", "sessionId": "<sid>", "eventType": "research_finding", "claim": "<claim>", "confidence": <0..1>, "sources": [...], "reportNumber": <N>}
    ```
-4. `session-end-all.js` will ignore these events for ClusterReport pattern eval (R5 filter) but keep them in the raw jsonl for `/evolve` / alchemik to consume as research signal.
+4. `session-end-all.js` ignores these events for ClusterReport pattern eval (R5 filter). They remain in the raw `observations.jsonl` for debugging but are NOT persisted to SQLite today — `observations.jsonl` is cleaned at session end. A follow-up commit is reserved for adding the `findings_json` persistence column on `research_reports` (or a sibling `research_findings` table) that alchemik/`/evolve` would then consume; the emission + filter contract is in place to make that wiring drop-in when it lands.
 
 If the fence is absent, skip this phase entirely — not every report produces durable claims.
 

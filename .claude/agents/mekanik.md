@@ -37,7 +37,7 @@ When invoked via /medik (alias /MediK), run these 8 checks before any repair:
 2. **Typecheck**: `npx tsc --noEmit` — catch type errors
 3. **Tests**: `npx vitest run` — catch test failures
 4. **Hook errors**: Read `~/.kadmon/hook-errors.log` — catch hook crashes and errors
-5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), not corrupt
+5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), not corrupt
 6. **dist/ sync**: Compare `dist/` timestamps vs `scripts/lib/` — catch stale compiled output
 7. **Dependencies**: `npm audit` — catch vulnerable packages
 8. **Agent frontmatter**: `npx tsx scripts/lint-agent-frontmatter.ts` — verify `skills:` parses as YAML list (ADR-012) and every declared skill exists under `.claude/skills/`
