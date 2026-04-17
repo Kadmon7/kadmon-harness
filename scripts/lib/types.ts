@@ -270,8 +270,8 @@ export interface AgentInvocation {
 }
 
 // ─── Research Report (persistent, per-session) ───
-// Produced by /research via skavenger. Markdown body lives at docs/research/research-NNN-<slug>.md.
-// This row is metadata + pointer — queried by /research --history.
+// Produced by /skavenger. Markdown body lives at docs/research/research-NNN-<slug>.md.
+// This row is metadata + pointer — queried by /skavenger --history.
 
 export interface ResearchReport {
   id: string;

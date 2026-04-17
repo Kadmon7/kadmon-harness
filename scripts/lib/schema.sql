@@ -88,9 +88,9 @@ CREATE TABLE IF NOT EXISTS agent_invocations (
   timestamp TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Research reports produced by skavenger via /research (ADR-015 plan-015).
+-- Research reports produced by /skavenger (ADR-015 plan-015).
 -- Metadata index over the markdown artifacts persisted at docs/research/.
--- Queried by /research --history (FTS5 when available, LIKE fallback — see state-store).
+-- Queried by /skavenger --history (FTS5 when available, LIKE fallback — see state-store).
 CREATE TABLE IF NOT EXISTS research_reports (
   id TEXT PRIMARY KEY,
   session_id TEXT NOT NULL REFERENCES sessions(id),
