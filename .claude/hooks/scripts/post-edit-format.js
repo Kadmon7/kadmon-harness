@@ -11,7 +11,7 @@ try {
   const fp = input.tool_input?.file_path ?? "";
   if (!fp) process.exit(0);
   const ext = path.extname(fp);
-  if (![".ts", ".js", ".json"].includes(ext)) process.exit(0);
+  if (![".ts", ".tsx", ".js", ".jsx", ".json"].includes(ext)) process.exit(0);
   if (fp.includes("node_modules") || fp.includes("dist")) process.exit(0);
   if (!fs.existsSync(fp)) process.exit(0);
   try {
