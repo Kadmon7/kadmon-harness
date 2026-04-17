@@ -162,7 +162,7 @@ export async function fetchYouTubeTranscript(
   }
 
   // Step 4: Create tempdir (never inside the repo)
-  const tempdir = fs.mkdtempSync(path.join(os.tmpdir(), "kerka-yt-"));
+  const tempdir = fs.mkdtempSync(path.join(os.tmpdir(), "skavenger-yt-"));
 
   try {
     // Step 5: Spawn yt-dlp
