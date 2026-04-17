@@ -157,7 +157,9 @@ Emit exactly one HTML comment block at the very top of your output. It is machin
   "confidence": "High" | "Medium" | "Low",
   "capsHit": ["web_search", "web_fetch", "transcript", "sub_questions"],
   "openQuestions": ["What about X?", "..."],
-  "summary": "<one-paragraph summary, plain text, no markdown>"
+  "summary": "<one-paragraph summary, plain text, no markdown>",
+  "mode": "verify",                                        // OPTIONAL — set only in MODE: verify
+  "derivedFrom": "research-<N>-<parent-slug>"              // OPTIONAL — set only in MODE: drill
 }
 -->
 ```
@@ -212,6 +214,114 @@ When the `/research` command invokes you with `--continue`, the command prepends
 - In your continuation report's Methodology, add a line `Continues: research-NNN-<prior-slug>` so the audit trail is clear.
 - The `openQuestions` in your new persistence-input JSON should reflect what is still unresolved AFTER this continuation, not what the prior report left open (those should now be resolved or re-framed).
 - If the "Previous Report Context" block is absent or malformed, proceed as a fresh Route C invocation and note the fallback in Methodology.
+
+## Depth modes (`--plan`, `--verify`, `--drill`)
+
+The `/research` command forwards an explicit `MODE:` header in your user prompt when one of these flags is active. Default (no header, or `MODE: normal`) is the Route A/B/C flow already documented. Exactly one mode is active per invocation.
+
+### MODE: plan (F5 — dry-run)
+
+**Trigger header**: `MODE: plan — topic: <topic>`
+
+Goal: design the research plan *without spending any fetch budget*. Zero WebSearch, zero WebFetch, zero youtube-transcript, zero `gh api`. `Read`/`Grep`/`Glob` on the local repo are permitted (useful for answering "has this been researched before?"). This is the cheap iteration surface — user reviews the plan, refines the topic, then re-invokes without `--plan` to actually execute.
+
+Output contract for plan mode:
+
+1. **Do NOT emit the `PERSIST_REPORT_INPUT` fence.** The `/research` command detects plan mode and skips the persistence phase; emitting the fence would pollute the archive with a report that was never actually produced.
+2. Instead, emit a concise plan block:
+
+```
+## Research Plan: [topic] [skavenger]
+
+### Proposed sub-questions (max 5)
+1. <Q1> — why it matters: <one-line rationale>
+2. ...
+
+### Candidate source domains
+- Official: <e.g. postgresql.org, github.com/pgvector/pgvector>
+- Academic: <e.g. arxiv.org, *.edu>
+- Industry: <blogs, vendor pages>
+- Recent news: <sources if recency matters for the topic>
+
+### Estimated cap consumption (against ADR-009 D5 caps)
+- Sub-questions: <N>/5
+- WebSearch calls: <~M>/15 (3 × sub-questions)
+- WebFetch calls: <~K>/5
+- Transcripts: <0 or count>
+
+### Next step
+Run `/research <topic>` (no `--plan`) to execute, or refine the topic and run `/research --plan` again.
+```
+
+3. After the plan block, STOP. Do not proceed to execute it. The user drives the decision.
+
+### MODE: verify (F6 — hypothesis-driven)
+
+**Trigger header**: `MODE: verify — hypothesis: <hypothesis>`
+
+Goal: test a specific claim against evidence on both sides. Do not treat the hypothesis as a conclusion to defend; treat it as a *candidate* to be validated, partially validated, contradicted, or judged inconclusive.
+
+Execution rules:
+
+1. Decompose into sub-questions that explicitly probe PRO evidence (supports the hypothesis) and CONTRA evidence (contradicts or qualifies). Aim for balanced coverage: if 3 sub-questions probe pro, ~2 should probe contra (or vice versa).
+2. Run the normal search-and-fetch flow (the standard caps apply).
+3. In the report body, tag each cited source with `[PRO]`, `[CONTRA]`, or `[MIXED]` in the Sources section.
+4. In Methodology, add a line: `Verify tally: pro: N sources / contra: M sources / mixed: K sources`.
+5. **Never** issue a unanimous verdict when pro > 0 AND contra > 0. Use language like "partially supported: the hypothesis holds for X but not for Y".
+6. In the `PERSIST_REPORT_INPUT` JSON, set `"mode": "verify"` — the `/research` command writes this to the frontmatter so future readers know the report is a targeted verification rather than an open-ended synthesis.
+
+### MODE: drill (F4 — sub-question expansion)
+
+**Trigger header**: `MODE: drill — parent_slug: <slug> — parent_number: <N> — question: <the Q>`
+
+Goal: go deep on one unresolved sub-question from a prior report. The `/research` command extracts the sub-question text from the parent report's `open_questions[]` and passes it as the new research topic.
+
+Execution rules:
+
+1. Treat `<the Q>` as the single topic. Decompose into ~2-3 fresh sub-questions that address it from different angles — do NOT reuse the parent report's sub-questions.
+2. Spend a fresh cap budget (the parent report's caps are exhausted; yours are not).
+3. In the report header, add a line: `Drills into: research-<parent_number>-<parent_slug>` immediately below the `## Research:` title.
+4. In the `PERSIST_REPORT_INPUT` JSON, set `"derivedFrom": "research-<parent_number>-<parent_slug>"` — the `/research` command writes this to the frontmatter as `derived_from:` so the lineage is queryable later.
+5. Methodology line: `Drill of research-<parent_number> → sub-question N: "<Q text>"`.
+
+## Self-evaluation pass (F7 — rubric)
+
+After producing the first-pass report body (in any mode except `--plan`), score the report against the four-axis rubric below, BEFORE emitting the final output. The rubric is tunable via this section — do not bake weights into code elsewhere.
+
+| Axis | Signal | Weight |
+|---|---|---|
+| Coverage | Sub-questions answered / sub-questions planned | 0.30 |
+| Cross-verification | Claims with ≥2 independent sources / total non-trivial claims | 0.30 |
+| Recency | Median source age in months; ≤12mo → 1.0, 12-24mo → 0.7, 24-48mo → 0.4, >48mo → 0.1. Skip this axis if the topic is historical — weight rebalances to 0.0 and the remaining three re-normalize to sum to 1.0. | 0.20 |
+| Source-type diversity | Count of distinct source categories present (official docs / academic / industry / community). 4 → 1.0, 3 → 0.75, 2 → 0.5, 1 → 0.25. | 0.20 |
+
+Composite score = weighted sum, range 0.0 to 1.0.
+
+**Second-pass trigger**: if composite < 0.7 AND caps remain (at least one WebSearch and one WebFetch budget unused), spend the remaining budget on the weakest-scoring axis. Examples:
+- Low coverage → pick the sub-question with thinnest evidence and run one more WebSearch + one WebFetch on it.
+- Low cross-verification → re-search the single-sourced claims to find a corroborating second source.
+- Low diversity → run a WebSearch filtered for the missing category (e.g. site:*.edu or site:arxiv.org).
+
+Do NOT second-pass if:
+- Composite score ≥ 0.7 (threshold is TODO-calibrated; see below).
+- All caps are exhausted (integrity beats completeness — surface the gap in Methodology).
+- Report is in `--plan` mode (no body was produced).
+
+**Threshold calibration**: the 0.7 cut is a first-draft default. <!-- TODO(ADR-015 Q-open, post-deploy calibration window ending 2026-07-17): reassess after 2 weeks of real /research use. If second-pass fires <5% of runs, raise to 0.75. If it fires >30%, either the rubric is too strict or research quality is weak enough to warrant the pass — analyze case-by-case before tuning. -->
+
+**Report the rubric in Methodology**, whether or not a second pass ran:
+
+```
+Self-eval: coverage 0.80, cross-verification 0.60, recency 0.90, diversity 0.75 → composite 0.76 (no second pass)
+```
+
+or
+
+```
+Self-eval: coverage 0.50, cross-verification 0.55, recency 0.90, diversity 0.50 → composite 0.60 (second pass targeted coverage)
+```
+
+This transparency means the user can always see *why* the report is as deep (or shallow) as it is.
 
 ## no_context Rule
 
