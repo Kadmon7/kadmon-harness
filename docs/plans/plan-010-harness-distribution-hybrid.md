@@ -24,7 +24,7 @@ Everything else in the sprint is file-copy plumbing around that primitive. The p
 - Skills: `.claude/skills/*.md` (46, stable)
 - Rules: `.claude/rules/**/*.md` (19, stable)
 - Hook scripts: `.claude/hooks/scripts/*.js` (29+, may grow)
-- Tests: 549 passing across 54 files (baseline 2026-04-14)
+- Tests: 627 passing across 60 files (baseline 2026-04-17, post plan-015 skavenger ULTIMATE; 7 DB tables including `research_reports`; `docs/research/` added as auto-write output dir)
 - Runtime primitive: `ensure-dist.js:14 resolveRootDir()` — does a 3-level relative walk from hook's `import.meta.url`
 - Lifecycle hooks that hardcode `new URL("../../../dist/scripts/lib/X.js", import.meta.url)`: 5 files (counted below in Phase 1)
 - Distribution: none. No install entry point, no plugin manifest, no `.gitattributes`
@@ -132,7 +132,7 @@ ADR-010 investigation is the research artifact. Plan-010 uses it as the single s
 
 - [ ] Step 1.7: Full regression sweep after Phase 1 (S)
   - Files: no edits
-  - Verify: `npx vitest run` — all 549 existing + 8 new tests pass (557 total minimum)
+  - Verify: `npx vitest run` — all 627 existing + 8 new tests pass (635 total minimum)
   - Verify: `npm run build` clean
   - Verify: Manual session roundtrip — start a fresh `claude` session in Kadmon-Harness, confirm session-start hook output is unchanged, session ends cleanly with `session-end-all` persisting to `~/.kadmon/kadmon.db`
   - Depends on: 1.3, 1.4, 1.5, 1.6
@@ -187,7 +187,19 @@ Runs in parallel with Phase 3 (install-helpers.ts). Depends on Phase 1 semantic 
   - Depends on: 2.3
   - Risk: Low
 
-**Phase 2 verification**: `npx vitest run tests/plugin/ && ls .claude-plugin/`.
+- [ ] Step 2.5: Mini-dogfood — install plugin in Kadmon-Harness itself (S, ~30 min, MANUAL)
+  - Purpose: verify Claude Code ACCEPTS the generated `hooks.json` before writing install.sh. Catches schema drift / field naming bugs 6h earlier than Phase 8 (late-failure insurance).
+  - Steps:
+    1. From another directory (not the harness repo), run `claude /plugin install /c/Command-Center/Kadmon-Harness` (local-path install to bypass private-repo Q5 gate). If `/plugin install` local-path syntax doesn't work, manually copy `.claude-plugin/` contents into `~/.claude/plugins/kadmon-harness-local/` per Claude Code docs.
+    2. Restart Claude Code (new session).
+    3. Verify: session-start banner appears normally (21 hooks fire, no "hooks.json schema rejected" errors in stderr).
+    4. Verify: trigger 1 hook manually — edit a `.ts` file, confirm `post-edit-typecheck` hook runs (check session tmp dir for observation).
+  - If any failure: STOP. Fix `generate-plugin-hooks.ts` BEFORE proceeding to Phase 3+.
+  - Cleanup: uninstall the local plugin copy after verification.
+  - Depends on: 2.4
+  - Risk: Medium — this is deliberately early-binding to catch Claude Code acceptance issues cheaply.
+
+**Phase 2 verification**: `npx vitest run tests/plugin/ && ls .claude-plugin/` + manual mini-dogfood per Step 2.5.
 
 ### Phase 3: install-helpers.ts pure library (~5 hours)
 
@@ -262,6 +274,7 @@ Depends on Phase 2 (manifests) + Phase 3 (helpers). This is where the shell scri
     8. `install.sh --force-permissions-sync /tmp/fake-target` re-merges even when settings.json already has the harness rules
     9. `install.sh /tmp/fake-target` appends to target's `.gitignore` the entries for `.claude/settings.local.json`, `.claude/agent-memory/`, `dist/`, dedup against existing content
     10. `install.sh` rewrites `${HOOK_CMD_PREFIX}` in the plugin's runtime `hooks.json` based on `uname` detection (Git Bash emits PATH prefix, Mac/Linux emits plain `node`)
+    11. `install.sh /tmp/fake-target-with spaces/nested` (target path contains literal space) completes without corruption — settings.json merge, rules copy, and hooks.json rewrite all produce valid paths. Protects Abraham-on-Windows scenario where user paths may live under `Documents\` or `OneDrive\` with embedded spaces.
   - Skip condition: if `bash` is not available on the test host, skip with a clear message (Mac/Linux/Git Bash will run it; native PowerShell will skip and rely on Phase 5 test)
   - Verify: all FAIL (red, no `install.sh` exists yet)
   - Depends on: 3.2, 3.3
@@ -303,7 +316,7 @@ Depends on Phase 2 (manifests) + Phase 3 (helpers). This is where the shell scri
   - Risk: Low — thin wrapper over tested helpers
 
 - [ ] Step 4.4: Phase 4 regression sweep (S)
-  - Verify: `npx vitest run` — full suite still green (target ~575 tests)
+  - Verify: `npx vitest run` — full suite still green (target ~660+ tests at Phase 4 boundary)
   - Verify: Manual `./install.sh --dry-run /tmp/dry-target` on Git Bash, confirm output looks sensible
   - Depends on: 4.2, 4.3
   - Risk: Low
@@ -365,7 +378,7 @@ Can run any time after Phase 1. Doesn't depend on Phase 4/5.
   - Risk: Low
 
 - [ ] Step 6.2: Install husky and write pre-commit hook (M)
-  - File: `package.json` (MODIFIED: add `"husky": "^9.x"` to devDeps, add `"prepare": "husky"` script)
+  - File: `package.json` (MODIFIED: add `"husky": "9.1.7"` — EXACT pin, no caret — to devDeps, add `"prepare": "husky"` script. Rationale: harness distributed to N projects; `^9.x` allows divergence between collaborators' husky minors. Pin exact, bump deliberately in Sprint E if needed.)
   - File: `.husky/pre-commit` (NEW)
   - File: `.husky/lib/run-tsc-if-lib-changed.sh` (NEW, extracted for testability)
   - Behavior:
@@ -396,6 +409,16 @@ Can run any time after Phase 1. Doesn't depend on Phase 4/5.
   - Verify: tests 5-8 pass
   - Depends on: none (can run in parallel with 6.2)
   - Risk: Low
+
+- [ ] Step 6.4: Cold-clone pre-commit hook verification (S, ~5 min)
+  - Purpose: catch the "works on my machine" case for Joe/Eden/Abraham on fresh clones. Husky `prepare` script in ESM projects can fail silently if npm lifecycle ordering is wrong.
+  - Test file: `tests/build/cold-clone.test.ts` (NEW, 2 cases):
+    1. Simulated cold clone: create `fs.mkdtempSync` copy of harness repo minus `node_modules/` and `.husky/_/`, run `npm install` via `execFileSync`, assert `.husky/pre-commit` exists and is executable (`fs.accessSync(path, fs.constants.X_OK)`).
+    2. Assert `package.json` has `husky` pinned to exact version (no caret/tilde) — defense against future accidental loosening.
+  - Skip condition: if network is unavailable (CI offline runs), skip with clear message. npm install needs registry access.
+  - Verify: all FAIL (red) before 6.2 lands; GREEN after 6.2 + 6.3.
+  - Depends on: 6.2, 6.3
+  - Risk: Medium — network-dependent test; quarantine to a separate vitest project if flaky, but start inline.
 
 **Phase 6 verification**: `npx vitest run tests/build/ && git check-attr -a install.sh`.
 
@@ -437,6 +460,7 @@ All docs-only. No TDD. Runs after code phases land.
   - Changes:
     - Add new "Distribution" section near "Common Pitfalls" describing the hybrid plugin + install.sh model
     - Add `KADMON_RUNTIME_ROOT` to the "Environment Variables" list with description: "Absolute path to directory containing `dist/scripts/lib/*.js`. Set by plugin's `hooks.json` for plugin-installed hooks; unset for local dev (falls back to 3-level relative walk)"
+    - Confirm `KADMON_RESEARCH_AUTOWRITE` (ADR-015) is already in the env var list. If missing from the post-plan-015 CLAUDE.md refresh, add it with description: "Set to `off` to skip `/research` auto-write of reports to `docs/research/`. Plugin consumers (ToratNetz/KAIRON) may override locally."
     - Bump status line to reference plan-010 shipped (left as a follow-up commit after Phase 8 succeeds — the status line update happens in Phase 8 verification, not here)
   - Verify: `grep -c KADMON_RUNTIME_ROOT CLAUDE.md` >= 1
   - Depends on: none in this phase
@@ -488,6 +512,7 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
 
 - [ ] Step 8.6: Q5 verification — attempt `/plugin install` on private repo (M)
   - Setup: target machine should be Windows (to exercise PowerShell path); target person should be Abraham per ADR-010 Q5
+  - **Mac coordination (2026-04-17 update)**: coordinate with Joe and/or Eden for a 30-min Mac dogfood slot during Phase 8 window. Mac validation is Sprint D scope, not deferred. If both are unavailable during the 4-5 day Sprint D window, fall back to explicit "Mac untested in Sprint D, revalidate Sprint E" note in README + docs/diagnostics.
   - If Abraham is unavailable during Sprint D, user performs the verification themselves on their Windows host
   - Action: with `gh auth login` already configured, attempt `/plugin install Kadmon7/kadmon-harness` from a fresh Claude Code session
   - Record outcome in `docs/diagnostics/2026-04-DD-plugin-install-private-repo.md` (NEW) with: date, host, `gh auth status` output (redact token), full Claude Code response, screenshot if helpful
@@ -509,7 +534,7 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
 
 ### Testing Strategy
 
-**New test count**: ~70-80 tests across 6 new files.
+**New test count**: ~73-83 tests across 7 new files (baseline refreshed 2026-04-17).
 
 | Phase | Test file | Count | Coverage |
 |---|---|---|---|
@@ -517,12 +542,13 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
 | 2 | `tests/plugin/manifest-schema.test.ts` | 9+ | plugin.json structure, hooks.json structure, glob lower-bound |
 | 3 | `tests/lib/install-helpers.test.ts` | 18+ | detectPlatform, generateHookCommand (all platforms), mergePermissionsDeny, mergeSettingsJson, resolveTargetPaths |
 | 3 | `tests/lib/install-manifest.test.ts` | 3+ | COPY_MANIFEST structure, CANONICAL_DENY_RULES non-empty |
-| 4 | `tests/install/install-sh.test.ts` | 10+ | dry-run, rules copy, settings merge, gitignore, hook command rewrite, version file |
+| 4 | `tests/install/install-sh.test.ts` | 11+ | dry-run, rules copy, settings merge, gitignore, hook command rewrite, version file, target paths with spaces |
 | 4 | `tests/lib/install-apply.test.ts` | 4+ | fresh install, dedup, force sync, unrelated keys preserved |
 | 5 | `tests/install/install-ps1.test.ts` | 8+ | content invariants + (optional) execution test |
 | 6 | `tests/build/pre-commit-hook.test.ts` | 8+ | husky hook structure, tsc trigger, stage behavior, .gitattributes |
+| 6 | `tests/build/cold-clone.test.ts` | 2+ | fresh-clone husky install, exact version pin (defense against future loosening) |
 
-**Target**: 549 (baseline) + ~70 new = ~620 tests minimum.
+**Target**: 627 (baseline 2026-04-17) + ~73 new = ~700 tests minimum.
 
 **Manual-only verification** (no automated test):
 - Phase 8 end-to-end dogfood on Kadmon-Sports
@@ -583,7 +609,7 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
 
 ### Success Criteria
 
-- [ ] All tests pass (`npx vitest run` — target 620+ tests, up from 549)
+- [ ] All tests pass (`npx vitest run` — target 700+ tests, up from 627)
 - [ ] `npm run build` clean (`npx tsc --noEmit` zero errors)
 - [ ] `./install.sh --dry-run /tmp/target` prints diff without modifying filesystem
 - [ ] `./install.sh /tmp/target` on Mac/Linux/Git Bash produces complete target layout
@@ -609,14 +635,23 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
 | Phase | Hours | Day |
 |---|---|---|
 | 1: KADMON_RUNTIME_ROOT refactor + TDD | ~6 | Day 1 |
-| 2: Plugin manifests | ~4 | Day 2 AM (parallel with 3) |
+| 2: Plugin manifests + mini-dogfood (Step 2.5) | ~4.5 | Day 2 AM (parallel with 3) |
 | 3: install-helpers.ts library | ~5 | Day 2 AM/PM (parallel with 2) |
-| 4: install.sh bash bootstrap | ~6 | Day 2 PM + Day 3 AM |
+| 4: install.sh bash bootstrap (+ Windows spaces test) | ~6 | Day 2 PM + Day 3 AM |
 | 5: install.ps1 PowerShell bootstrap | ~3 | Day 3 PM |
-| 6: Pre-commit hook + .gitattributes | ~2 | Day 3 PM (parallel with 5) |
+| 6: Pre-commit hook + .gitattributes + cold-clone test | ~2.25 | Day 3 PM (parallel with 5) |
 | 7: Documentation + supersede chain | ~2 | Day 4 AM |
-| 8: Dogfood + Q5 verification | ~4 | Day 4 PM + Day 5 AM |
-| **Total** | **~32 hours** | **4-5 days** |
+| 8: Dogfood + Q5 + Mac coordination (Joe/Eden) | ~4 | Day 4 PM + Day 5 AM |
+| **Total** | **~32.75 hours** | **4-5 days** |
+
+**Deltas from 2026-04-14 baseline (2026-04-17 plan refresh, 7 items applied)**:
+1. Baseline test count 549→627 (+78, plan-015 skavenger ULTIMATE)
+2. `KADMON_RESEARCH_AUTOWRITE` env var added to Phase 7.4 (ADR-015)
+3. Mac coordination with Joe/Eden made explicit in Step 8.6
+4. Windows paths with spaces — test case 11 added to Phase 4.1 (~10 min)
+5. Step 2.5 new — mini-dogfood of `hooks.json` in Kadmon-Harness (~30 min)
+6. Step 6.4 new — cold-clone pre-commit hook verification (~5 min)
+7. Husky pinned to exact `9.1.7` (no caret) for distribution determinism
 
 Day 5 reserved for unplanned issues, /chekpoint full, and buffer.
 
