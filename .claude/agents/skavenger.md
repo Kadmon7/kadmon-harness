@@ -265,6 +265,34 @@ Confidence: [High | Medium | Low]
 ```
 
 - **Open Questions is MANDATORY.** Never skip it. If you truly have zero open questions, write `- None — the fetched sources resolved every sub-question.` That is still a valid entry. The section cannot be empty or missing — it seeds `/research --drill` and `/research --continue`.
+
+### Part 3 — Optional `research_findings` fence (for /forge loop)
+
+If (and only if) the report produced durable, high-confidence, actionable claims worth re-surfacing to `/forge` and `/evolve` later, emit ONE additional HTML comment fence AFTER the report body:
+
+```
+<!-- RESEARCH_FINDINGS
+{
+  "findings": [
+    {
+      "claim": "<short, testable claim in plain text>",
+      "confidence": 0.0..1.0,
+      "sources": [
+        { "url": "<verifiable URL>", "title": "<short title>" }
+      ]
+    }
+  ]
+}
+-->
+```
+
+Rules:
+- Each finding is a standalone, testable claim. Not a summary of the whole report, not a question.
+- `confidence` ≥ 0.7 only. If the evidence is weaker, the claim belongs in the report body + Open Questions, not in this fence.
+- Every finding must cite at least one source that appears verbatim in the report's Sources section.
+- MAX 5 findings per report. The goal is high-signal density, not exhaustive extraction.
+- The `/research` command parses this fence and writes each finding as one `research_finding` observation event to `observations.jsonl`. These are invisible to ClusterReport pattern evaluation (R5 filter) but available to alchemik during `/evolve`.
+- Omit the fence entirely if no finding meets the bar. Silence is the correct output for weak or exploratory research.
 - No emoji in headers or body.
 - Tag the header with `[skavenger]` for transparency.
 - For long reports, post the full body inline; the `/research` command auto-writes the persistence file. Users can disable auto-write with `KADMON_RESEARCH_AUTOWRITE=off` — you do not need to check the env var yourself.

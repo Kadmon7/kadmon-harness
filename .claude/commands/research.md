@@ -23,8 +23,8 @@ Use this instead of raw WebSearch when the topic needs synthesis, citations, or 
 - `--plan <topic>` *(Commit 4, Group B — wired)* — zero-fetch dry-run: proposes sub-questions and candidate sources without spending any cap budget. No file written, no DB row
 - `--verify <hypothesis>` *(Commit 4, Group B — wired)* — hypothesis-driven mode: searches evidence PRO and CONTRA, tags sources, reports tally in Methodology. Frontmatter `mode: verify`
 - `--drill <N>` *(Commit 4, Group B — wired)* — expands sub-question N of the most recent session report with a fresh cap budget. Frontmatter `derived_from: research-<N>-<parent-slug>`
-- `--history <query>` *(Commit 6, Group D — pending)* — searches the archive for past reports matching the query
-- `--verify-citations <N>` *(Commit 6, Group D — pending)* — re-fetches every cited URL in report N to confirm liveness
+- `--history <query>` *(Commit 6, Group D — wired)* — searches the archive for past reports matching the query. Zero skavenger invocation, zero new research
+- `--verify-citations <N>` *(Commit 6, Group D — wired)* — re-fetches every cited URL in report N to confirm liveness. Produces a delta report of broken links; never modifies the original
 
 ## Escape hatch
 
@@ -34,9 +34,9 @@ Set `KADMON_RESEARCH_AUTOWRITE=off` to skip auto-write and keep the report inlin
 
 ### Phase 1 — Parse and route
 
-1. Parse the user argument for flags. Supported in this commit (plan-015 Commit 4): `--continue`, `--plan`, `--verify <hypothesis>`, `--drill <N>`.
-2. Later-commit flags not yet implemented (Group D: `--history`, `--verify-citations`). If a later-commit flag appears, respond: `Flag not yet wired in this harness version (plan-015 Commit N pending)` and stop.
-3. At most ONE flag may be active. `--plan + --verify`, `--continue + --drill`, etc. are mutually exclusive — respond `Incompatible flags: pick one of {--plan, --verify, --continue, --drill}` and stop.
+1. Parse the user argument for flags. Supported (plan-015 Commits 3, 4, 6): `--continue`, `--plan`, `--verify <hypothesis>`, `--drill <N>`, `--history <query>`, `--verify-citations <N>`.
+2. At most ONE flag may be active. Combinations like `--plan --verify`, `--continue --drill`, etc. are mutually exclusive — respond `Incompatible flags: pick one of {--plan, --verify, --continue, --drill, --history, --verify-citations}` and stop.
+3. **Read-only flags take an early exit**. If the flag is `--history` or `--verify-citations`, handle it directly (Phase 1b below) — do NOT invoke skavenger, do NOT run Phases 2-4. Bail after the handler returns.
 4. Flag-specific preprocessing:
    - **`--continue`**: resolve the previous report for the current session via:
      ```
@@ -47,6 +47,62 @@ Set `KADMON_RESEARCH_AUTOWRITE=off` to skip auto-write and keep the report inlin
    - **`--plan`**: no preprocessing — the topic itself goes to skavenger. Remember `mode=plan` for Phase 3.
    - **`--verify <hypothesis>`**: the text after `--verify` is the hypothesis. Remember `mode=verify` for the prompt and for the persist-input JSON augmentation.
    - **bare topic / URL**: proceed to Phase 2 without preprocessing.
+
+### Phase 1b — Read-only flag handlers (`--history`, `--verify-citations`)
+
+These flags bypass skavenger entirely. Run inline, print the result, return.
+
+**`--history <query>`** — search the research archive.
+
+```
+npx tsx -e "import('./scripts/lib/state-store.js').then(async m => { await m.openDb(); const rows = m.queryResearchReports({ query: process.argv[1], limit: 20 }); process.stdout.write(JSON.stringify(rows)); })" "<query>"
+```
+
+Parse the JSON array. Render as a ranked list (order preserved from `queryResearchReports` — FTS5 if available, LIKE fallback otherwise):
+
+```
+## Research history: "<query>"
+
+1. [research-NNN](docs/research/research-NNN-<slug>.md) — <topic>
+   Generated: <generatedAt>. Confidence: <confidence>. <summary (first 120 chars if present)>
+2. ...
+
+Found N match(es). Re-open one via `/research --continue` (current session) or by reading the file path directly.
+```
+
+If the array is empty, print `No reports matching "<query>" in the archive. (searched topic + summary).` and stop.
+
+No skavenger invocation. No file write. No DB mutation.
+
+**`--verify-citations <N>`** — re-fetch every cited URL in report N.
+
+1. Load report N via:
+   ```
+   npx tsx -e "import('./scripts/lib/state-store.js').then(async m => { await m.openDb(); const projectHash = (await import('./scripts/lib/project-detect.js')).detectProject(process.cwd()).projectHash; const r = m.getResearchReport(projectHash, Number(process.argv[1])); process.stdout.write(JSON.stringify(r)); })" "<N>"
+   ```
+   If result is `null`, respond `no_context — report #N not found in the archive for this project.` and stop.
+2. Read the markdown file at `report.path` (relative to repo root).
+3. Extract all markdown links: `/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g`. Deduplicate by URL. Cap at 20 URLs per invocation — if more than 20, process the first 20 and tell the user `Processed 20 of M citations; re-run with --verify-citations <N> --offset 20 for the next batch.` (the `--offset` flag is documented here as a future extension; for v1, just truncate).
+4. For each URL, invoke `WebFetch` with a minimal prompt (e.g. `"Does this page load? Return 'OK' if content is available, else the error."`). On any non-OK response (404, DNS error, timeout), mark the citation `broken`.
+5. Render a delta report inline:
+
+```
+## Citation verification: research-<N>
+
+- Total citations: M
+- Live: X
+- Broken: Y
+- Skipped (non-HTTP): Z
+
+### Broken citations
+- [<title>](<url>) — <short error>
+- ...
+
+### Note
+The original report at docs/research/research-<N>-<slug>.md is unchanged. This is an append-only verification. If you want to regenerate with fresh sources, run `/research --drill <M>` on an open question or `/research <topic>` as a new report.
+```
+
+No modification to the original report file. No DB row. No observation emission (this is a read-only tool). Return.
 
 ### Phase 2 — Invoke skavenger
 
@@ -102,6 +158,38 @@ Set `KADMON_RESEARCH_AUTOWRITE=off` to skip auto-write and keep the report inlin
     echo '<persist-input-json>' | npx tsx scripts/persist-research-report.ts
     ```
 12. Parse stdout for the persisted result. On success: `{reportNumber, path, report}`. On skipped: `{skipped: true}`.
+
+### Phase 3.5 — Emit `research_finding` observations (optional)
+
+Skavenger MAY emit an additional JSON fence after the report body:
+
+```
+<!-- RESEARCH_FINDINGS
+{
+  "findings": [
+    { "claim": "HNSW outperforms IVFFlat on recall", "confidence": 0.8, "sources": [{"url": "...", "title": "..."}] },
+    ...
+  ]
+}
+-->
+```
+
+This is OPTIONAL — only emit when the report produced actionable, high-confidence claims worth re-surfacing to `/forge` and `/evolve`.
+
+If the fence is present (and autowrite is NOT `off`):
+
+1. Parse the JSON.
+2. Resolve `CLAUDE_SESSION_ID` and `sid-relative observations path`:
+   ```
+   node -e "const p=require('path'),o=require('os'); process.stdout.write(p.join(o.tmpdir(),'kadmon',process.env.CLAUDE_SESSION_ID,'observations.jsonl'))"
+   ```
+3. For each finding, append one JSONL line:
+   ```json
+   {"timestamp": "<now ISO>", "sessionId": "<sid>", "eventType": "research_finding", "claim": "<claim>", "confidence": <0..1>, "sources": [...], "reportNumber": <N>}
+   ```
+4. `session-end-all.js` will ignore these events for ClusterReport pattern eval (R5 filter) but keep them in the raw jsonl for `/evolve` / alchemik to consume as research signal.
+
+If the fence is absent, skip this phase entirely — not every report produces durable claims.
 
 ### Phase 4 — Report to user
 
