@@ -11,6 +11,7 @@ try {
   if (!fp) process.exit(0);
   const ext = path.extname(fp);
   if (![".ts", ".js"].includes(ext)) process.exit(0);
+  // Skip node_modules/dist (not our code) and .claude/ (avoids recursive lint when hooks edit hook scripts)
   if (
     fp.includes("node_modules") ||
     fp.includes("dist") ||

@@ -11,7 +11,7 @@ try {
   // Only trigger on gh pr create
   if (!cmd.includes("gh pr create")) process.exit(0);
 
-  const result = input.tool_result ?? input.response ?? "";
+  const result = input.tool_response?.stdout ?? "";
   if (!result) process.exit(0);
 
   // Extract PR URL from gh output (format: https://github.com/owner/repo/pull/123)
@@ -21,7 +21,7 @@ try {
   if (urlMatch) {
     const url = urlMatch[0];
     const prNumber = url.split("/").pop();
-    console.log(
+    console.error(
       `\u{1F517} PR created: ${url}\n   Review: gh pr view ${prNumber}`,
     );
   }
