@@ -92,7 +92,7 @@ Kadmon-Harness/
 | doks | opus |
 | kartograf | sonnet |
 | alchemik | opus |
-| kerka | sonnet |
+| skavenger | sonnet |
 
 ## Commands (11)
 - **Observe** (2): /kadmon-harness, /kompact
@@ -180,4 +180,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 Sprint B/C shipped 2026-04-14; Sprint D artifacts shipped (plan-010 + ADR-010 harness distribution hybrid), implementation pending greenlight; plan-013 + ADR-013 shipped 2026-04-14 (46 skills migrated to `<name>/SKILL.md` subdirectory layout) — 576 tests passing, 57 test files, 21 hooks, 16 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability — kerka agent + /research command + yt-dlp helper; ADR-013 skills subdirectory structure)
+v1.1 Sprint B/C shipped 2026-04-14; Sprint D artifacts shipped (plan-010 + ADR-010 harness distribution hybrid), implementation pending greenlight; plan-013 + ADR-013 shipped 2026-04-14 (46 skills migrated to `<name>/SKILL.md` subdirectory layout) — 576 tests passing, 57 test files, 21 hooks, 16 agents, 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 6 DB tables, /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability (skavenger agent per ADR-014 rename) + /research command + yt-dlp helper; ADR-013 skills subdirectory structure)

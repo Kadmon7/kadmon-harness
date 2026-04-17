@@ -125,7 +125,7 @@ Each agent searches, reads sources, and returns findings. The main session synth
 
 ## Integration
 
-- **Agent**: almanak (primary, for documentation + research)
+- **Agent**: skavenger (primary, for multi-source research via /research)
 - **Tools**: WebSearch, WebFetch (deferred tools), Context7 MCP
 - **Aligns with**: no_context principle (evidence-based claims, never invent)
 
@@ -133,9 +133,9 @@ Each agent searches, reads sources, and returns findings. The main session synth
 
 This skill is fundamentally about evidence-based claims. Every assertion must be traceable to a source. When sources conflict, present both sides. When data is insufficient, say so explicitly rather than filling gaps with assumptions.
 
-## Execution caps (kerka)
+## Execution caps (skavenger)
 
-When this skill is executed by the kerka agent via /research, the following iteration caps apply (prompt-enforced, see ADR-009 D5):
+When this skill is executed by the skavenger agent via /research, the following iteration caps apply (prompt-enforced, see ADR-009 D5):
 
 - Sub-questions: 5 max
 - WebSearch calls per sub-question: 3 max
