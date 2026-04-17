@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-626%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-627%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.1-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -123,7 +123,7 @@ Six commands to know on day one:
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **626 passing** (60 files) |
+| Tests | **627 passing** (60 files) |
 | SQLite Tables | **7** + 17 indexes (research_reports added in ADR-015) |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -431,6 +431,6 @@ Example instincts:
 ## 📊 Status & Attribution
 
 **v1.1 Sprint B/C/D shipped 2026-04-14; plan-015 (skavenger ULTIMATE researcher) shipped 2026-04-17**
-`626 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+`627 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.
