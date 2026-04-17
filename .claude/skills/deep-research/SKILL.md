@@ -125,7 +125,7 @@ Each agent searches, reads sources, and returns findings. The main session synth
 
 ## Integration
 
-- **Agent**: skavenger (primary, for multi-source research via /research)
+- **Agent**: skavenger (primary, for multi-source research via /skavenger)
 - **Tools**: WebSearch, WebFetch (deferred tools), Context7 MCP
 - **Aligns with**: no_context principle (evidence-based claims, never invent)
 
@@ -135,17 +135,17 @@ This skill is fundamentally about evidence-based claims. Every assertion must be
 
 ## Depth modes (skavenger-only extensions)
 
-When executed by skavenger via `/research`, three opt-in depth modes modulate the workflow above. The methodology (Steps 1–6) is unchanged; the modes add pre-execution shaping. Full specifications live in `.claude/agents/skavenger.md` under the "Depth modes" section — this skill only points to them so the methodology stays one source of truth.
+When executed by skavenger via `/skavenger`, three opt-in depth modes modulate the workflow above. The methodology (Steps 1–6) is unchanged; the modes add pre-execution shaping. Full specifications live in `.claude/agents/skavenger.md` under the "Depth modes" section — this skill only points to them so the methodology stays one source of truth.
 
 - **`--plan <topic>`** — dry-run. Skavenger completes Step 2 (plan) and STOPS; Steps 3-6 do not run. Zero fetch budget. The user reviews, refines, and re-invokes without `--plan` to execute.
 - **`--verify <hypothesis>`** — hypothesis-driven. Step 2 decomposes into balanced PRO/CONTRA sub-questions. Step 5's Methodology section adds a `Verify tally: pro: N / contra: M` line. No unanimous verdicts when evidence is mixed.
-- **`--drill <N>`** — sub-question expansion. The `/research` command passes sub-question N of the most recent session report as the new topic. Fresh cap budget; new report cross-references the parent via `derived_from:` frontmatter.
+- **`--drill <N>`** — sub-question expansion. The `/skavenger` command passes sub-question N of the most recent session report as the new topic. Fresh cap budget; new report cross-references the parent via `derived_from:` frontmatter.
 
 After Step 5 (Synthesize) and before Step 6 (Deliver), skavenger runs a self-evaluation pass scoring the report on coverage / cross-verification / recency / diversity. If composite < threshold and caps remain, a second pass targets the weakest axis. Rubric is authored and tunable in `.claude/agents/skavenger.md`.
 
 ## Execution caps (skavenger)
 
-When this skill is executed by the skavenger agent via /research, the following iteration caps apply (prompt-enforced, see ADR-009 D5):
+When this skill is executed by the skavenger agent via /skavenger, the following iteration caps apply (prompt-enforced, see ADR-009 D5):
 
 - Sub-questions: 5 max
 - WebSearch calls per sub-question: 3 max
