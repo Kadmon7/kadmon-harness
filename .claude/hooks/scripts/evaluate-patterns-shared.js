@@ -36,7 +36,7 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
   if (rawLines.length < minLines) return 0;
 
   // R5 guard (ADR-015): research_finding observations are emitted to the
-  // same observations.jsonl by the /research command, but they must NOT
+  // same observations.jsonl by the /skavenger command, but they must NOT
   // contribute to ClusterReport pattern evaluation — research findings are
   // their own signal type consumed by alchemik during /evolve, not a
   // coding-behavior pattern. Filter them out before pattern eval while

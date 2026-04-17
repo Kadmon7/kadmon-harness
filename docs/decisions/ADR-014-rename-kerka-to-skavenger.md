@@ -133,3 +133,7 @@ Each of the rename commits (ADR, core rename, DB migration) is independently rev
 ## Review date
 
 **2026-07-17** — three months from acceptance. Criterion: `skavenger` still matches how people describe the agent in daily use; no confusion reports; no requests to rename again. If the name has not outlasted the 90-day window, rename fatigue is a real cost and the next round of changes should require a higher bar than aesthetic preference.
+
+## Post-implementation note (2026-04-17)
+
+Command symmetry completed: `/research` renamed to `/skavenger` on 2026-04-17 to match agent name and the K-naming convention of other Kadmon commands (`/forge`, `/chekpoint`, `/medik`, `/kompact`, `/abra-kdabra`, `/kadmon-harness`). No ADR-016 opened — rename is mechanical (no architectural trade-off). 7 live docs + 1 hook comment updated, ~35 surgical edits. Append-only ADRs and plans preserved with historical `/research` references intact for audit trail. Semantic artifacts NOT renamed (they describe content or behavior, not the caller): `docs/research/` output directory, `research_reports` SQLite table, `persist-research-report.ts` script, `RESEARCH_FINDINGS` fence label, `research_finding` event type, `KADMON_RESEARCH_AUTOWRITE` env var, `deep-research` skill name.

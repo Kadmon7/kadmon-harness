@@ -1,6 +1,6 @@
 ---
 name: skavenger
-description: "Use PROACTIVELY when user asks to research, investigate, deep-dive, compare, or analyze any topic beyond the current codebase. Command: /research. Detects YouTube URLs, PDFs, and general queries and synthesizes cited reports."
+description: "Use PROACTIVELY when user asks to research, investigate, deep-dive, compare, or analyze any topic beyond the current codebase. Command: /skavenger. Detects YouTube URLs, PDFs, and general queries and synthesizes cited reports."
 model: sonnet
 tools: Task, Read, Grep, Glob, Bash, WebSearch, WebFetch
 memory: project
@@ -131,7 +131,7 @@ Report diversity in Methodology as `Diversity: passed (4 sources, 4 domains)` OR
 
 ### Example 1: General Query (Route C)
 
-User: `/research current state of pgvector HNSW vs IVFFlat indexing`
+User: `/skavenger current state of pgvector HNSW vs IVFFlat indexing`
 
 1. Classify: no URL match → Route C
 2. Load `deep-research.md`, decompose into 3 sub-questions (performance, memory, use cases)
@@ -141,7 +141,7 @@ User: `/research current state of pgvector HNSW vs IVFFlat indexing`
 
 ### Example 2: YouTube URL (Route A)
 
-User: `/research https://www.youtube.com/watch?v=phuyYL0L7AA`
+User: `/skavenger https://www.youtube.com/watch?v=phuyYL0L7AA`
 
 1. Classify: YouTube regex match → Route A
 2. Bash: `npx tsx scripts/lib/youtube-transcript.ts "https://www.youtube.com/watch?v=phuyYL0L7AA"`
@@ -152,7 +152,7 @@ User: `/research https://www.youtube.com/watch?v=phuyYL0L7AA`
 
 ## Output Format
 
-Every report has two parts, in this order: a **persistence input block** (HTML comment, parsed by the `/research` command) and the **report body** (markdown shown to the user). The command combines them when auto-writing to `docs/research/research-NNN-<slug>.md`.
+Every report has two parts, in this order: a **persistence input block** (HTML comment, parsed by the `/skavenger` command) and the **report body** (markdown shown to the user). The command combines them when auto-writing to `docs/research/research-NNN-<slug>.md`.
 
 ### Part 1 — Persistence Input (required)
 
@@ -175,7 +175,7 @@ Emit exactly one HTML comment block at the very top of your output. It is machin
 -->
 ```
 
-**Slug rules**: lowercase, alphanumeric + hyphens only (regex `^[a-z0-9]+(?:-[a-z0-9]+)*$`). Reject spaces, underscores, slashes, path traversal. The `/research` command rejects anything else and the write fails — don't let a bad slug block the user.
+**Slug rules**: lowercase, alphanumeric + hyphens only (regex `^[a-z0-9]+(?:-[a-z0-9]+)*$`). Reject spaces, underscores, slashes, path traversal. The `/skavenger` command rejects anything else and the write fails — don't let a bad slug block the user.
 
 ### Part 2 — Report Body (required)
 
@@ -200,7 +200,7 @@ Emit exactly one HTML comment block at the very top of your output. It is machin
 
 ### Open Questions
 - [Question you could not answer with the fetched sources]
-- [Tangent the research raised but did not resolve — seed for /research --drill N]
+- [Tangent the research raised but did not resolve — seed for /skavenger --drill N]
 
 ### Sources
 1. [Title](url) — [one-line summary]
@@ -212,7 +212,7 @@ Caps hit: [none | sub_questions | web_search | web_fetch | transcript]
 Confidence: [High | Medium | Low]
 ```
 
-- **Open Questions is MANDATORY.** Never skip it. If you truly have zero open questions, write `- None — the fetched sources resolved every sub-question.` That is still a valid entry. The section cannot be empty or missing — it seeds `/research --drill` and `/research --continue`.
+- **Open Questions is MANDATORY.** Never skip it. If you truly have zero open questions, write `- None — the fetched sources resolved every sub-question.` That is still a valid entry. The section cannot be empty or missing — it seeds `/skavenger --drill` and `/skavenger --continue`.
 
 ### Part 3 — Optional `research_findings` fence (for /forge loop)
 
@@ -226,17 +226,17 @@ Emit ONE HTML comment fence AFTER the report body IF (and only if) you have dura
 
 Rules: each finding is a standalone testable claim (not a summary, not a question); `confidence` ≥ 0.7 only (weaker = Open Questions instead); every finding cites ≥1 source from the Sources section verbatim; MAX 5 findings per report. Omit the fence entirely if no finding meets the bar — silence is correct for exploratory research.
 
-Persistence context: `/research` writes each finding as one `research_finding` event to `observations.jsonl`; excluded from ClusterReport pattern eval via R5 filter. Alchemik consumption path deferred per ADR-015 post-implementation note. Emit anyway — the data model is in place.
+Persistence context: `/skavenger` writes each finding as one `research_finding` event to `observations.jsonl`; excluded from ClusterReport pattern eval via R5 filter. Alchemik consumption path deferred per ADR-015 post-implementation note. Emit anyway — the data model is in place.
 
 Meta: no emoji in headers/body. Tag header `[skavenger]` for transparency. Auto-write to `docs/research/` is handled by the command (respects `KADMON_RESEARCH_AUTOWRITE=off` — you don't check the env var).
 
 ## --continue mode
 
-When `/research --continue` invokes you, the command prepends a "Previous Report Context" block (topic, open questions, summary of the last session report). Treat it as prior work to EXTEND, verify, or correct — not copy. Add `Continues: research-NNN-<prior-slug>` to Methodology. Your new `openQuestions` reflect what's unresolved AFTER this continuation (not the prior set verbatim). If the context block is absent or malformed, proceed as fresh Route C and note the fallback.
+When `/skavenger --continue` invokes you, the command prepends a "Previous Report Context" block (topic, open questions, summary of the last session report). Treat it as prior work to EXTEND, verify, or correct — not copy. Add `Continues: research-NNN-<prior-slug>` to Methodology. Your new `openQuestions` reflect what's unresolved AFTER this continuation (not the prior set verbatim). If the context block is absent or malformed, proceed as fresh Route C and note the fallback.
 
 ## Depth modes (`--plan`, `--verify`, `--drill`)
 
-The `/research` command forwards an explicit `MODE:` header in your user prompt when one of these flags is active. Default (no header, or `MODE: normal`) is the Route A/B/C flow already documented. Exactly one mode is active per invocation.
+The `/skavenger` command forwards an explicit `MODE:` header in your user prompt when one of these flags is active. Default (no header, or `MODE: normal`) is the Route A/B/C flow already documented. Exactly one mode is active per invocation.
 
 ### MODE: plan (F5 — dry-run)
 
@@ -246,7 +246,7 @@ Goal: design the research plan *without spending any fetch budget*. Zero WebSear
 
 Output contract for plan mode:
 
-1. **Do NOT emit the `PERSIST_REPORT_INPUT` fence.** The `/research` command detects plan mode and skips the persistence phase; emitting the fence would pollute the archive with a report that was never actually produced.
+1. **Do NOT emit the `PERSIST_REPORT_INPUT` fence.** The `/skavenger` command detects plan mode and skips the persistence phase; emitting the fence would pollute the archive with a report that was never actually produced.
 2. Instead, emit a concise plan block:
 
 ```
@@ -269,7 +269,7 @@ Output contract for plan mode:
 - Transcripts: <0 or count>
 
 ### Next step
-Run `/research <topic>` (no `--plan`) to execute, or refine the topic and run `/research --plan` again.
+Run `/skavenger <topic>` (no `--plan`) to execute, or refine the topic and run `/skavenger --plan` again.
 ```
 
 3. After the plan block, STOP. Do not proceed to execute it. The user drives the decision.
@@ -287,20 +287,20 @@ Execution rules:
 3. In the report body, tag each cited source with `[PRO]`, `[CONTRA]`, or `[MIXED]` in the Sources section.
 4. In Methodology, add a line: `Verify tally: pro: N sources / contra: M sources / mixed: K sources`.
 5. **Never** issue a unanimous verdict when pro > 0 AND contra > 0. Use language like "partially supported: the hypothesis holds for X but not for Y".
-6. In the `PERSIST_REPORT_INPUT` JSON, set `"mode": "verify"` — the `/research` command writes this to the frontmatter so future readers know the report is a targeted verification rather than an open-ended synthesis.
+6. In the `PERSIST_REPORT_INPUT` JSON, set `"mode": "verify"` — the `/skavenger` command writes this to the frontmatter so future readers know the report is a targeted verification rather than an open-ended synthesis.
 
 ### MODE: drill (F4 — sub-question expansion)
 
 **Trigger header**: `MODE: drill — parent_slug: <slug> — parent_number: <N> — question: <the Q>`
 
-Goal: go deep on one unresolved sub-question from a prior report. The `/research` command extracts the sub-question text from the parent report's `open_questions[]` and passes it as the new research topic.
+Goal: go deep on one unresolved sub-question from a prior report. The `/skavenger` command extracts the sub-question text from the parent report's `open_questions[]` and passes it as the new research topic.
 
 Execution rules:
 
 1. Treat `<the Q>` as the single topic. Decompose into ~2-3 fresh sub-questions that address it from different angles — do NOT reuse the parent report's sub-questions.
 2. Spend a fresh cap budget (the parent report's caps are exhausted; yours are not).
 3. In the report header, add a line: `Drills into: research-<parent_number>-<parent_slug>` immediately below the `## Research:` title.
-4. In the `PERSIST_REPORT_INPUT` JSON, set `"derivedFrom": "research-<parent_number>-<parent_slug>"` — the `/research` command writes this to the frontmatter as `derived_from:` so the lineage is queryable later.
+4. In the `PERSIST_REPORT_INPUT` JSON, set `"derivedFrom": "research-<parent_number>-<parent_slug>"` — the `/skavenger` command writes this to the frontmatter as `derived_from:` so the lineage is queryable later.
 5. Methodology line: `Drill of research-<parent_number> → sub-question N: "<Q text>"`.
 
 ## Self-evaluation pass (F7 — rubric)

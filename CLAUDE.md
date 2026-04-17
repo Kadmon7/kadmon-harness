@@ -58,7 +58,7 @@ Kadmon-Harness/
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
-|   |-- research/         # /research auto-written reports (research-NNN-<slug>.md, ADR-015)
+|   |-- research/         # /skavenger auto-written reports (research-NNN-<slug>.md, ADR-015)
 |   `-- roadmap/          # Future version planning
 |-- CLAUDE.md             # This file
 `-- package.json
@@ -69,7 +69,7 @@ Kadmon-Harness/
 - `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip
 - `KADMON_NO_CONTEXT_GUARD` — Set to `"off"` to disable no-context enforcement
 - `KADMON_EVOLVE_WINDOW_DAYS` — /evolve Generate ClusterReport read window (default: 7)
-- `KADMON_RESEARCH_AUTOWRITE` — Set to `"off"` to skip `/research` auto-write of reports to `docs/research/` (ADR-015 escape hatch)
+- `KADMON_RESEARCH_AUTOWRITE` — Set to `"off"` to skip `/skavenger` auto-write of reports to `docs/research/` (ADR-015 escape hatch)
 
 ## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
 - `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all your projects (absolute paths, platform-specific commands like `winget`). Not committed.
@@ -101,7 +101,7 @@ Kadmon-Harness/
 - **Plan** (1): /abra-kdabra
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
-- **Research** (1): /research (flags: `--continue`, `--plan`, `--verify <hyp>`, `--drill <N>`, `--history <query>`, `--verify-citations <N>` — ADR-015 Groups A-D; auto-writes to `docs/research/` unless `KADMON_RESEARCH_AUTOWRITE=off`)
+- **Research** (1): /skavenger (flags: `--continue`, `--plan`, `--verify <hyp>`, `--drill <N>`, `--history <query>`, `--verify-citations <N>` — ADR-015 Groups A-D; auto-writes to `docs/research/` unless `KADMON_RESEARCH_AUTOWRITE=off`)
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (2): /forge, /evolve (step 6 Generate is EXPERIMENTAL through 2026-04-28; /instinct is a deprecated alias until 2026-04-20)
 
@@ -182,4 +182,4 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 Sprint B/C shipped 2026-04-14; Sprint D artifacts shipped (plan-010 + ADR-010 harness distribution hybrid), implementation pending greenlight; plan-013 + ADR-013 shipped 2026-04-14 (46 skills migrated to `<name>/SKILL.md` subdirectory layout); plan-015 + ADR-015 shipped 2026-04-17 (skavenger ULTIMATE researcher — auto-doc + `--continue`/`--plan`/`--verify`/`--drill`/`--history`/`--verify-citations` flags + Route D GitHub wrapper + F9 parallelization + F10 diversity + /forge loop closure) — 626 tests passing, 60 test files, 21 hooks, 16 agents (skavenger now has Task tool), 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 7 DB tables (research_reports added), /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability (skavenger agent per ADR-014 rename) + /research command + yt-dlp helper; ADR-013 skills subdirectory structure; ADR-015 skavenger ULTIMATE researcher)
+v1.1 Sprint B/C shipped 2026-04-14; Sprint D artifacts shipped (plan-010 + ADR-010 harness distribution hybrid), implementation pending greenlight; plan-013 + ADR-013 shipped 2026-04-14 (46 skills migrated to `<name>/SKILL.md` subdirectory layout); plan-015 + ADR-015 shipped 2026-04-17 (skavenger ULTIMATE researcher — auto-doc + `--continue`/`--plan`/`--verify`/`--drill`/`--history`/`--verify-citations` flags + Route D GitHub wrapper + F9 parallelization + F10 diversity + /forge loop closure) — 626 tests passing, 60 test files, 21 hooks, 16 agents (skavenger now has Task tool), 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 7 DB tables (research_reports added), /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability (skavenger agent per ADR-014 rename) + /skavenger command + yt-dlp helper; ADR-013 skills subdirectory structure; ADR-015 skavenger ULTIMATE researcher)
