@@ -14,14 +14,21 @@ const TRUNCATE_TO_LINES = 50;
  * @param {string} hookName - Name of the hook that failed
  * @param {unknown} error - The error object or value
  * @param {Record<string, unknown>} [context] - Optional context data
- * @param {string} [logDir] - Override log directory (for testing)
+ * @param {string} [logDir] - Override log directory. When provided, the
+ *   test-env guard is bypassed (honoured by hook-logger.test.ts which
+ *   intentionally exercises the log-writing path).
  */
 export function logHookError(hookName, error, context, logDir) {
   try {
     // In test mode with no logDir override, redirect to stderr to avoid
-    // polluting the production error log. When logDir is explicitly provided
-    // (e.g. hook-logger.test.ts), honour it so those tests still work.
-    if (process.env.KADMON_TEST_DB !== undefined && logDir === undefined) {
+    // polluting the production error log. Defense in depth: accept any
+    // of 3 signals (KADMON_TEST_DB, VITEST, NODE_ENV=test) since the
+    // first alone didn't suppress a top-level dynamic-import edge case.
+    const inTestEnv =
+      process.env.KADMON_TEST_DB !== undefined ||
+      process.env.VITEST !== undefined ||
+      process.env.NODE_ENV === "test";
+    if (inTestEnv && logDir === undefined) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       process.stderr.write(

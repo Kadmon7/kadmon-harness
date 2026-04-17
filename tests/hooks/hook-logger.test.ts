@@ -168,6 +168,40 @@ describe("logHookError", () => {
   });
 });
 
+describe("logHookError — test-env guard", () => {
+  it("suppresses writes to the production log when VITEST is set and no logDir override", () => {
+    const realHome = os.homedir();
+    const prodLogPath = path.join(realHome, ".kadmon", "hook-errors.log");
+    const sizeBefore = fs.existsSync(prodLogPath)
+      ? fs.statSync(prodLogPath).size
+      : 0;
+
+    const originalKadmonTestDb = process.env.KADMON_TEST_DB;
+    const originalVitest = process.env.VITEST;
+    delete process.env.KADMON_TEST_DB;
+    process.env.VITEST = "true";
+    try {
+      logHookError("guard-check", new Error("should not reach prod log"));
+    } finally {
+      if (originalKadmonTestDb === undefined) {
+        delete process.env.KADMON_TEST_DB;
+      } else {
+        process.env.KADMON_TEST_DB = originalKadmonTestDb;
+      }
+      if (originalVitest === undefined) {
+        delete process.env.VITEST;
+      } else {
+        process.env.VITEST = originalVitest;
+      }
+    }
+
+    const sizeAfter = fs.existsSync(prodLogPath)
+      ? fs.statSync(prodLogPath).size
+      : 0;
+    expect(sizeAfter).toBe(sizeBefore);
+  });
+});
+
 describe("getHookErrors", () => {
   it("reads entries and returns them parsed", () => {
     setup();
