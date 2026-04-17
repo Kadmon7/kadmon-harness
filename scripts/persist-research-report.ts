@@ -1,5 +1,5 @@
 // scripts/persist-research-report.ts
-// Called by the /research command to persist a skavenger-produced report:
+// Called by the /skavenger command to persist a skavenger-produced report:
 // (1) writes the markdown file at docs/research/research-NNN-<slug>.md
 // (2) inserts a research_reports row for the metadata index
 //
@@ -162,7 +162,7 @@ export async function runPersistReport(
   //
   // Crash-safety note: if this process dies between the INSERT and the
   // UPDATE below, a row remains with path="docs/research/research-PENDING-<slug>.md"
-  // which will never exist on disk. Readers (`/research --history`) should
+  // which will never exist on disk. Readers (`/skavenger --history`) should
   // treat such rows as stale and either ignore them or offer to clean up.
   // sql.js is single-threaded in-process, so the window is a single synchronous
   // tick — a crash there is a process kill, not a normal error path.

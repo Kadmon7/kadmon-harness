@@ -933,7 +933,7 @@ export function getResearchReport(
   return row ? mapResearchReportRow(row) : null;
 }
 
-/** Fetch the most recent report for a session — used by /research --continue. */
+/** Fetch the most recent report for a session — used by /skavenger --continue. */
 export function getLastResearchReport(
   sessionId: string,
 ): ResearchReport | null {
