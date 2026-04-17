@@ -141,6 +141,31 @@ User: `/research asdfghjkl qwertyuiop nonsense query`
 
 ## Output Format
 
+Every report has two parts, in this order: a **persistence input block** (HTML comment, parsed by the `/research` command) and the **report body** (markdown shown to the user). The command combines them when auto-writing to `docs/research/research-NNN-<slug>.md`.
+
+### Part 1 — Persistence Input (required)
+
+Emit exactly one HTML comment block at the very top of your output. It is machine-parsed; keep it strict JSON, no trailing commas, no markdown inside values:
+
+```
+<!-- PERSIST_REPORT_INPUT
+{
+  "topic": "<human-readable topic, same as in the header>",
+  "slug": "<lowercase-kebab-case>",
+  "subQuestions": ["Q1?", "Q2?", "..."],
+  "sourcesCount": <integer>,
+  "confidence": "High" | "Medium" | "Low",
+  "capsHit": ["web_search", "web_fetch", "transcript", "sub_questions"],
+  "openQuestions": ["What about X?", "..."],
+  "summary": "<one-paragraph summary, plain text, no markdown>"
+}
+-->
+```
+
+**Slug rules**: lowercase, alphanumeric + hyphens only (regex `^[a-z0-9]+(?:-[a-z0-9]+)*$`). Reject spaces, underscores, slashes, path traversal. The `/research` command rejects anything else and the write fails — don't let a bad slug block the user.
+
+### Part 2 — Report Body (required)
+
 ```
 ## Research: [topic] [skavenger]
 
@@ -160,6 +185,10 @@ User: `/research asdfghjkl qwertyuiop nonsense query`
 - [Actionable insight 1]
 - [Actionable insight 2]
 
+### Open Questions
+- [Question you could not answer with the fetched sources]
+- [Tangent the research raised but did not resolve — seed for /research --drill N]
+
 ### Sources
 1. [Title](url) — [one-line summary]
 2. ...
@@ -170,9 +199,19 @@ Caps hit: [none | sub_questions | web_search | web_fetch | transcript]
 Confidence: [High | Medium | Low]
 ```
 
-- No emoji in headers or body
-- Tag the header with `[skavenger]` for transparency
-- For long reports: post Executive Summary + Key Takeaways + Sources inline, offer to save the full report to a user-confirmed path (never auto-write)
+- **Open Questions is MANDATORY.** Never skip it. If you truly have zero open questions, write `- None — the fetched sources resolved every sub-question.` That is still a valid entry. The section cannot be empty or missing — it seeds `/research --drill` and `/research --continue`.
+- No emoji in headers or body.
+- Tag the header with `[skavenger]` for transparency.
+- For long reports, post the full body inline; the `/research` command auto-writes the persistence file. Users can disable auto-write with `KADMON_RESEARCH_AUTOWRITE=off` — you do not need to check the env var yourself.
+
+## --continue mode
+
+When the `/research` command invokes you with `--continue`, the command prepends a "Previous Report Context" block to your user prompt containing the topic, open questions, and a summary of the last report for the current session.
+
+- Treat the previous report as **prior work to build on**, not as a constraint to copy. New findings in the continuation report should extend, verify, or correct the prior one.
+- In your continuation report's Methodology, add a line `Continues: research-NNN-<prior-slug>` so the audit trail is clear.
+- The `openQuestions` in your new persistence-input JSON should reflect what is still unresolved AFTER this continuation, not what the prior report left open (those should now be resolved or re-framed).
+- If the "Previous Report Context" block is absent or malformed, proceed as a fresh Route C invocation and note the fallback in Methodology.
 
 ## no_context Rule
 
