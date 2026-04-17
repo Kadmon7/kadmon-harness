@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-576%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-626%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.1-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -123,8 +123,8 @@ Six commands to know on day one:
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **576 passing** (57 files) |
-| SQLite Tables | **6** + 14 indexes |
+| Tests | **626 passing** (60 files) |
+| SQLite Tables | **7** + 17 indexes (research_reports added in ADR-015) |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
 
@@ -241,7 +241,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Research (1)
 | Command | Purpose |
 |---------|---------|
-| `/research` | Multi-source deep research (web, YouTube transcripts, PDFs) — skavenger agent loads `deep-research` skill, enforces ADR-009 D5 caps, returns cited synthesis |
+| `/research` | Multi-source deep research (web, YouTube transcripts, PDFs, GitHub repos). Auto-writes to `docs/research/` (ADR-015). Flags: `--continue`, `--plan`, `--verify <h>`, `--drill <N>`, `--history <q>`, `--verify-citations <N>`. Disable auto-write with `KADMON_RESEARCH_AUTOWRITE=off` |
 
 ### Remember (3)
 | Command | Purpose |
@@ -430,7 +430,7 @@ Example instincts:
 
 ## 📊 Status & Attribution
 
-**v1.1 Sprint B/C/D shipped 2026-04-14**
-`576 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `6 DB tables`
+**v1.1 Sprint B/C/D shipped 2026-04-14; plan-015 (skavenger ULTIMATE researcher) shipped 2026-04-17**
+`626 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.

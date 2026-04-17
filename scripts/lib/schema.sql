@@ -88,6 +88,28 @@ CREATE TABLE IF NOT EXISTS agent_invocations (
   timestamp TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Research reports produced by skavenger via /research (ADR-015 plan-015).
+-- Metadata index over the markdown artifacts persisted at docs/research/.
+-- Queried by /research --history (FTS5 when available, LIKE fallback — see state-store).
+CREATE TABLE IF NOT EXISTS research_reports (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES sessions(id),
+  project_hash TEXT NOT NULL,
+  report_number INTEGER NOT NULL,
+  slug TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  path TEXT NOT NULL,
+  summary TEXT,
+  confidence TEXT CHECK (confidence IN ('High', 'Medium', 'Low')),
+  caps_hit TEXT NOT NULL DEFAULT '[]',
+  sub_questions TEXT NOT NULL DEFAULT '[]',
+  sources_count INTEGER NOT NULL DEFAULT 0,
+  open_questions TEXT NOT NULL DEFAULT '[]',
+  untrusted_sources INTEGER NOT NULL DEFAULT 1,
+  generated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(project_hash, report_number)
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_sessions_project ON sessions(project_hash);
 CREATE INDEX IF NOT EXISTS idx_sessions_started ON sessions(started_at DESC);
@@ -103,3 +125,6 @@ CREATE INDEX IF NOT EXISTS idx_hook_events_timestamp ON hook_events(timestamp DE
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_session ON agent_invocations(session_id);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_agent ON agent_invocations(agent_type);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_timestamp ON agent_invocations(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_research_reports_session ON research_reports(session_id);
+CREATE INDEX IF NOT EXISTS idx_research_reports_project ON research_reports(project_hash);
+CREATE INDEX IF NOT EXISTS idx_research_reports_generated ON research_reports(generated_at DESC);

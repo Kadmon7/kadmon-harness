@@ -269,6 +269,28 @@ export interface AgentInvocation {
   timestamp: string;
 }
 
+// ─── Research Report (persistent, per-session) ───
+// Produced by /research via skavenger. Markdown body lives at docs/research/research-NNN-<slug>.md.
+// This row is metadata + pointer — queried by /research --history.
+
+export interface ResearchReport {
+  id: string;
+  sessionId: string;
+  projectHash: string;
+  reportNumber: number; // monotonic per project (ADR-015: manual max+1 counter)
+  slug: string;
+  topic: string;
+  path: string; // relative path from repo root, e.g. "docs/research/research-001-foo.md"
+  summary?: string;
+  confidence?: "High" | "Medium" | "Low";
+  capsHit: string[]; // e.g. ["web_search", "web_fetch"]
+  subQuestions: string[];
+  sourcesCount: number;
+  openQuestions: string[]; // seeds for --drill and --continue
+  untrustedSources: boolean; // always true today — content fetched from web (ADR-015 Q5)
+  generatedAt: string; // ISO 8601
+}
+
 // ─── Project Info ───
 
 export interface ProjectInfo {
