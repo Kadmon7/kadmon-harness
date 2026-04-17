@@ -679,7 +679,7 @@ describe("dashboard", () => {
       expect(output).not.toContain("No agent invocations recorded yet");
     });
 
-    it("renders DATABASE section with row counts for all 6 tables", () => {
+    it("renders DATABASE section with row counts for all 7 tables", () => {
       // arrange — create at least one row to have non-zero counts
       upsertSession({
         id: "s1",
@@ -712,13 +712,14 @@ describe("dashboard", () => {
 
       // assert — section header present
       expect(output).toContain("DATABASE");
-      // all 6 table names must appear in the section
+      // all 7 table names must appear in the section (ADR-015 added research_reports)
       expect(output).toContain("sessions");
       expect(output).toContain("instincts");
       expect(output).toContain("cost_events");
       expect(output).toContain("hook_events");
       expect(output).toContain("agent_invocations");
       expect(output).toContain("sync_queue");
+      expect(output).toContain("research_reports");
     });
   });
 
