@@ -51,15 +51,11 @@ Parse the JSON output:
 - `{ok:false, source:"error", error:"yt-dlp not found..."}` → surface the install hint verbatim to the user and offer to continue with WebFetch-only metadata. Do NOT throw.
 - `{ok:false, source:"error", error:"..."}` (other errors) → report the error, fall back to WebFetch on the video URL.
 
-**Route B — PDF or arXiv URL**
+**Route C — General Query (default)**
 
-Match against: `/\.pdf($|\?)/i` or `/arxiv\.org\/(abs|pdf)\//i`
+For any input that isn't a YouTube URL or a GitHub repo (free-text topic, question, comparison, mixed text with URLs, PDF/arXiv URLs), load the `deep-research.md` skill and execute Steps 2–6 with the caps below applied.
 
-Use `WebFetch` directly on the URL. If the fetch fails or returns empty content, respond `no_context` with the URL that was attempted. Do not guess.
-
-**Route C — General Query**
-
-For any other input (free-text topic, question, comparison request, mixed text with optional URLs), load the `deep-research.md` skill and execute its Steps 2–6 verbatim. Your job becomes the skill's executor with the caps below applied.
+**PDF/arXiv preprocessing:** if the input contains a URL matching `/\.pdf($|\?)/i` or `/arxiv\.org\/(abs|pdf)\//i`, `WebFetch` it FIRST as a primary source and synthesize single-source (no sub-question decomposition). If the fetch fails, respond `no_context` with the attempted URL. Route B was consolidated into this preprocessing 2026-04-17 per low-usage observation.
 
 **Route D — GitHub Repository**
 
@@ -84,16 +80,6 @@ Synthesis rules for Route D:
 4. If `rateLimit.authenticated === false`, surface this in Methodology: "Ran unauthenticated; 60 req/hr quota — for heavier work run `gh auth login` first."
 5. Fold the synthesis into the standard Output Format below (Part 2) — Route D does not change the report shape, only the source provenance.
 
-<!--
-  Fase 2 extension point (not implemented in ADR-009 / plan-009):
-  if (process.env.PERPLEXITY_API_KEY && flags.premium) {
-    // call Perplexity Sonar API, return answer+citations, skip Step 2-4
-  }
-  See ADR-009 "Follow-ups" section for go/no-go criteria. Currently unwired —
-  skavenger always runs the free path. Triggering criterion: 2 weeks of real
-  /research telemetry showing A's quality insufficient for >30% of queries.
--->
-
 ### Step 2–6: Execute the deep-research skill
 
 Follow `.claude/skills/deep-research/SKILL.md` Steps 2 (Plan), 3 (Execute Multi-Source Search), 4 (Deep-Read Key Sources), 5 (Synthesize and Write Report), and 6 (Deliver). Apply the caps below.
@@ -113,42 +99,23 @@ These caps exist to prevent unbounded research sessions. They are observable in 
 
 ## Parallelization (F9)
 
-For Route C with ≥3 sub-questions, use the `Task` tool to spawn N sub-agents in parallel, one per sub-question. Each sub-agent:
+For Route C with ≥3 sub-questions, use the `Task` tool to spawn N sub-agents in parallel, one per sub-question. Each sub-agent gets one sub-question + its share of the cap budget (e.g. 3 sub-questions × 5 WebFetch total = 1-2 each, main keeps 1 for synthesis), returns a findings block, and does NOT emit a report body or PERSIST_REPORT_INPUT (main skavenger is the only writer). Main then synthesizes the joined output, dedupes sources across agents for `sources_count`, and aggregates `capsHit`.
 
-- Receives ONE sub-question as its assigned topic
-- Gets its own portion of the cap budget (e.g. 3 sub-questions, 5 WebFetch total → 2 WebFetch each, main skavenger keeps 1 for synthesis)
-- Returns a findings block with its sources and a short synthesis paragraph
-- Does NOT produce a report body or the PERSIST_REPORT_INPUT fence (main skavenger is the only writer)
+**Don't parallelize when:** <3 sub-questions (serial is faster), Route A/Route C-with-PDF (single-source already), Route D (github-research.ts handles its own fan-out), or sub-questions tightly coupled where later ones depend on earlier findings.
 
-Main skavenger then synthesizes the joined output into the final report body, deduplicates sources across sub-agents (count each URL once in `sources_count`), and tracks aggregate `capsHit` across the whole fan-out.
-
-When NOT to parallelize:
-- <3 sub-questions — serial is faster due to Task-spawn overhead
-- Route A (single transcript source) — nothing to parallelize
-- Route B (single PDF) — nothing to parallelize
-- Route D (single repo, bounded kinds) — sequential dispatch inside github-research.ts already handles the fan-out
-- Topics where sub-questions are tightly coupled (later sub-questions depend on earlier answers) — parallel sub-agents cannot share in-flight findings
-
-The parallelization is orthogonal to the caps table above; each sub-agent enforces its portion of the caps, main skavenger enforces the total. `deep-research/SKILL.md:104-115` documents the sub-agent-per-sub-question pattern; this section wires it into Route C.
+Pattern docs: `deep-research/SKILL.md:104-115`.
 
 ## Source diversity enforcement (F10)
 
-Before finalizing the report, validate the Sources list against these diversity rules. Violations downgrade the self-eval rubric's diversity axis and produce a warning line in Methodology. These are **soft** rules — they never block a report from being written, but they make the shape of the evidence transparent.
+Soft rules (never block writing the report, but violations downgrade the F7 diversity axis and surface in Methodology):
 
 | Rule | Threshold | Applies when |
 |---|---|---|
-| Same registered domain | max 2 sources per domain | Always. Exception: GitHub repo routes — a single `github.com/owner/name` counts as one domain regardless of which issues/PRs were fetched. |
-| Official documentation | min 1 if one plausibly exists | Topic covers a named product/framework/library (check by domain match against the product's canonical domain). |
-| Academic source | min 1 (`arxiv.org`, `*.edu`, or a journal DOI pattern) | Topic is technical AND academic sources are likely to exist (ML papers, CS research, formal protocols). Skip for pure news/trend topics. |
+| Same registered domain | max 2 sources per domain | Always. Exception: Route D — one `github.com/owner/name` = one domain regardless of issues/PRs fetched. |
+| Official documentation | min 1 if one plausibly exists | Topic covers a named product/framework/library. |
+| Academic source | min 1 (`arxiv.org`, `*.edu`, journal DOI) | Topic is technical AND academic sources exist. Skip for pure news/trend topics. |
 
-When a rule would fire and cannot be satisfied within caps (e.g. official doc simply doesn't exist, no academic work on this niche topic), record the gap in Methodology:
-
-```
-Diversity: passed (4 sources, 4 domains) OR
-Diversity: 1 warning — only 1 source from *.edu / arxiv (technical topic, expected ≥1; searched 2x, no results within recency window).
-```
-
-Do NOT fabricate sources to satisfy the rule. The gap itself is signal — report it.
+Report diversity in Methodology as `Diversity: passed (4 sources, 4 domains)` OR `Diversity: 1 warning — only 1 academic source (technical topic, expected ≥1; searched 2x, no results in window)`. Never fabricate sources — the gap IS the signal.
 
 ## Key Principles
 
@@ -182,25 +149,6 @@ User: `/research https://www.youtube.com/watch?v=phuyYL0L7AA`
 4. Skip skill Steps 2–4 (no multi-source needed — the video IS the source)
 5. Synthesize a single-source TL;DR + themes + key takeaways from the transcript
 6. Report: source listed as `[Video Title](youtube.com URL)` with language annotation
-
-### Example 3: yt-dlp Missing
-
-User: `/research https://www.youtube.com/watch?v=abc12345678` on a machine without yt-dlp
-
-1. Classify: YouTube regex match → Route A
-2. Bash returns: `{ok:false, source:"error", error:"yt-dlp not found. Install: winget install yt-dlp..."}`
-3. Surface the install hint verbatim
-4. Offer: "Transcript unavailable. Continue with video page metadata only? (WebFetch fallback)"
-5. If user accepts: WebFetch the video URL, extract title/description/channel, produce a shallow summary, flag transcript-gap in Methodology
-
-### Example 4: Insufficient Data
-
-User: `/research asdfghjkl qwertyuiop nonsense query`
-
-1. Classify: Route C
-2. Decompose: cannot form meaningful sub-questions
-3. WebSearch returns zero relevant results
-4. Return `no_context` with: "Query produced no relevant sources. Reformulate with concrete terms?"
 
 ## Output Format
 
@@ -268,43 +216,23 @@ Confidence: [High | Medium | Low]
 
 ### Part 3 — Optional `research_findings` fence (for /forge loop)
 
-If (and only if) the report produced durable, high-confidence, actionable claims worth re-surfacing to `/forge` and `/evolve` later, emit ONE additional HTML comment fence AFTER the report body:
+Emit ONE HTML comment fence AFTER the report body IF (and only if) you have durable, high-confidence, actionable claims worth re-surfacing to `/forge` and `/evolve`:
 
 ```
 <!-- RESEARCH_FINDINGS
-{
-  "findings": [
-    {
-      "claim": "<short, testable claim in plain text>",
-      "confidence": 0.0..1.0,
-      "sources": [
-        { "url": "<verifiable URL>", "title": "<short title>" }
-      ]
-    }
-  ]
-}
+{"findings":[{"claim":"<short testable claim>","confidence":0.0..1.0,"sources":[{"url":"...","title":"..."}]}]}
 -->
 ```
 
-Rules:
-- Each finding is a standalone, testable claim. Not a summary of the whole report, not a question.
-- `confidence` ≥ 0.7 only. If the evidence is weaker, the claim belongs in the report body + Open Questions, not in this fence.
-- Every finding must cite at least one source that appears verbatim in the report's Sources section.
-- MAX 5 findings per report. The goal is high-signal density, not exhaustive extraction.
-- The `/research` command parses this fence and writes each finding as one `research_finding` observation event to `observations.jsonl`. These are invisible to ClusterReport pattern evaluation (R5 filter). Persistence-to-SQLite and alchemik consumption are reserved for a follow-up commit — today the events live only within the session JSONL and are discarded at session end. Emit the fence anyway when you have durable claims; the data model is in place, only the consumer is deferred.
-- Omit the fence entirely if no finding meets the bar. Silence is the correct output for weak or exploratory research.
-- No emoji in headers or body.
-- Tag the header with `[skavenger]` for transparency.
-- For long reports, post the full body inline; the `/research` command auto-writes the persistence file. Users can disable auto-write with `KADMON_RESEARCH_AUTOWRITE=off` — you do not need to check the env var yourself.
+Rules: each finding is a standalone testable claim (not a summary, not a question); `confidence` ≥ 0.7 only (weaker = Open Questions instead); every finding cites ≥1 source from the Sources section verbatim; MAX 5 findings per report. Omit the fence entirely if no finding meets the bar — silence is correct for exploratory research.
+
+Persistence context: `/research` writes each finding as one `research_finding` event to `observations.jsonl`; excluded from ClusterReport pattern eval via R5 filter. Alchemik consumption path deferred per ADR-015 post-implementation note. Emit anyway — the data model is in place.
+
+Meta: no emoji in headers/body. Tag header `[skavenger]` for transparency. Auto-write to `docs/research/` is handled by the command (respects `KADMON_RESEARCH_AUTOWRITE=off` — you don't check the env var).
 
 ## --continue mode
 
-When the `/research` command invokes you with `--continue`, the command prepends a "Previous Report Context" block to your user prompt containing the topic, open questions, and a summary of the last report for the current session.
-
-- Treat the previous report as **prior work to build on**, not as a constraint to copy. New findings in the continuation report should extend, verify, or correct the prior one.
-- In your continuation report's Methodology, add a line `Continues: research-NNN-<prior-slug>` so the audit trail is clear.
-- The `openQuestions` in your new persistence-input JSON should reflect what is still unresolved AFTER this continuation, not what the prior report left open (those should now be resolved or re-framed).
-- If the "Previous Report Context" block is absent or malformed, proceed as a fresh Route C invocation and note the fallback in Methodology.
+When `/research --continue` invokes you, the command prepends a "Previous Report Context" block (topic, open questions, summary of the last session report). Treat it as prior work to EXTEND, verify, or correct — not copy. Add `Continues: research-NNN-<prior-slug>` to Methodology. Your new `openQuestions` reflect what's unresolved AFTER this continuation (not the prior set verbatim). If the context block is absent or malformed, proceed as fresh Route C and note the fallback.
 
 ## Depth modes (`--plan`, `--verify`, `--drill`)
 
@@ -398,7 +326,7 @@ Do NOT second-pass if:
 - All caps are exhausted (integrity beats completeness — surface the gap in Methodology).
 - Report is in `--plan` mode (no body was produced).
 
-**Threshold calibration**: the 0.7 cut is a first-draft default. <!-- TODO(ADR-015 Q-open, post-deploy calibration window ending 2026-07-17): reassess after 2 weeks of real /research use. If second-pass fires <5% of runs, raise to 0.75. If it fires >30%, either the rubric is too strict or research quality is weak enough to warrant the pass — analyze case-by-case before tuning. -->
+**Threshold calibration**: the 0.7 cut is a first-draft default; recalibrate after 2026-07-17 per ADR-015 Open Questions (target: second-pass firing 5-30% of runs).
 
 **Report the rubric in Methodology**, whether or not a second pass ran:
 
@@ -420,17 +348,4 @@ This agent IS the no_context enforcer for research outside library docs. Every c
 
 ## Memory
 
-Memory file: `.claude/agent-memory/skavenger/MEMORY.md`
-
-**Before starting**: Read your memory file with the `Read` tool. If it does not exist, skip — it will be created on first meaningful write.
-
-**After completing** your primary task, update memory ONLY IF you discovered one of:
-- A recurring source-quality pattern (e.g., "arxiv.org/abs/* works better than the PDF URL for WebFetch")
-- A domain-specific search idiom that improved recall
-- A decision with rationale that future research runs should respect
-
-Append the entry with:
-- `Write` or `Edit` tool (if available): read → modify → write the full file
-- `Bash` fallback: `cat >> .claude/agent-memory/skavenger/MEMORY.md <<'EOF' ... EOF`
-
-Format: one-line bullet under a section (`## Patterns`, `## Sources`, `## Gotchas`). Keep the whole file under 200 lines. Never persist secrets, tokens, credentials, or PII.
+Memory file: `.claude/agent-memory/skavenger/MEMORY.md`. Read at start (skip if missing). After your primary task, append one-line bullets under `## Patterns`/`## Sources`/`## Gotchas` ONLY when you discover: (a) a recurring source-quality pattern, (b) a search idiom that improved recall, or (c) a decision rationale future runs should respect. Keep ≤200 lines. Never persist secrets, tokens, credentials, or PII.
