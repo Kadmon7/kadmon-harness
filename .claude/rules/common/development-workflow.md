@@ -69,7 +69,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Research Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /research | Multi-source deep research — web, YouTube transcripts, PDFs. Detects input type and synthesizes cited reports with caps enforced (ADR-009 D5). Flags: `--premium` (Fase 2, not yet wired). | kerka |
+| /research | Multi-source deep research — web, YouTube transcripts, PDFs. Detects input type and synthesizes cited reports with caps enforced (ADR-009 D5). Flags: `--premium` (Fase 2, not yet wired). | skavenger |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |

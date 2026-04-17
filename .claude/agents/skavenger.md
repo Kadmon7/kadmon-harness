@@ -1,5 +1,5 @@
 ---
-name: kerka
+name: skavenger
 description: "Use PROACTIVELY when user asks to research, investigate, deep-dive, compare, or analyze any topic beyond the current codebase. Command: /research. Detects YouTube URLs, PDFs, and general queries and synthesizes cited reports."
 model: sonnet
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
@@ -66,7 +66,7 @@ For any other input (free-text topic, question, comparison request, mixed text w
     // call Perplexity Sonar API, return answer+citations, skip Step 2-4
   }
   See ADR-009 "Follow-ups" section for go/no-go criteria. Currently unwired —
-  kerka always runs the free path. Triggering criterion: 2 weeks of real
+  skavenger always runs the free path. Triggering criterion: 2 weeks of real
   /research telemetry showing A's quality insufficient for >30% of queries.
 -->
 
@@ -142,7 +142,7 @@ User: `/research asdfghjkl qwertyuiop nonsense query`
 ## Output Format
 
 ```
-## Research: [topic] [kerka]
+## Research: [topic] [skavenger]
 
 ### TL;DR
 [3 sentences max summarizing the key finding]
@@ -171,7 +171,7 @@ Confidence: [High | Medium | Low]
 ```
 
 - No emoji in headers or body
-- Tag the header with `[kerka]` for transparency
+- Tag the header with `[skavenger]` for transparency
 - For long reports: post Executive Summary + Key Takeaways + Sources inline, offer to save the full report to a user-confirmed path (never auto-write)
 
 ## no_context Rule
@@ -180,7 +180,7 @@ This agent IS the no_context enforcer for research outside library docs. Every c
 
 ## Memory
 
-Memory file: `.claude/agent-memory/kerka/MEMORY.md`
+Memory file: `.claude/agent-memory/skavenger/MEMORY.md`
 
 **Before starting**: Read your memory file with the `Read` tool. If it does not exist, skip — it will be created on first meaningful write.
 
@@ -191,6 +191,6 @@ Memory file: `.claude/agent-memory/kerka/MEMORY.md`
 
 Append the entry with:
 - `Write` or `Edit` tool (if available): read → modify → write the full file
-- `Bash` fallback: `cat >> .claude/agent-memory/kerka/MEMORY.md <<'EOF' ... EOF`
+- `Bash` fallback: `cat >> .claude/agent-memory/skavenger/MEMORY.md <<'EOF' ... EOF`
 
 Format: one-line bullet under a section (`## Patterns`, `## Sources`, `## Gotchas`). Keep the whole file under 200 lines. Never persist secrets, tokens, credentials, or PII.

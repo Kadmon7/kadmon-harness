@@ -64,7 +64,7 @@ Rules:
 
 ## Routing
 - MUST use opus model for: arkitect, konstruct, spektr, alchemik
-- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf, orakle, kerka
+- MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf, orakle, skavenger
 - MUST use opus model for doks (documentation requires critical analysis across 4 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
@@ -87,7 +87,7 @@ Rules:
 | doks | opus | /doks, after feature/structural commits | /doks | docs-sync, skill-stocktake, rules-distill, code-tour |
 | kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
 | alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit, cost-aware-llm-pipeline |
-| kerka | sonnet | /research, research/investigate/deep-dive intent | /research | deep-research |
+| skavenger | sonnet | /research, research/investigate/deep-dive intent | /research | deep-research |
 
 ## Auto-Invoke (no prompt needed)
 - Code touches auth/keys/exec/file paths/SQL → spektr
@@ -98,7 +98,7 @@ Rules:
 - Performance concerns (O(n^2), slow queries, memory patterns) → arkonte
 - /abra-kdabra with architecture signals → arkitect before konstruct
 - Encountering unfamiliar external API or library → almanak (via /almanak)
-- User asks to research/investigate/deep-dive/compare/analyze topics beyond the current codebase → kerka (via /research)
+- User asks to research/investigate/deep-dive/compare/analyze topics beyond the current codebase → skavenger (via /research)
 
 ## Manual Rules
 - MUST invoke kody before any commit via /chekpoint
@@ -113,7 +113,7 @@ Rules:
 - NEVER invoke alchemik without explicit /evolve command
 - NEVER invoke kartograf without explicit /skanner command (tests are expensive)
 - NEVER invoke kurator without explicit /medik clean command
-- MUST invoke kerka via /research for multi-source investigation; NEVER fall back to raw WebSearch when /research is the appropriate entry point
+- MUST invoke skavenger via /research for multi-source investigation; NEVER fall back to raw WebSearch when /research is the appropriate entry point
 
 ## Parallel Execution
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)
@@ -140,7 +140,7 @@ Rules:
 /kadmon-harness  script execution
 /kompact         context compaction
 /almanak         almanak (single lookup)
-/research        kerka (single researcher, loads deep-research skill)
+/research        skavenger (single researcher, loads deep-research skill)
 /forge           unified instinct pipeline (preview gate; /instinct is deprecated alias until 2026-04-20)
 ```
 

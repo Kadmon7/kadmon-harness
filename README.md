@@ -157,7 +157,7 @@ Full component details are below (collapsed by default). For the operational cat
 | **python-reviewer** | Python Specialist | Reviews Python: PEP 8, type hints, ML, security. | On `.py` edits | `/chekpoint` |
 | **almanak** | Docs Lookup | Searches live documentation via Context7 MCP. | On unfamiliar APIs | `/almanak` |
 | **kartograf** | E2E Testing | Writes and runs E2E tests: Vitest (harness), Playwright (web). | Never | `/skanner` |
-| **kerka** | Researcher | Multi-source deep research: web, YouTube transcripts, PDFs. Synthesizes cited reports. | On research/investigate/deep-dive intent | `/research` |
+| **skavenger** | Researcher | Multi-source deep research: web, YouTube transcripts, PDFs. Synthesizes cited reports. | On research/investigate/deep-dive intent | `/research` |
 
 </details>
 
@@ -241,7 +241,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Research (1)
 | Command | Purpose |
 |---------|---------|
-| `/research` | Multi-source deep research (web, YouTube transcripts, PDFs) — kerka agent loads `deep-research` skill, enforces ADR-009 D5 caps, returns cited synthesis |
+| `/research` | Multi-source deep research (web, YouTube transcripts, PDFs) — skavenger agent loads `deep-research` skill, enforces ADR-009 D5 caps, returns cited synthesis |
 
 ### Remember (3)
 | Command | Purpose |

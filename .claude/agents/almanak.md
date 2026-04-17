@@ -6,7 +6,6 @@ tools: Read, Grep, Bash, mcp__plugin_context7_context7__resolve-library-id, mcp_
 memory: user
 skills:
   - mcp-server-patterns
-  - deep-research
   - documentation-lookup
 ---
 
