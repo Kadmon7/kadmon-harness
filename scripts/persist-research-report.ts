@@ -43,6 +43,13 @@ const PersistReportInputSchema = z.object({
   summary: z.string().optional(),
   bodyMarkdown: z.string(),
   untrustedSources: z.boolean(),
+  // Commit 4 (Group B) optional metadata — surfaced in YAML frontmatter only,
+  // not stored as DB columns (keeps research_reports schema stable).
+  // derivedFrom is agent-produced (from a prior report's slug); cap at 256
+  // to make the size contract explicit even though escapeYamlString handles
+  // the injection hazard on emit.
+  derivedFrom: z.string().min(1).max(256).optional(), // e.g. "research-001-pgvector-hnsw" — set by --drill
+  mode: z.enum(["verify"]).optional(), // set by --verify
 });
 
 export type PersistReportInput = z.infer<typeof PersistReportInputSchema>;
@@ -127,6 +134,9 @@ function buildFrontmatter(
     lines.push(`open_questions: []`);
   }
   lines.push(`untrusted_sources: ${input.untrustedSources ? "true" : "false"}`);
+  if (input.derivedFrom)
+    lines.push(`derived_from: "${escapeYamlString(input.derivedFrom)}"`);
+  if (input.mode) lines.push(`mode: ${input.mode}`);
   lines.push("---");
   return lines.join("\n");
 }
