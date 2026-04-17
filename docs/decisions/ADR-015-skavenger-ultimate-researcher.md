@@ -201,6 +201,10 @@ No content sanitization on write. Sanitization is a losing game (attackers evolv
 - **Route D authentication mode.** `gh api` uses the machine's `gh auth` state. Should `/research` surface a warning if unauthenticated (60/hr) vs authenticated (5000/hr)?
 - **FTS5 probe choice.** `SELECT fts5(?)` vs `CREATE VIRTUAL TABLE USING fts5`. konstruct decides during implementation based on what sql.js v1.14.1 actually accepts.
 
+## Post-implementation note (2026-04-17, kody consolidation)
+
+Q1 above reads as if `session-end-all.js` and `evaluate-patterns-shared.js` *consume* `research_finding` observations as a useful signal — they don't, yet. Plan-015 shipped the emission side (`/research` command writes the events) and the R5 filter (ClusterReport pattern eval drops them), but `observations.jsonl` is cleaned at session end and `research_finding` rows are never persisted to SQLite. Alchemik has no wire to them today. This is a deliberately small follow-up: add a `findings_json` column on `research_reports` (or a sibling `research_findings` table) and teach `/evolve` to read it. The emission + filter contract in this ADR is the stable half; the consumer is deferred to keep plan-015 bounded.
+
 ## Review date
 
 **2026-07-17** — three months. Criteria for the review: (a) are users writing reports to `docs/research/` routinely, or is auto-write silently disabled via the escape hatch? (b) are `research_finding` observations producing useful instincts via `/forge`, or are they noise? (c) did skavenger.md stay under the 600-line soft limit, or did it grow unchecked? (d) FTS5 branch vs LIKE branch usage ratio — if 100% LIKE, the FTS5 code is dead weight; if 100% FTS5, the fallback is dead weight. (e) Any prompt-injection incidents via persisted reports? If yes, re-evaluate Q5.
