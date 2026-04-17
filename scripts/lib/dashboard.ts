@@ -265,6 +265,7 @@ function getDbStatus(): DbStatusRow[] {
     "hook_events",
     "agent_invocations",
     "sync_queue",
+    "research_reports",
   ];
   return tables.map((table) => {
     const row = getDb().prepare(`SELECT COUNT(*) as cnt FROM ${table}`).get();

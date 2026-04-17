@@ -21,7 +21,7 @@ Run all 8 checks directly (mechanical commands, no agent needed):
 | 2 | Typecheck | `npx tsc --noEmit` | Type errors (TS2xxx codes) |
 | 3 | Tests | `npx vitest run` | Test failures, timeout errors |
 | 4 | Hook errors | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
-| 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, 6 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue), no corruption |
+| 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), no corruption |
 | 6 | dist/ sync | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
 | 7 | Dependencies | `npm audit` | Vulnerable packages, outdated deps |
 | 8 | Agent frontmatter | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |

@@ -32,7 +32,24 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
   const obsPath = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
   if (!fs.existsSync(obsPath)) return 0;
 
-  const lines = fs.readFileSync(obsPath, "utf8").split("\n").filter(Boolean);
+  const rawLines = fs.readFileSync(obsPath, "utf8").split("\n").filter(Boolean);
+  if (rawLines.length < minLines) return 0;
+
+  // R5 guard (ADR-015): research_finding observations are emitted to the
+  // same observations.jsonl by the /research command, but they must NOT
+  // contribute to ClusterReport pattern evaluation — research findings are
+  // their own signal type consumed by alchemik during /evolve, not a
+  // coding-behavior pattern. Filter them out before pattern eval while
+  // leaving the raw file untouched for debugging. Unparseable lines pass
+  // through (don't silently drop data the pattern engine already tolerates).
+  const lines = rawLines.filter((line) => {
+    try {
+      const e = JSON.parse(line);
+      return e.eventType !== "research_finding";
+    } catch {
+      return true;
+    }
+  });
   if (lines.length < minLines) return 0;
 
   const remoteUrl = gitExec(["remote", "get-url", "origin"], cwd);
