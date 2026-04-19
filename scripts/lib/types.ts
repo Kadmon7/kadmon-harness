@@ -18,6 +18,8 @@ export interface Instinct {
   domain?: string;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
+  /** ISO 8601 of most recent observation that matched this instinct. Seeds decay. Undefined for pre-v0.5 rows. */
+  lastObservedAt?: string;
   promotedTo?: string;
 }
 

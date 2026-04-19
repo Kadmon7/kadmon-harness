@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { openDb, closeDb, getInstinct } from "../../scripts/lib/state-store.js";
+import {
+  openDb,
+  closeDb,
+  getInstinct,
+  upsertInstinct,
+} from "../../scripts/lib/state-store.js";
 import {
   createInstinct,
   reinforceInstinct,
@@ -7,6 +12,7 @@ import {
   promoteInstinct,
   pruneInstincts,
   getInstinctSummary,
+  decayInstincts,
 } from "../../scripts/lib/instinct-manager.js";
 
 describe("instinct-manager", () => {
@@ -161,5 +167,203 @@ describe("instinct-manager", () => {
     expect(reinforceInstinct("nonexistent", "sess-1")).toBeNull();
     expect(contradictInstinct("nonexistent")).toBeNull();
     expect(promoteInstinct("nonexistent", "skill")).toBeNull();
+  });
+});
+
+describe("decayInstincts", () => {
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  beforeEach(async () => {
+    await openDb(":memory:");
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  it("decays a stale instinct by 0.02 per full week since last_observed_at", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const fourteenDaysAgo = new Date(
+      now.getTime() - 14 * MS_PER_DAY,
+    ).toISOString();
+    upsertInstinct({
+      id: "stale-1",
+      projectHash: "proj1",
+      pattern: "p",
+      action: "a",
+      confidence: 0.8,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+      createdAt: fourteenDaysAgo,
+      updatedAt: fourteenDaysAgo,
+      lastObservedAt: fourteenDaysAgo,
+    });
+
+    const result = decayInstincts("proj1", now);
+    expect(result.decayed).toBe(1);
+    expect(result.totalLoss).toBeCloseTo(0.04, 2);
+
+    const after = getInstinct("stale-1");
+    expect(after!.confidence).toBeCloseTo(0.76, 2);
+  });
+
+  it("does not decay instincts observed within the last full week", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const threeDaysAgo = new Date(
+      now.getTime() - 3 * MS_PER_DAY,
+    ).toISOString();
+    upsertInstinct({
+      id: "fresh-1",
+      projectHash: "proj1",
+      pattern: "p",
+      action: "a",
+      confidence: 0.7,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+      createdAt: threeDaysAgo,
+      updatedAt: threeDaysAgo,
+      lastObservedAt: threeDaysAgo,
+    });
+
+    const result = decayInstincts("proj1", now);
+    expect(result.decayed).toBe(0);
+    expect(getInstinct("fresh-1")!.confidence).toBe(0.7);
+  });
+
+  it("clamps confidence to 0 and never below", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const weeksAgo = new Date(
+      now.getTime() - 100 * 7 * MS_PER_DAY,
+    ).toISOString();
+    upsertInstinct({
+      id: "ancient-1",
+      projectHash: "proj1",
+      pattern: "p",
+      action: "a",
+      confidence: 0.05,
+      occurrences: 1,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+      createdAt: weeksAgo,
+      updatedAt: weeksAgo,
+      lastObservedAt: weeksAgo,
+    });
+
+    const result = decayInstincts("proj1", now);
+    expect(result.decayed).toBe(1);
+    expect(getInstinct("ancient-1")!.confidence).toBe(0);
+  });
+
+  it("skips promoted, contradicted, and archived instincts", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const weeksAgo = new Date(
+      now.getTime() - 14 * MS_PER_DAY,
+    ).toISOString();
+    for (const status of ["promoted", "contradicted", "archived"] as const) {
+      upsertInstinct({
+        id: `frozen-${status}`,
+        projectHash: "proj1",
+        pattern: "p",
+        action: "a",
+        confidence: 0.8,
+        occurrences: 3,
+        contradictions: 0,
+        status,
+        scope: "project",
+        createdAt: weeksAgo,
+        updatedAt: weeksAgo,
+        lastObservedAt: weeksAgo,
+      });
+    }
+
+    const result = decayInstincts("proj1", now);
+    expect(result.decayed).toBe(0);
+    for (const status of ["promoted", "contradicted", "archived"] as const) {
+      expect(getInstinct(`frozen-${status}`)!.confidence).toBe(0.8);
+    }
+  });
+
+  it("falls back to updated_at when last_observed_at is null (pre-v0.5 rows)", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const weeksAgo = new Date(
+      now.getTime() - 21 * MS_PER_DAY,
+    ).toISOString();
+    upsertInstinct({
+      id: "legacy-1",
+      projectHash: "proj1",
+      pattern: "p",
+      action: "a",
+      confidence: 0.7,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+      createdAt: weeksAgo,
+      updatedAt: weeksAgo,
+      // lastObservedAt intentionally undefined — pre-migration row
+    });
+
+    const result = decayInstincts("proj1", now);
+    expect(result.decayed).toBe(1);
+    // 3 full weeks = -0.06. 0.7 - 0.06 = 0.64
+    expect(getInstinct("legacy-1")!.confidence).toBeCloseTo(0.64, 2);
+  });
+
+  it("silently skips instincts with an invalid last_observed_at string", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const weeksAgo = new Date(
+      now.getTime() - 14 * MS_PER_DAY,
+    ).toISOString();
+    upsertInstinct({
+      id: "bad-date",
+      projectHash: "proj1",
+      pattern: "p",
+      action: "a",
+      confidence: 0.8,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+      createdAt: weeksAgo,
+      updatedAt: weeksAgo,
+      lastObservedAt: "NOT_AN_ISO_STRING",
+    });
+
+    const result = decayInstincts("proj1", now);
+    expect(result.decayed).toBe(0);
+    expect(getInstinct("bad-date")!.confidence).toBe(0.8);
+  });
+
+  it("scopes decay to the given projectHash only", () => {
+    const now = new Date("2026-04-19T00:00:00.000Z");
+    const weeksAgo = new Date(
+      now.getTime() - 14 * MS_PER_DAY,
+    ).toISOString();
+    for (const ph of ["projA", "projB"]) {
+      upsertInstinct({
+        id: `i-${ph}`,
+        projectHash: ph,
+        pattern: "p",
+        action: "a",
+        confidence: 0.7,
+        occurrences: 3,
+        contradictions: 0,
+        status: "active",
+        scope: "project",
+        createdAt: weeksAgo,
+        updatedAt: weeksAgo,
+        lastObservedAt: weeksAgo,
+      });
+    }
+
+    const result = decayInstincts("projA", now);
+    expect(result.decayed).toBe(1);
+    expect(getInstinct("i-projA")!.confidence).toBeCloseTo(0.66, 2);
+    expect(getInstinct("i-projB")!.confidence).toBe(0.7); // untouched
   });
 });

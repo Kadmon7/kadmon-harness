@@ -378,6 +378,9 @@ function mapInstinctRow(row: Record<string, unknown>): Instinct {
     domain: row.domain ? String(row.domain) : undefined,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
+    lastObservedAt: row.last_observed_at
+      ? String(row.last_observed_at)
+      : undefined,
     promotedTo: row.promoted_to ? String(row.promoted_to) : undefined,
   };
 }
@@ -389,9 +392,9 @@ export function upsertInstinct(
     .prepare(
       `
     INSERT INTO instincts (id, project_hash, pattern, action, confidence, occurrences,
-      contradictions, source_sessions, status, scope, domain, promoted_to, created_at, updated_at)
+      contradictions, source_sessions, status, scope, domain, promoted_to, created_at, updated_at, last_observed_at)
     VALUES (@id, @project_hash, @pattern, @action, @confidence, @occurrences,
-      @contradictions, @source_sessions, @status, @scope, @domain, @promoted_to, @created_at, @updated_at)
+      @contradictions, @source_sessions, @status, @scope, @domain, @promoted_to, @created_at, @updated_at, @last_observed_at)
     ON CONFLICT(id) DO UPDATE SET
       confidence = excluded.confidence,
       occurrences = excluded.occurrences,
@@ -401,7 +404,8 @@ export function upsertInstinct(
       scope = excluded.scope,
       domain = COALESCE(excluded.domain, instincts.domain),
       promoted_to = excluded.promoted_to,
-      updated_at = excluded.updated_at
+      updated_at = excluded.updated_at,
+      last_observed_at = COALESCE(excluded.last_observed_at, instincts.last_observed_at)
   `,
     )
     .run({
@@ -419,6 +423,7 @@ export function upsertInstinct(
       promoted_to: instinct.promotedTo ?? null,
       created_at: instinct.createdAt ?? nowISO(),
       updated_at: instinct.updatedAt ?? nowISO(),
+      last_observed_at: instinct.lastObservedAt ?? null,
     });
 }
 

@@ -236,6 +236,7 @@ function projectInMemory(
         occurrences: match.occurrences + 1,
         sourceSessions: sessions,
         updatedAt: now,
+        lastObservedAt: now,
       };
       reinforce.push({ before: match, after });
     } else {
@@ -253,6 +254,7 @@ function projectInMemory(
         domain: c.domain,
         createdAt: now,
         updatedAt: now,
+        lastObservedAt: now,
       };
       create.push(fresh);
     }

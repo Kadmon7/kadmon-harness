@@ -138,6 +138,28 @@ describe("forge-pipeline", () => {
     expect(after!.confidence).toBeCloseTo(0.5, 5);
     expect(after!.occurrences).toBe(3);
     expect(preview.totals.reinforced).toBeGreaterThanOrEqual(1);
+    // plan-018 Phase 1.8: reinforcement writes lastObservedAt
+    expect(after!.lastObservedAt).toBeDefined();
+    expect(after!.lastObservedAt).toBe(after!.updatedAt);
+  });
+
+  it("T3b: apply writes lastObservedAt on freshly created instincts", async () => {
+    const projectHash = "proj-fresh";
+    const sessionId = "sess-t3b";
+    sessionIds.push(sessionId);
+
+    // No pre-existing instinct → pipeline creates one
+    seedObservations(sessionId, editTypesPattern(3));
+
+    const preview = await runForgePipeline({ projectHash, sessionId });
+    applyForgePreview(preview, { projectHash, sessionId });
+
+    const all = getActiveInstincts(projectHash);
+    expect(all.length).toBeGreaterThanOrEqual(1);
+    for (const inst of all) {
+      expect(typeof inst.lastObservedAt).toBe("string");
+      expect(inst.lastObservedAt).toBe(inst.createdAt);
+    }
   });
 
   it("T4: dry-run does NOT mutate the DB (byte-identical before/after)", async () => {

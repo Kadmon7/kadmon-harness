@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS instincts (
   domain TEXT,
   promoted_to TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  last_observed_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS cost_events (
