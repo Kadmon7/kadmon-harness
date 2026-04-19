@@ -1,0 +1,153 @@
+---
+# REQUIRED — lowercase-kebab, must match filename stem (example-agent.md → name: example-agent).
+name: example-agent
+# REQUIRED — trigger phrase + command + severity. QUOTE with "..." whenever the value contains a colon.
+description: "Use PROACTIVELY when <trigger condition>. Command: /<command>. Severity: <CRITICAL|HIGH|MEDIUM|LOW> (omit if not applicable)."
+# REQUIRED — exactly one of: opus | sonnet. NEVER haiku (rules/common/agents.md forbids it). See the model decision tree in rules/common/agents.md.
+model: sonnet
+# REQUIRED — comma-separated list. Minimum privilege. NEVER include `Skill` (plugins are command-level per rules/common/agents.md).
+tools: Read, Grep, Glob
+# REQUIRED — project (default) | user (cross-project knowledge only, e.g. almanak).
+memory: project
+# REQUIRED — YAML BLOCK LIST (ADR-012). NEVER a scalar. Each name must exist at .claude/skills/<name>/SKILL.md (ADR-013).
+skills:
+  - example-skill-one
+  - example-skill-two
+---
+
+<!--
+  This is the canonical agent skeleton. Loader ignores `_`-prefixed files
+  (Anthropic sub-agent convention); linter also skips via the `_`-prefix
+  filter per ADR-017. Copy this file to `.claude/agents/<new-name>.md`
+  and replace every placeholder. DO NOT rename `_TEMPLATE.md` itself.
+
+  Contract source of truth: docs/decisions/ADR-017-agent-template-system.md
+  Contract summary: .claude/rules/common/agents.md §Agent Template Contract
+-->
+
+You are a <role> specialist. You <primary verb> by <method> so that <outcome>.
+
+<!--
+  Opening identity paragraph is MANDATORY. One or two first-person sentences.
+  Reference shapes: .claude/agents/arkitect.md:14 (architect tone),
+  .claude/agents/skavenger.md:11 (researcher tone),
+  .claude/agents/spektr.md:13 (security tone).
+-->
+
+## Expertise
+
+- <Domain 1 — one-line description of competence>
+- <Domain 2 — one-line description of competence>
+- <Domain 3 — one-line description of competence>
+
+<!--
+  `## Expertise` is STRONGLY RECOMMENDED. Omit ONLY when the agent's role
+  is itself the expertise (e.g. doks — where the role name spells out the
+  scope). If you omit, leave an HTML comment here explaining why.
+-->
+
+## Workflow
+
+### Step 1 — <action verb>
+<What the agent does on step 1. Keep action-oriented and specific.>
+
+### Step 2 — <action verb>
+<What the agent does on step 2.>
+
+### Step 3 — <action verb>
+<What the agent does on step 3.>
+
+<!--
+  `## Workflow` is STRONGLY RECOMMENDED. Project-sanctioned synonyms:
+  `## Review Workflow`, `## Review Process`, `## Planning Process`,
+  `## TDD Workflow`, `## Analysis`. Omitting is rare — most agents need
+  a named step sequence even if the underlying reasoning is adaptive.
+-->
+
+## Output Format
+
+Every invocation returns this exact structure. The tag `[<agent-name>]` in the heading is a transparency contract for downstream consumers.
+
+```markdown
+## <Header for the output> [<agent-name>]
+
+### <Section 1 — e.g. Summary>
+<content>
+
+### <Section 2 — e.g. Findings>
+<content>
+
+### <Section 3 — e.g. Recommendations>
+<content>
+```
+
+<!--
+  `## Output Format` is MANDATORY. Project-sanctioned synonyms when the
+  agent produces a specific artifact: `## Plan Format` (konstruct),
+  `## Review Output Format` (reviewers). If a downstream command PARSES
+  this output (e.g. /abra-kdabra reads konstruct's plan), the format is
+  a CONTRACT — changing it breaks the consumer.
+-->
+
+## no_context Rule
+
+<How this agent enforces the no_context principle within its domain. 3-5 lines. Example shapes: "Never infer X from training data; always read Y." "If Z cannot be established, stop and report rather than guess." "When input is ambiguous, ask rather than assume.">
+
+<!--
+  `## no_context Rule` is STRONGLY RECOMMENDED. Every agent should state
+  how it refuses to invent evidence. Absent today in kody/doks/typescript-
+  reviewer (Phase 2 migration of plan-017 fixes that).
+-->
+
+## Memory
+
+Memory file: `.claude/agent-memory/<agent-name>/MEMORY.md`
+
+**Before starting**: Read your memory file with the `Read` tool. If it does not exist, skip — it will be created on first meaningful write.
+
+**After completing** your primary task, update memory ONLY IF you discovered one of:
+- A recurring issue or false-positive pattern worth flagging next time
+- A non-obvious project convention you had to learn the hard way
+- A decision with rationale that future invocations should respect
+
+Append the entry with:
+- `Write` or `Edit` tool (if available): read → modify → write the full file
+- `Bash` fallback: `cat >> .claude/agent-memory/<agent-name>/MEMORY.md <<'EOF' ... EOF`
+
+Format: one-line bullet under a section (`## Feedback`, `## Patterns`, `## Project`). Keep the whole file under 200 lines. Never persist secrets, tokens, credentials, or PII.
+
+<!--
+  `## Memory` is MANDATORY. All 16 existing agents use this exact wording.
+  Replace <agent-name> with the agent's actual name. Do NOT reword the
+  body — drift here is noise.
+-->
+
+<!-- ============================================================ -->
+<!-- OPTIONAL SECTIONS — uncomment and fill in WHEN the trigger fires.  -->
+<!-- Full inclusion criteria: ADR-017 §Template Contract.              -->
+<!-- Copy the shape from the reference agent listed on each trigger.   -->
+<!-- ============================================================ -->
+
+<!-- OPTIONAL `## Security` — WHEN agent fetches/executes external content
+     OR processes untrusted input (web pages, transcripts, PDFs, user SQL).
+     Reference: skavenger, spektr, almanak. -->
+
+<!-- OPTIONAL `## Pipeline Contract (/<command>)` — WHEN agent is part of a
+     /command chain with a file-based hand-off (ADR→plan→review).
+     Reference: konstruct, feniks, kody. -->
+
+<!-- OPTIONAL `## Examples` — WHEN workflow branches are non-obvious
+     (Route A vs B, multiple modes, conditional source selection).
+     Reference: skavenger. -->
+
+<!-- OPTIONAL `## Red Flags` — WHEN there is a taxonomy of BAD outputs to
+     REJECT (not merely fix).
+     Reference: arkitect, konstruct. -->
+
+<!-- OPTIONAL `## <Artifact> Template` — WHEN agent produces a specific
+     artifact consumed downstream (ADR, plan, schema, migration).
+     Reference: arkitect (`## ADR Template`), konstruct (`## Plan Format`). -->
+
+<!-- OPTIONAL `## Execution Caps` / `## Depth Modes` / `## Self-Evaluation`
+     — WHEN agent has multiple invocation modes or bounded resource budgets.
+     Reference: skavenger (Routes + --plan/--verify/--drill + F7 rubric). -->
