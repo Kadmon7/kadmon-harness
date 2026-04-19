@@ -46,8 +46,9 @@ export function lintAgentFrontmatter(options: LintOptions): LintResult {
     };
   }
 
+  // Skip _-prefixed files: template/example skeletons per ADR-017 (loader also ignores them).
   const files = readdirSync(agentsDir)
-    .filter((f) => f.endsWith(".md"))
+    .filter((f) => f.endsWith(".md") && !f.startsWith("_"))
     .sort();
 
   const violations: LintViolation[] = [];

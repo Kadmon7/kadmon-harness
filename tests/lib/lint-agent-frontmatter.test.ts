@@ -193,6 +193,23 @@ describe("lint-agent-frontmatter", () => {
     expect(result.violations[0].message).toContain("directory");
   });
 
+  it("underscore-prefixed files are skipped: _TEMPLATE.md with broken frontmatter does not error", () => {
+    writeSkill("coding-standards");
+    writeAgent("real", "name: real\nskills:\n  - coding-standards");
+    // _TEMPLATE.md deliberately has a scalar skills field AND a nonexistent
+    // skill — without the underscore-prefix filter this produces 2 violations.
+    writeFileSync(
+      join(agentsDir, "_TEMPLATE.md"),
+      "---\nname: _template\nskills: not-a-real-skill\n---\n\nbody\n"
+    );
+
+    const result = lintAgentFrontmatter({ agentsDir, skillsDir });
+
+    expect(result.ok).toBe(true);
+    expect(result.violations).toHaveLength(0);
+    expect(result.filesChecked).toBe(1); // only real.md counted
+  });
+
   it("integration: real harness agents pass against .claude/skills", () => {
     const realResult = lintAgentFrontmatter({
       agentsDir: ".claude/agents",
