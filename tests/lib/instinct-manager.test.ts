@@ -13,6 +13,7 @@ import {
   pruneInstincts,
   getInstinctSummary,
   decayInstincts,
+  promoteToGlobal,
 } from "../../scripts/lib/instinct-manager.js";
 
 describe("instinct-manager", () => {
@@ -365,5 +366,92 @@ describe("decayInstincts", () => {
     expect(result.decayed).toBe(1);
     expect(getInstinct("i-projA")!.confidence).toBeCloseTo(0.66, 2);
     expect(getInstinct("i-projB")!.confidence).toBe(0.7); // untouched
+  });
+});
+
+describe("promoteToGlobal", () => {
+  beforeEach(async () => {
+    await openDb(":memory:");
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  it("flips scope from project to global on an eligible instinct", () => {
+    upsertInstinct({
+      id: "p-1",
+      projectHash: "projA",
+      pattern: "p",
+      action: "a",
+      confidence: 0.8,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+    });
+
+    const count = promoteToGlobal(["p-1"]);
+    expect(count).toBe(1);
+
+    const after = getInstinct("p-1");
+    expect(after!.scope).toBe("global");
+  });
+
+  it("is idempotent — second call does not touch updated_at", async () => {
+    upsertInstinct({
+      id: "p-2",
+      projectHash: "projA",
+      pattern: "p",
+      action: "a",
+      confidence: 0.8,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "global",
+      updatedAt: "2026-04-01T00:00:00.000Z",
+    });
+
+    const before = getInstinct("p-2")!.updatedAt;
+    const count = promoteToGlobal(["p-2"]);
+    expect(count).toBe(0); // already global — skipped
+
+    const after = getInstinct("p-2")!.updatedAt;
+    expect(after).toBe(before); // unchanged
+  });
+
+  it("silently skips nonexistent ids", () => {
+    const count = promoteToGlobal(["does-not-exist"]);
+    expect(count).toBe(0);
+  });
+
+  it("handles mixed batch: promotes eligible, skips already-global", () => {
+    upsertInstinct({
+      id: "mix-a",
+      projectHash: "projA",
+      pattern: "p",
+      action: "a",
+      confidence: 0.8,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "project",
+    });
+    upsertInstinct({
+      id: "mix-b",
+      projectHash: "projB",
+      pattern: "p",
+      action: "a",
+      confidence: 0.8,
+      occurrences: 3,
+      contradictions: 0,
+      status: "active",
+      scope: "global",
+    });
+
+    const count = promoteToGlobal(["mix-a", "mix-b", "not-real"]);
+    expect(count).toBe(1);
+    expect(getInstinct("mix-a")!.scope).toBe("global");
+    expect(getInstinct("mix-b")!.scope).toBe("global"); // stayed global
   });
 });

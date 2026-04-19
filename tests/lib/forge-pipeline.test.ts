@@ -143,6 +143,158 @@ describe("forge-pipeline", () => {
     expect(after!.lastObservedAt).toBe(after!.updatedAt);
   });
 
+  it("T10: cross-project promotion — 2 projects with shared pattern → scopePromote populated + both become global (plan-018 Phase 4)", async () => {
+    const projA = "proj-xp-a";
+    const projB = "proj-xp-b";
+    const sessionId = "sess-t10";
+    sessionIds.push(sessionId);
+
+    upsertInstinct(
+      makeInstinct({
+        id: "xp-a",
+        projectHash: projA,
+        pattern: "commit before push",
+        action: "Always commit local changes before pushing",
+        confidence: 0.85,
+        occurrences: 4,
+        scope: "project",
+      }),
+    );
+    upsertInstinct(
+      makeInstinct({
+        id: "xp-b",
+        projectHash: projB,
+        pattern: "commit before push",
+        action: "Always commit local changes before pushing",
+        confidence: 0.8,
+        occurrences: 3,
+        scope: "project",
+      }),
+    );
+
+    seedObservations(sessionId, [toolPreLine("Bash")]);
+
+    const preview = await runForgePipeline({
+      projectHash: projA,
+      sessionId,
+    });
+
+    expect(preview.would.scopePromote.length).toBeGreaterThanOrEqual(2);
+    expect(preview.totals.scopePromoted).toBeGreaterThanOrEqual(2);
+    const ids = preview.would.scopePromote.map((s) => s.instinctId).sort();
+    expect(ids).toContain("xp-a");
+    expect(ids).toContain("xp-b");
+    for (const entry of preview.would.scopePromote) {
+      expect(entry.fromScope).toBe("project");
+      expect(entry.toScope).toBe("global");
+      expect(entry.rationale).toContain("2 projects");
+    }
+
+    applyForgePreview(preview, { projectHash: projA, sessionId });
+
+    expect(getInstinct("xp-a")!.scope).toBe("global");
+    expect(getInstinct("xp-b")!.scope).toBe("global");
+  });
+
+  it("T11: dry-run does NOT apply scope promotions", async () => {
+    const projA = "proj-dry-xp-a";
+    const projB = "proj-dry-xp-b";
+    const sessionId = "sess-t11";
+    sessionIds.push(sessionId);
+
+    upsertInstinct(
+      makeInstinct({
+        id: "dxp-a",
+        projectHash: projA,
+        pattern: "p",
+        action: "a",
+        confidence: 0.85,
+        occurrences: 3,
+        scope: "project",
+      }),
+    );
+    upsertInstinct(
+      makeInstinct({
+        id: "dxp-b",
+        projectHash: projB,
+        pattern: "p",
+        action: "a",
+        confidence: 0.85,
+        occurrences: 3,
+        scope: "project",
+      }),
+    );
+
+    seedObservations(sessionId, [toolPreLine("Bash")]);
+
+    const preview = await runForgePipeline({
+      projectHash: projA,
+      sessionId,
+      dryRun: true,
+    });
+
+    expect(preview.would.scopePromote.length).toBeGreaterThanOrEqual(2);
+    // dry-run: skip applyForgePreview — no DB write
+    expect(getInstinct("dxp-a")!.scope).toBe("project");
+    expect(getInstinct("dxp-b")!.scope).toBe("project");
+  });
+
+  it("T12: collision — instinct eligible for BOTH regular promote and scopePromote applies both (feniks gap #5)", async () => {
+    const projA = "proj-coll-a";
+    const projB = "proj-coll-b";
+    const sessionId = "sess-t12";
+    sessionIds.push(sessionId);
+
+    // Both instincts at confidence >= 0.7 AND occurrences >= 3 → promotable (status change)
+    // AND present in 2 projects at avg conf >= 0.8 → scopePromote (scope change)
+    upsertInstinct(
+      makeInstinct({
+        id: "coll-a",
+        projectHash: projA,
+        pattern: "p",
+        action: "a",
+        confidence: 0.8,
+        occurrences: 5,
+        scope: "project",
+      }),
+    );
+    upsertInstinct(
+      makeInstinct({
+        id: "coll-b",
+        projectHash: projB,
+        pattern: "p",
+        action: "a",
+        confidence: 0.8,
+        occurrences: 5,
+        scope: "project",
+      }),
+    );
+
+    seedObservations(sessionId, [toolPreLine("Bash")]);
+
+    const preview = await runForgePipeline({
+      projectHash: projA,
+      sessionId,
+    });
+
+    const promoteIds = preview.would.promote.map((i) => i.id);
+    const scopeIds = preview.would.scopePromote.map((s) => s.instinctId);
+    // Both lists contain at least one id — they are orthogonal (status vs scope)
+    expect(promoteIds).toContain("coll-a");
+    expect(scopeIds).toContain("coll-a");
+    expect(scopeIds).toContain("coll-b");
+
+    applyForgePreview(preview, { projectHash: projA, sessionId });
+
+    const afterA = getInstinct("coll-a")!;
+    expect(afterA.status).toBe("promoted");
+    expect(afterA.scope).toBe("global");
+
+    // coll-b only received the scope change (not in would.promote for projA's run)
+    const afterB = getInstinct("coll-b")!;
+    expect(afterB.scope).toBe("global");
+  });
+
   it("T3b: apply writes lastObservedAt on freshly created instincts", async () => {
     const projectHash = "proj-fresh";
     const sessionId = "sess-t3b";
