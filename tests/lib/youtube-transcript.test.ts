@@ -64,14 +64,18 @@ describe("parseVtt", () => {
   });
 });
 
-// Case 2: Non-YouTube URL reject (no subprocess spawned)
+// Case 2: Non-media URL reject (no subprocess spawned)
+// Per ADR-016 Route A widening: the helper now accepts 9 media hosts
+// (YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion).
+// URLs outside that set are rejected here; matched-but-non-YouTube URLs
+// pass through to yt-dlp (which handles them natively).
 describe("fetchYouTubeTranscript — URL validation", () => {
-  it("rejects non-YouTube URLs without spawning a subprocess", async () => {
+  it("rejects URLs outside the Route A media host set without spawning a subprocess", async () => {
     const result = await fetchYouTubeTranscript({ url: "https://example.com/foo" });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.source).toBe("error");
-      expect(result.error).toMatch(/not a youtube url/i);
+      expect(result.error).toMatch(/not a recognized media url/i);
     }
   });
 
@@ -79,7 +83,7 @@ describe("fetchYouTubeTranscript — URL validation", () => {
     const result = await fetchYouTubeTranscript({ url: "not a url at all" });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toMatch(/not a youtube url/i);
+      expect(result.error).toMatch(/not a recognized media url/i);
     }
   });
 
