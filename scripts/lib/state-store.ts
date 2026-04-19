@@ -441,6 +441,77 @@ export function getActiveInstincts(projectHash: string): Instinct[] {
     .map(mapInstinctRow);
 }
 
+/**
+ * Find instincts that are candidates for promotion from `scope: 'project'` to
+ * `scope: 'global'` because the same pattern appears in multiple projects with
+ * strong confidence (plan-018 Phase 4, ECC port 4/4).
+ *
+ * Scope: `status = 'active' AND scope = 'project'` only. Already-global rows
+ * are excluded (they're the target state, not the source).
+ *
+ * Pattern matching: app-layer Unicode-safe normalization via
+ * `pattern.trim().toLowerCase().replace(/\s+/g, ' ')`. SQLite's `LOWER` is
+ * ASCII-only, so this can't be collapsed into SQL.
+ *
+ * @param minProjects Unique project hashes required per pattern (default 2)
+ * @param minAvgConfidence Mean confidence across the group (default 0.8, inclusive)
+ */
+export function getCrossProjectPromotionCandidates(
+  minProjects: number = 2,
+  minAvgConfidence: number = 0.8,
+): Array<{
+  normalizedPattern: string;
+  projectCount: number;
+  avgConfidence: number;
+  totalOccurrences: number;
+  instinctIds: string[];
+}> {
+  const rows = getDb()
+    .prepare(
+      "SELECT * FROM instincts WHERE status = 'active' AND scope = 'project'",
+    )
+    .all()
+    .map(mapInstinctRow);
+
+  const normalize = (p: string): string =>
+    p.trim().toLowerCase().replace(/\s+/g, " ");
+
+  const groups = new Map<string, Instinct[]>();
+  for (const inst of rows) {
+    const key = normalize(inst.pattern);
+    const bucket = groups.get(key) ?? [];
+    bucket.push(inst);
+    groups.set(key, bucket);
+  }
+
+  const candidates: Array<{
+    normalizedPattern: string;
+    projectCount: number;
+    avgConfidence: number;
+    totalOccurrences: number;
+    instinctIds: string[];
+  }> = [];
+
+  for (const [key, members] of groups) {
+    const uniqueProjects = new Set(members.map((m) => m.projectHash));
+    if (uniqueProjects.size < minProjects) continue;
+
+    const avgConfidence =
+      members.reduce((sum, m) => sum + m.confidence, 0) / members.length;
+    if (avgConfidence < minAvgConfidence) continue;
+
+    candidates.push({
+      normalizedPattern: key,
+      projectCount: uniqueProjects.size,
+      avgConfidence,
+      totalOccurrences: members.reduce((sum, m) => sum + m.occurrences, 0),
+      instinctIds: members.map((m) => m.id),
+    });
+  }
+
+  return candidates;
+}
+
 export function getPromotableInstincts(projectHash: string): Instinct[] {
   return getDb()
     .prepare(

@@ -23,7 +23,9 @@ import {
 import {
   getActiveInstincts,
   upsertInstinct,
+  getCrossProjectPromotionCandidates,
 } from "./state-store.js";
+import { promoteToGlobal } from "./instinct-manager.js";
 import {
   evaluatePatterns,
   loadPatternDefinitions,
@@ -43,12 +45,20 @@ export interface ForgeReinforcement {
   after: Instinct;
 }
 
+export interface ForgeScopePromotion {
+  instinctId: string;
+  fromScope: "project";
+  toScope: "global";
+  rationale: string;
+}
+
 export interface ForgePreview {
   would: {
     create: Instinct[];
     reinforce: ForgeReinforcement[];
     promote: Instinct[];
     prune: Instinct[];
+    scopePromote: ForgeScopePromotion[];
   };
   clusterReport: ClusterReport;
   totals: {
@@ -56,6 +66,7 @@ export interface ForgePreview {
     reinforced: number;
     promoted: number;
     pruned: number;
+    scopePromoted: number;
   };
 }
 
@@ -109,17 +120,36 @@ export async function runForgePipeline(
   const projected = applyProjectionInMemory(existing, create, reinforce);
   const { promote, prune } = evaluateRecommendations(projected);
 
+  // Step 4.5: Cross-project scope promotion (plan-018 Phase 4). Orthogonal
+  // to step 4 — a single instinct may legitimately appear in both `promote`
+  // (status → 'promoted') and `scopePromote` (scope → 'global'), since the
+  // two columns are independent.
+  const crossProjectCandidates = getCrossProjectPromotionCandidates();
+  const scopePromote: ForgeScopePromotion[] = [];
+  for (const candidate of crossProjectCandidates) {
+    const rationale = `Matches in ${candidate.projectCount} projects, avg confidence ${candidate.avgConfidence.toFixed(2)}`;
+    for (const instinctId of candidate.instinctIds) {
+      scopePromote.push({
+        instinctId,
+        fromScope: "project",
+        toScope: "global",
+        rationale,
+      });
+    }
+  }
+
   // Step 5: Cluster report
   const clusterReport = computeClusterReport(projected, projectHash, sessionId);
 
   return {
-    would: { create, reinforce, promote, prune },
+    would: { create, reinforce, promote, prune, scopePromote },
     clusterReport,
     totals: {
       created: create.length,
       reinforced: reinforce.length,
       promoted: promote.length,
       pruned: prune.length,
+      scopePromoted: scopePromote.length,
     },
   };
 }
@@ -150,6 +180,16 @@ export function applyForgePreview(
       updatedAt: nowISO(),
     });
   }
+  // Cross-project scope promotions (plan-018 Phase 4). De-duplicate ids so
+  // a single instinct present in multiple scopePromote entries is only
+  // flipped once. Return value is the authoritative count of scope flips —
+  // explicitly discarded here because `applyForgePreview` has no caller-
+  // visible return channel; the preview.totals.scopePromoted column was
+  // the user-facing estimate and downstream /forge rendering reports both.
+  const scopeIds = Array.from(
+    new Set(preview.would.scopePromote.map((s) => s.instinctId)),
+  );
+  if (scopeIds.length > 0) void promoteToGlobal(scopeIds);
 }
 
 // ─── Step 1: read observations ───

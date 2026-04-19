@@ -195,6 +195,35 @@ export function decayInstincts(
   };
 }
 
+/**
+ * Promote a batch of instincts from `scope: 'project'` to `scope: 'global'`.
+ *
+ * Idempotent: already-global rows are skipped (no UPDATE, `updated_at` unchanged).
+ * Nonexistent ids are also skipped silently. Returns the count of rows that
+ * actually changed scope (plan-018 Phase 4, ECC port 4/4).
+ *
+ * Orthogonal to `promoteInstinct` which changes `status` (→ 'promoted'); scope
+ * and status are independent columns and both may apply to the same id.
+ */
+export function promoteToGlobal(instinctIds: string[]): number {
+  let promoted = 0;
+  getDb().transaction(() => {
+    for (const id of instinctIds) {
+      const existing = getInstinct(id);
+      if (!existing) continue;
+      if (existing.scope === "global") continue;
+
+      upsertInstinct({
+        ...existing,
+        scope: "global",
+        updatedAt: nowISO(),
+      });
+      promoted++;
+    }
+  })();
+  return promoted;
+}
+
 export function getInstinctSummary(projectHash: string): string {
   const instincts = getActiveInstincts(projectHash);
   if (instincts.length === 0) return "No active instincts.";

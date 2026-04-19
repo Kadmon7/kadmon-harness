@@ -30,6 +30,7 @@ No other flags. No positional arguments.
 5. **Cluster** — group active instincts by shared `domain` into a `ClusterReport` (typed, see `scripts/lib/types.ts`). Singletons land in `unclustered`. Report is computed each run, not stored in SQL.
 6. **Preview Gate** — render a single table:
    - Rows to create, reinforce, promote, prune
+   - Rows to promote cross-project (`scopePromote`): instincts that appear in 2+ projects with avg confidence ≥ 0.8, flipping `scope: 'project'` → `'global'` (ECC port 4/4, plan-018)
    - Cluster report summary (count, dominant domains, suggested categories)
    - Totals and expected state deltas
    - Wait for user approval. Reject aborts with no mutation.
@@ -77,16 +78,26 @@ For `--dry-run` mode, call `runForgePipeline({ ..., dryRun: true })` and skip `a
 ### Would prune (0)
 (none)
 
+### Would promote (scope change) (2)
+| instinct                         | current scope | would become | reason                                   |
+|----------------------------------|---------------|--------------|------------------------------------------|
+| Commit before push               | project       | global       | Matches in 2 projects, avg confidence 0.85 |
+| Read before editing              | project       | global       | Matches in 2 projects, avg confidence 0.82 |
+
 ### Cluster report
 2 clusters, 1 unclustered.
 - workflow (3 members, suggested PROMOTE)
 - typescript (2 members, suggested CREATE_RULE)
 
 ### Totals
-create: 1  reinforce: 2  promote: 1  prune: 0
+create: 1  reinforce: 2  promote: 1  prune: 0  scopePromoted: 2
 
 Apply? [y/N]
 ```
+
+Notes on `scopePromote`:
+- Status promotions (`status: 'active' → 'promoted'`) and scope promotions (`scope: 'project' → 'global'`) are **orthogonal**. The same instinct can appear in both `Would promote` AND `Would promote (scope change)`.
+- When a group has instincts from 2+ projects, **all** instinct ids in the group are promoted — including those belonging to other projects — because the shared pattern is the unit of consolidation, not the per-project row.
 
 ## Example
 
