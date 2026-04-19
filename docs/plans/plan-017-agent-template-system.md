@@ -2,7 +2,7 @@
 number: 17
 title: Agent Template System
 date: 2026-04-19
-status: pending
+status: completed
 needs_tdd: false
 route: A
 adr: ADR-017-agent-template-system.md
