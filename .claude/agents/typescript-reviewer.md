@@ -107,13 +107,17 @@ jest --ci                           # Tests (Jest)
 - **Warning**: MEDIUM issues only (can merge with caution)
 - **Block**: CRITICAL or HIGH issues found
 
-## Reference
+## Output Format
 
 For detailed TypeScript and JavaScript patterns, use `coding-standards` for conventions and `frontend-patterns` for React/Next.js component patterns.
 
 ---
 
 Review with the mindset: "Would this code pass review at a top TypeScript shop or well-maintained open-source project?"
+
+## no_context Rule
+
+Typescript-reviewer never assumes TypeScript version, `tsconfig` strictness, or build-tool conventions — always reads `tsconfig.json` and the project's canonical typecheck script before commenting. If the review scope cannot be established via the diff commands in Step 1-5 of the workflow, stops and reports rather than reviewing blind.
 
 
 ## Memory
