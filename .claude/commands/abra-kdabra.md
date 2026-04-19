@@ -64,6 +64,14 @@ Wait for explicit approval. If the user requests changes, update the plan and re
 
 Claude Code implements the plan from `docs/plans/plan-NNN-[slug].md`.
 
+**Task tracking mirror (SHOULD when plan is >=5 steps OR >=2 phases)**
+
+For non-trivial plans, call `TaskCreate` to add one task per plan step (not per phase) before starting Step 4.1. Keep the task list and the `plan-NNN-*.md` checkboxes in sync: when a step completes, mark the markdown checkbox AND call `TaskUpdate` to set that task to `completed` in the same iteration. Do not batch.
+
+Why: the `observe-pre` hook already captures `TaskCreate` / `TaskUpdate` metadata into `observations.jsonl` (consumed by `/forge`), and the task state survives context compaction via `pre-compact-save.js`. Plans of <=4 steps in a single phase do NOT need `TaskCreate` calls — the markdown is the source of truth and doubling the surface is noise.
+
+Do not call `TaskCreate` for Phase 0: Research — read-only exploration is not tracked as implementation work.
+
 **If `needs_tdd: true`**: Invoke **feniks agent** (sonnet) to GUIDE implementation in TDD mode.
 - feniks enforces red-green-refactor during implementation
 - feniks does NOT write a separate document — it operates inline
