@@ -1,12 +1,12 @@
 ---
-description: Multi-source deep research — web, YouTube transcripts, PDFs. Detects input type and synthesizes cited reports. Auto-writes to docs/research/ (ADR-015).
+description: Multi-source deep research — web, media transcripts (YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion via yt-dlp), PDFs. Two routes (A=Media, B=General). Detects input type and synthesizes cited reports. Auto-writes to docs/research/ (ADR-015, ADR-016).
 agent: skavenger
 skills: [deep-research]
 ---
 
 ## Purpose
 
-Run deep multi-source research over web pages, YouTube transcripts, PDFs, and (ADR-015 Commit 5) GitHub repos. Auto-writes every report to `docs/research/research-NNN-<slug>.md` as a first-class artifact (same pattern as ADRs and plans). Closes the chain-rule gap on the `deep-research` skill.
+Run deep multi-source research over web pages, media transcripts (YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion via yt-dlp), and PDFs. Auto-writes every report to `docs/research/research-NNN-<slug>.md` as a first-class artifact (same pattern as ADRs and plans). Closes the chain-rule gap on the `deep-research` skill. Ad-hoc GitHub research (issues/PRs/README) runs inline via direct `gh api` Bash calls (per ADR-016 — no dedicated route).
 
 Use this instead of raw WebSearch when the topic needs synthesis, citations, or cross-source verification. Once the report is written, it is searchable via `/skavenger --history <query>` and re-enterable via `/skavenger --continue` or `/skavenger --drill <N>`.
 
@@ -18,7 +18,7 @@ Use this instead of raw WebSearch when the topic needs synthesis, citations, or 
 - `<pdf-url>` or `<arxiv-url>` — PDF or arXiv paper URL; fetched via WebFetch
 - `<topic with url>` — mixed: URLs become primary sources, text fills gaps
 
-**Flags** (all opt-in; bare `/skavenger <topic>` behaves as Route C with auto-write; at most one flag per invocation):
+**Flags** (all opt-in; bare `/skavenger <topic>` behaves as Route B with auto-write; at most one flag per invocation):
 - `--continue` *(Commit 3, Group A — wired)* — reopens the most recent report of the current session and builds on it
 - `--plan <topic>` *(Commit 4, Group B — wired)* — zero-fetch dry-run: proposes sub-questions and candidate sources without spending any cap budget. No file written, no DB row
 - `--verify <hypothesis>` *(Commit 4, Group B — wired)* — hypothesis-driven mode: searches evidence PRO and CONTRA, tags sources, reports tally in Methodology. Frontmatter `mode: verify`
@@ -150,7 +150,7 @@ No modification to the original report file. No DB row. No observation emission 
 10. Compose the persist-script input by adding runtime-only fields:
     - `sessionId`: from `CLAUDE_SESSION_ID` env var (or discoverable via session-start hook state)
     - `projectHash`: via `npx tsx -e "import('./scripts/lib/project-detect.js').then(m => process.stdout.write(m.detectProject(process.cwd()).projectHash))"`
-    - `untrustedSources`: always `true` for web-sourced content (Route A/B/C); set `false` only if the report is purely internal synthesis without fetched sources (rare)
+    - `untrustedSources`: always `true` for web-sourced content (Route A/B); set `false` only if the report is purely internal synthesis without fetched sources (rare)
     - `bodyMarkdown`: the extracted body
     - Pass through skavenger's optional `mode` and `derivedFrom` verbatim if present (the Zod schema accepts them; they surface in YAML frontmatter).
 11. Pipe the JSON to the persist script:
@@ -209,13 +209,13 @@ If the fence is absent, skip this phase entirely — not every report produces d
 
 ## Prerequisites
 
-- For YouTube transcripts: `yt-dlp` must be on PATH. Install with `winget install yt-dlp` (Windows), `brew install yt-dlp` (macOS), or `pip install yt-dlp`. If missing, skavenger degrades gracefully with WebFetch metadata.
+- For media transcripts (Route A — YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion): `yt-dlp` must be on PATH. Install with `winget install yt-dlp` (Windows), `brew install yt-dlp` (macOS), or `pip install yt-dlp`. If missing, skavenger degrades gracefully with WebFetch metadata.
 - For general research: no prerequisites — WebSearch and WebFetch are always available.
 - For `--continue` and the `research_reports` archive: Kadmon's SQLite DB at `~/.kadmon/kadmon.db`. Created automatically on first session-start.
 
 ## Examples
 
-### Example 1: Bare topic (Route C, auto-write)
+### Example 1: Bare topic (Route B, auto-write)
 
 ```
 User: /skavenger current state of pgvector HNSW vs IVFFlat indexing

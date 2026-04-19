@@ -69,7 +69,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Research Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /skavenger | Multi-source deep research — web, YouTube transcripts, PDFs, GitHub repos (ADR-015 Route D). Auto-writes reports to `docs/research/` unless `KADMON_RESEARCH_AUTOWRITE=off`. Flags (one at a time): `--continue` (extend last session report), `--plan <topic>` (zero-fetch dry-run), `--verify <hypothesis>` (pro/contra tagging), `--drill <N>` (expand open question N), `--history <query>` (search archive), `--verify-citations <N>` (re-fetch URLs of report N). Skavenger spawns sub-agents via `Task` for ≥3 sub-questions (F9); enforces source diversity (F10). `--premium` (Perplexity Sonar) remains deferred per ADR-009 Fase 2. | skavenger |
+| /skavenger | Multi-source deep research — web, media transcripts (YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion via yt-dlp), PDFs. Two routes: A=Media, B=General (per ADR-016 slim refactor — Route D removed; ad-hoc GitHub research runs inline via `gh api`). Auto-writes reports to `docs/research/` unless `KADMON_RESEARCH_AUTOWRITE=off`. Flags (one at a time): `--continue` (extend last session report), `--plan <topic>` (zero-fetch dry-run), `--verify <hypothesis>` (pro/contra tagging), `--drill <N>` (expand open question N), `--history <query>` (search archive), `--verify-citations <N>` (re-fetch URLs of report N). Skavenger spawns sub-agents via `Task` for ≥3 sub-questions (F9); enforces source diversity (F10). `--premium` (Perplexity Sonar) remains deferred per ADR-009 Fase 2. | skavenger |
 
 ### Remember Phase (3)
 | Command | Purpose | Agent |

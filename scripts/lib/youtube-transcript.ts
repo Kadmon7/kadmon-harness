@@ -23,13 +23,30 @@ export interface YouTubeTranscriptErr {
 export type YouTubeTranscriptResult = YouTubeTranscriptOk | YouTubeTranscriptErr;
 
 // ---- URL validation ----
+//
+// MEDIA_URL_RE matches every URL yt-dlp can handle in the skavenger Route A set:
+// YouTube (incl. m.* mobile + youtu.be shortlinks), Vimeo, SoundCloud, Twitch
+// (clips + VODs), Twitter/X videos, TikTok, Archive.org, Dailymotion. Only the
+// YouTube branches capture the 11-char video ID (group 1). For non-YouTube
+// matches the regex accepts the URL but group 1 is undefined — the helper
+// then passes the raw URL to yt-dlp (which handles 1000+ sites natively) and
+// the `videoId` field in the result carries the canonical URL as an identifier
+// (ADR-016 R2: matched-but-non-YouTube URLs must reach yt-dlp, not hard-reject).
 
-const YOUTUBE_URL_RE =
-  /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
+export const MEDIA_URL_RE =
+  /^https?:\/\/(?:www\.|m\.)?(?:(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})|vimeo\.com\/\d+|soundcloud\.com\/[^/\s]+\/[^/\s]+|clips\.twitch\.tv\/[^/\s]+|twitch\.tv\/videos\/\d+|(?:twitter|x)\.com\/[^/\s]+\/status\/\d+|tiktok\.com\/@[^/\s]+\/video\/\d+|archive\.org\/details\/[^/\s]+|dailymotion\.com\/video\/[^/\s]+)/i;
+
+// Deprecated alias — remove at ADR-016 review (2026-07-19). Kept for one release
+// window so any external caller still importing YOUTUBE_URL_RE continues working.
+export { MEDIA_URL_RE as YOUTUBE_URL_RE };
+
+export function isMediaUrl(url: string): boolean {
+  return MEDIA_URL_RE.test(url);
+}
 
 function extractVideoId(url: string): string | null {
-  const match = YOUTUBE_URL_RE.exec(url);
-  return match ? match[3] : null;
+  const match = MEDIA_URL_RE.exec(url);
+  return match ? (match[1] ?? null) : null;
 }
 
 function buildCanonicalUrl(videoId: string): string {
@@ -142,14 +159,21 @@ export interface FetchYouTubeTranscriptOpts {
 export async function fetchYouTubeTranscript(
   opts: FetchYouTubeTranscriptOpts,
 ): Promise<YouTubeTranscriptResult> {
-  // Step 1: Validate URL and extract videoId
-  const videoId = extractVideoId(opts.url);
-  if (videoId === null) {
-    return { ok: false, source: "error", error: "not a youtube url" };
+  // Step 1: Validate URL. If it doesn't match any Route A media host, reject.
+  if (!isMediaUrl(opts.url)) {
+    return { ok: false, source: "error", error: "not a recognized media url" };
   }
 
-  // Step 2: Reconstruct canonical URL (strips &t=42s, &list=... etc.)
-  const canonicalUrl = buildCanonicalUrl(videoId);
+  // Step 2: Resolve target URL + videoId.
+  //   YouTube URLs produce an 11-char video ID → reconstruct a canonical
+  //   YouTube URL (strips &t=42s, &list=... etc.) and use that videoId.
+  //   Non-YouTube media URLs (Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/
+  //   Dailymotion) pass through to yt-dlp as-is; the URL itself serves as
+  //   the videoId because there is no cross-site canonical ID format.
+  const youtubeVideoId = extractVideoId(opts.url);
+  const canonicalUrl =
+    youtubeVideoId !== null ? buildCanonicalUrl(youtubeVideoId) : opts.url;
+  const videoId = youtubeVideoId ?? opts.url;
 
   // Step 3: Check yt-dlp presence
   if (!checkYtDlp()) {
