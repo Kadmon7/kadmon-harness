@@ -172,14 +172,16 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Lifecycle hooks import from `dist/` — `ensure-dist.js` auto-rebuilds, but manual `npm run build` if needed
 - Hook latency budgets are for logic only — Node.js cold start adds ~236ms on Windows
 - ORDER BY needs `rowid` tiebreaker for deterministic results when timestamps collide
-- Pattern evaluation uses 12 definitions from `.claude/hooks/pattern-definitions.json` (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006)
+- Pattern evaluation rules live in `.claude/hooks/pattern-definitions.json` (authoritative count; ADR-006)
 - `file_sequence` follow-up matching checks BOTH `Bash.metadata.command` AND `Skill.metadata.skillName` — slash commands like `/doks`, `/forge`, `/almanak` are Skill tool calls, not Bash. Editing this detector requires updating both branches.
-- `new URL().pathname` encodes spaces as `%20` — use `fileURLToPath()` for file paths
-- Stop hooks only fire on clean session termination — crashes do NOT trigger them
 - `npx tsx -e` produces no output on Windows — use temp script files
-- /evolve Generate (step 6) is cross-project: `readClusterReportsInWindow` filters ClusterReports by the caller's `projectHash` before merging. Never write generated artifacts to a directory that escapes `cwd` — `applyEvolveGenerate` aborts the ENTIRE batch transactionally if any proposal target path exists OR escapes the project root (ADR-008).
+- `/evolve` Generate writes are transactional + project-root-bounded (see ADR-008 §Consequences)
 - Sprint C Bug B fix: `startSession()` resume branch MUST call `clearSessionEndState(id)` before upserting, and MUST clear `merged.durationMs`, otherwise `COALESCE` restores the prior `ended_at`/`duration_ms` and produces the timestamp inversion.
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 Sprint B/C shipped 2026-04-14; Sprint D artifacts shipped (plan-010 + ADR-010 harness distribution hybrid), implementation pending greenlight; plan-013 + ADR-013 shipped 2026-04-14 (46 skills migrated to `<name>/SKILL.md` subdirectory layout); plan-015 + ADR-015 shipped 2026-04-17 (skavenger ULTIMATE researcher — auto-doc + 6 depth flags + Route D GitHub wrapper + F9 parallelization + F10 diversity + /forge loop closure); plan-016 + ADR-016 shipped 2026-04-19 (skavenger slim refactor — Route D removed, Route C→B rename, Route A widened to multi-site yt-dlp: YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion); plan-017 + ADR-017 shipped 2026-04-19 (agent template system — canonical `.claude/agents/_TEMPLATE.md` + Agent Template Contract in rules/common/agents.md; linter `_`-prefix filter; kody/typescript-reviewer/doks migrated to template compliance) — 610 tests passing, 59 test files, 21 hooks, 16 agents (skavenger now has Task tool), 46 skills, 11 commands (with /evolve Generate step 6 EXPERIMENTAL through 2026-04-28), 19 rules, 7 DB tables (research_reports added), /forge → /evolve loop closed for cross-project artifact generation (ADR-007 hook duration instrumentation + session inversion fix; ADR-008 /evolve Generate pipeline; ADR-009 deep research capability (skavenger agent per ADR-014 rename) + /skavenger command + yt-dlp helper; ADR-013 skills subdirectory structure; ADR-015 skavenger ULTIMATE researcher; ADR-016 skavenger slim refactor; ADR-017 agent template system)
+v1.1 — latest shipped: plan-017 + ADR-017 agent template system (2026-04-19).
+Metrics: 610 tests / 59 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28). Deprecated alias: `/instinct` (removed 2026-04-20).
+Pending: Sprint D implementation (plan-010 + ADR-010 awaiting greenlight).
+Shipping history lives in `docs/decisions/` and `git log`.
