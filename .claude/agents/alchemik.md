@@ -130,6 +130,20 @@ Follow these five steps in order for every /evolve invocation.
 | CREATE RULE | Problem | Rule | Issue recurs across sessions, has deterministic detection, enforceable by hook or agent |
 | OPTIMIZE | Component | Component | Measurable performance gap, clear fix, no side effects on other components |
 
+### Rubric: which artifact to propose?
+
+Before emitting a proposal, apply this heuristic to choose the artifact type:
+
+| Cluster shape | Propose |
+|---|---|
+| **Workflow sequence** -- same ordered series of tools/commands repeated across sessions | `CREATE_COMMAND` (wrap the sequence in a single invocation) |
+| **Auto-triggered behavior** -- pattern that should fire on a file edit, tool call, or observation | `CREATE_RULE` (if enforceable by hook) or `PROMOTE` (if it's reference knowledge) |
+| **Multi-step process requiring reasoning** -- decisions that depend on context, not deterministic sequences | `CREATE_AGENT` (model = sonnet unless arch/security/planning -> opus) |
+| **Single reusable pattern** -- one technique to apply in a specific situation | `PROMOTE` to skill |
+| **Measurable performance/cost gap** | `OPTIMIZE` (existing component tweak) |
+
+When two categories fit, prefer the smaller surface: `PROMOTE` < `CREATE_RULE` < `CREATE_COMMAND` < `CREATE_AGENT`.
+
 ## Output Format
 
 ```
