@@ -2,7 +2,7 @@
 number: 8
 title: Sprint B — /evolve Generate step 6 cross-project pipeline
 date: 2026-04-14
-status: shipped
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-008-evolve-generate-pipeline.md

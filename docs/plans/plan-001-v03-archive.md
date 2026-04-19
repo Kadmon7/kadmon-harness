@@ -1,3 +1,12 @@
+---
+number: 1
+title: Kadmon Harness v0.3 Plans (Archived)
+date: 2026-04
+status: completed
+route: A
+adr: ADR-001-v03-foundations.md
+---
+
 # Plan-001: Kadmon Harness v0.3 Plans (Archived)
 
 > Status: Archived — all plans executed as of v0.3.4

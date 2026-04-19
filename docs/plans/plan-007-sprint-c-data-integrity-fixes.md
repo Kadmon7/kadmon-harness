@@ -2,7 +2,7 @@
 number: 7
 title: Sprint C — v1.1 data-integrity fixes (hook duration + session inversion)
 date: 2026-04-14
-status: shipped
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-007-sprint-c-data-integrity-fixes.md
