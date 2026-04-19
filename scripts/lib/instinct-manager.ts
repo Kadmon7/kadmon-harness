@@ -7,6 +7,9 @@ import {
 } from "./state-store.js";
 import { generateId, nowISO } from "./utils.js";
 
+const DECAY_PER_WEEK = 0.02;
+const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+
 export function createInstinct(
   projectHash: string,
   pattern: string,
@@ -122,6 +125,74 @@ export function pruneInstincts(projectHash: string): number {
     )
     .get(projectHash);
   return Number(row?.cnt ?? 0);
+}
+
+/**
+ * Decay active instincts whose confidence should erode due to silence.
+ *
+ * Algorithm (ECC port 1/4, plan-018 Phase 1):
+ *   - Scope: rows where `project_hash = @ph AND status = 'active'`
+ *   - Baseline = `last_observed_at ?? updated_at` (pre-v0.5 rows fall back)
+ *   - Weeks = `Math.floor((now - baseline) / MS_PER_WEEK)`; <1 full week = skip
+ *   - New confidence = clamp(current - weeks * 0.02, 0, current)
+ *   - last_observed_at is NOT touched — it is the baseline, not a write timestamp.
+ *
+ * Returns `{ decayed, totalLoss }` — counts only rows that actually changed.
+ */
+export function decayInstincts(
+  projectHash: string,
+  now: Date = new Date(),
+): { decayed: number; totalLoss: number } {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      "SELECT id, confidence, updated_at, last_observed_at FROM instincts WHERE project_hash = ? AND status = 'active'",
+    )
+    .all(projectHash) as Array<{
+    id: string;
+    confidence: number;
+    updated_at: string;
+    last_observed_at: string | null;
+  }>;
+
+  const nowIso = now.toISOString();
+  const updateStmt = db.prepare(
+    "UPDATE instincts SET confidence = @confidence, updated_at = @now WHERE id = @id",
+  );
+
+  let decayed = 0;
+  let totalLoss = 0;
+
+  db.transaction(() => {
+    for (const row of rows) {
+      const baselineRaw = row.last_observed_at ?? row.updated_at;
+      const baselineMs = Date.parse(baselineRaw);
+      if (Number.isNaN(baselineMs)) continue;
+
+      const weeksSince = (now.getTime() - baselineMs) / MS_PER_WEEK;
+      if (weeksSince < 1) continue;
+
+      const decayAmount = Math.floor(weeksSince) * DECAY_PER_WEEK;
+      const newConfidence =
+        Math.round(Math.max(0, row.confidence - decayAmount) * 100) / 100;
+
+      if (newConfidence === row.confidence) continue;
+
+      updateStmt.run({
+        confidence: newConfidence,
+        now: nowIso,
+        id: row.id,
+      });
+
+      decayed++;
+      totalLoss += row.confidence - newConfidence;
+    }
+  })();
+
+  return {
+    decayed,
+    totalLoss: Math.round(totalLoss * 100) / 100,
+  };
 }
 
 export function getInstinctSummary(projectHash: string): string {
