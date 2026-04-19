@@ -2,7 +2,7 @@
 number: 9
 title: Deep research capability — kerka agent and /research command
 date: 2026-04-14
-status: shipped
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-009-deep-research-capability.md
