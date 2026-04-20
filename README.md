@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-610%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-731%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.1-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -123,7 +123,7 @@ Six commands to know on day one:
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **610 passing** (59 files) |
+| Tests | **731 passing** (67 files) |
 | SQLite Tables | **7** + 17 indexes (research_reports added in ADR-015) |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -455,7 +455,8 @@ npm install && npm run build
 ./install.sh /path/to/your/project
 
 cd /path/to/your/project
-claude        # first session: session-start banner fires, 21 hooks active
+claude        # first session: 21 hooks register in plugin mode
+              # (known gap: session-start banner silent in plugin mode — Sprint E, requires Anthropic hooks.json env-block support)
 ```
 
 ### Windows — native PowerShell
@@ -515,7 +516,7 @@ Sprint D plan-010 verifies whether `gh auth login` + `/plugin install Kadmon7/ka
 
 ## 📊 Status & Attribution
 
-**v1.1 — latest shipped: plan-017 + ADR-017 agent template system (2026-04-19)**
-`610 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+**v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20)**
+`731 tests passing` · `67 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.
