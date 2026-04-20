@@ -4,14 +4,8 @@
   "description": "Claude Code's operative layer — agents, commands, skills, and hooks distributed via plugin; rules and permissions distributed via install.sh/install.ps1 bootstrap (ADR-010).",
   "author": "Kadmon7",
   "license": "UNLICENSED",
-  "engines": {
-    "claude-code": ">=1.0.0",
-    "node": ">=20.0.0"
-  },
-  "components": {
-    "agents": ".claude/agents/*.md",
-    "commands": ".claude/commands/*.md",
-    "skills": ".claude/skills/*/SKILL.md",
-    "hooks": ".claude-plugin/hooks.json"
-  }
+  "agents": "./.claude/agents/",
+  "commands": "./.claude/commands/",
+  "skills": "./.claude/skills/",
+  "hooks": "./.claude-plugin/hooks.json"
 }
