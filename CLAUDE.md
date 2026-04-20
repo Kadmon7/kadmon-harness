@@ -40,26 +40,34 @@ See also: `continuous-learning-v2` skill and `~/.claude/projects/<project>/memor
 
 ```
 Kadmon-Harness/
+|-- .claude-plugin/        # Plugin manifest (plugin.json, hooks.json, marketplace.json)
 |-- .claude/
-|   |-- agents/           # 16 specialist agents (markdown definitions)
+|   |-- agents/           # 16 specialist agents + _TEMPLATE.md.example
 |   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
 |   |-- commands/         # 11 slash commands
 |   |-- skills/           # 46 reference skills, each at <name>/SKILL.md (ADR-013)
 |   |-- rules/            # 19 rules (common + typescript + python)
 |   |-- hooks/scripts/    # 21 registered hook scripts + 8 shared modules
 |   `-- settings.json     # Hook registration + permissions
+|-- .husky/                # Committed pre-commit hook (plan-010 Phase 6)
+|-- agents -> .claude/agents       # Canonical root symlink (ADR-019) — plugin loader discovery
+|-- commands -> .claude/commands   # Canonical root symlink (ADR-019)
+|-- skills -> .claude/skills       # Canonical root symlink (ADR-019)
 |-- scripts/
-|   |-- lib/              # TypeScript sources (state-store, instincts, evolve-generate, evolve-report-reader, ...)
+|   |-- lib/              # TS: state-store, instincts, evolve-generate, install-helpers, install-apply, install-manifest, ...
 |   |   `-- evolve-generate-templates/  # 4 markdown templates (skill/command/agent/rule)
 |   |-- dashboard.ts      # /kadmon-harness entry point
 |   |-- migrate-fix-session-inversion.ts  # Sprint C repair script (--apply gate)
 |   `-- *.ts              # Migration + cleanup scripts
-|-- tests/                # Vitest suite (609 passing, 59 files)
+|-- install.sh             # Sprint D bash bootstrap (plan-010 Phase 4)
+|-- install.ps1            # Sprint D PowerShell bootstrap (plan-010 Phase 5)
+|-- tests/                # Vitest suite (731 passing, 67 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
 |   |-- research/         # /skavenger auto-written reports (research-NNN-<slug>.md, ADR-015)
 |   `-- roadmap/          # Future version planning
+|-- .gitattributes         # Symlink preservation on Windows clones
 |-- CLAUDE.md             # This file
 `-- package.json
 ```
@@ -75,7 +83,7 @@ Kadmon-Harness/
 
 ## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
 - `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all your projects (absolute paths, platform-specific commands like `winget`). Not committed.
-- `.claude/settings.json` — **Project team-shared**. Hooks, deny rules, enabledPlugins, and the `permissions.allow` block with generic tools (Bash utilities, public docs WebFetch, Skill, MCP). Committed — distributed via plan-003 bootstrap.
+- `.claude/settings.json` — **Project team-shared**. Hooks and `permissions.allow` block with generic tools (Bash utilities, public docs WebFetch, Skill, MCP). Committed. Since Sprint D (ADR-010): hooks are distributed via the plugin manifest at `.claude-plugin/hooks.json`; `permissions.deny` is merged into target projects by `install.sh`/`install.ps1`.
 - `.claude/settings.local.json` — **Project personal**. Gitignored per Claude Code convention. Reserved for truly machine-specific overrides of *this* repo; empty by default.
 
 ## Agents (16)

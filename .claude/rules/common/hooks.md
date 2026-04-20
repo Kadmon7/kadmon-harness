@@ -110,6 +110,14 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 - Lifecycle hooks (session-start, session-end-all) may access SQLite via compiled TypeScript in dist/
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
+## Plugin-Mode Runtime Resolution (ADR-010 Phase 1)
+
+- Lifecycle hooks (session-start, session-end-all, pre-compact-save) import from `dist/scripts/lib/*.js` at runtime.
+- **Local-dev mode**: `ensure-dist.js#resolveRootDir()` walks 3 levels up from `import.meta.url` to find the repo root.
+- **Plugin mode**: `.claude-plugin/hooks.json` sets `KADMON_RUNTIME_ROOT=${CLAUDE_PLUGIN_DATA}` via the generated command prefix, so `resolveRootDir()` points at the plugin cache (`~/.claude/plugins/cache/kadmon-harness/...`). Required — the plugin cache directory does NOT have a predictable depth, so the relative walk would fail.
+- MUST leave `KADMON_RUNTIME_ROOT` unset in local dev — the 3-level walk works from repo layout.
+- Changing the hook install location (moving `dist/` or the canonical root symlinks) requires updating `ensure-dist.js#resolveRootDir()` and the hooks.json generator in `scripts/generate-plugin-hooks.ts`.
+
 ## Windows Compatibility
 - All 21 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
