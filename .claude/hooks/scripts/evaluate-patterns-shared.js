@@ -6,7 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 
 export function gitExec(args, cwd) {
@@ -71,17 +72,30 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
 
   let instinctsUpdated = 0;
 
+  const rootDir = resolveRootDir(import.meta.url);
   const { getActiveInstincts } = await import(
-    new URL("../../../dist/scripts/lib/state-store.js", import.meta.url).href
+    pathToFileURL(
+      path.join(rootDir, "dist", "scripts", "lib", "state-store.js"),
+    ).href
   );
   const { createInstinct, reinforceInstinct } = await import(
-    new URL("../../../dist/scripts/lib/instinct-manager.js", import.meta.url)
-      .href
+    pathToFileURL(
+      path.join(rootDir, "dist", "scripts", "lib", "instinct-manager.js"),
+    ).href
   );
   const { evaluatePatterns, loadPatternDefinitions } = await import(
-    new URL("../../../dist/scripts/lib/pattern-engine.js", import.meta.url).href
+    pathToFileURL(
+      path.join(rootDir, "dist", "scripts", "lib", "pattern-engine.js"),
+    ).href
   );
 
+  // pattern-definitions.json lives ALONGSIDE this hook script (NOT under dist/),
+  // so the relative URL is correct in BOTH local-dev and plugin mode (file ships
+  // co-located in ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/).
+  // (CLAUDE_PLUGIN_ROOT is the hooks.json substitution token for the plugin install
+  //  dir — distinct from CLAUDE_PLUGIN_DATA, which is the per-user data dir where
+  //  dist/ lives and where KADMON_RUNTIME_ROOT points at runtime.)
+  // Do not "fix" this to use rootDir — that would break plugin mode.
   const defsUrl = new URL("../pattern-definitions.json", import.meta.url);
   const definitions = loadPatternDefinitions(fileURLToPath(defsUrl));
   const results = evaluatePatterns(definitions, toolSequences, lines);
