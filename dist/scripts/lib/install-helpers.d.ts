@@ -1,3 +1,9 @@
+/**
+ * Copy own enumerable keys from `src` into a fresh object, filtering any key
+ * in FORBIDDEN_KEYS. Preserves ordinary prototype (not null-proto) so the
+ * result works seamlessly with JSON.stringify and ordinary JS consumers.
+ */
+export declare function safeAssign<T extends Record<string, unknown>>(src: T): T;
 /** Platforms Kadmon Harness supports. Narrower than NodeJS.Platform on purpose. */
 export type SupportedPlatform = "win32" | "darwin" | "linux";
 /**

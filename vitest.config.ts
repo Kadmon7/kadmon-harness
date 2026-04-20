@@ -9,9 +9,10 @@ export default defineConfig({
     exclude: ["**/node_modules/**", "**/.git/**", "dist/**"],
     // Hook tests spawn Node subprocesses (tsc, build, session hooks). Under
     // vitest 4's more aggressive default parallelism, subprocess-heavy tests
-    // contend for CPU and exceed the 5s default. 20s gives enough headroom
-    // for the slowest path (full rebuild of dist/ in ensure-dist.test.ts).
-    testTimeout: 20000,
+    // contend for CPU and exceed the 5s default. 60s accommodates the slowest
+    // paths: ensure-dist full rebuild + install-sh's 11 `npx tsx install-apply.ts`
+    // invocations running concurrently (plan-010 Phase 4 + plan-019).
+    testTimeout: 60000,
     env: {
       // Safety net: ensure no test accidentally writes to the production DB.
       // Hook tests (spawned processes) must still pass KADMON_TEST_DB explicitly
