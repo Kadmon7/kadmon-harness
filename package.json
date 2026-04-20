@@ -5,6 +5,7 @@
   "description": "Universal operative layer for Claude Code. Observe → Remember → Verify → Specialize → Evolve",
   "scripts": {
     "postinstall": "npm run build",
+    "prepare": "husky",
     "build": "tsc && node -e \"const fs=require('fs'),t='dist/scripts/lib/schema.sql.tmp',d='dist/scripts/lib/schema.sql';fs.writeFileSync(t,fs.readFileSync('scripts/lib/schema.sql'));fs.renameSync(t,d)\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
@@ -18,6 +19,7 @@
     "@eslint/js": "^9.39.4",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
+    "husky": "9.1.7",
     "knip": "^6.1.0",
     "ts-prune": "^0.10.3",
     "typescript": "^5.5.0",
