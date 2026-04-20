@@ -32,7 +32,22 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 
 ---
 
-## 🚀 Quick Start
+## 🎯 Which path is for me?
+
+Two totally different use cases — pick yours before continuing:
+
+| I want to... | Path | Who | Section |
+|---|---|---|---|
+| **Use the harness IN my project** (daily driver) | Install as Claude Code plugin into any project | Joe, Eden, Abraham, and 99% of users | [📥 Install into another project](#-install-into-another-project) |
+| **Develop or modify the harness itself** | Clone + build + edit agents/skills/hooks/rules | Kadmon7 and harness contributors | [🚀 Quick Start (contributors)](#-quick-start-contributors) below |
+
+If you picked the first row (use in your project), jump directly to the INSTALL section — the rest of this intro is for contributors.
+
+---
+
+## 🚀 Quick Start (contributors)
+
+> Follow this ONLY if you want to edit the harness codebase itself. If you want to use the harness in another project, go to the [INSTALL section](#-install-into-another-project).
 
 ```bash
 git clone https://github.com/Kadmon7/kadmon-harness.git
@@ -41,7 +56,7 @@ npm install
 npm run build
 ```
 
-Start a Claude Code session — Kadmon activates automatically via hooks:
+Start a Claude Code session **inside the harness repo** — harness hooks activate on itself (self-use / dogfood):
 
 ```bash
 claude
@@ -432,10 +447,29 @@ Example instincts:
 
 ## 📥 Install into another project
 
+> **This is the path for end users** (Joe, Eden, Abraham, and anyone who wants to use the harness on their own project). You clone the harness once per machine, then run `install.sh` / `install.ps1` once per project. From then on, every Claude Code session in that project gets agents, skills, commands, hooks, rules, and permissions automatically.
+
 The harness distributes via a **hybrid model** (per [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) + [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md)):
 
 - **Claude Code plugin** ships agents, skills, commands, and hooks via canonical root symlinks (auto-registered in `~/.claude/settings.json`).
 - **`install.sh` / `install.ps1`** copies `rules/` and merges `permissions.deny` + writes `.kadmon-version` + updates `.gitignore` (the two categories Claude Code plugins cannot distribute today).
+
+### What the installer does (11 steps)
+
+| Step | Action | Why |
+|---|---|---|
+| 1 | Parse args `<target>` + flags (`--dry-run`, `--force-permissions-sync`) | Flexibility |
+| 2 | Validate target exists, is writable, is not the harness repo itself | Safety |
+| 3 | Detect OS (linux / darwin / gitbash / windows) | Error messaging |
+| 4 | Verify canonical root symlinks (`agents`, `skills`, `commands`) resolve — else ABORT with Developer Mode instructions | ADR-019 plugin-loader contract |
+| 5 | Verify `node --version >= 20` | Required for `npx tsx` |
+| 6 | Copy `.claude/rules/**` → `target/.claude/rules/` | Plugin can't ship rules |
+| 7a | Merge 15 canonical `permissions.deny` rules into `target/.claude/settings.json` | Block `.env`, `rm -rf`, `git push --force` |
+| 7b | Write `extraKnownMarketplaces.kadmon-harness` + `enabledPlugins[...] = true` into user `~/.claude/settings.json` | **Auto-registers the plugin** |
+| 8 | Preserve `target/.claude/settings.local.json` if present; else create `{}` template | Respect user's machine-specific overrides |
+| 9 | Append 3 lines to `target/.gitignore` (dedup): `.claude/settings.local.json`, `.claude/agent-memory/`, `dist/` | Avoid committing secrets/artifacts |
+| 10 | Write `target/.kadmon-version` with plugin version | Future `install.sh --update` marker |
+| 11 | Print post-install checklist | Onboarding |
 
 ### Prerequisites
 
@@ -444,63 +478,90 @@ The harness distributes via a **hybrid model** (per [ADR-010](docs/decisions/ADR
 - `gh` CLI for private-repo clone (`gh auth login`)
 - **Windows only**: Developer Mode ON (Settings → Privacy & Security → For Developers) + `git config --global core.symlinks true`. Without this, the canonical root symlinks resolve as text files and the plugin loader rejects the manifest.
 
-### Mac / Linux (bash)
+### Step-by-step — Mac / Linux (bash)
 
 ```bash
+# 1. ONE-TIME per machine — authenticate with GitHub
+gh auth login
+
+# 2. ONE-TIME per machine — clone the harness anywhere
+cd ~/projects   # or wherever you keep repos
 gh repo clone Kadmon7/kadmon-harness
 cd kadmon-harness
 npm install && npm run build
 
-# Install into a target project:
+# 3. ONCE PER PROJECT — dry-run first to preview
+./install.sh --dry-run /path/to/your/project
+
+# 4. If the dry-run plan looks right, install for real
 ./install.sh /path/to/your/project
 
+# 5. Open Claude Code in your project — plugin is now active
 cd /path/to/your/project
-claude        # first session: 21 hooks register in plugin mode
-              # (known gap: session-start banner silent in plugin mode — Sprint E, requires Anthropic hooks.json env-block support)
+claude
+
+# 6. Verify inside the session:
+#    /plugin      → should list kadmon-harness as enabled
+#    /kadmon-harness → dashboard with instincts/sessions/costs
 ```
 
-### Windows — native PowerShell
+### Step-by-step — Windows (native PowerShell)
 
 ```powershell
+# 1. ONE-TIME per machine — enable symlinks (CRITICAL, plugin won't load without this)
+# Open Settings → Privacy & Security → For Developers → turn Developer Mode ON
+git config --global core.symlinks true
+
+# 2. ONE-TIME per machine — authenticate + clone
+gh auth login
 gh repo clone Kadmon7/kadmon-harness
 cd kadmon-harness
 npm install; npm run build
 
+# 3. ONCE PER PROJECT — dry-run first
+.\install.ps1 -TargetPath C:\path\to\your\project -DryRun
+
+# 4. Install for real
 .\install.ps1 -TargetPath C:\path\to\your\project
 
+# 5. Open Claude Code in your project
 cd C:\path\to\your\project
 claude
 ```
 
-Dry-run first if you want a preview of every filesystem change:
-
-```powershell
-.\install.ps1 -TargetPath C:\path\to\your\project -DryRun
-```
-
-### Windows — Git Bash
+### Step-by-step — Windows (Git Bash)
 
 ```bash
-# One-time per machine: enable native symlinks for git
-export MSYS=winsymlinks:nativestrict
+# 1. ONE-TIME per machine — enable native symlinks (same prereqs as PowerShell)
 git config --global core.symlinks true
+export MSYS=winsymlinks:nativestrict   # add to ~/.bashrc to persist across sessions
 
+# 2. ONE-TIME per machine — auth + clone
+gh auth login
 gh repo clone Kadmon7/kadmon-harness
 cd kadmon-harness
 npm install && npm run build
 
+# 3. ONCE PER PROJECT
+./install.sh --dry-run /c/path/to/your/project
 ./install.sh /c/path/to/your/project
+
+# 4. Open Claude Code
+cd /c/path/to/your/project
+claude
 ```
 
 ### Post-install checklist
 
 1. Open a Claude Code session in the target: `claude`
-2. Run `/plugin` — confirm `kadmon-harness` appears as enabled
-3. Verify hooks fire on first edit (look for `session-start` banner)
+2. Run `/plugin` — confirm `kadmon-harness` appears as **Enabled** with Scope `user` and Version `1.1.0`
+3. Run `/kadmon-harness` — dashboard should show instincts, sessions, costs
 4. (Optional) Customize machine-specific overrides in `<target>/.claude/settings.local.json`
 5. Run `/chekpoint` to exercise the full reviewer matrix against your first change
 
-### Flags
+> **Known gap (Sprint E)**: `session-start` banner is silent in plugin mode — hooks register correctly but the `console.log` banner is suppressed. Not a blocker; the plugin itself works. Fix requires Anthropic `env` block support in `hooks.json`.
+
+### Flags reference
 
 | Flag | install.sh | install.ps1 | Effect |
 |------|-----------|-------------|--------|
@@ -508,9 +569,21 @@ npm install && npm run build
 | Force permissions re-merge | `--force-permissions-sync` | `-ForcePermissionsSync` | Re-apply harness `permissions.deny` even if target already has entries |
 | User settings override | env `KADMON_USER_SETTINGS_PATH=...` | env `KADMON_USER_SETTINGS_PATH=...` | Test hook — points plugin registration at a non-default file instead of `~/.claude/settings.json` |
 
-### Q5 — private-repo `/plugin install`
+### Rollback (if something goes wrong)
 
-Sprint D plan-010 verifies whether `gh auth login` + `/plugin install Kadmon7/kadmon-harness` works from a fresh Claude Code session against a private GitHub repo. Outcome is documented in `docs/diagnostics/` after Phase 8 dogfood completes. Until then, the `git clone + install.sh|ps1` path above is the supported entry.
+Every change the installer makes is reversible manually:
+
+```bash
+rm -rf <target>/.claude/rules
+rm <target>/.claude/settings.json <target>/.kadmon-version
+# settings.local.json is never overwritten — leave alone
+# Remove the 3 lines from <target>/.gitignore if desired
+# Remove kadmon-harness entries from ~/.claude/settings.json if you want to unregister the plugin globally
+```
+
+### Q5 — native `/plugin install` against private repo
+
+An alternative distribution path under evaluation: with `gh auth login` configured, attempt `/plugin install Kadmon7/kadmon-harness` from a fresh Claude Code session. If this works end-to-end against a private repo, future versions could drop the `git clone + install.sh` step for agents/skills/commands/hooks. Outcome documented in `docs/diagnostics/` when verified. Until then, the `git clone + install.sh|ps1` path above is the supported entry.
 
 ---
 
