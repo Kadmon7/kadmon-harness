@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Kadmon Harness pre-commit hook (plan-010 Phase 6, ADR-010 Q1).
+# Detects staged scripts/lib/**/*.ts files and rebuilds dist/ atomically so
+# source + compiled output ship in the same commit. Prevents drift between
+# .ts sources and dist/*.js artifacts that hooks load at runtime.
+
+set -euo pipefail
+
+staged_ts=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^scripts/lib/.*\.ts$' || true)
+
+if [ -n "$staged_ts" ]; then
+  echo "Kadmon pre-commit: rebuilding dist/ for staged scripts/lib/*.ts"
+  npm run build
+  git add dist/scripts/lib
+fi
