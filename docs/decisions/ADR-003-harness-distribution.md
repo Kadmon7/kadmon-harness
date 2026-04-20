@@ -11,6 +11,8 @@ plan: plan-003-harness-distribution.md
 
 # ADR-003: Harness Distribution Strategy
 
+> **Superseded 2026-04-20 by [ADR-010](ADR-010-harness-distribution-hybrid.md) (partial).** ADR-010 replaced the pure copy-based bootstrap mechanics with a **hybrid plugin + install.sh/ps1 model**. What survived from ADR-003: the copy-based spirit for rules and `permissions.deny` (Claude Code plugins still cannot distribute those two categories, verified again via plan-010 dogfood 2026-04-20). What was replaced: agents, skills, and commands now ship via the Claude Code plugin system using canonical root symlinks (ADR-019), not file copy. Installer scope narrowed to rules + permissions + `.kadmon-version` + user-scope marketplace registration. See ADR-010 §Decision for the 8-angle evaluation and ADR-019 for the symlinks addendum.
+>
 > **Refresh 2026-04-14:** Status promoted `proposed` → `accepted` after Sprint B/C shipped and almanak re-verified Claude Code plugin system capabilities. Counts in the Distribution Surface table were updated to reflect v1.1 state. The core decision (Option A, copy-based bootstrap) is **unchanged**. See "Refresh Note (2026-04-14)" section at the end of this ADR.
 
 ## Context
