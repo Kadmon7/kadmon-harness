@@ -1,0 +1,10 @@
+export declare function nowISO(): string;
+export declare function nowMs(): number;
+export declare function tmpDir(): string;
+export declare function sessionDir(sessionId: string): string;
+export declare function ensureDir(dir: string): void;
+export declare function hashString(input: string): string;
+export declare function generateId(): string;
+export declare function kadmonDataDir(): string;
+export declare function formatDuration(ms: number): string;
+export declare function log(level: "info" | "warn" | "error", msg: string, meta?: object): void;
