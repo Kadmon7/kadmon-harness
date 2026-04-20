@@ -40,26 +40,34 @@ See also: `continuous-learning-v2` skill and `~/.claude/projects/<project>/memor
 
 ```
 Kadmon-Harness/
+|-- .claude-plugin/        # Plugin manifest (plugin.json, hooks.json, marketplace.json)
 |-- .claude/
-|   |-- agents/           # 16 specialist agents (markdown definitions)
+|   |-- agents/           # 16 specialist agents + _TEMPLATE.md.example
 |   |-- agent-memory/     # Per-agent MEMORY.md (gitignored)
 |   |-- commands/         # 11 slash commands
 |   |-- skills/           # 46 reference skills, each at <name>/SKILL.md (ADR-013)
 |   |-- rules/            # 19 rules (common + typescript + python)
 |   |-- hooks/scripts/    # 21 registered hook scripts + 8 shared modules
 |   `-- settings.json     # Hook registration + permissions
+|-- .husky/                # Committed pre-commit hook (plan-010 Phase 6)
+|-- agents -> .claude/agents       # Canonical root symlink (ADR-019) — plugin loader discovery
+|-- commands -> .claude/commands   # Canonical root symlink (ADR-019)
+|-- skills -> .claude/skills       # Canonical root symlink (ADR-019)
 |-- scripts/
-|   |-- lib/              # TypeScript sources (state-store, instincts, evolve-generate, evolve-report-reader, ...)
+|   |-- lib/              # TS: state-store, instincts, evolve-generate, install-helpers, install-apply, install-manifest, ...
 |   |   `-- evolve-generate-templates/  # 4 markdown templates (skill/command/agent/rule)
 |   |-- dashboard.ts      # /kadmon-harness entry point
 |   |-- migrate-fix-session-inversion.ts  # Sprint C repair script (--apply gate)
 |   `-- *.ts              # Migration + cleanup scripts
-|-- tests/                # Vitest suite (609 passing, 59 files)
+|-- install.sh             # Sprint D bash bootstrap (plan-010 Phase 4)
+|-- install.ps1            # Sprint D PowerShell bootstrap (plan-010 Phase 5)
+|-- tests/                # Vitest suite (731 passing, 67 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
 |   |-- research/         # /skavenger auto-written reports (research-NNN-<slug>.md, ADR-015)
 |   `-- roadmap/          # Future version planning
+|-- .gitattributes         # Symlink preservation on Windows clones
 |-- CLAUDE.md             # This file
 `-- package.json
 ```
@@ -70,10 +78,12 @@ Kadmon-Harness/
 - `KADMON_NO_CONTEXT_GUARD` — Set to `"off"` to disable no-context enforcement
 - `KADMON_EVOLVE_WINDOW_DAYS` — /evolve Generate ClusterReport read window (default: 7)
 - `KADMON_RESEARCH_AUTOWRITE` — Set to `"off"` to skip `/skavenger` auto-write of reports to `docs/research/` (ADR-015 escape hatch)
+- `KADMON_RUNTIME_ROOT` — Absolute path to the harness repo root containing `dist/scripts/lib/*.js`. Set by the plugin's `hooks.json` for plugin-installed hooks; unset for local dev (falls back to 3-level relative walk). Required so hooks running from the plugin cache can resolve compiled TypeScript (ADR-010 Phase 1 primitive).
+- `KADMON_USER_SETTINGS_PATH` — Override path to user-scope `settings.json` consumed by `install-apply.ts`. Used by installer tests (install-sh / install-ps1) to avoid mutating the real `~/.claude/settings.json`. Production installs leave this unset.
 
 ## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
 - `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all your projects (absolute paths, platform-specific commands like `winget`). Not committed.
-- `.claude/settings.json` — **Project team-shared**. Hooks, deny rules, enabledPlugins, and the `permissions.allow` block with generic tools (Bash utilities, public docs WebFetch, Skill, MCP). Committed — distributed via plan-003 bootstrap.
+- `.claude/settings.json` — **Project team-shared**. Hooks and `permissions.allow` block with generic tools (Bash utilities, public docs WebFetch, Skill, MCP). Committed. Since Sprint D (ADR-010): hooks are distributed via the plugin manifest at `.claude-plugin/hooks.json`; `permissions.deny` is merged into target projects by `install.sh`/`install.ps1`.
 - `.claude/settings.local.json` — **Project personal**. Gitignored per Claude Code convention. Reserved for truly machine-specific overrides of *this* repo; empty by default.
 
 ## Agents (16)
@@ -165,6 +175,16 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - **AutoDream**: consolidates memory every 24h/5+ sessions
 - **MEMORY.md**: index file (max 200 lines)
 
+## Distribution
+
+Hybrid model (per [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) + [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md)):
+
+- **Claude Code plugin** — distributes agents, skills, commands, and hooks. The canonical root symlinks `./agents`, `./skills`, `./commands` (pointing at `.claude/<type>/`) are how the plugin loader discovers components. Windows requires Developer Mode + `git config --global core.symlinks true` + `MSYS=winsymlinks:nativestrict` during clone — otherwise symlinks resolve as text files and the plugin manifest is rejected.
+- **`install.sh` / `install.ps1`** — bootstrap the two categories Claude Code plugins cannot ship: `rules/` (copied into target's `.claude/rules/`) and `permissions.deny` (merged into target's `.claude/settings.json`). Also writes `.kadmon-version`, updates `.gitignore`, and registers the plugin in the user's `~/.claude/settings.json` via `extraKnownMarketplaces` + `enabledPlugins`. Both entry points delegate to `scripts/lib/install-apply.ts` via `npx tsx` (DRY across shells).
+- **`_TEMPLATE.md.example`** — new agents derive from `.claude/agents/_TEMPLATE.md.example` (ADR-017, amended by ADR-019 dogfood). The `.md.example` extension keeps the skeleton invisible to Claude Code's sub-agent loader and the frontmatter linter (both scan only `.md`). Original `_`-prefix convention from ADR-017 was insufficient — the loader does not respect it.
+
+See `install.sh` / `install.ps1` for the exact 11-step flow (arg parse → target validation → OS detect → symlink gate → Node 20 check → rules copy → install-apply delegation → settings.local template → .gitignore dedup → .kadmon-version write → post-install checklist).
+
 ## Common Pitfalls
 - DB path: `~/.kadmon/kadmon.db` (NOT `data/harness.db`) — use `path.join(homedir(), '.kadmon', 'kadmon.db')`
 - Sessions table uses `id` column (not `session_id`) — check with `PRAGMA table_info(sessions)`
@@ -180,8 +200,9 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 — latest shipped: plan-017 + ADR-017 agent template system (2026-04-19).
-Metrics: 610 tests / 59 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
-Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28). Deprecated alias: `/instinct` (removed 2026-04-20).
-Pending: Sprint D implementation (plan-010 + ADR-010 awaiting greenlight).
+v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20).
+Metrics: 731 tests / 67 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+Distribution: Claude Code plugin (agents/skills/commands/hooks via canonical root symlinks) + install.sh/install.ps1 (rules + permissions.deny + .kadmon-version). End-to-end dogfooded against Kadmon-Sports 2026-04-20 — cross-project SQLite isolation verified (distinct projectHash per directory).
+Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
+Known gap: session-start banner silent in plugin mode (Bug #3, Sprint E — requires Anthropic hooks.json env-block support).
 Shipping history lives in `docs/decisions/` and `git log`.

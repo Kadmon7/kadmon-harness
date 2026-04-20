@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
 import {
@@ -43,10 +44,12 @@ async function estimateTokensFromTranscript(transcriptPath) {
       }
     }
 
+    // Helper runs BEFORE main() computes rootDir — inline resolveRootDir here
+    // so the env-var honors KADMON_RUNTIME_ROOT in plugin mode.
+    const helperRoot = resolveRootDir(import.meta.url);
     const { estimateCharsPerToken } = await import(
-      new URL(
-        "../../../dist/scripts/lib/cost-calculator.js",
-        import.meta.url,
+      pathToFileURL(
+        path.join(helperRoot, "dist", "scripts", "lib", "cost-calculator.js"),
       ).href
     );
     const charsPerToken = estimateCharsPerToken(content);
@@ -170,12 +173,14 @@ async function main() {
     try {
       const { openDb, insertCostEvent, upsertSession, getSession } =
         await import(
-          new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
-            .href
+          pathToFileURL(
+            path.join(rootDir, "dist", "scripts", "lib", "state-store.js"),
+          ).href
         );
       const { endSession } = await import(
-        new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
-          .href
+        pathToFileURL(
+          path.join(rootDir, "dist", "scripts", "lib", "session-manager.js"),
+        ).href
       );
       await openDb(process.env.KADMON_TEST_DB || undefined);
 
@@ -263,9 +268,8 @@ async function main() {
 
         if (inputTokens || outputTokens) {
           const { calculateCost, formatCost } = await import(
-            new URL(
-              "../../../dist/scripts/lib/cost-calculator.js",
-              import.meta.url,
+            pathToFileURL(
+              path.join(rootDir, "dist", "scripts", "lib", "cost-calculator.js"),
             ).href
           );
 
@@ -307,8 +311,9 @@ async function main() {
       // --- Phase 1c: Persist hook events and agent invocations ---
       try {
         const { insertHookEvent, insertAgentInvocation, getDb } = await import(
-          new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
-            .href
+          pathToFileURL(
+            path.join(rootDir, "dist", "scripts", "lib", "state-store.js"),
+          ).href
         );
 
         let hookCount = 0;

@@ -7,10 +7,16 @@ import { fileURLToPath } from "node:url";
 
 /**
  * Resolve the project root directory from a hook script's import.meta.url.
+ * Honors KADMON_RUNTIME_ROOT env var (set by plugin hooks.json to ${CLAUDE_PLUGIN_DATA})
+ * with fallback to a 3-level relative walk for local-dev (env var unset/empty).
  * @param {string} metaUrl - The import.meta.url of the calling script
- * @returns {string} Absolute path to the project root
+ * @returns {string} Absolute path to the directory that contains dist/scripts/lib/*.js
  */
 export function resolveRootDir(metaUrl) {
+  const envRoot = process.env.KADMON_RUNTIME_ROOT;
+  if (envRoot && envRoot.length > 0) {
+    return path.resolve(envRoot);
+  }
   return path.resolve(fileURLToPath(new URL(".", metaUrl)), "..", "..", "..");
 }
 

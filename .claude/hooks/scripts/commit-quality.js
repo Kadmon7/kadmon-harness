@@ -49,6 +49,9 @@ try {
     filePath.startsWith(".claude/hooks/scripts/") ||
     filePath.startsWith("scripts/") ||
     (filePath.endsWith(".js") && filePath.includes("hooks/"));
+  // dist/ is generated tsc output of scripts/ — apply the same script-tier
+  // exemption (CLI tools and harness scripts use console.log intentionally).
+  const isCompiledDist = (filePath) => filePath.startsWith("dist/");
 
   // Build a map of which added lines belong to which file
   let currentFile = "";
@@ -62,8 +65,12 @@ try {
 
     const content = line.slice(1); // Remove leading +
 
-    // Skip console.log/debugger checks for hook scripts, CLI scripts, and docs
-    if (!isScriptOrHook(currentFile) && !isDocFile(currentFile)) {
+    // Skip console.log/debugger checks for hook scripts, CLI scripts, docs, and dist/
+    if (
+      !isScriptOrHook(currentFile) &&
+      !isDocFile(currentFile) &&
+      !isCompiledDist(currentFile)
+    ) {
       // Check for console.log
       if (/console\.log\s*\(/.test(content)) {
         issues.push(`console.log() found in ${currentFile}`);

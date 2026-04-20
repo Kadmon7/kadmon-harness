@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import {
   evaluateAndApplyPatterns,
@@ -75,8 +76,9 @@ async function main() {
 
     try {
       const { openDb, upsertSession, getSession } = await import(
-        new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
-          .href
+        pathToFileURL(
+          path.join(rootDir, "dist", "scripts", "lib", "state-store.js"),
+        ).href
       );
       await openDb(process.env.KADMON_TEST_DB || undefined);
       const session = getSession(sid);

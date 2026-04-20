@@ -1,5 +1,9 @@
 node_modules/
-dist/
+# dist/scripts/ is committed (plugin distribution per ADR-010 Q1, enforced by
+# .husky/pre-commit). Only dist/tests/ stays ignored — it's compiled test
+# artifacts that have no production use.
+dist/tests/
+.husky/_/
 .env
 .env.*
 *.log

@@ -16,12 +16,18 @@ skills:
 ---
 
 <!--
-  This is the canonical agent skeleton. Loader ignores `_`-prefixed files
-  (Anthropic sub-agent convention); linter also skips via the `_`-prefix
-  filter per ADR-017. Copy this file to `.claude/agents/<new-name>.md`
-  and replace every placeholder. DO NOT rename `_TEMPLATE.md` itself.
+  This is the canonical agent skeleton. The `.md.example` extension keeps
+  it invisible to both the Claude Code plugin loader and the frontmatter
+  linter, which scan only `.md` files. The `_` prefix is kept as a
+  secondary safety net (linter also filters `_`-prefixed files).
+
+  Copy this file to `.claude/agents/<new-name>.md` (drop `_TEMPLATE` AND
+  the `.example` suffix) and replace every placeholder.
+  DO NOT rename `_TEMPLATE.md.example` itself.
 
   Contract source of truth: docs/decisions/ADR-017-agent-template-system.md
+    (amended by ADR-019 dogfood 2026-04-20 — Claude Code plugin loader does
+     NOT respect the `_` prefix; `.md.example` is the reliable exclusion)
   Contract summary: .claude/rules/common/agents.md §Agent Template Contract
 -->
 

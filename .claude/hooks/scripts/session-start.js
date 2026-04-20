@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
+import { pathToFileURL } from "node:url";
 import { parseStdin } from "./parse-stdin.js";
 import { generateSummary } from "./generate-session-summary.js";
 import {
@@ -75,12 +76,14 @@ async function main() {
         getPromotableInstincts,
         getOrphanedSessions,
       } = await import(
-        new URL("../../../dist/scripts/lib/state-store.js", import.meta.url)
-          .href
+        pathToFileURL(
+          path.join(rootDir, "dist", "scripts", "lib", "state-store.js"),
+        ).href
       );
       const { startSession, endSession } = await import(
-        new URL("../../../dist/scripts/lib/session-manager.js", import.meta.url)
-          .href
+        pathToFileURL(
+          path.join(rootDir, "dist", "scripts", "lib", "session-manager.js"),
+        ).href
       );
       await openDb(process.env.KADMON_TEST_DB || undefined);
 
@@ -153,9 +156,8 @@ async function main() {
       // Prune stale instincts before loading (best-effort)
       try {
         const { pruneInstincts } = await import(
-          new URL(
-            "../../../dist/scripts/lib/instinct-manager.js",
-            import.meta.url,
+          pathToFileURL(
+            path.join(rootDir, "dist", "scripts", "lib", "instinct-manager.js"),
           ).href
         );
         pruneInstincts(projectHash);

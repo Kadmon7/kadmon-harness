@@ -1,0 +1,14 @@
+{
+  "name": "kadmon-harness",
+  "owner": {
+    "name": "Kadmon7"
+  },
+  "description": "Kadmon Harness — Claude Code's operative layer. Agents, commands, skills, and hooks distributed as a plugin; rules + permissions distributed via install.sh/install.ps1 bootstrap (ADR-010).",
+  "plugins": [
+    {
+      "name": "kadmon-harness",
+      "source": "./",
+      "description": "Full Kadmon Harness: 16 agents, 11 commands, 46 skills, 21 hooks."
+    }
+  ]
+}
