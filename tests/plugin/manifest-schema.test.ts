@@ -1,22 +1,26 @@
-// TDD [feniks] — plan-010 Phase 2 Step 2.1 — RED phase
+// TDD [feniks] — plan-019 Phase A.1 — RED phase (updated 2026-04-20)
 // Tests for plugin manifest schema: plugin.json + hooks.json
 //
-// What ships in this step: ONLY this test file. No .claude-plugin/ dir yet.
-// Steps 2.2-2.4 create the manifests — tests go GREEN.
+// ADR-019 (2026-04-20) changes the contract:
+//   - plugin.json MUST NOT contain `commands` or `skills` fields.
+//     The loader auto-discovers from canonical root paths `./agents`, `./skills`,
+//     `./commands` — which are symlinks into `.claude/<type>/` (plan-019 Step A.2).
+//   - Three root symlinks MUST exist and resolve into `.claude/<type>/`.
 //
 // RED/GREEN forecast per test:
-//   Test 1:  RED  — .claude-plugin/plugin.json does not exist yet.            GREEN after Step 2.2.
-//   Test 2:  RED  — plugin.json does not exist.                               GREEN after Step 2.2.
-//   Test 2b: RED  — plugin.json does not exist.                               GREEN after Step 2.2.
-//   Test 3:  RED  — plugin.json does not exist.                               GREEN after Step 2.2.
-//   Test 4:  RED  — plugin.json does not exist.                               GREEN after Step 2.2.
-//   Test 5:  RED  — plugin.json does not exist.                               GREEN after Step 2.2.
-//   Test 6:  RED  — plugin.json does not exist.                               GREEN after Step 2.2.
-//   Test 7:  RED  — .claude-plugin/hooks.json does not exist yet.             GREEN after Step 2.4.
-//   Test 8:  RED  — hooks.json does not exist.                                GREEN after Step 2.4.
-//   Test 9:  RED  — hooks.json does not exist.                                GREEN after Step 2.4.
-//   Test 10: RED  — hooks.json does not exist.                                GREEN after Step 2.4.
-//   Test 11: RED  — hooks.json does not exist.                                GREEN after Step 2.4.
+//   Test 1:  PASS  — .claude-plugin/plugin.json exists.                       Unchanged.
+//   Test 2:  RED   — plugin.json still has `commands`/`skills` (A.3 removes). GREEN after Step A.3.
+//   Test 2b: PASS  — name/version canonical values unchanged.                  Unchanged.
+//   Test 3:  PASS  — agents dir exists on disk with >=15 .md files.           Unchanged.
+//   Test 4:  RED   — ./commands symlink does not exist yet.                    GREEN after Step A.2.
+//   Test 5:  RED   — ./skills symlink does not exist yet.                      GREEN after Step A.2.
+//   Test 6:  PASS  — every agent .md has .md extension.                       Unchanged.
+//   Test SYM: RED  — symlinks ./agents ./skills ./commands do not exist yet.  GREEN after Step A.2.
+//   Test 7:  PASS  — hooks.json exists.                                        Unchanged.
+//   Test 8:  PASS  — hooks.json has SessionStart, Stop, PreCompact.            Unchanged.
+//   Test 9:  PASS  — every hook command has HOOK_CMD_PREFIX.                   Unchanged.
+//   Test 10: PASS  — lifecycle events are registered.                          Unchanged.
+//   Test 11: PASS  — no orphaned hook script references.                       Unchanged.
 
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
@@ -82,18 +86,17 @@ function loadJson(filePath: string): unknown {
 
 // ─── Shape interfaces ─────────────────────────────────────────────────────────
 
-// Flat plugin.json schema per code.claude.com/docs/en/plugins-reference.
-// The `components` wrapper from ADR-010 was a schema misread — corrected in
-// Step 2.6 after almanak + claude-code-guide cross-check against live docs.
+// Flat plugin.json schema per ADR-019 (2026-04-20).
+// `commands` and `skills` fields are REMOVED — the loader auto-discovers from
+// canonical root symlinks (./commands, ./skills) which resolve into .claude/<type>/.
+// Only `hooks` remains as a declared component path.
 interface PluginJson {
   name: string;
   version: string;
   description: string;
-  author?: string;
+  author?: { name: string } | string;
   license?: string;
   agents?: string;
-  commands?: string;
-  skills?: string;
   hooks?: string;
 }
 
@@ -117,8 +120,7 @@ interface HooksJson {
 
 describe("plugin.json — existence and JSON validity", () => {
   it(
-    // Test 1 — RED today: .claude-plugin/plugin.json does not exist.
-    // GREEN after Step 2.2: file is created with valid JSON.
+    // Test 1 — PASS (unchanged): file exists and parses as valid JSON.
     "plugin.json exists at repo root and parses as valid JSON",
     () => {
       // Assert file exists
@@ -139,11 +141,13 @@ describe("plugin.json — existence and JSON validity", () => {
 
 describe("plugin.json — required top-level fields", () => {
   it(
-    // Test 2 — RED today: file does not exist (ENOENT before field check).
-    // GREEN after Step 2.2 / 2.6: required flat fields + component paths present.
-    "plugin.json has required fields: name, version, description, and component paths (agents/commands/skills/hooks)",
+    // Test 2 — RED after A.1: plugin.json must NOT have `commands` or `skills` fields
+    // (per ADR-019 the loader auto-discovers from canonical root symlinks).
+    // Current plugin.json still has these fields until Step A.3 removes them → RED.
+    // GREEN after Step A.3: fields absent from plugin.json.
+    "plugin.json has required fields (name, version, description, hooks) and MUST NOT contain commands or skills fields (ADR-019)",
     () => {
-      const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
+      const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson & Record<string, unknown>;
 
       expect(typeof manifest.name).toBe("string");
       expect(manifest.name.length).toBeGreaterThan(0);
@@ -154,27 +158,28 @@ describe("plugin.json — required top-level fields", () => {
       expect(typeof manifest.description).toBe("string");
       expect(manifest.description.length).toBeGreaterThan(0);
 
-      // Flat component paths per live plugins-reference schema (no `components` wrapper).
-      // NOTE: `agents` is deliberately NOT required here — the 2026-04-20
-      // dogfood (Step 2.5) showed Claude Code's plugin loader rejected the
-      // `agents` field pointing at `./.claude/agents/`. Root cause pending
-      // investigation (Sprint E). Until resolved, the harness agents load via
-      // project-level `.claude/agents/` (install.sh copy), not plugin distribution.
-      expect(typeof manifest.commands).toBe("string");
-      expect(typeof manifest.skills).toBe("string");
+      // hooks path must still be present — hooks are declared explicitly, not auto-discovered.
       expect(typeof manifest.hooks).toBe("string");
+      expect((manifest.hooks as string)).toMatch(/^\.\//);
+      expect((manifest.hooks as string)).toMatch(/hooks\.json$/);
 
-      // All declared component paths must start with "./" per schema
-      // ("Paths are relative to the plugin root and must start with ./")
-      expect(manifest.commands).toMatch(/^\.\//);
-      expect(manifest.skills).toMatch(/^\.\//);
-      expect(manifest.hooks).toMatch(/^\.\//);
+      // ADR-019: commands + skills MUST be absent from plugin.json.
+      // The loader auto-discovers from canonical root symlinks (./commands, ./skills).
+      // If these fields are present, the test goes RED — Step A.3 removes them.
+      expect(
+        "commands" in manifest,
+        "plugin.json must NOT contain a 'commands' field (ADR-019: loader uses ./commands symlink)",
+      ).toBe(false);
+
+      expect(
+        "skills" in manifest,
+        "plugin.json must NOT contain a 'skills' field (ADR-019: loader uses ./skills symlink)",
+      ).toBe(false);
     },
   );
 
   it(
-    // Test 2b — RED today (file missing). GREEN after Step 2.2.
-    // Canonical field values per ADR-010 contract.
+    // Test 2b — PASS (unchanged): canonical field values per ADR-010 contract.
     "plugin.json name is 'kadmon-harness' and version is '1.1.0'",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
@@ -186,11 +191,10 @@ describe("plugin.json — required top-level fields", () => {
 
 describe("plugin.json — component directory paths resolve expected file counts", () => {
   it(
-    // Test 3 — Sprint D fallback: agent discovery via plugin.json.agents is
-    // currently broken (see Step 2.5 dogfood 2026-04-20). Until resolved,
-    // verify at minimum that the agents directory EXISTS on disk and has >=15
-    // .md files — install.sh will copy them directly into the target repo's
-    // project-level .claude/agents/ regardless of plugin distribution.
+    // Test 3 — PASS (unchanged): agents directory EXISTS on disk with >=15 .md files.
+    // plugin.json.agents field was deferred (Sprint D Step 2.5 dogfood showed
+    // Claude Code rejects the directory-string; ADR-019 root-symlink approach
+    // auto-discovers agents from ./agents symlink). install.sh copies directly.
     "agents directory exists on disk with at least 15 .md files (plugin.json.agents deferred)",
     () => {
       const agentCount = countGlob2(AGENTS_DIR, ".md");
@@ -199,29 +203,45 @@ describe("plugin.json — component directory paths resolve expected file counts
   );
 
   it(
-    // Test 4 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.6: commands path points to a dir with >=11 .md files.
-    "plugin.json commands path resolves to a directory with at least 11 .md files",
+    // Test 4 — RED after A.1: ./commands symlink does not exist yet.
+    // GREEN after Step A.2: symlink created + COMMANDS_DIR has >=11 .md files.
+    //
+    // ADR-019: plugin.json no longer declares `commands` path. The loader
+    // auto-discovers from the canonical root symlink `./commands` → `.claude/commands/`.
+    "canonical ./commands symlink exists and resolves to a directory with at least 11 .md files (ADR-019)",
     () => {
-      const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-      expect(manifest.commands).toMatch(/\.claude\/commands\//);
+      // Assert the root symlink exists (A.2 creates it — RED until then)
+      const symlinkPath = path.join(REPO_ROOT, "commands");
+      const stat = fs.lstatSync(symlinkPath);
+      expect(
+        stat.isSymbolicLink(),
+        "./commands at repo root must be a symlink (plan-019 Step A.2 not yet run)",
+      ).toBe(true);
 
+      // Assert the commands source dir has the expected file count
       const commandCount = countGlob2(COMMANDS_DIR, ".md");
       expect(commandCount).toBeGreaterThanOrEqual(11);
     },
   );
 
   it(
-    // Test 5 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.6: skills path points to a dir with >=40 <name>/SKILL.md.
-    // ADR-013: skills live at .claude/skills/<name>/SKILL.md. The plugin loader
-    // auto-resolves SKILL.md inside each subdir when given a skills directory —
-    // no explicit glob needed in the manifest value.
-    "plugin.json skills path resolves to a directory with at least 40 <name>/SKILL.md files",
+    // Test 5 — RED after A.1: ./skills symlink does not exist yet.
+    // GREEN after Step A.2: symlink created + SKILLS_BASE_DIR has >=40 <name>/SKILL.md files.
+    //
+    // ADR-019: plugin.json no longer declares `skills` path. The loader
+    // auto-discovers from the canonical root symlink `./skills` → `.claude/skills/`.
+    // ADR-013: skills live at .claude/skills/<name>/SKILL.md.
+    "canonical ./skills symlink exists and resolves to a directory with at least 40 <name>/SKILL.md files (ADR-019)",
     () => {
-      const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-      expect(manifest.skills).toMatch(/\.claude\/skills\//);
+      // Assert the root symlink exists (A.2 creates it — RED until then)
+      const symlinkPath = path.join(REPO_ROOT, "skills");
+      const stat = fs.lstatSync(symlinkPath);
+      expect(
+        stat.isSymbolicLink(),
+        "./skills at repo root must be a symlink (plan-019 Step A.2 not yet run)",
+      ).toBe(true);
 
+      // Assert the skills source dir has the expected file count
       const skillCount = countGlob3(SKILLS_BASE_DIR, "SKILL.md");
       expect(skillCount).toBeGreaterThanOrEqual(40);
     },
@@ -230,10 +250,7 @@ describe("plugin.json — component directory paths resolve expected file counts
 
 describe("plugin.json — agent distribution (pending Sprint E)", () => {
   it(
-    // Test 6 — Sprint D fallback: Claude Code rejected `agents` field in
-    // plugin.json during Step 2.5 dogfood. Until root cause is known,
-    // we only verify agent files exist on disk — install.sh handles their
-    // copy into target projects directly.
+    // Test 6 — PASS (unchanged): every agent .md file on disk has the .md extension.
     "every agent .md file on disk has the expected .md extension",
     () => {
       const diskBasenames = basenamesGlob2(AGENTS_DIR, ".md");
@@ -245,10 +262,86 @@ describe("plugin.json — agent distribution (pending Sprint E)", () => {
   );
 });
 
+describe("canonical root symlinks — existence and resolution (ADR-019)", () => {
+  it(
+    // Test SYM (NEW) — RED after A.1: symlinks ./agents ./skills ./commands do not exist yet.
+    // GREEN after Step A.2: three symlinks created at repo root pointing into .claude/<type>/.
+    //
+    // Verifies per ADR-019:
+    //   - Each entry at repo root is a symlink (lstat — not stat — to avoid following the link).
+    //   - readlinkSync target matches `.claude/<type>` (normalized, accepting both POSIX and
+    //     Windows separators via path.normalize comparison).
+    //   - Symlinks resolve to the correct real directory (realpathSync both sides match).
+    //   - File counts through each symlink match the source: agents=16, skills=46, commands=11.
+    "canonical root symlinks ./agents, ./skills, ./commands exist and resolve to .claude/<type>/ per ADR-019",
+    () => {
+      const types = ["agents", "skills", "commands"] as const;
+
+      // Expected file counts accessible through each symlink
+      const expectedCounts: Record<string, number> = {
+        agents: 16,
+        skills: 46,
+        commands: 11,
+      };
+
+      for (const type of types) {
+        const linkPath = path.join(REPO_ROOT, type);
+
+        // 1. Symlink must exist at repo root (lstat — does not follow the symlink)
+        let stat: fs.Stats;
+        try {
+          stat = fs.lstatSync(linkPath);
+        } catch {
+          throw new Error(
+            `./${type} does not exist at repo root — plan-019 Step A.2 not yet run`,
+          );
+        }
+        expect(
+          stat.isSymbolicLink(),
+          `./${type} at repo root must be a symlink (not a real directory or file)`,
+        ).toBe(true);
+
+        // 2. readlinkSync target must resolve into .claude/<type> (accept both separators)
+        const rawTarget = fs.readlinkSync(linkPath);
+        // Normalize both to forward-slash for cross-platform comparison
+        const normalizedTarget = rawTarget.replace(/\\/g, "/");
+        expect(
+          normalizedTarget,
+          `./${type} symlink target must point into .claude/${type}`,
+        ).toMatch(new RegExp(`\\.claude/${type}$`));
+
+        // 3. Resolved real path must match the canonical source directory
+        const resolvedLink = fs.realpathSync(linkPath);
+        const expectedTarget = path.join(REPO_ROOT, ".claude", type);
+        const resolvedTarget = fs.realpathSync(expectedTarget);
+        expect(resolvedLink).toBe(resolvedTarget);
+
+        // 4. File count through the symlink must match the source
+        // (agents + commands: flat .md; skills: <name>/SKILL.md subdirectory layout)
+        // Agents filter: underscore-prefixed files (e.g. _TEMPLATE.md) are loader-ignored
+        // per ADR-017 agent template convention — exclude from the count.
+        let count: number;
+        if (type === "skills") {
+          count = countGlob3(linkPath, "SKILL.md");
+        } else if (type === "agents") {
+          count = basenamesGlob2(linkPath, ".md").filter(
+            (n) => !n.startsWith("_"),
+          ).length;
+        } else {
+          count = countGlob2(linkPath, ".md");
+        }
+        expect(
+          count,
+          `File count through ./${type} symlink must be ${expectedCounts[type]} (got ${count})`,
+        ).toBe(expectedCounts[type]);
+      }
+    },
+  );
+});
+
 describe("hooks.json — existence, JSON validity, and lifecycle hooks", () => {
   it(
-    // Test 7 — RED today: .claude-plugin/hooks.json does not exist.
-    // GREEN after Step 2.4: file exists and is valid JSON.
+    // Test 7 — PASS (unchanged): hooks.json exists and parses as valid JSON.
     "hooks.json exists in .claude-plugin/ and parses as valid JSON",
     () => {
       const exists = fs.existsSync(HOOKS_JSON_PATH);
@@ -265,8 +358,7 @@ describe("hooks.json — existence, JSON validity, and lifecycle hooks", () => {
   );
 
   it(
-    // Test 8 — RED today: ENOENT.
-    // GREEN after Step 2.4: hooks property contains SessionStart, Stop, PreCompact.
+    // Test 8 — PASS (unchanged): hooks.json has SessionStart, Stop, PreCompact.
     "hooks.json.hooks contains at minimum SessionStart, Stop, and PreCompact keys",
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;
@@ -289,10 +381,7 @@ describe("hooks.json — existence, JSON validity, and lifecycle hooks", () => {
 
 describe("hooks.json — HOOK_CMD_PREFIX placeholder is present", () => {
   it(
-    // Test 9 — RED today: ENOENT.
-    // GREEN after Step 2.4: every hook command contains the literal HOOK_CMD_PREFIX placeholder.
-    // This placeholder is what install.sh/install.ps1 rewrites at install time per host OS.
-    // MUST remain as a literal string in hooks.json — never pre-expanded.
+    // Test 9 — PASS (unchanged): every hook command contains the literal HOOK_CMD_PREFIX placeholder.
     "every hook command in hooks.json contains the literal HOOK_CMD_PREFIX placeholder",
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;
@@ -325,16 +414,8 @@ describe("hooks.json — HOOK_CMD_PREFIX placeholder is present", () => {
 
 describe("hooks.json — lifecycle events are registered", () => {
   it(
-    // Test 10 — RED today: ENOENT.
-    // GREEN after Step 2.4: SessionStart, Stop, PreCompact event types are
-    // present with at least one matcher group each.
-    //
-    // Note: the dogfood on 2026-04-20 (Step 2.5) revealed that Claude Code's
-    // plugin loader rejects `env` blocks on hook entries. KADMON_RUNTIME_ROOT
-    // is therefore NOT injected via hooks.json — lifecycle hooks rely on the
-    // 3-level-walk fallback in resolveRootDir (Phase 1 contract) when the
-    // env var is unset. Re-adding env support is Sprint E scope once Claude
-    // Code's plugin schema supports it.
+    // Test 10 — PASS (unchanged): SessionStart, Stop, PreCompact event types
+    // are present with at least one matcher group each.
     "SessionStart, Stop, and PreCompact event types are present",
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;
@@ -360,10 +441,8 @@ describe("hooks.json — lifecycle events are registered", () => {
 
 describe("hooks.json — no orphaned hook script references", () => {
   it(
-    // Test 11 — RED today: ENOENT.
-    // GREEN after Step 2.4: every command references a .js file that actually exists in
-    // .claude/hooks/scripts/. Catches generator bugs where a hook is registered
-    // but the corresponding script was deleted.
+    // Test 11 — PASS (unchanged): every command references a .js file that
+    // actually exists in .claude/hooks/scripts/.
     "every hooks.json command references an existing script in .claude/hooks/scripts/",
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;

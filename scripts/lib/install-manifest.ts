@@ -13,8 +13,12 @@ export const COPY_MANIFEST = {
   // ADR-010 §"Converging evidence", almanak verification 2026-04-14).
   rules: [".claude/rules/**/*.md"],
 
-  // Shipped by plugin.json `components` field — install.sh does NOT copy these,
-  // they ride the plugin distribution path (${CLAUDE_PLUGIN_ROOT}).
+  // Shipped by the plugin via canonical root symlinks (ADR-019, plan-019):
+  // `./agents`, `./skills`, `./commands` at the repo root are symlinks to
+  // `.claude/<type>/`. Claude Code's plugin loader auto-discovers from these
+  // canonical paths (plugin.json no longer declares custom paths).
+  // install.sh does NOT copy these — they ride the plugin distribution path
+  // (${CLAUDE_PLUGIN_ROOT}).
   plugin_components: {
     agents: ".claude/agents/*.md",
     commands: ".claude/commands/*.md",
