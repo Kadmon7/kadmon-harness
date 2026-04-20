@@ -12,6 +12,8 @@ adr: ADR-003-harness-distribution.md
 
 # Plan 003: Harness Distribution -- Bootstrap Script [konstruct]
 
+> **Superseded 2026-04-20 by [plan-010-harness-distribution-hybrid.md](plan-010-harness-distribution-hybrid.md).** Plan-010 shifted from a pure copy-based bootstrap (this plan) to a **hybrid model**: Claude Code plugin distributes agents/skills/commands via canonical root symlinks (ADR-019), while `install.sh`/`install.ps1` handles rules + `permissions.deny` + `.kadmon-version` + user-scope marketplace registration. Trigger for the pivot was ADR-010's 8-angle evaluation (plugin auto-registration, Windows paridad, merge-safe settings, version pinning, target-path safety, permissions dedup, kadmon-version write, supersede chain) plus plan-010 Step 2.5 dogfood + plan-019 Phase B dogfood that exposed loader registration bugs requiring symlinks. The copy-based spirit (rules + permissions) survived; the mechanics changed.
+>
 > **Refreshed 2026-04-14** after Sprint B (/evolve Generate), Sprint C (data-integrity fixes), and Sprint F Tier A+S (24 new skills). Counts, manifest categories, and CLAUDE.md template were updated to reflect v1.1 state. Core architecture (Option A, copy-based bootstrap) is unchanged -- almanak verification 2026-04-14 confirmed Claude Code plugins still do not distribute `rules/` or `permissions.deny`. See ADR-003 "Refresh Note" section.
 
 ## Overview

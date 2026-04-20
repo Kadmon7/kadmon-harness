@@ -70,6 +70,8 @@ Kadmon-Harness/
 - `KADMON_NO_CONTEXT_GUARD` — Set to `"off"` to disable no-context enforcement
 - `KADMON_EVOLVE_WINDOW_DAYS` — /evolve Generate ClusterReport read window (default: 7)
 - `KADMON_RESEARCH_AUTOWRITE` — Set to `"off"` to skip `/skavenger` auto-write of reports to `docs/research/` (ADR-015 escape hatch)
+- `KADMON_RUNTIME_ROOT` — Absolute path to the harness repo root containing `dist/scripts/lib/*.js`. Set by the plugin's `hooks.json` for plugin-installed hooks; unset for local dev (falls back to 3-level relative walk). Required so hooks running from the plugin cache can resolve compiled TypeScript (ADR-010 Phase 1 primitive).
+- `KADMON_USER_SETTINGS_PATH` — Override path to user-scope `settings.json` consumed by `install-apply.ts`. Used by installer tests (install-sh / install-ps1) to avoid mutating the real `~/.claude/settings.json`. Production installs leave this unset.
 
 ## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
 - `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all your projects (absolute paths, platform-specific commands like `winget`). Not committed.
@@ -164,6 +166,16 @@ Rules auto-load based on file context. See `.claude/rules/common/agents.md` for 
 - **Auto Memory**: `~/.claude/projects/<project>/memory/` with 4 types: user, feedback, project, reference
 - **AutoDream**: consolidates memory every 24h/5+ sessions
 - **MEMORY.md**: index file (max 200 lines)
+
+## Distribution
+
+Hybrid model (per [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) + [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md)):
+
+- **Claude Code plugin** — distributes agents, skills, commands, and hooks. The canonical root symlinks `./agents`, `./skills`, `./commands` (pointing at `.claude/<type>/`) are how the plugin loader discovers components. Windows requires Developer Mode + `git config --global core.symlinks true` + `MSYS=winsymlinks:nativestrict` during clone — otherwise symlinks resolve as text files and the plugin manifest is rejected.
+- **`install.sh` / `install.ps1`** — bootstrap the two categories Claude Code plugins cannot ship: `rules/` (copied into target's `.claude/rules/`) and `permissions.deny` (merged into target's `.claude/settings.json`). Also writes `.kadmon-version`, updates `.gitignore`, and registers the plugin in the user's `~/.claude/settings.json` via `extraKnownMarketplaces` + `enabledPlugins`. Both entry points delegate to `scripts/lib/install-apply.ts` via `npx tsx` (DRY across shells).
+- **`_TEMPLATE.md.example`** — new agents derive from `.claude/agents/_TEMPLATE.md.example` (ADR-017, amended by ADR-019 dogfood). The `.md.example` extension keeps the skeleton invisible to Claude Code's sub-agent loader and the frontmatter linter (both scan only `.md`). Original `_`-prefix convention from ADR-017 was insufficient — the loader does not respect it.
+
+See `install.sh` / `install.ps1` for the exact 11-step flow (arg parse → target validation → OS detect → symlink gate → Node 20 check → rules copy → install-apply delegation → settings.local template → .gitignore dedup → .kadmon-version write → post-install checklist).
 
 ## Common Pitfalls
 - DB path: `~/.kadmon/kadmon.db` (NOT `data/harness.db`) — use `path.join(homedir(), '.kadmon', 'kadmon.db')`
