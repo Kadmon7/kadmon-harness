@@ -6,13 +6,20 @@
 // invoked from package.json or pre-commit when settings.json changes; not from
 // install.sh (install scripts only rewrite the ${HOOK_CMD_PREFIX} placeholder).
 //
-// Output shape per ADR-010 §"Plugin manifest structure":
-//   { "hooks": { "<EventType>": [ { matcher?, hooks: [ {type, command, env} ] } ] } }
+// Output shape per Step 2.5 dogfood (2026-04-20):
+//   { "hooks": { "<EventType>": [ { matcher?, hooks: [ {type, command} ] } ] } }
 //
-// All commands are rewritten to use:
+// Schema is the SAME nested-by-matcher-group shape as source .claude/settings.json
+// — the flat-per-entry shape from ADR-010's example was rejected by Claude Code's
+// plugin loader during the live dogfood (/reload-plugins → "Hook load failed").
+// Only the `command` value is rewritten from cwd-relative to plugin-relative:
 //   ${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/<script>.js
-// with env: { KADMON_RUNTIME_ROOT: "${CLAUDE_PLUGIN_DATA}" } so lifecycle
-// hooks find dist/ via the env-var primitive (Phase 1).
+//
+// env blocks deliberately omitted — the dogfood showed Claude Code accepts
+// hooks.json without env, and session-start.js can still find dist/ via the
+// 3-level walk fallback when KADMON_RUNTIME_ROOT is unset (Phase 1 contract).
+// Re-adding env.KADMON_RUNTIME_ROOT pointing at CLAUDE_PLUGIN_DATA is a Sprint E
+// investigation once we confirm Claude Code's env-block support.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -24,8 +31,6 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 
 const SETTINGS_PATH = path.join(REPO_ROOT, ".claude", "settings.json");
 const OUTPUT_PATH = path.join(REPO_ROOT, ".claude-plugin", "hooks.json");
-
-const KADMON_ENV = { KADMON_RUNTIME_ROOT: "${CLAUDE_PLUGIN_DATA}" };
 
 // Settings.json hook entry as it appears in source.
 interface SourceHookCommand {
@@ -44,19 +49,20 @@ interface SourceSettings {
   [key: string]: unknown;
 }
 
-// Plugin hooks.json output entry — flat per ADR-010 example. Each entry
-// carries its own `matcher` field so PreToolUse/PostToolUse hooks scoped to
-// specific tool types (Bash, Edit|Write, mcp__) preserve that scope after the
-// flatten.
-interface PluginHookEntry {
-  name: string;
-  matcher?: string;
+// Plugin hooks.json output shape — nested by matcher group (dogfood-validated
+// 2026-04-20). Mirrors source settings.json shape; only `command` is rewritten.
+interface PluginHookCommand {
+  type: "command";
   command: string;
-  env: Record<string, string>;
+}
+
+interface PluginMatcherGroup {
+  matcher?: string;
+  hooks: PluginHookCommand[];
 }
 
 interface PluginHooksManifest {
-  hooks: Record<string, PluginHookEntry[]>;
+  hooks: Record<string, PluginMatcherGroup[]>;
 }
 
 /**
@@ -87,36 +93,30 @@ function buildPluginManifest(source: SourceSettings): PluginHooksManifest {
   if (!source.hooks) return result;
 
   for (const [eventType, matcherGroups] of Object.entries(source.hooks)) {
-    const entries: PluginHookEntry[] = [];
+    const outputGroups: PluginMatcherGroup[] = [];
 
     for (const group of matcherGroups) {
+      const outputHooks: PluginHookCommand[] = [];
+
       for (const hook of group.hooks) {
         if (hook.type !== "command") continue;
-        const scriptName = extractScriptName(hook.command);
-        if (!scriptName) continue;
         const newCommand = rewriteCommand(hook.command);
         if (!newCommand) continue;
 
-        // Strip the .js extension to derive the canonical hook name. Mirrors
-        // the rules/common/hooks.md catalog ("session-start", "observe-pre",
-        // "block-no-verify", etc.) so the plugin manifest stays consistent
-        // with the human-facing docs.
-        const name = scriptName.replace(/\.js$/, "");
+        outputHooks.push({ type: "command", command: newCommand });
+      }
 
-        const entry: PluginHookEntry = {
-          name,
-          command: newCommand,
-          env: { ...KADMON_ENV },
-        };
+      if (outputHooks.length > 0) {
+        const outputGroup: PluginMatcherGroup = { hooks: outputHooks };
         if (group.matcher !== undefined && group.matcher !== "") {
-          entry.matcher = group.matcher;
+          outputGroup.matcher = group.matcher;
         }
-        entries.push(entry);
+        outputGroups.push(outputGroup);
       }
     }
 
-    if (entries.length > 0) {
-      result.hooks[eventType] = entries;
+    if (outputGroups.length > 0) {
+      result.hooks[eventType] = outputGroups;
     }
   }
 
@@ -151,8 +151,8 @@ function main(): void {
 
   // Emit summary to stdout for build/CI logs.
   let totalHooks = 0;
-  for (const entries of Object.values(manifest.hooks)) {
-    totalHooks += entries.length;
+  for (const groups of Object.values(manifest.hooks)) {
+    for (const group of groups) totalHooks += group.hooks.length;
   }
   console.log(
     `generate-plugin-hooks: wrote ${path.relative(REPO_ROOT, OUTPUT_PATH)} ` +

@@ -2,177 +2,148 @@
   "hooks": {
     "PreToolUse": [
       {
-        "name": "block-no-verify",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/block-no-verify.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/block-no-verify.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/git-push-reminder.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/commit-format-guard.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/commit-quality.js"
+          }
+        ],
         "matcher": "Bash"
       },
       {
-        "name": "git-push-reminder",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/git-push-reminder.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Bash"
-      },
-      {
-        "name": "commit-format-guard",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/commit-format-guard.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Bash"
-      },
-      {
-        "name": "commit-quality",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/commit-quality.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Bash"
-      },
-      {
-        "name": "config-protection",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/config-protection.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/config-protection.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/no-context-guard.js"
+          }
+        ],
         "matcher": "Edit|Write"
       },
       {
-        "name": "no-context-guard",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/no-context-guard.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "mcp-health-check",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/mcp-health-check.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/mcp-health-check.js"
+          }
+        ],
         "matcher": "mcp__"
       },
       {
-        "name": "observe-pre",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/observe-pre.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        }
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/observe-pre.js"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "name": "pr-created",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/pr-created.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/pr-created.js"
+          }
+        ],
         "matcher": "Bash"
       },
       {
-        "name": "post-edit-format",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/post-edit-format.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/post-edit-format.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/post-edit-typecheck.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/quality-gate.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/ts-review-reminder.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/console-log-warn.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/deps-change-reminder.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/agent-metadata-sync.js"
+          }
+        ],
         "matcher": "Edit|Write"
       },
       {
-        "name": "post-edit-typecheck",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/post-edit-typecheck.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "quality-gate",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/quality-gate.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "ts-review-reminder",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/ts-review-reminder.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "console-log-warn",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/console-log-warn.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "deps-change-reminder",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/deps-change-reminder.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "agent-metadata-sync",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/agent-metadata-sync.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
-        "matcher": "Edit|Write"
-      },
-      {
-        "name": "observe-post",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/observe-post.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        }
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/observe-post.js"
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
       {
-        "name": "mcp-health-failure",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/mcp-health-failure.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/mcp-health-failure.js"
+          }
+        ],
         "matcher": "mcp__"
       }
     ],
     "PreCompact": [
       {
-        "name": "pre-compact-save",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/pre-compact-save.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        }
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/pre-compact-save.js"
+          }
+        ]
       }
     ],
     "SessionStart": [
       {
-        "name": "session-start",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/session-start.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        }
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/session-start.js"
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "name": "session-end-all",
-        "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/session-end-all.js",
-        "env": {
-          "KADMON_RUNTIME_ROOT": "${CLAUDE_PLUGIN_DATA}"
-        }
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/session-end-all.js"
+          }
+        ]
       }
     ]
   }

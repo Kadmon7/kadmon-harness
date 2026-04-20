@@ -97,15 +97,20 @@ interface PluginJson {
   hooks?: string;
 }
 
-interface HookEntry {
-  name: string;
+// Nested-by-matcher schema per Step 2.5 dogfood (2026-04-20). The flat shape
+// from ADR-010's example was rejected by Claude Code's plugin loader.
+interface HookCommand {
+  type: "command";
   command: string;
-  env?: Record<string, string>;
+}
+
+interface MatcherGroup {
   matcher?: string;
+  hooks: HookCommand[];
 }
 
 interface HooksJson {
-  hooks: Record<string, HookEntry[]>;
+  hooks: Record<string, MatcherGroup[]>;
 }
 
 // ─── Test suites ──────────────────────────────────────────────────────────────
@@ -149,15 +154,18 @@ describe("plugin.json — required top-level fields", () => {
       expect(typeof manifest.description).toBe("string");
       expect(manifest.description.length).toBeGreaterThan(0);
 
-      // Flat component paths per live plugins-reference schema (no `components` wrapper)
-      expect(typeof manifest.agents).toBe("string");
+      // Flat component paths per live plugins-reference schema (no `components` wrapper).
+      // NOTE: `agents` is deliberately NOT required here — the 2026-04-20
+      // dogfood (Step 2.5) showed Claude Code's plugin loader rejected the
+      // `agents` field pointing at `./.claude/agents/`. Root cause pending
+      // investigation (Sprint E). Until resolved, the harness agents load via
+      // project-level `.claude/agents/` (install.sh copy), not plugin distribution.
       expect(typeof manifest.commands).toBe("string");
       expect(typeof manifest.skills).toBe("string");
       expect(typeof manifest.hooks).toBe("string");
 
-      // All component paths must start with "./" per schema ("Paths are relative
-      // to the plugin root and must start with ./")
-      expect(manifest.agents).toMatch(/^\.\//);
+      // All declared component paths must start with "./" per schema
+      // ("Paths are relative to the plugin root and must start with ./")
       expect(manifest.commands).toMatch(/^\.\//);
       expect(manifest.skills).toMatch(/^\.\//);
       expect(manifest.hooks).toMatch(/^\.\//);
@@ -178,14 +186,13 @@ describe("plugin.json — required top-level fields", () => {
 
 describe("plugin.json — component directory paths resolve expected file counts", () => {
   it(
-    // Test 3 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.6: agents path points to a dir with >=15 .md files.
-    // Schema is a directory path — loader auto-discovers .md files inside.
-    "plugin.json agents path resolves to a directory with at least 15 .md files",
+    // Test 3 — Sprint D fallback: agent discovery via plugin.json.agents is
+    // currently broken (see Step 2.5 dogfood 2026-04-20). Until resolved,
+    // verify at minimum that the agents directory EXISTS on disk and has >=15
+    // .md files — install.sh will copy them directly into the target repo's
+    // project-level .claude/agents/ regardless of plugin distribution.
+    "agents directory exists on disk with at least 15 .md files (plugin.json.agents deferred)",
     () => {
-      const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-      expect(manifest.agents).toMatch(/\.claude\/agents\//);
-
       const agentCount = countGlob2(AGENTS_DIR, ".md");
       expect(agentCount).toBeGreaterThanOrEqual(15);
     },
@@ -221,24 +228,14 @@ describe("plugin.json — component directory paths resolve expected file counts
   );
 });
 
-describe("plugin.json — all agent files are discoverable (no orphans)", () => {
+describe("plugin.json — agent distribution (pending Sprint E)", () => {
   it(
-    // Test 6 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.6: every .claude/agents/*.md sits under the manifest agents dir.
-    // The plugin loader auto-discovers .md files inside the directory path — the
-    // manifest just names the directory, not individual files.
-    "every .claude/agents/*.md file is covered by the agent directory path (no agent orphaned)",
+    // Test 6 — Sprint D fallback: Claude Code rejected `agents` field in
+    // plugin.json during Step 2.5 dogfood. Until root cause is known,
+    // we only verify agent files exist on disk — install.sh handles their
+    // copy into target projects directly.
+    "every agent .md file on disk has the expected .md extension",
     () => {
-      const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-      const agentDir = manifest.agents;
-      expect(agentDir).toBeTruthy();
-
-      // The manifest path must reference .claude/agents — the directory where
-      // the loader will search. Any .md file inside is auto-discovered.
-      expect(agentDir).toContain(".claude/agents");
-
-      // Confirm at least 15 .md files exist inside — proves the directory is
-      // non-empty and the plugin will actually load agents at install time.
       const diskBasenames = basenamesGlob2(AGENTS_DIR, ".md");
       expect(diskBasenames.length).toBeGreaterThanOrEqual(15);
       for (const name of diskBasenames) {
@@ -300,48 +297,62 @@ describe("hooks.json — HOOK_CMD_PREFIX placeholder is present", () => {
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;
 
-      // Collect all hook entries across all event types
-      const allEntries: HookEntry[] = Object.values(hooksJson.hooks).flat();
-      expect(allEntries.length, "hooks.json must contain at least one hook entry").toBeGreaterThan(0);
+      // Nested schema: walk event types → matcher groups → commands
+      const allCommands: HookCommand[] = [];
+      for (const groups of Object.values(hooksJson.hooks)) {
+        for (const group of groups) {
+          for (const cmd of group.hooks) allCommands.push(cmd);
+        }
+      }
+      expect(
+        allCommands.length,
+        "hooks.json must contain at least one hook command",
+      ).toBeGreaterThan(0);
 
       // Build the placeholder string by concatenation to avoid parser issues with dollar-brace sequences
       const PLACEHOLDER = "$" + "{HOOK_CMD_PREFIX}";
 
-      for (const entry of allEntries) {
-        const hasPlaceholder = entry.command.includes(PLACEHOLDER);
-        const msg = "hook '" + entry.name + "' command must contain the HOOK_CMD_PREFIX placeholder";
-        expect(hasPlaceholder, msg).toBe(true);
+      for (const cmd of allCommands) {
+        expect(
+          cmd.command.includes(PLACEHOLDER),
+          "hook command must contain the HOOK_CMD_PREFIX placeholder: " +
+            cmd.command,
+        ).toBe(true);
       }
     },
   );
 });
 
-describe("hooks.json — lifecycle hooks carry KADMON_RUNTIME_ROOT env var", () => {
+describe("hooks.json — lifecycle events are registered", () => {
   it(
     // Test 10 — RED today: ENOENT.
-    // GREEN after Step 2.4: SessionStart, Stop, PreCompact entries have
-    // env.KADMON_RUNTIME_ROOT set to the CLAUDE_PLUGIN_DATA placeholder value.
-    "SessionStart, Stop, and PreCompact hooks carry KADMON_RUNTIME_ROOT env pointing to CLAUDE_PLUGIN_DATA",
+    // GREEN after Step 2.4: SessionStart, Stop, PreCompact event types are
+    // present with at least one matcher group each.
+    //
+    // Note: the dogfood on 2026-04-20 (Step 2.5) revealed that Claude Code's
+    // plugin loader rejects `env` blocks on hook entries. KADMON_RUNTIME_ROOT
+    // is therefore NOT injected via hooks.json — lifecycle hooks rely on the
+    // 3-level-walk fallback in resolveRootDir (Phase 1 contract) when the
+    // env var is unset. Re-adding env support is Sprint E scope once Claude
+    // Code's plugin schema supports it.
+    "SessionStart, Stop, and PreCompact event types are present",
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;
 
-      const lifecycleGroups = ["SessionStart", "Stop", "PreCompact"];
-      // Build the expected value by concatenation to avoid parser issues with dollar-brace sequences
-      const EXPECTED_ENV_VALUE = "$" + "{CLAUDE_PLUGIN_DATA}";
+      for (const eventType of ["SessionStart", "Stop", "PreCompact"]) {
+        const groups = hooksJson.hooks[eventType];
+        expect(Array.isArray(groups), eventType + " must be an array").toBe(true);
+        expect(
+          groups.length,
+          eventType + " must have at least one matcher group",
+        ).toBeGreaterThan(0);
 
-      for (const groupName of lifecycleGroups) {
-        const entries = hooksJson.hooks[groupName];
-
-        const arrayMsg = "hooks." + groupName + " must be an array";
-        expect(Array.isArray(entries), arrayMsg).toBe(true);
-
-        for (const entry of entries) {
-          const envMsg = "hook '" + entry.name + "' in " + groupName + " must have an env block";
-          expect(entry.env, envMsg).toBeDefined();
-
-          const runtimeRootMsg = "hook '" + entry.name + "' in " + groupName + " must have env.KADMON_RUNTIME_ROOT set to the CLAUDE_PLUGIN_DATA placeholder";
-          expect(entry.env?.["KADMON_RUNTIME_ROOT"], runtimeRootMsg).toBe(EXPECTED_ENV_VALUE);
-        }
+        // At least one command must be registered under the event
+        const totalCommands = groups.reduce((n, g) => n + g.hooks.length, 0);
+        expect(
+          totalCommands,
+          eventType + " must have at least one registered hook command",
+        ).toBeGreaterThan(0);
       }
     },
   );
@@ -353,29 +364,44 @@ describe("hooks.json — no orphaned hook script references", () => {
     // GREEN after Step 2.4: every command references a .js file that actually exists in
     // .claude/hooks/scripts/. Catches generator bugs where a hook is registered
     // but the corresponding script was deleted.
-    "every hooks.json entry references an existing script in .claude/hooks/scripts/",
+    "every hooks.json command references an existing script in .claude/hooks/scripts/",
     () => {
       const hooksJson = loadJson(HOOKS_JSON_PATH) as HooksJson;
 
-      const allEntries: HookEntry[] = Object.values(hooksJson.hooks).flat();
-      const sizeMsg = "hooks.json must contain at least one hook entry";
-      expect(allEntries.length, sizeMsg).toBeGreaterThan(0);
+      // Nested schema: walk event types → matcher groups → commands
+      const allCommands: HookCommand[] = [];
+      for (const groups of Object.values(hooksJson.hooks)) {
+        for (const group of groups) {
+          for (const cmd of group.hooks) allCommands.push(cmd);
+        }
+      }
+      expect(
+        allCommands.length,
+        "hooks.json must contain at least one hook command",
+      ).toBeGreaterThan(0);
 
       // Regex to extract the script filename from the hook command string.
       // Expected command prefix: HOOK_CMD_PREFIX + CLAUDE_PLUGIN_ROOT path + .claude/hooks/scripts/<name>.js
       const SCRIPT_RE = /\.claude\/hooks\/scripts\/([\w-]+\.js)/;
 
-      for (const entry of allEntries) {
-        const match = SCRIPT_RE.exec(entry.command);
+      for (const cmd of allCommands) {
+        const match = SCRIPT_RE.exec(cmd.command);
 
-        const matchMsg = "hook '" + entry.name + "' command does not reference a .claude/hooks/scripts/*.js path";
-        expect(match, matchMsg).not.toBeNull();
+        expect(
+          match,
+          "command does not reference a .claude/hooks/scripts/*.js path: " +
+            cmd.command,
+        ).not.toBeNull();
 
         if (match) {
-          const scriptName = match[1];
+          const scriptName = match[1]!;
           const scriptPath = path.join(HOOKS_SCRIPTS_DIR, scriptName);
-          const existsMsg = "hook '" + entry.name + "' references script '" + scriptName + "' which does NOT exist on disk";
-          expect(fs.existsSync(scriptPath), existsMsg).toBe(true);
+          expect(
+            fs.existsSync(scriptPath),
+            "hook references script '" +
+              scriptName +
+              "' which does NOT exist on disk",
+          ).toBe(true);
         }
       }
     },
