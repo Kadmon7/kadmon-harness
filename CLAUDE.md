@@ -192,8 +192,9 @@ See `install.sh` / `install.ps1` for the exact 11-step flow (arg parse → targe
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 — latest shipped: plan-017 + ADR-017 agent template system (2026-04-19).
-Metrics: 610 tests / 59 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
-Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28). Deprecated alias: `/instinct` (removed 2026-04-20).
-Pending: Sprint D implementation (plan-010 + ADR-010 awaiting greenlight).
+v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20).
+Metrics: 731 tests / 67 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+Distribution: Claude Code plugin (agents/skills/commands/hooks via canonical root symlinks) + install.sh/install.ps1 (rules + permissions.deny + .kadmon-version). End-to-end dogfooded against Kadmon-Sports 2026-04-20 — cross-project SQLite isolation verified (distinct projectHash per directory).
+Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
+Known gap: session-start banner silent in plugin mode (Bug #3, Sprint E — requires Anthropic hooks.json env-block support).
 Shipping history lives in `docs/decisions/` and `git log`.
