@@ -168,7 +168,7 @@ When adding new command-level skills, document the rationale here so future audi
 
 ## Agent Template Contract
 
-Every new agent file MUST derive from the canonical skeleton at `.claude/agents/_TEMPLATE.md`. The template is ignored by Claude Code's sub-agent loader (underscore-prefix convention) and explicitly skipped by `scripts/lib/lint-agent-frontmatter.ts` via an `_`-prefix filter (ADR-017, 2026-04-19).
+Every new agent file MUST derive from the canonical skeleton at `.claude/agents/_TEMPLATE.md.example`. The template uses the `.md.example` extension so Claude Code's plugin loader and the frontmatter linter (both `.md`-only scanners) skip it — this replaces the original underscore-prefix-only convention (ADR-017, 2026-04-19), which ADR-019 dogfood 2026-04-20 proved the Claude Code plugin loader does NOT respect. The linter at `scripts/lib/lint-agent-frontmatter.ts` still filters `_`-prefix as an additional safety net.
 
 ### Mandatory sections (4) — every agent
 

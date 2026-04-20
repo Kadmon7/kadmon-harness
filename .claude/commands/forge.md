@@ -136,4 +136,4 @@ Exported 11 active instincts to instincts-export-9444ca5b-2026-04-13.json
 - Plan: `docs/plans/plan-005-forge-evolve-pipeline.md`
 - Implementation: `scripts/lib/forge-pipeline.ts`, `scripts/lib/forge-report-writer.ts`
 - Contract for `/evolve` step 6: `ClusterReport` interface in `scripts/lib/types.ts`
-- Deprecation: `/instinct` is retained as a deprecated alias until 2026-04-20 (see `.claude/commands/instinct.md`).
+- Deprecation: `/instinct` was a deprecated alias removed 2026-04-20 per plan-019 cleanup.

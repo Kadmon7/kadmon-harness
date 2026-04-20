@@ -133,7 +133,7 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>16 Agents</strong> — 5 opus + 11 sonnet (click to expand)</summary>
 
-> New agents derive from `.claude/agents/_TEMPLATE.md` (per ADR-017). The canonical skeleton defines 4 mandatory sections (frontmatter, identity, `## Output Format`, `## Memory`) plus strongly-recommended and optional blocks. `_`-prefixed files are invisible to the Claude Code sub-agent loader and are skipped by the frontmatter linter. Contract summary lives in `.claude/rules/common/agents.md` §Agent Template Contract.
+> New agents derive from `.claude/agents/_TEMPLATE.md.example` (per ADR-017, amended by ADR-019 dogfood 2026-04-20). The canonical skeleton defines 4 mandatory sections (frontmatter, identity, `## Output Format`, `## Memory`) plus strongly-recommended and optional blocks. The `.md.example` extension keeps the template invisible to Claude Code's sub-agent loader and the frontmatter linter, both of which scan only `.md` files. Contract summary lives in `.claude/rules/common/agents.md` §Agent Template Contract.
 
 ### Opus Agents (5) — complex decisions
 

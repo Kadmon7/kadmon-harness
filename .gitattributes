@@ -20,3 +20,9 @@ dist/scripts/lib/*.js text eol=lf
 *.ico binary
 *.db binary
 *.wav binary
+
+# Canonical root symlinks (plan-019, ADR-019) — mode 120000 pointers to .claude/<type>/.
+# -text prevents EOL conversion on the target path string.
+/agents -text
+/skills -text
+/commands -text
