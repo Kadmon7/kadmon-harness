@@ -6,6 +6,35 @@
 
 import path from "node:path";
 
+// ─── Prototype-pollution defense (plan-010 Phase 4 spektr review 2026-04-20) ─
+
+/**
+ * Keys that must never survive JSON.parse → spread round-trips. A malicious
+ * settings.json with `"__proto__": {...}` would otherwise persist on disk and
+ * could pollute downstream consumers that use unsafe deep-merge. Filter at
+ * boundary + as defense-in-depth inside mergeSettingsJson.
+ */
+const FORBIDDEN_KEYS: readonly string[] = [
+  "__proto__",
+  "constructor",
+  "prototype",
+];
+
+/**
+ * Copy own enumerable keys from `src` into a fresh object, filtering any key
+ * in FORBIDDEN_KEYS. Preserves ordinary prototype (not null-proto) so the
+ * result works seamlessly with JSON.stringify and ordinary JS consumers.
+ */
+export function safeAssign<T extends Record<string, unknown>>(src: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(src)) {
+    if (!FORBIDDEN_KEYS.includes(k)) {
+      out[k] = v;
+    }
+  }
+  return out as T;
+}
+
 /** Platforms Kadmon Harness supports. Narrower than NodeJS.Platform on purpose. */
 export type SupportedPlatform = "win32" | "darwin" | "linux";
 
@@ -137,9 +166,15 @@ export function mergeSettingsJson(
 
   // Spread target first to preserve every unrelated key, then layer the merged
   // permissions block on top. permissions.allow + other keys survive intact.
-  const result: SettingsJsonLike = { ...target };
+  // safeAssign filters `__proto__`/`constructor`/`prototype` at spread boundaries
+  // so a malicious target JSON cannot persist a poisoned key through the merge
+  // (spektr HIGH finding, 2026-04-20).
+  const result: SettingsJsonLike = safeAssign(target as Record<string, unknown>);
   const targetPermissions = target.permissions ?? {};
-  result.permissions = { ...targetPermissions, deny: merged };
+  result.permissions = {
+    ...safeAssign(targetPermissions as Record<string, unknown>),
+    deny: merged,
+  };
 
   return result;
 }

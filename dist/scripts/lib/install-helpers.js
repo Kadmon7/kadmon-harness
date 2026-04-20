@@ -4,6 +4,32 @@
 // these primitives via npx tsx — this keeps merge logic in TypeScript so it is
 // testable, type-checked, and identical across bash / PowerShell entry points.
 import path from "node:path";
+// ─── Prototype-pollution defense (plan-010 Phase 4 spektr review 2026-04-20) ─
+/**
+ * Keys that must never survive JSON.parse → spread round-trips. A malicious
+ * settings.json with `"__proto__": {...}` would otherwise persist on disk and
+ * could pollute downstream consumers that use unsafe deep-merge. Filter at
+ * boundary + as defense-in-depth inside mergeSettingsJson.
+ */
+const FORBIDDEN_KEYS = [
+    "__proto__",
+    "constructor",
+    "prototype",
+];
+/**
+ * Copy own enumerable keys from `src` into a fresh object, filtering any key
+ * in FORBIDDEN_KEYS. Preserves ordinary prototype (not null-proto) so the
+ * result works seamlessly with JSON.stringify and ordinary JS consumers.
+ */
+export function safeAssign(src) {
+    const out = {};
+    for (const [k, v] of Object.entries(src)) {
+        if (!FORBIDDEN_KEYS.includes(k)) {
+            out[k] = v;
+        }
+    }
+    return out;
+}
 /**
  * Detect the current OS platform, narrowed to the 3 platforms Kadmon supports.
  * Throws on unknown platforms (e.g. freebsd, sunos, aix) — callers must handle
@@ -80,9 +106,15 @@ export function mergeSettingsJson(harness, target, _opts) {
     const { merged } = mergePermissionsDeny(harnessDeny, targetDeny);
     // Spread target first to preserve every unrelated key, then layer the merged
     // permissions block on top. permissions.allow + other keys survive intact.
-    const result = { ...target };
+    // safeAssign filters `__proto__`/`constructor`/`prototype` at spread boundaries
+    // so a malicious target JSON cannot persist a poisoned key through the merge
+    // (spektr HIGH finding, 2026-04-20).
+    const result = safeAssign(target);
     const targetPermissions = target.permissions ?? {};
-    result.permissions = { ...targetPermissions, deny: merged };
+    result.permissions = {
+        ...safeAssign(targetPermissions),
+        deny: merged,
+    };
     return result;
 }
 /**
