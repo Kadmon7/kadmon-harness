@@ -82,21 +82,19 @@ function loadJson(filePath: string): unknown {
 
 // ─── Shape interfaces ─────────────────────────────────────────────────────────
 
-interface PluginComponents {
-  agents: string;
-  commands: string;
-  skills: string;
-  hooks: string;
-}
-
+// Flat plugin.json schema per code.claude.com/docs/en/plugins-reference.
+// The `components` wrapper from ADR-010 was a schema misread — corrected in
+// Step 2.6 after almanak + claude-code-guide cross-check against live docs.
 interface PluginJson {
   name: string;
   version: string;
   description: string;
   author?: string;
   license?: string;
-  engines?: Record<string, string>;
-  components: PluginComponents;
+  agents?: string;
+  commands?: string;
+  skills?: string;
+  hooks?: string;
 }
 
 interface HookEntry {
@@ -137,8 +135,8 @@ describe("plugin.json — existence and JSON validity", () => {
 describe("plugin.json — required top-level fields", () => {
   it(
     // Test 2 — RED today: file does not exist (ENOENT before field check).
-    // GREEN after Step 2.2: all four required fields present.
-    "plugin.json has required fields: name, version, description, components",
+    // GREEN after Step 2.2 / 2.6: required flat fields + component paths present.
+    "plugin.json has required fields: name, version, description, and component paths (agents/commands/skills/hooks)",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
 
@@ -151,8 +149,18 @@ describe("plugin.json — required top-level fields", () => {
       expect(typeof manifest.description).toBe("string");
       expect(manifest.description.length).toBeGreaterThan(0);
 
-      expect(manifest.components).toBeDefined();
-      expect(typeof manifest.components).toBe("object");
+      // Flat component paths per live plugins-reference schema (no `components` wrapper)
+      expect(typeof manifest.agents).toBe("string");
+      expect(typeof manifest.commands).toBe("string");
+      expect(typeof manifest.skills).toBe("string");
+      expect(typeof manifest.hooks).toBe("string");
+
+      // All component paths must start with "./" per schema ("Paths are relative
+      // to the plugin root and must start with ./")
+      expect(manifest.agents).toMatch(/^\.\//);
+      expect(manifest.commands).toMatch(/^\.\//);
+      expect(manifest.skills).toMatch(/^\.\//);
+      expect(manifest.hooks).toMatch(/^\.\//);
     },
   );
 
@@ -168,19 +176,16 @@ describe("plugin.json — required top-level fields", () => {
   );
 });
 
-describe("plugin.json — components globs match expected file counts", () => {
+describe("plugin.json — component directory paths resolve expected file counts", () => {
   it(
     // Test 3 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.2: agents glob matches >=15 .md files.
-    // .claude/agents/*.md includes _TEMPLATE.md (17 total on disk). Lower bound >=15 survives growth.
-    "plugin.json.components.agents glob matches at least 15 agent .md files",
+    // GREEN after Step 2.6: agents path points to a dir with >=15 .md files.
+    // Schema is a directory path — loader auto-discovers .md files inside.
+    "plugin.json agents path resolves to a directory with at least 15 .md files",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
+      expect(manifest.agents).toMatch(/\.claude\/agents\//);
 
-      // Validate the glob string has the expected shape
-      expect(manifest.components.agents).toMatch(/\.claude\/agents\/\*\.md/);
-
-      // Count matching files on disk
       const agentCount = countGlob2(AGENTS_DIR, ".md");
       expect(agentCount).toBeGreaterThanOrEqual(15);
     },
@@ -188,12 +193,11 @@ describe("plugin.json — components globs match expected file counts", () => {
 
   it(
     // Test 4 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.2: commands glob matches >=11 .md files.
-    "plugin.json.components.commands glob matches at least 11 command .md files",
+    // GREEN after Step 2.6: commands path points to a dir with >=11 .md files.
+    "plugin.json commands path resolves to a directory with at least 11 .md files",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-
-      expect(manifest.components.commands).toMatch(/\.claude\/commands\/\*\.md/);
+      expect(manifest.commands).toMatch(/\.claude\/commands\//);
 
       const commandCount = countGlob2(COMMANDS_DIR, ".md");
       expect(commandCount).toBeGreaterThanOrEqual(11);
@@ -202,14 +206,14 @@ describe("plugin.json — components globs match expected file counts", () => {
 
   it(
     // Test 5 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.2: skills glob matches >=40 SKILL.md files.
-    // ADR-013: skills live at .claude/skills/<name>/SKILL.md — 3-segment glob.
-    "plugin.json.components.skills glob matches at least 40 SKILL.md files",
+    // GREEN after Step 2.6: skills path points to a dir with >=40 <name>/SKILL.md.
+    // ADR-013: skills live at .claude/skills/<name>/SKILL.md. The plugin loader
+    // auto-resolves SKILL.md inside each subdir when given a skills directory —
+    // no explicit glob needed in the manifest value.
+    "plugin.json skills path resolves to a directory with at least 40 <name>/SKILL.md files",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-
-      // Must use 3-segment glob per ADR-013 subdirectory layout
-      expect(manifest.components.skills).toMatch(/\.claude\/skills\/\*\/SKILL\.md/);
+      expect(manifest.skills).toMatch(/\.claude\/skills\//);
 
       const skillCount = countGlob3(SKILLS_BASE_DIR, "SKILL.md");
       expect(skillCount).toBeGreaterThanOrEqual(40);
@@ -220,32 +224,26 @@ describe("plugin.json — components globs match expected file counts", () => {
 describe("plugin.json — all agent files are discoverable (no orphans)", () => {
   it(
     // Test 6 — RED today: ENOENT on plugin.json.
-    // GREEN after Step 2.2: every .claude/agents/*.md is reachable via manifest agents glob.
-    "every .claude/agents/*.md file is discoverable by the agent glob (no agent orphaned)",
+    // GREEN after Step 2.6: every .claude/agents/*.md sits under the manifest agents dir.
+    // The plugin loader auto-discovers .md files inside the directory path — the
+    // manifest just names the directory, not individual files.
+    "every .claude/agents/*.md file is covered by the agent directory path (no agent orphaned)",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
-      const agentGlob = manifest.components.agents;
-      expect(agentGlob).toBeTruthy();
+      const agentDir = manifest.agents;
+      expect(agentDir).toBeTruthy();
 
-      // List of all .md files on disk under agents/
+      // The manifest path must reference .claude/agents — the directory where
+      // the loader will search. Any .md file inside is auto-discovered.
+      expect(agentDir).toContain(".claude/agents");
+
+      // Confirm at least 15 .md files exist inside — proves the directory is
+      // non-empty and the plugin will actually load agents at install time.
       const diskBasenames = basenamesGlob2(AGENTS_DIR, ".md");
-
-      // The glob (.claude/agents/*.md) covers all *.md files in that dir — no filtering
-      // applied by the manifest itself. So every disk file must be covered.
-      for (const name of diskBasenames) {
-        // If the glob is *.md it matches all .md files — no orphan is possible unless
-        // the glob were narrowed (e.g. specific filenames). Verify the glob is a wildcard.
-        const isWildcardGlob = agentGlob.includes("*");
-        const msg = "agents glob must be a wildcard pattern to avoid orphaning agent files";
-        expect(isWildcardGlob, msg).toBe(true);
-
-        // Confirm the file has .md extension (matches *.md glob)
-        const matchesMd = name.endsWith(".md");
-        expect(matchesMd).toBe(true);
-      }
-
-      // Sanity: at least 15 agent files covered
       expect(diskBasenames.length).toBeGreaterThanOrEqual(15);
+      for (const name of diskBasenames) {
+        expect(name.endsWith(".md")).toBe(true);
+      }
     },
   );
 });
