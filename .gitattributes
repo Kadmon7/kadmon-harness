@@ -1,0 +1,28 @@
+# Kadmon Harness — line-ending policy (plan-010 Phase 6).
+# Forces LF on all source/script/config files so cross-platform collaborators
+# (Windows + Mac) see identical bytes regardless of git autocrlf setting.
+
+* text=auto eol=lf
+
+*.js text eol=lf
+*.ts text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+dist/scripts/lib/*.js text eol=lf
+
+# Binary files — explicit to avoid accidental EOL conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.db binary
+*.wav binary
+
+# Canonical root symlinks (plan-019, ADR-019) — mode 120000 pointers to .claude/<type>/.
+# -text prevents EOL conversion on the target path string.
+/agents -text
+/skills -text
+/commands -text

@@ -258,7 +258,11 @@ Runs in parallel with Phase 2. Pure TypeScript, testable in isolation before any
 
 ### Phase 4: install.sh bash bootstrap (~6 hours)
 
-Depends on Phase 2 (manifests) + Phase 3 (helpers). This is where the shell scripting risk lives.
+Depends on Phase 2 (manifests) + Phase 3 (helpers) + **plan-019 (canonical root symlinks)**. This is where the shell scripting risk lives.
+
+> **Scope update 2026-04-20 (plan-019)**: install.sh does NOT copy agents/skills/commands — those ship via the plugin (ADR-019 Ruta Y, symlinks at plugin root). install.sh handles ONLY: rules copy, permissions.deny merge, `.gitignore`, `.kadmon-version`, HOOK_CMD_PREFIX rewrite in target's plugin hooks.json.
+>
+> **NEW requirement from plan-019 Phase B dogfood**: install.sh MUST also write `extraKnownMarketplaces` + `enabledPlugins` entries into target user's `~/.claude/settings.json` (user scope, not project scope) so the plugin is registered + enabled automatically. This replaces the non-existent `/plugin install <path>` syntax we originally planned. See `memory/project_plan_010_dogfood_findings.md` for workflow evidence.
 
 - [ ] Step 4.1: Write failing integration test `tests/install/install-sh.test.ts` (L)
   - File: `tests/install/install-sh.test.ts` (NEW)

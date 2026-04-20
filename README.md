@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-610%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-731%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.1-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -123,7 +123,7 @@ Six commands to know on day one:
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **610 passing** (59 files) |
+| Tests | **731 passing** (67 files) |
 | SQLite Tables | **7** + 17 indexes (research_reports added in ADR-015) |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -133,7 +133,7 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>16 Agents</strong> — 5 opus + 11 sonnet (click to expand)</summary>
 
-> New agents derive from `.claude/agents/_TEMPLATE.md` (per ADR-017). The canonical skeleton defines 4 mandatory sections (frontmatter, identity, `## Output Format`, `## Memory`) plus strongly-recommended and optional blocks. `_`-prefixed files are invisible to the Claude Code sub-agent loader and are skipped by the frontmatter linter. Contract summary lives in `.claude/rules/common/agents.md` §Agent Template Contract.
+> New agents derive from `.claude/agents/_TEMPLATE.md.example` (per ADR-017, amended by ADR-019 dogfood 2026-04-20). The canonical skeleton defines 4 mandatory sections (frontmatter, identity, `## Output Format`, `## Memory`) plus strongly-recommended and optional blocks. The `.md.example` extension keeps the template invisible to Claude Code's sub-agent loader and the frontmatter linter, both of which scan only `.md` files. Contract summary lives in `.claude/rules/common/agents.md` §Agent Template Contract.
 
 ### Opus Agents (5) — complex decisions
 
@@ -430,9 +430,93 @@ Example instincts:
 
 ---
 
+## 📥 Install into another project
+
+The harness distributes via a **hybrid model** (per [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) + [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md)):
+
+- **Claude Code plugin** ships agents, skills, commands, and hooks via canonical root symlinks (auto-registered in `~/.claude/settings.json`).
+- **`install.sh` / `install.ps1`** copies `rules/` and merges `permissions.deny` + writes `.kadmon-version` + updates `.gitignore` (the two categories Claude Code plugins cannot distribute today).
+
+### Prerequisites
+
+- Node.js **>= 20** (`node --version`)
+- `git` in `PATH`
+- `gh` CLI for private-repo clone (`gh auth login`)
+- **Windows only**: Developer Mode ON (Settings → Privacy & Security → For Developers) + `git config --global core.symlinks true`. Without this, the canonical root symlinks resolve as text files and the plugin loader rejects the manifest.
+
+### Mac / Linux (bash)
+
+```bash
+gh repo clone Kadmon7/kadmon-harness
+cd kadmon-harness
+npm install && npm run build
+
+# Install into a target project:
+./install.sh /path/to/your/project
+
+cd /path/to/your/project
+claude        # first session: 21 hooks register in plugin mode
+              # (known gap: session-start banner silent in plugin mode — Sprint E, requires Anthropic hooks.json env-block support)
+```
+
+### Windows — native PowerShell
+
+```powershell
+gh repo clone Kadmon7/kadmon-harness
+cd kadmon-harness
+npm install; npm run build
+
+.\install.ps1 -TargetPath C:\path\to\your\project
+
+cd C:\path\to\your\project
+claude
+```
+
+Dry-run first if you want a preview of every filesystem change:
+
+```powershell
+.\install.ps1 -TargetPath C:\path\to\your\project -DryRun
+```
+
+### Windows — Git Bash
+
+```bash
+# One-time per machine: enable native symlinks for git
+export MSYS=winsymlinks:nativestrict
+git config --global core.symlinks true
+
+gh repo clone Kadmon7/kadmon-harness
+cd kadmon-harness
+npm install && npm run build
+
+./install.sh /c/path/to/your/project
+```
+
+### Post-install checklist
+
+1. Open a Claude Code session in the target: `claude`
+2. Run `/plugin` — confirm `kadmon-harness` appears as enabled
+3. Verify hooks fire on first edit (look for `session-start` banner)
+4. (Optional) Customize machine-specific overrides in `<target>/.claude/settings.local.json`
+5. Run `/chekpoint` to exercise the full reviewer matrix against your first change
+
+### Flags
+
+| Flag | install.sh | install.ps1 | Effect |
+|------|-----------|-------------|--------|
+| Dry-run | `--dry-run` | `-DryRun` | Print planned operations without touching the filesystem |
+| Force permissions re-merge | `--force-permissions-sync` | `-ForcePermissionsSync` | Re-apply harness `permissions.deny` even if target already has entries |
+| User settings override | env `KADMON_USER_SETTINGS_PATH=...` | env `KADMON_USER_SETTINGS_PATH=...` | Test hook — points plugin registration at a non-default file instead of `~/.claude/settings.json` |
+
+### Q5 — private-repo `/plugin install`
+
+Sprint D plan-010 verifies whether `gh auth login` + `/plugin install Kadmon7/kadmon-harness` works from a fresh Claude Code session against a private GitHub repo. Outcome is documented in `docs/diagnostics/` after Phase 8 dogfood completes. Until then, the `git clone + install.sh|ps1` path above is the supported entry.
+
+---
+
 ## 📊 Status & Attribution
 
-**v1.1 — latest shipped: plan-017 + ADR-017 agent template system (2026-04-19)**
-`610 tests passing` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+**v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20)**
+`731 tests passing` · `67 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.
