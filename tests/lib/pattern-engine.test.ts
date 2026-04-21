@@ -116,8 +116,8 @@ describe('pattern-engine', () => {
   it('loads definitions from JSON file', () => {
     const defs = loadPatternDefinitions(DEFS_PATH);
 
-    // Assertion 1 — exact count (ADR-006: 12 domain-specific entries)
-    expect(defs.length).toBe(12);
+    // Assertion 1 — exact count (ADR-006: 12 baseline + 3 Python parallels added in plan-020 Phase D = 15)
+    expect(defs.length).toBe(15);
 
     // Structural sanity — every def has the required base fields
     expect(defs[0]).toHaveProperty('type');
@@ -156,7 +156,7 @@ describe('pattern-engine', () => {
     for (const def of defs) {
       if (def.type in counts) counts[def.type as keyof typeof counts]++;
     }
-    expect(counts.file_sequence).toBe(10);
+    expect(counts.file_sequence).toBe(13);
     expect(counts.tool_arg_presence).toBe(1);
     expect(counts.cluster).toBe(1);
   });

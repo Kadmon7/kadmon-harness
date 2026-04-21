@@ -15,19 +15,24 @@ alwaysApply: true
 
 Before any commit, classify the diff scope and choose a tier. Default is **full** when ambiguous. Mechanical verification (build + typecheck + tests + lint) runs for ALL tiers.
 
+> **Language routing (ADR-020)**: the diff's file extensions determine the language reviewer. `.ts/.tsx/.js/.jsx` → `typescript-reviewer`. `.py` → `python-reviewer`. Mixed diffs → both in parallel. `spektr`, `orakle`, and `kody` are language-agnostic and route the same in either case.
+
 | Trigger | Tier | Reviewers |
 |---------|------|-----------|
-| Production `.ts`/`.js` in `scripts/lib/` or `.claude/hooks/scripts/` | **full** | ts-reviewer + spektr + orakle + kody |
-| Multi-file refactor (5+ files) | **full** | Full parallel |
-| New feature / bug fix in production code | **full** | Full parallel |
+| Production `.ts`/`.js` in `scripts/lib/` or `.claude/hooks/scripts/` | **full** | typescript-reviewer + spektr + orakle + kody |
+| Production `.py` in target project (src/, lib/, app/) | **full** | python-reviewer + spektr + orakle + kody |
+| Multi-file refactor (5+ files) | **full** | Full parallel (reviewers match file extensions) |
+| New feature / bug fix in production code | **full** | Full parallel (reviewers match file extensions) |
 | Security-sensitive (auth, exec, SQL, file paths) | **full** | Full parallel (spektr MANDATORY) |
 | DB schema or migration changes | **full** | Full parallel (orakle MANDATORY) |
-| Test-only additions in `tests/` (no production code) | **lite** | ts-reviewer only |
-| Single-file TS refactor <50 lines, no new exports | **lite** | ts-reviewer only |
-| Hook script edit <20 lines, no security surface | **lite** | ts-reviewer only |
-| Hook script edit with auth/exec/path surface | **lite** | ts-reviewer + spektr |
+| Test-only additions in `tests/` TS (no production code) | **lite** | typescript-reviewer only |
+| Test-only additions in `tests/` Python (no production code) | **lite** | python-reviewer only |
+| Single-file TS refactor <50 lines, no new exports | **lite** | typescript-reviewer only |
+| Single-file Python refactor <50 lines, no new public API | **lite** | python-reviewer only |
+| Hook script edit <20 lines, no security surface | **lite** | typescript-reviewer only |
+| Hook script edit with auth/exec/path surface | **lite** | typescript-reviewer + spektr |
 | Docs-only (`*.md` in README/docs/agents/skills/commands) | **skip** | — |
-| Config-only (`tsconfig.json`, `.gitignore`, `eslintrc`) | **skip** | — |
+| Config-only (`tsconfig.json`, `pyproject.toml`, `.gitignore`, `eslintrc`, `ruff.toml`) | **skip** | — |
 | Agent frontmatter metadata (`model:`, `tools:`) | **skip** | — |
 | Routing/rules metadata (`rules/**/*.md`, `CLAUDE.md`) | **skip** | — |
 | Typo fixes (1-5 char changes, no semantic change) | **skip** | — |
