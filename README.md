@@ -171,21 +171,13 @@ Inside your first session in the target project:
 
 ### 🧠 Onboard Claude to the harness (optional but recommended)
 
-Drop the catalog reference into your project's auto-memory so every Claude session knows the 11 commands + 16 agents + 46 skills + 21 hooks + cheat sheet:
+Want every Claude session in your project to start knowing the 11 commands, 16 agents, 46 skills, 21 hooks, and orchestration chain? Open Claude Code in your project and paste this:
 
-```bash
-# From your Kadmon-Harness clone, copy the template into your project's user memory dir:
-cp docs/onboarding/reference_kadmon_harness.md \
-   ~/.claude/projects/<your-project-hash>/memory/reference_kadmon_harness.md
+```
+Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboarding/reference_kadmon_harness.md and save it as a reference memory in this project. Add a one-line pointer under `## References` in MEMORY.md.
 ```
 
-Then add one line to that project's `memory/MEMORY.md` under `## References`:
-
-```markdown
-- [Kadmon Harness catalog](reference_kadmon_harness.md) — 11 commands, 16 agents, 46 skills, 21 hooks, 19 rules. Orchestration + cheat sheet.
-```
-
-Your project hash is the directory name Claude Code uses under `~/.claude/projects/` (it looks like `C--Users-you-projects-your-project` or similar — check with `ls ~/.claude/projects/`).
+Claude will fetch the catalog, detect your project's memory directory, write the file with proper frontmatter, and update the index. One turn, done.
 
 Distribution architecture: [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) · [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md).
 
