@@ -15,3 +15,5 @@ Thumbs.db
 .claude/agent-memory/
 # Personal overrides — NEVER commit (per Claude Code best practice)
 .claude/settings.local.json
+# Personal productivity journaling — private analytical notes, not for plugin distribution
+docs/insights/
