@@ -12,18 +12,6 @@ export type SupportedPlatform = "win32" | "darwin" | "linux";
  * the failure explicitly rather than silently degrading to an unsupported path.
  */
 export declare function detectPlatform(): SupportedPlatform;
-export interface HookCommandOpts {
-    platform: SupportedPlatform;
-    /** True when running install.sh from Windows Git Bash; false for native PowerShell, Mac, Linux. */
-    usesGitBash: boolean;
-}
-/**
- * Build the shell command string for a Claude Code plugin hook entry.
- * The script name (e.g. "session-start.js") is embedded inside the
- * `${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/` template — plugin variables
- * use POSIX forward slashes regardless of host OS.
- */
-export declare function generateHookCommand(scriptName: string, opts: HookCommandOpts): string;
 export interface MergeDenyResult {
     /** Final union (harness rules first, then target-only rules). */
     merged: string[];
