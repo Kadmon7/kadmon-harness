@@ -80,6 +80,7 @@ Kadmon-Harness/
 - `KADMON_RESEARCH_AUTOWRITE` — Set to `"off"` to skip `/skavenger` auto-write of reports to `docs/research/` (ADR-015 escape hatch)
 - `KADMON_RUNTIME_ROOT` — Absolute path to the harness repo root containing `dist/scripts/lib/*.js`. Set by the plugin's `hooks.json` for plugin-installed hooks; unset for local dev (falls back to 3-level relative walk). Required so hooks running from the plugin cache can resolve compiled TypeScript (ADR-010 Phase 1 primitive).
 - `KADMON_USER_SETTINGS_PATH` — Override path to user-scope `settings.json` consumed by `install-apply.ts`. Used by installer tests (install-sh / install-ps1) to avoid mutating the real `~/.claude/settings.json`. Production installs leave this unset.
+- `KADMON_PROJECT_LANGUAGE` — Force language detection result (`typescript`, `python`, `mixed`, `unknown`). Bypasses the file-marker scan in `scripts/lib/detect-project-language.ts`. Normalized (trim + lowercase) before whitelist check; invalid values fall through to marker detection. Used by `/chekpoint`, `/medik`, and 6 hooks (ADR-020, plan-020 Phase A).
 
 ## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
 - `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all your projects (absolute paths, platform-specific commands like `winget`). Not committed.
@@ -200,9 +201,10 @@ See `install.sh` / `install.ps1` for the exact 11-step flow (arg parse → targe
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20).
-Metrics: 731 tests / 67 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+v1.1 — latest shipped: plan-020 runtime language detection (ADR-020, 2026-04-21) + Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20).
+Metrics: 863 tests / 70 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
 Distribution: Claude Code plugin (agents/skills/commands/hooks via canonical root symlinks) + install.sh/install.ps1 (rules + permissions.deny + .kadmon-version). End-to-end dogfooded against Kadmon-Sports 2026-04-20 — cross-project SQLite isolation verified (distinct projectHash per directory).
+Language support: TypeScript and Python. `/chekpoint`, `/medik`, and 6 hooks detect the target project's toolchain at runtime via `scripts/lib/detect-project-language.ts` (ADR-020). Override with `KADMON_PROJECT_LANGUAGE=python|typescript`.
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
 No known gaps — Bug #3 investigated 2026-04-21 and closed as non-bug: the "silent banner" was correct early-exit behavior when the target has no `git remote origin` (not plugin-specific; applies to any repo without remote). session-start.js now emits a visible log line on that path.
 Shipping history lives in `docs/decisions/` and `git log`.
