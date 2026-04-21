@@ -27,7 +27,9 @@ async function main() {
     // Detect project
     const remoteUrl = gitExec(["remote", "get-url", "origin"], cwd);
     if (!remoteUrl) {
-      console.error("Kadmon: Not in a git repo — session tracking disabled.");
+      console.log(
+        "Kadmon: no git remote — session tracking disabled (expected for standalone repos).",
+      );
       process.exit(0);
     }
     const projectHash = crypto

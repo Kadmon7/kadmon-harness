@@ -145,7 +145,7 @@ npm install && npm run build
 
 **`Repository not found`** on the HTTPS URL — verify https://github.com/Kadmon7/kadmon-harness loads in your browser (no auth prompt, the repo is public). If it does, you probably pasted two slash commands on one line — run them separately.
 
-**Hooks don't fire · no `🚀 Kadmon Session Started` banner** — known gap, Sprint E. The `console.log` banner is suppressed in plugin mode but the hooks themselves still execute. Verify with `/plugin` (Enabled means hooks are live). Visible banner requires upstream `env`-block support in `hooks.json`.
+**Hooks don't fire · no `🚀 Kadmon Session Started` banner** — usually an environment issue, not a plugin bug. Check [`docs/runbooks/plugin-troubleshooting.md`](docs/runbooks/plugin-troubleshooting.md) — 6-item ordered checklist (symlinks, Node version, plugin registration, marketplace path, `.kadmon-version`, git remote). The "silent banner" specifically happens when the target has no `git remote origin`: `session-start.js` now emits a visible "no git remote — session tracking disabled" log line instead of exiting silently (fixed 2026-04-21). Verify the plugin is live with `/plugin` in Claude Code.
 
 **Windows: symlinks appear as text files** — Developer Mode is OFF or `core.symlinks=true` was never set. Fix both, then re-clone. Verify with `Get-Item agents,skills,commands | Select LinkType` (should show `SymbolicLink`).
 

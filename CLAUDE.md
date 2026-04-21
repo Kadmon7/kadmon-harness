@@ -204,5 +204,5 @@ v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR
 Metrics: 731 tests / 67 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
 Distribution: Claude Code plugin (agents/skills/commands/hooks via canonical root symlinks) + install.sh/install.ps1 (rules + permissions.deny + .kadmon-version). End-to-end dogfooded against Kadmon-Sports 2026-04-20 — cross-project SQLite isolation verified (distinct projectHash per directory).
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
-Known gap: session-start banner silent in plugin mode (Bug #3, Sprint E — requires Anthropic hooks.json env-block support).
+No known gaps — Bug #3 investigated 2026-04-21 and closed as non-bug: the "silent banner" was correct early-exit behavior when the target has no `git remote origin` (not plugin-specific; applies to any repo without remote). session-start.js now emits a visible log line on that path.
 Shipping history lives in `docs/decisions/` and `git log`.
