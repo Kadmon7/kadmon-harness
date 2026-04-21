@@ -114,6 +114,59 @@ describe("console-log-warn", () => {
     expect(r.code).toBe(0);
   });
 
+  // ─── Python print() detection (plan-020 Phase B; closes rules/python/hooks.md:18) ──
+
+  it("warns when .py new_string contains print()", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/src/utils.py",
+        new_string: 'print("debug value")',
+      },
+    });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/print/i);
+  });
+
+  it("warns when .py content has multiple prints inline", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/main.py",
+        content: "def f():\n    print(x)\n    return 1",
+      },
+    });
+    expect(r.code).toBe(1);
+  });
+
+  it("allows .py test files", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/tests/test_utils.py",
+        new_string: 'print("test debug")',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("allows .py without print()", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/src/clean.py",
+        new_string: 'def add(a, b):\n    return a + b',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("does NOT flag console.log in .py file (language-correct matcher)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/src/ok.py",
+        new_string: '# comment: console.log is JS, not Python\nx = 1',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
   it("skips when hook is disabled via env var", () => {
     try {
       execFileSync("node", [HOOK], {

@@ -119,4 +119,74 @@ describe("ts-review-reminder", () => {
     });
     expect(r.code).toBe(0);
   });
+
+  // ─── Python branching (plan-020 Phase B) ───────────────────────────────────
+
+  it("warns after 5+ .py edits without review", () => {
+    writeObs([
+      { toolName: "Edit", filePath: "a.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "b.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "c.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "d.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "e.py", eventType: "tool_pre" },
+    ]);
+    const r = runHook({
+      session_id: SESSION_ID,
+      tool_input: { file_path: "f.py" },
+    });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/review/i);
+  });
+
+  it("warns on mixed .ts + .py edits totaling >=5", () => {
+    writeObs([
+      { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "c.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "d.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "e.py", eventType: "tool_pre" },
+    ]);
+    const r = runHook({
+      session_id: SESSION_ID,
+      tool_input: { file_path: "f.py" },
+    });
+    expect(r.code).toBe(1);
+  });
+
+  it("exits 0 after 5+ .py edits if python-reviewer was invoked", () => {
+    writeObs([
+      { toolName: "Edit", filePath: "a.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "b.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "c.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "d.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "e.py", eventType: "tool_pre" },
+      {
+        toolName: "Agent",
+        eventType: "tool_pre",
+        metadata: { agentType: "python-reviewer" },
+      },
+    ]);
+    const r = runHook({
+      session_id: SESSION_ID,
+      tool_input: { file_path: "f.py" },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("warning text uses language-agnostic 'code edits' wording", () => {
+    writeObs([
+      { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+    ]);
+    const r = runHook({
+      session_id: SESSION_ID,
+      tool_input: { file_path: "f.ts" },
+    });
+    expect(r.code).toBe(1);
+    // Wording should be agnostic — not hardcoded ".ts"
+    expect(r.stderr).toMatch(/code edits/i);
+  });
 });

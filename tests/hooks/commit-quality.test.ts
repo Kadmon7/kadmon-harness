@@ -244,4 +244,80 @@ describe("commit-quality", () => {
     const r = runHook({});
     expect(r.code).toBe(0);
   });
+
+  // ─── Python debug markers (plan-020 Phase B) ──────────────────────────────
+
+  it("blocks when staged diff contains print() in a .py file", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/app.py"),
+      'print("debug")\nx = 1\n',
+    );
+    gitExec("git add src/app.py", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: app"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toMatch(/print/i);
+  });
+
+  it("blocks when staged diff contains breakpoint() in a .py file", () => {
+    fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpRepo, "src/dbg.py"),
+      "def f():\n    breakpoint()\n    return 1\n",
+    );
+    gitExec("git add src/dbg.py", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: dbg"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(2);
+    expect(r.stderr).toMatch(/breakpoint/i);
+  });
+
+  it("allows print() in test_*.py files", () => {
+    fs.writeFileSync(
+      path.join(tmpRepo, "test_app.py"),
+      'def test_x():\n    print("debug")\n',
+    );
+    gitExec("git add test_app.py", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "test: add"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(0);
+  });
+
+  it("allows print() in *_test.py files", () => {
+    fs.writeFileSync(
+      path.join(tmpRepo, "app_test.py"),
+      'def test_x():\n    print("debug")\n',
+    );
+    gitExec("git add app_test.py", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "test: add"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(0);
+  });
+
+  it("allows .py without print/breakpoint", () => {
+    fs.writeFileSync(
+      path.join(tmpRepo, "clean.py"),
+      "def add(a, b):\n    return a + b\n",
+    );
+    gitExec("git add clean.py", tmpRepo);
+
+    const r = runHook(
+      { tool_input: { command: 'git commit -m "feat: clean"' } },
+      tmpRepo,
+    );
+    expect(r.code).toBe(0);
+  });
 });
