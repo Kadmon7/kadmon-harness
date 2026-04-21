@@ -1,0 +1,6 @@
+{
+  "name": "lang-ts-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fixture for detect-project-language.ts — TypeScript-only project (plan-020)."
+}
