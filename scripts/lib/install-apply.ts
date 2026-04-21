@@ -26,10 +26,11 @@ import { z } from "zod";
 
 import {
   mergeSettingsJson,
+  mergePermissionsAllow,
   safeAssign,
   type SettingsJsonLike,
 } from "./install-helpers.js";
-import { CANONICAL_DENY_RULES } from "./install-manifest.js";
+import { CANONICAL_DENY_RULES, CANONICAL_ALLOW_RULES } from "./install-manifest.js";
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
@@ -125,6 +126,8 @@ function writeJson(filePath: string, data: unknown): void {
 interface ProjectMergeResult {
   projectDenyCount: number;
   projectAdded: number;
+  allowAdded: number;
+  allowDedupedCount: number;
 }
 
 function applyProjectSettings(
@@ -138,8 +141,7 @@ function applyProjectSettings(
   );
   const targetSettings = readJsonOrEmpty(projectSettingsPath);
 
-  // Harness source: only permissions.deny matters for this merge. The merger
-  // preserves every other target key untouched.
+  // Merge permissions.deny via mergeSettingsJson (preserves all unrelated keys).
   const harnessSettings: SettingsJsonLike = {
     permissions: { deny: [...CANONICAL_DENY_RULES] },
   };
@@ -147,6 +149,24 @@ function applyProjectSettings(
   const merged = mergeSettingsJson(harnessSettings, targetSettings, {
     forceDenySync: forceSync,
   });
+
+  // Merge permissions.allow on top of the deny-merged result (ADR-021 Q1).
+  // Read from `merged` (post-deny result) not `targetSettings` so the pipeline
+  // stays compositional — if mergeSettingsJson ever normalizes allow, this
+  // step picks up the normalized value (ts-reviewer WARN 2026-04-21).
+  const targetAllow =
+    (merged.permissions?.allow as readonly string[] | undefined) ?? [];
+  const allowResult = mergePermissionsAllow(
+    CANONICAL_ALLOW_RULES,
+    targetAllow,
+  );
+
+  // Layer the merged allow array into the result object (preserves deny + other keys).
+  const mergedPermissions = merged.permissions ?? {};
+  merged.permissions = {
+    ...safeAssign(mergedPermissions as Record<string, unknown>),
+    allow: allowResult.merged,
+  };
 
   writeJson(projectSettingsPath, merged);
 
@@ -157,6 +177,8 @@ function applyProjectSettings(
   return {
     projectDenyCount: finalDeny.length,
     projectAdded: finalDeny.length - existingDeny.length,
+    allowAdded: allowResult.added.length,
+    allowDedupedCount: allowResult.dedupedCount,
   };
 }
 
@@ -221,6 +243,8 @@ function applyUserSettings(userSettingsPath: string): UserMergeResult {
 export interface InstallApplySummary {
   projectDenyCount: number;
   projectAdded: number;
+  allowAdded: number;
+  allowDedupedCount: number;
   userMarketplaceAdded: boolean;
   userEnabledPluginAdded: boolean;
   userSettingsPath: string;

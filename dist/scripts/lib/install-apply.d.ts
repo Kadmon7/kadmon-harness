@@ -2,6 +2,8 @@
 export interface InstallApplySummary {
     projectDenyCount: number;
     projectAdded: number;
+    allowAdded: number;
+    allowDedupedCount: number;
     userMarketplaceAdded: boolean;
     userEnabledPluginAdded: boolean;
     userSettingsPath: string;

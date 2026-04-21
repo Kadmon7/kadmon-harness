@@ -22,6 +22,7 @@ import path from "node:path";
 import {
   detectPlatform,
   mergePermissionsDeny,
+  mergePermissionsAllow,
   mergeSettingsJson,
   resolveTargetPaths,
 } from "../../scripts/lib/install-helpers.js";
@@ -172,6 +173,69 @@ describe("mergePermissionsDeny()", () => {
     const original = [...target];
     mergePermissionsDeny(["a"], target);
     expect(target).toEqual(original);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// mergePermissionsAllow(harness, target)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("mergePermissionsAllow()", () => {
+  // (a) empty + empty
+  it("empty + empty → empty result, 0 added, 0 deduped", () => {
+    const result = mergePermissionsAllow([], []);
+    expect(result.merged).toEqual([]);
+    expect(result.added).toEqual([]);
+    expect(result.dedupedCount).toBe(0);
+  });
+
+  // (b) harness only (target empty) → all harness items, 0 deduped
+  it("harness only (target empty) → all harness items in merged, 0 deduped", () => {
+    const harness = ["Bash(git:*)", "Bash(npm:*)", "Skill(*:*)"];
+    const result = mergePermissionsAllow(harness, []);
+    expect(result.merged).toEqual(["Bash(git:*)", "Bash(npm:*)", "Skill(*:*)"]);
+    expect(result.added).toEqual(["Bash(git:*)", "Bash(npm:*)", "Skill(*:*)"]);
+    expect(result.dedupedCount).toBe(0);
+  });
+
+  // (c) target only (harness empty via empty array)
+  it("target only (harness empty) → target items preserved, 0 added, 0 deduped", () => {
+    const target = ["Bash(ls:*)", "Bash(pwd:*)"];
+    const result = mergePermissionsAllow([], target);
+    expect(result.merged).toContain("Bash(ls:*)");
+    expect(result.merged).toContain("Bash(pwd:*)");
+    expect(result.added).toEqual([]);
+    expect(result.dedupedCount).toBe(0);
+  });
+
+  // (d) target with overlapping allows → dedup works
+  it("['Bash(git:*)'] + ['Bash(git:*)', 'Bash(ls:*)'] → dedup works, 0 added, 1 deduped", () => {
+    const result = mergePermissionsAllow(["Bash(git:*)"], ["Bash(git:*)", "Bash(ls:*)"]);
+    // Merged should have exactly 2 unique items
+    expect(result.merged).toHaveLength(2);
+    expect(result.merged).toContain("Bash(git:*)");
+    expect(result.merged).toContain("Bash(ls:*)");
+    // 'Bash(git:*)' was already in target — not added, just deduped
+    expect(result.added).toEqual([]);
+    expect(result.dedupedCount).toBe(1);
+  });
+
+  // (e) target with disjoint allows → all included, no dedup
+  it("disjoint harness + target → all items included, correct added count, 0 deduped", () => {
+    const harness = ["Bash(git:*)", "Bash(npm:*)", "Skill(*:*)"];
+    const target = ["Bash(ls:*)", "Bash(pwd:*)"];
+    const result = mergePermissionsAllow(harness, target);
+    // All 5 unique items present
+    expect(result.merged).toHaveLength(5);
+    // Harness items appear first
+    const gitIdx = result.merged.indexOf("Bash(git:*)");
+    const lsIdx = result.merged.indexOf("Bash(ls:*)");
+    expect(gitIdx).toBeGreaterThanOrEqual(0);
+    expect(lsIdx).toBeGreaterThanOrEqual(0);
+    expect(gitIdx).toBeLessThan(lsIdx);
+    // All harness items were added (none already in target)
+    expect(result.added).toEqual(["Bash(git:*)", "Bash(npm:*)", "Skill(*:*)"]);
+    expect(result.dedupedCount).toBe(0);
   });
 });
 

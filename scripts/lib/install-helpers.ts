@@ -53,7 +53,12 @@ export function detectPlatform(): SupportedPlatform {
   );
 }
 
-export interface MergeDenyResult {
+/**
+ * Result shape shared by mergePermissionsDeny and mergePermissionsAllow.
+ * Both merges compute identical metadata: the union array, which harness rules
+ * were new additions, and how many harness rules were already in target.
+ */
+export interface MergePermissionsResult {
   /** Final union (harness rules first, then target-only rules). */
   merged: string[];
   /** Harness rules NOT already present in target (the new additions). */
@@ -62,15 +67,19 @@ export interface MergeDenyResult {
   dedupedCount: number;
 }
 
+/** @deprecated Use MergePermissionsResult — renamed for symmetry with mergePermissionsAllow. */
+export type MergeDenyResult = MergePermissionsResult;
+
 /**
- * Merge two permissions.deny lists with predictable ordering: harness rules
- * appear first in declaration order, then any target-only rules. Inputs are
- * never mutated; a new array is always returned.
+ * Core merge logic: union of harness + target with harness-first ordering and
+ * exact-string dedup. Inputs are never mutated; a new array is always returned.
+ * Extracted to avoid duplication between mergePermissionsDeny and
+ * mergePermissionsAllow (ADR-021 Q1 — identical shape, identical semantics).
  */
-export function mergePermissionsDeny(
+function mergePermissionsCore(
   harness: readonly string[],
   target: readonly string[],
-): MergeDenyResult {
+): MergePermissionsResult {
   const targetSet = new Set(target);
   const merged: string[] = [];
   const seen = new Set<string>();
@@ -99,6 +108,32 @@ export function mergePermissionsDeny(
   }
 
   return { merged, added, dedupedCount };
+}
+
+/**
+ * Merge two permissions.deny lists with predictable ordering: harness rules
+ * appear first in declaration order, then any target-only rules. Inputs are
+ * never mutated; a new array is always returned.
+ */
+export function mergePermissionsDeny(
+  harness: readonly string[],
+  target: readonly string[],
+): MergePermissionsResult {
+  return mergePermissionsCore(harness, target);
+}
+
+/**
+ * Merge two permissions.allow lists with identical semantics to
+ * mergePermissionsDeny: harness rules appear first (harness-first ordering),
+ * then any target-only rules. Inputs are never mutated; a new array is always
+ * returned. Dedup is exact-string equality — order does not affect semantics
+ * for allow rules (ADR-021 Q1 red-flag 1).
+ */
+export function mergePermissionsAllow(
+  harness: readonly string[],
+  target: readonly string[],
+): MergePermissionsResult {
+  return mergePermissionsCore(harness, target);
 }
 
 export interface SettingsJsonLike {
