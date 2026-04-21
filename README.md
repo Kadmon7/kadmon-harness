@@ -447,12 +447,48 @@ Example instincts:
 
 ## 📥 Install into another project
 
-> **This is the path for end users** (Joe, Eden, Abraham, and anyone who wants to use the harness on their own project). You clone the harness once per machine, then run `install.sh` / `install.ps1` once per project. From then on, every Claude Code session in that project gets agents, skills, commands, hooks, rules, and permissions automatically.
+> **This is the path for end users** (Joe, Eden, Abraham, and anyone who wants to use the harness on their own project). Pick one of the two paths below based on what you need.
 
-The harness distributes via a **hybrid model** (per [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) + [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md)):
+### Which option do I pick?
+
+| You want... | Pick | How long |
+|---|---|---|
+| Agents + skills + commands + hooks (plugin parts — the 80%) | **Option 1 — Marketplace** | 3 slash commands, ~30 seconds |
+| Everything: plugin parts + 19 rules + 15 `permissions.deny` entries | **Option 2 — `install.sh` (recommended)** | Clone + build + one script, ~2 minutes |
+
+Distribution architecture (per [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) + [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md)):
 
 - **Claude Code plugin** ships agents, skills, commands, and hooks via canonical root symlinks (auto-registered in `~/.claude/settings.json`).
 - **`install.sh` / `install.ps1`** copies `rules/` and merges `permissions.deny` + writes `.kadmon-version` + updates `.gitignore` (the two categories Claude Code plugins cannot distribute today).
+
+### Option 1 — Quick marketplace install (plugin parts only)
+
+Installs: **16 agents + 46 skills + 11 commands + 21 hooks** (auto-registered via the Claude Code marketplace).
+Does NOT install: the **19 rules + 15 canonical `permissions.deny`** entries. For those, use Option 2.
+
+**Open a Claude Code session in any project, then run these 3 commands — one at a time, each on its own line:**
+
+```
+/plugin marketplace add https://github.com/Kadmon7/kadmon-harness.git
+```
+
+```
+/plugin install kadmon-harness@kadmon-harness
+```
+
+```
+/reload-plugins
+```
+
+**Verify**: inside the session run `/plugin` — you should see `kadmon-harness Enabled`, scope `user`, version `1.1.0`, with all 16 agents + 46 skills + 11 commands listed.
+
+> **Pitfall 1 — Don't paste multiple slash commands on one line.** If you paste `/plugin marketplace add ... /plugin install ...` together, Claude Code parses the second command as part of the first URL and clone fails with `Repository not found`. Run each command separately.
+
+> **Pitfall 2 — SSH host key error on a fresh Mac.** If you try the short form `/plugin marketplace add Kadmon7/kadmon-harness` before ever running `ssh -T git@github.com`, you'll see `Host key verification failed`. The HTTPS URL shown above bypasses SSH — use it. (Permanent fix: run `ssh -T git@github.com` in terminal once and type `yes`.)
+
+---
+
+### Option 2 — Complete install via `install.sh` / `install.ps1` (recommended)
 
 ### What the installer does (11 steps)
 
@@ -474,57 +510,54 @@ The harness distributes via a **hybrid model** (per [ADR-010](docs/decisions/ADR
 ### Prerequisites
 
 - Node.js **>= 20** (`node --version`)
-- `git` in `PATH`
-- `gh` CLI for private-repo clone (`gh auth login`)
+- `git` in `PATH` (any recent version — no auth needed, the repo is public)
 - **Windows only**: Developer Mode ON (Settings → Privacy & Security → For Developers) + `git config --global core.symlinks true`. Without this, the canonical root symlinks resolve as text files and the plugin loader rejects the manifest.
+- Optional: `gh` CLI (only if you prefer `gh repo clone` over `git clone`; not required since 2026-04-20 when the repo went public).
 
 ### Step-by-step — Mac / Linux (bash)
 
 ```bash
-# 1. ONE-TIME per machine — authenticate with GitHub
-gh auth login
-
-# 2. ONE-TIME per machine — clone the harness anywhere
+# 1. ONE-TIME per machine — clone the harness anywhere
 cd ~/projects   # or wherever you keep repos
-gh repo clone Kadmon7/kadmon-harness
+git clone https://github.com/Kadmon7/kadmon-harness.git
 cd kadmon-harness
 npm install && npm run build
 
-# 3. ONCE PER PROJECT — dry-run first to preview
+# 2. ONCE PER PROJECT — dry-run first to preview
 ./install.sh --dry-run /path/to/your/project
 
-# 4. If the dry-run plan looks right, install for real
+# 3. If the dry-run plan looks right, install for real
 ./install.sh /path/to/your/project
 
-# 5. Open Claude Code in your project — plugin is now active
+# 4. Open Claude Code in your project — plugin is now active
 cd /path/to/your/project
 claude
 
-# 6. Verify inside the session:
-#    /plugin      → should list kadmon-harness as enabled
-#    /kadmon-harness → dashboard with instincts/sessions/costs
+# 5. Verify inside the session:
+#    /plugin          → should list kadmon-harness as enabled
+#    /kadmon-harness  → dashboard with instincts/sessions/costs
 ```
 
 ### Step-by-step — Windows (native PowerShell)
 
 ```powershell
-# 1. ONE-TIME per machine — enable symlinks (CRITICAL, plugin won't load without this)
+# 0. ONE-TIME per machine — enable symlinks (CRITICAL, plugin won't load without this)
 # Open Settings → Privacy & Security → For Developers → turn Developer Mode ON
 git config --global core.symlinks true
 
-# 2. ONE-TIME per machine — authenticate + clone
-gh auth login
-gh repo clone Kadmon7/kadmon-harness
+# 1. ONE-TIME per machine — clone
+cd C:\projects
+git clone https://github.com/Kadmon7/kadmon-harness.git
 cd kadmon-harness
 npm install; npm run build
 
-# 3. ONCE PER PROJECT — dry-run first
+# 2. ONCE PER PROJECT — dry-run first
 .\install.ps1 -TargetPath C:\path\to\your\project -DryRun
 
-# 4. Install for real
+# 3. Install for real
 .\install.ps1 -TargetPath C:\path\to\your\project
 
-# 5. Open Claude Code in your project
+# 4. Open Claude Code in your project
 cd C:\path\to\your\project
 claude
 ```
@@ -532,21 +565,20 @@ claude
 ### Step-by-step — Windows (Git Bash)
 
 ```bash
-# 1. ONE-TIME per machine — enable native symlinks (same prereqs as PowerShell)
+# 0. ONE-TIME per machine — enable native symlinks (same prereqs as PowerShell)
 git config --global core.symlinks true
 export MSYS=winsymlinks:nativestrict   # add to ~/.bashrc to persist across sessions
 
-# 2. ONE-TIME per machine — auth + clone
-gh auth login
-gh repo clone Kadmon7/kadmon-harness
+# 1. ONE-TIME per machine — clone
+git clone https://github.com/Kadmon7/kadmon-harness.git
 cd kadmon-harness
 npm install && npm run build
 
-# 3. ONCE PER PROJECT
+# 2. ONCE PER PROJECT
 ./install.sh --dry-run /c/path/to/your/project
 ./install.sh /c/path/to/your/project
 
-# 4. Open Claude Code
+# 3. Open Claude Code
 cd /c/path/to/your/project
 claude
 ```
@@ -581,9 +613,21 @@ rm <target>/.claude/settings.json <target>/.kadmon-version
 # Remove kadmon-harness entries from ~/.claude/settings.json if you want to unregister the plugin globally
 ```
 
-### Q5 — native `/plugin install` against private repo
+### Troubleshooting
 
-An alternative distribution path under evaluation: with `gh auth login` configured, attempt `/plugin install Kadmon7/kadmon-harness` from a fresh Claude Code session. If this works end-to-end against a private repo, future versions could drop the `git clone + install.sh` step for agents/skills/commands/hooks. Outcome documented in `docs/diagnostics/` when verified. Until then, the `git clone + install.sh|ps1` path above is the supported entry.
+**`Host key verification failed` when running `/plugin marketplace add Kadmon7/kadmon-harness`**
+Your Mac (or Windows box) has never connected to GitHub via SSH, so the key is not in `~/.ssh/known_hosts`. Two fixes:
+- (Easiest) Use the HTTPS URL from Option 1: `/plugin marketplace add https://github.com/Kadmon7/kadmon-harness.git`.
+- (Permanent) Run `ssh -T git@github.com` in terminal once and type `yes` at the prompt. After that, the short form `Kadmon7/kadmon-harness` works.
+
+**`Repository not found` when using the HTTPS URL**
+The Kadmon-Harness repo is public since 2026-04-20 — load https://github.com/Kadmon7/kadmon-harness in your browser (no auth prompt) to confirm. If you pasted two slash commands on one line, Claude Code concatenated the second command into the URL — run each command on its own line.
+
+**Hooks don't fire / no `🚀 Kadmon Session Started` banner**
+Known gap (Bug #3, deferred to Sprint E): in plugin mode the hook `console.log` banner output is suppressed, but the hooks themselves execute. Verify with `/plugin` — if kadmon-harness is `Enabled`, hooks are registered and running. Banner visibility requires an upstream Anthropic fix for `env` block support in `hooks.json`.
+
+**Windows: canonical symlinks appear as text files after clone**
+Developer Mode is OFF or `git config --global core.symlinks true` was never run. Turn Developer Mode on (Settings → Privacy & Security → For Developers), run the git config, then re-clone with `MSYS=winsymlinks:nativestrict` exported (Git Bash) or a fresh clone in PowerShell. Verify with `Get-Item agents,skills,commands | Select LinkType` (should show `SymbolicLink`).
 
 ---
 
