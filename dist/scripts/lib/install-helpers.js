@@ -43,25 +43,6 @@ export function detectPlatform() {
     throw new Error(`Unsupported platform: ${p}. Kadmon supports win32, darwin, linux.`);
 }
 /**
- * Build the shell command string for a Claude Code plugin hook entry.
- * The script name (e.g. "session-start.js") is embedded inside the
- * `${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/` template — plugin variables
- * use POSIX forward slashes regardless of host OS.
- */
-export function generateHookCommand(scriptName, opts) {
-    if (opts.platform !== "win32" &&
-        opts.platform !== "darwin" &&
-        opts.platform !== "linux") {
-        throw new Error(`generateHookCommand: unsupported platform "${opts.platform}".`);
-    }
-    // Plugin variable paths are ALWAYS POSIX forward-slash, even on Windows.
-    const scriptPath = `\${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/${scriptName}`;
-    if (opts.platform === "win32" && opts.usesGitBash) {
-        return `PATH="$PATH:/c/Program Files/nodejs" node ${scriptPath}`;
-    }
-    return `node ${scriptPath}`;
-}
-/**
  * Merge two permissions.deny lists with predictable ordering: harness rules
  * appear first in declaration order, then any target-only rules. Inputs are
  * never mutated; a new array is always returned.

@@ -8,33 +8,23 @@
 //
 // Exports under test:
 //   detectPlatform()         → 'win32' | 'darwin' | 'linux'
-//   generateHookCommand()    → string (OS-aware hook command)
 //   mergePermissionsDeny()   → { merged, added, dedupedCount }
 //   mergeSettingsJson()      → Record<string, unknown> (deep-merge only permissions.deny)
 //   resolveTargetPaths()     → { rules, settings, settingsLocal }
+// (generateHookCommand was removed 2026-04-21 as dead code — Claude Code
+//  resolves ${HOOK_CMD_PREFIX} internally, so install.sh never needed to
+//  rewrite it. Verified by dogfood-plugin-session E2E 21/21 hooks fire
+//  with the placeholder literal in hooks.json.)
 
 import { describe, it, expect, expectTypeOf, afterEach } from "vitest";
 import path from "node:path";
 
-// NOTE: .js extension is required per Node16 ESM convention (see rules/typescript/coding-style.md).
-// This import will fail with "Cannot find module" until Step 3.2 creates the file.
 import {
   detectPlatform,
-  generateHookCommand,
   mergePermissionsDeny,
   mergeSettingsJson,
   resolveTargetPaths,
 } from "../../scripts/lib/install-helpers.js";
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-// The canonical plugin-root script path template used in all hook command assertions.
-// Must use forward slashes even on Windows — plugin var paths are always POSIX.
-const SCRIPT_SEGMENT = "${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/session-start.js";
-
-const WIN_GITBASH_CMD =
-  `PATH="$PATH:/c/Program Files/nodejs" node ${SCRIPT_SEGMENT}`;
-const PLAIN_NODE_CMD = `node ${SCRIPT_SEGMENT}`;
 
 // ─── process.platform mock helpers ───────────────────────────────────────────
 
@@ -102,79 +92,6 @@ describe("detectPlatform()", () => {
   it("return type is exactly 'win32' | 'darwin' | 'linux' (type-level contract)", () => {
     // expectTypeOf verifies the TypeScript return type at compile time
     expectTypeOf(detectPlatform).returns.toMatchTypeOf<SupportedPlatform>();
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// generateHookCommand(scriptName, opts)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-describe("generateHookCommand()", () => {
-  it("Windows + Git Bash → PATH prefix + node + script path (exact string)", () => {
-    const result = generateHookCommand("session-start.js", {
-      platform: "win32",
-      usesGitBash: true,
-    });
-    expect(result).toBe(WIN_GITBASH_CMD);
-  });
-
-  it("Windows + native PowerShell (usesGitBash:false) → plain node command", () => {
-    const result = generateHookCommand("session-start.js", {
-      platform: "win32",
-      usesGitBash: false,
-    });
-    expect(result).toBe(PLAIN_NODE_CMD);
-  });
-
-  it("macOS → plain node command (no PATH prefix)", () => {
-    const result = generateHookCommand("session-start.js", {
-      platform: "darwin",
-      usesGitBash: false,
-    });
-    expect(result).toBe(PLAIN_NODE_CMD);
-  });
-
-  it("Linux → plain node command (no PATH prefix)", () => {
-    const result = generateHookCommand("session-start.js", {
-      platform: "linux",
-      usesGitBash: false,
-    });
-    expect(result).toBe(PLAIN_NODE_CMD);
-  });
-
-  it("output NEVER contains backslashes (plugin var paths are always POSIX forward-slash)", () => {
-    const platforms: Array<{ platform: "win32" | "darwin" | "linux"; usesGitBash: boolean }> = [
-      { platform: "win32", usesGitBash: true },
-      { platform: "win32", usesGitBash: false },
-      { platform: "darwin", usesGitBash: false },
-      { platform: "linux", usesGitBash: false },
-    ];
-    for (const opts of platforms) {
-      const result = generateHookCommand("session-start.js", opts);
-      expect(result).not.toContain("\\");
-    }
-  });
-
-  it("throws on unknown platform (defensive guard)", () => {
-    expect(() =>
-      generateHookCommand("session-start.js", {
-        platform: "freebsd" as "linux",
-        usesGitBash: false,
-      })
-    ).toThrow();
-  });
-
-  it("return type is exactly string", () => {
-    expectTypeOf(generateHookCommand).returns.toEqualTypeOf<string>();
-  });
-
-  it("embeds the scriptName inside the ${CLAUDE_PLUGIN_ROOT} path", () => {
-    const result = generateHookCommand("pre-compact-save.js", {
-      platform: "darwin",
-      usesGitBash: false,
-    });
-    expect(result).toContain("pre-compact-save.js");
-    expect(result).toContain("${CLAUDE_PLUGIN_ROOT}");
   });
 });
 
