@@ -18,11 +18,24 @@ Multi-step verification that catches issues before they reach production or git.
 ## How It Works
 Run in order. Stop at first failure. Fix, then restart from that step.
 
+Commands are detected at runtime via `scripts/lib/detect-project-language.ts` (ADR-020). The skill describes the conceptual sequence; the toolchain map resolves to concrete commands based on the target project.
+
+**TypeScript toolchain**
+
 1. **Build** — `npm run build`
 2. **Typecheck** — `npx tsc --noEmit`
 3. **Lint** — `npx eslint .`
 4. **Unit tests** — `npx vitest run tests/lib/`
 5. **Hook tests** — `npx vitest run tests/hooks/`
+6. **Diff review** — `git diff`
+
+**Python toolchain**
+
+1. **Build** — (no build step)
+2. **Typecheck** — `mypy .`
+3. **Lint** — `ruff check . && black --check .`
+4. **Unit tests** — `pytest tests/unit/`
+5. **Hook tests** — `pytest tests/hooks/`
 6. **Diff review** — `git diff`
 
 ## Why This Order Matters

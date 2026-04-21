@@ -13,18 +13,25 @@ Always runs the full pipeline. If you're running /medik, you want the complete p
 
 ### Phase 1: Health Checks (direct — no agent)
 
-Run all 8 checks directly (mechanical commands, no agent needed):
+Run all 8 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `scripts/lib/detect-project-language.ts`) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
 
-| # | Check | Command / Method | What to look for |
-|---|-------|-----------------|------------------|
-| 1 | Build | `npm run build` | Compilation errors, EBUSY locks, missing files |
-| 2 | Typecheck | `npx tsc --noEmit` | Type errors (TS2xxx codes) |
-| 3 | Tests | `npx vitest run` | Test failures, timeout errors |
-| 4 | Hook errors | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
-| 5 | DB health | Read `~/.kadmon/kadmon.db` | File exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), no corruption |
-| 6 | dist/ sync | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
-| 7 | Dependencies | `npm audit` | Vulnerable packages, outdated deps |
-| 8 | Agent frontmatter | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
+| # | Check | Language | Command / Method | What to look for |
+|---|-------|----------|-----------------|------------------|
+| 1 | Build | TS | `npm run build` | Compilation errors, EBUSY locks, missing files |
+|   |       | Python | (skipped — pyproject.toml builds happen via `pip install -e .` on demand, not every health check) | — |
+| 2 | Typecheck | TS | `npx tsc --noEmit` | Type errors (TS2xxx codes) |
+|   |           | Python | `mypy .` (fallback `pyright`) | Type errors; warn if tool missing |
+| 3 | Tests | TS | `npx vitest run` | Test failures, timeout errors |
+|   |       | Python | `pytest` | Test failures; warn if pytest missing |
+| 4 | Hook errors | both | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
+| 5 | DB health | both | Read `~/.kadmon/kadmon.db` | File exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), no corruption |
+| 6 | dist/ sync | TS | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
+|   |            | Python | (skipped — no dist/ in Python projects) | — |
+| 7 | Dependencies | TS | `npm audit` | Vulnerable packages, outdated deps |
+|   |              | Python | `pip-audit` (warn if not installed) | Vulnerable packages |
+| 8 | Agent frontmatter | both | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
+
+> **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language.
 
 ### Phase 2: Deep Analysis (agents — always runs)
 
