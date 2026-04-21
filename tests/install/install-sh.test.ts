@@ -270,8 +270,13 @@ describe("install.sh — plan-010 Phase 4 narrowed by plan-019", () => {
         allow: string[];
         deny: string[];
       };
-      // Allow list preserved intact
-      expect(permissions.allow).toEqual(["Bash(ls:*)"]);
+      // Allow list: harness CANONICAL_ALLOW_RULES merged in (ADR-021 Q1).
+      // Target's "Bash(ls:*)" is in CANONICAL_ALLOW_RULES — appears exactly once (deduped).
+      expect(permissions.allow).toContain("Bash(ls:*)");
+      expect(permissions.allow).toContain("Bash(git:*)");
+      expect(permissions.allow).toContain("Skill(*:*)");
+      const lsCount = permissions.allow.filter((r) => r === "Bash(ls:*)").length;
+      expect(lsCount).toBe(1);
       // Deny list has merged entries (target's "Bash(rm -rf:*)" + harness canonical)
       expect(permissions.deny).toContain("Bash(rm -rf:*)");
       expect(permissions.deny).toContain("Read(./.env)");
@@ -414,6 +419,66 @@ describe("install.sh — plan-010 Phase 4 narrowed by plan-019", () => {
         | undefined;
       expect(enabled).toBeDefined();
       expect(enabled?.["kadmon-harness@kadmon-harness"]).toBe(true);
+    },
+  );
+
+  it.runIf(bashAvailable)(
+    "Test 13: merges CANONICAL_ALLOW_RULES into target/.claude/settings.json (ADR-021 Q1)",
+    () => {
+      const target = createFakeTarget();
+      const userSettings = createFakeUserSettings();
+      const result = runInstallSh([target], {
+        KADMON_USER_SETTINGS_PATH: userSettings,
+      });
+
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      const settingsPath = path.join(target, ".claude", "settings.json");
+      expect(fs.existsSync(settingsPath)).toBe(true);
+      const settings = readJson(settingsPath);
+      const permissions = settings["permissions"] as
+        | { allow?: unknown; deny?: unknown }
+        | undefined;
+      expect(permissions).toBeDefined();
+      expect(Array.isArray(permissions?.allow)).toBe(true);
+      const allow = permissions?.allow as string[];
+      // All 9 CANONICAL_ALLOW_RULES must be present
+      expect(allow).toContain("Bash(git:*)");
+      expect(allow).toContain("Bash(npm:*)");
+      expect(allow).toContain("Bash(npx:*)");
+      expect(allow).toContain("Bash(node:*)");
+      expect(allow).toContain("Bash(cd:*)");
+      expect(allow).toContain("Bash(ls:*)");
+      expect(allow).toContain("Bash(pwd:*)");
+      expect(allow).toContain("Bash(which:*)");
+      expect(allow).toContain("Skill(*:*)");
+    },
+  );
+
+  it.runIf(bashAvailable)(
+    "Test 14: preserves target's existing allow rules and dedupes harness rules (ADR-021 Q1)",
+    () => {
+      const existing = {
+        permissions: {
+          allow: ["Bash(git:*)", "WebFetch(domain:example.com)"],
+          deny: [],
+        },
+      };
+      const target = createFakeTarget({ existingSettings: existing });
+      const userSettings = createFakeUserSettings();
+      const result = runInstallSh([target], {
+        KADMON_USER_SETTINGS_PATH: userSettings,
+      });
+
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      const settings = readJson(path.join(target, ".claude", "settings.json"));
+      const permissions = settings["permissions"] as { allow: string[] };
+      // Target's project-specific allow preserved
+      expect(permissions.allow).toContain("WebFetch(domain:example.com)");
+      // Harness allow rules present
+      expect(permissions.allow).toContain("Bash(npm:*)");
+      // 'Bash(git:*)' not duplicated (was already in target)
+      const gitCount = permissions.allow.filter((r) => r === "Bash(git:*)").length;
+      expect(gitCount).toBe(1);
     },
   );
 

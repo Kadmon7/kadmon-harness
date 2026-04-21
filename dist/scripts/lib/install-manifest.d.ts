@@ -21,11 +21,30 @@ export declare const COPY_MANIFEST: {
  * own dog food — what we forbid for ourselves is what we forbid for targets.
  *
  * Edit policy: add a new rule here AND to .claude/settings.json so the two stay
- * in sync. Sprint E adds `npx tsx scripts/verify-deny-sync.ts` as a drift check.
+ * in sync. Sprint E adds `npx tsx scripts/verify-permissions-sync.ts` as a drift
+ * check (ADR-021).
  *
- * Path note: `Read(/c/Users/kadmo/.ssh/**)` is a Git-Bash absolute path that
- * only matches on the maintainer's Windows machine. It is intentionally kept
- * verbatim — Mac collaborators (Joe/Eden) get a no-op rule and no false-deny;
- * adding a portable equivalent is Sprint E scope (`~/.ssh/**` syntax).
+ * Path note: `Read(/c/Users/kadmo/.ssh/**)` was removed in ADR-021 Q2. Claude
+ * Code defaults to ASK for Read() outside the project root, so ~/.ssh/** is
+ * already gated without an explicit deny. The hardcoded Git-Bash path leaked
+ * maintainer identity ("kadmon") into every collaborator's settings.json.
+ * If explicit deny is needed in the future, verify tilde-expansion semantics via
+ * docs.claude.com before adding `Read(~/.ssh/**)`.
  */
-export declare const CANONICAL_DENY_RULES: readonly ["Read(./.env)", "Read(./.env.*)", "Read(./secrets/**)", "Read(/c/Users/kadmo/.ssh/**)", "Bash(wget:*)", "Bash(nc:*)", "Bash(ncat:*)", "Bash(ssh:*)", "Bash(scp:*)", "Bash(git push --force:*)", "Bash(git push -f:*)", "Bash(git reset --hard:*)", "Bash(rm -rf /:*)", "Bash(rm -rf /*:*)", "Bash(> .env:*)"];
+export declare const CANONICAL_DENY_RULES: readonly ["Read(./.env)", "Read(./.env.*)", "Read(./secrets/**)", "Bash(wget:*)", "Bash(nc:*)", "Bash(ncat:*)", "Bash(ssh:*)", "Bash(scp:*)", "Bash(git push --force:*)", "Bash(git push -f:*)", "Bash(git reset --hard:*)", "Bash(rm -rf /:*)", "Bash(rm -rf /*:*)", "Bash(> .env:*)"];
+/**
+ * Canonical permissions.allow rules merged into every target's
+ * .claude/settings.json by install.sh / install.ps1 (ADR-021 Q1).
+ *
+ * This is the CORE subset of 9 items — the intersection of tools used by every
+ * harness-based project (git/npm/node toolchain + shell navigation + Skill
+ * dispatch for plugins). The full harness allow list (63+ items) is NOT merged
+ * because many entries are project-specific (yt-dlp for /skavenger, ElevenLabs
+ * WebFetch for KAIRON, Context7 MCP for harness-only use). Copying all 63
+ * violates least-privilege for projects that never use those tools.
+ *
+ * Edit policy: add a new rule here AND to .claude/settings.json so the two stay
+ * in sync. Sprint E adds `npx tsx scripts/verify-permissions-sync.ts` as a drift
+ * check for both allow and deny arrays (ADR-021).
+ */
+export declare const CANONICAL_ALLOW_RULES: readonly ["Bash(git:*)", "Bash(npm:*)", "Bash(npx:*)", "Bash(node:*)", "Bash(cd:*)", "Bash(ls:*)", "Bash(pwd:*)", "Bash(which:*)", "Skill(*:*)"];

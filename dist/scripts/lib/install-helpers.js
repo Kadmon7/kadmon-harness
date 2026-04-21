@@ -43,11 +43,12 @@ export function detectPlatform() {
     throw new Error(`Unsupported platform: ${p}. Kadmon supports win32, darwin, linux.`);
 }
 /**
- * Merge two permissions.deny lists with predictable ordering: harness rules
- * appear first in declaration order, then any target-only rules. Inputs are
- * never mutated; a new array is always returned.
+ * Core merge logic: union of harness + target with harness-first ordering and
+ * exact-string dedup. Inputs are never mutated; a new array is always returned.
+ * Extracted to avoid duplication between mergePermissionsDeny and
+ * mergePermissionsAllow (ADR-021 Q1 — identical shape, identical semantics).
  */
-export function mergePermissionsDeny(harness, target) {
+function mergePermissionsCore(harness, target) {
     const targetSet = new Set(target);
     const merged = [];
     const seen = new Set();
@@ -74,6 +75,24 @@ export function mergePermissionsDeny(harness, target) {
         }
     }
     return { merged, added, dedupedCount };
+}
+/**
+ * Merge two permissions.deny lists with predictable ordering: harness rules
+ * appear first in declaration order, then any target-only rules. Inputs are
+ * never mutated; a new array is always returned.
+ */
+export function mergePermissionsDeny(harness, target) {
+    return mergePermissionsCore(harness, target);
+}
+/**
+ * Merge two permissions.allow lists with identical semantics to
+ * mergePermissionsDeny: harness rules appear first (harness-first ordering),
+ * then any target-only rules. Inputs are never mutated; a new array is always
+ * returned. Dedup is exact-string equality — order does not affect semantics
+ * for allow rules (ADR-021 Q1 red-flag 1).
+ */
+export function mergePermissionsAllow(harness, target) {
+    return mergePermissionsCore(harness, target);
 }
 /**
  * Deep-merge ONLY permissions.deny from harness into target, preserving every

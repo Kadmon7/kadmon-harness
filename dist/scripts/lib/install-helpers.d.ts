@@ -12,7 +12,12 @@ export type SupportedPlatform = "win32" | "darwin" | "linux";
  * the failure explicitly rather than silently degrading to an unsupported path.
  */
 export declare function detectPlatform(): SupportedPlatform;
-export interface MergeDenyResult {
+/**
+ * Result shape shared by mergePermissionsDeny and mergePermissionsAllow.
+ * Both merges compute identical metadata: the union array, which harness rules
+ * were new additions, and how many harness rules were already in target.
+ */
+export interface MergePermissionsResult {
     /** Final union (harness rules first, then target-only rules). */
     merged: string[];
     /** Harness rules NOT already present in target (the new additions). */
@@ -20,12 +25,22 @@ export interface MergeDenyResult {
     /** Harness rules already present in target (the overlap). */
     dedupedCount: number;
 }
+/** @deprecated Use MergePermissionsResult — renamed for symmetry with mergePermissionsAllow. */
+export type MergeDenyResult = MergePermissionsResult;
 /**
  * Merge two permissions.deny lists with predictable ordering: harness rules
  * appear first in declaration order, then any target-only rules. Inputs are
  * never mutated; a new array is always returned.
  */
-export declare function mergePermissionsDeny(harness: readonly string[], target: readonly string[]): MergeDenyResult;
+export declare function mergePermissionsDeny(harness: readonly string[], target: readonly string[]): MergePermissionsResult;
+/**
+ * Merge two permissions.allow lists with identical semantics to
+ * mergePermissionsDeny: harness rules appear first (harness-first ordering),
+ * then any target-only rules. Inputs are never mutated; a new array is always
+ * returned. Dedup is exact-string equality — order does not affect semantics
+ * for allow rules (ADR-021 Q1 red-flag 1).
+ */
+export declare function mergePermissionsAllow(harness: readonly string[], target: readonly string[]): MergePermissionsResult;
 export interface SettingsJsonLike {
     permissions?: {
         deny?: readonly string[];

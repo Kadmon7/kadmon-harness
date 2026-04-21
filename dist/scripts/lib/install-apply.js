@@ -22,8 +22,8 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import { mergeSettingsJson, safeAssign, } from "./install-helpers.js";
-import { CANONICAL_DENY_RULES } from "./install-manifest.js";
+import { mergeSettingsJson, mergePermissionsAllow, safeAssign, } from "./install-helpers.js";
+import { CANONICAL_DENY_RULES, CANONICAL_ALLOW_RULES } from "./install-manifest.js";
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -102,20 +102,33 @@ function writeJson(filePath, data) {
 function applyProjectSettings(targetProject, forceSync) {
     const projectSettingsPath = path.join(targetProject, ".claude", "settings.json");
     const targetSettings = readJsonOrEmpty(projectSettingsPath);
-    // Harness source: only permissions.deny matters for this merge. The merger
-    // preserves every other target key untouched.
+    // Merge permissions.deny via mergeSettingsJson (preserves all unrelated keys).
     const harnessSettings = {
         permissions: { deny: [...CANONICAL_DENY_RULES] },
     };
     const merged = mergeSettingsJson(harnessSettings, targetSettings, {
         forceDenySync: forceSync,
     });
+    // Merge permissions.allow on top of the deny-merged result (ADR-021 Q1).
+    // Read from `merged` (post-deny result) not `targetSettings` so the pipeline
+    // stays compositional — if mergeSettingsJson ever normalizes allow, this
+    // step picks up the normalized value (ts-reviewer WARN 2026-04-21).
+    const targetAllow = merged.permissions?.allow ?? [];
+    const allowResult = mergePermissionsAllow(CANONICAL_ALLOW_RULES, targetAllow);
+    // Layer the merged allow array into the result object (preserves deny + other keys).
+    const mergedPermissions = merged.permissions ?? {};
+    merged.permissions = {
+        ...safeAssign(mergedPermissions),
+        allow: allowResult.merged,
+    };
     writeJson(projectSettingsPath, merged);
     const finalDeny = merged.permissions?.deny ?? [];
     const existingDeny = targetSettings.permissions?.deny ?? [];
     return {
         projectDenyCount: finalDeny.length,
         projectAdded: finalDeny.length - existingDeny.length,
+        allowAdded: allowResult.added.length,
+        allowDedupedCount: allowResult.dedupedCount,
     };
 }
 function applyUserSettings(userSettingsPath) {
