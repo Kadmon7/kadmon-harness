@@ -83,7 +83,13 @@ interface SettingsJson {
  */
 export function parseSettings(settingsPath: string): HookDef[] {
   const raw = fs.readFileSync(settingsPath, "utf8");
-  const settings = JSON.parse(raw) as SettingsJson;
+  let settings: SettingsJson;
+  try {
+    settings = JSON.parse(raw) as SettingsJson;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Invalid JSON in ${settingsPath}: ${msg}`);
+  }
   const result: HookDef[] = [];
 
   const validEvents: EventName[] = [
@@ -226,6 +232,20 @@ export function generateStdin(hook: HookDef): string {
 const HOOK_TIMEOUT_MS = 3000;
 
 /**
+ * Type guard for execFileSync error shape. Node's child_process always
+ * throws an Error subclass with these optional fields, but the lint rules
+ * forbid `as` casts — this narrows unknown safely.
+ */
+function isSpawnError(e: unknown): e is Error & {
+  status?: number;
+  stdout?: string;
+  stderr?: string;
+  code?: string;
+} {
+  return e instanceof Error;
+}
+
+/**
  * Executes a hook script with synthetic stdin. Returns exit code, stderr, stdout, duration.
  * Wraps execFileSync errors (non-zero exits) — never throws.
  */
@@ -258,32 +278,36 @@ export function runHook(hook: HookDef, stdin: string): HookResult {
     return { hook, exitCode: 0, stderr: "", stdout, durationMs };
   } catch (err: unknown) {
     const durationMs = Date.now() - start;
-    const e = err as {
-      status?: number;
-      stdout?: string;
-      stderr?: string;
-      message?: string;
-      code?: string;
-    };
 
-    // ETIMEDOUT or ENOENT → error field
-    if (e.code === "ETIMEDOUT" || e.code === "ENOENT") {
+    if (!isSpawnError(err)) {
       return {
         hook,
         exitCode: -1,
-        stderr: e.stderr ?? "",
-        stdout: e.stdout ?? "",
+        stderr: "",
+        stdout: "",
         durationMs,
-        error: e.message ?? e.code,
+        error: typeof err === "string" ? err : "unknown non-Error thrown",
+      };
+    }
+
+    // ETIMEDOUT or ENOENT → error field
+    if (err.code === "ETIMEDOUT" || err.code === "ENOENT") {
+      return {
+        hook,
+        exitCode: -1,
+        stderr: err.stderr ?? "",
+        stdout: err.stdout ?? "",
+        durationMs,
+        error: err.message || err.code,
       };
     }
 
     // Non-zero exit from the hook itself
     return {
       hook,
-      exitCode: e.status ?? 1,
-      stderr: e.stderr ?? "",
-      stdout: e.stdout ?? "",
+      exitCode: err.status ?? 1,
+      stderr: err.stderr ?? "",
+      stdout: err.stdout ?? "",
       durationMs,
     };
   }
