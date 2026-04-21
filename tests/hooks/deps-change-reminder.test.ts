@@ -73,4 +73,38 @@ describe("deps-change-reminder", () => {
     const r = runHook({});
     expect(r.code).toBe(0);
   });
+
+  // ─── Python deps manifests (plan-020 Phase B) ──────────────────────────────
+
+  it("warns when pyproject.toml [dependencies] section changes", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/pyproject.toml",
+        new_string: 'dependencies = ["requests>=2.0"]',
+      },
+    });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/pyproject\.toml|dependencies/i);
+  });
+
+  it("warns when requirements.txt is edited", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/requirements.txt",
+        new_string: "requests==2.31.0\nnumpy==1.25.0",
+      },
+    });
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/requirements\.txt/i);
+  });
+
+  it("allows pyproject.toml edits that do not touch dependencies", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/pyproject.toml",
+        new_string: '[tool.ruff]\nline-length = 100',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
 });
