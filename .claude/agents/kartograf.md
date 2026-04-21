@@ -22,18 +22,44 @@ You are an expert end-to-end test specialist verifying full workflows across mul
 
 ## Test Modes
 
-### Harness Mode (Vitest)
-For CLI tools, hooks, and harness workflows.
+### Harness Mode (Vitest or pytest)
+For CLI tools, hooks, and harness workflows. The consumer project's language determines the runner:
+- **TypeScript harness** -> Vitest
+- **Python harness** -> pytest
+
+Shared scope regardless of runner:
 - Session lifecycle, instinct lifecycle, hook chains
-- sql.js integration with `:memory:` databases
-- Hook stdin/stdout simulation via `execFileSync`
-- Run: `npx vitest run tests/eval/`
+- Database integration with `:memory:` / in-memory fixtures
+- Hook stdin/stdout simulation (via `execFileSync` in TS, via `subprocess.run` in Python)
+
+```bash
+# TypeScript harness
+npx vitest run tests/eval/
+
+# Python harness
+pytest tests/e2e/ -v
+```
+
+**pytest + Playwright** example (Python harness driving a browser flow):
+
+```python
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_login_flow(page: Page):
+    page.goto("http://localhost:3000/login")
+    page.get_by_label("Email").fill("user@example.com")
+    page.get_by_label("Password").fill("secret")
+    page.get_by_role("button", name="Sign in").click()
+    expect(page).to_have_url("http://localhost:3000/dashboard")
+```
 
 ### Web App Mode (Playwright)
-For browser-based applications (ToratNetz, KAIRON web, future projects).
+For browser-based applications (ToratNetz, KAIRON web, future projects). Playwright is cross-language — use the TypeScript bindings for TS projects and `pytest-playwright` for Python projects. The web-app scope itself is language-agnostic:
 - Authentication flows, search/RAG pipelines, CRUD operations
 - Supabase real-time subscriptions and RLS verification
-- Run: `npx playwright test`
+- Run: `npx playwright test` (TS) or `pytest --browser chromium` (Python)
 
 ### Agent Browser (Stagehand)
 Prefer Agent Browser over raw Playwright for web E2E when available -- semantic selectors, AI-optimized, auto-waiting, built on Playwright.

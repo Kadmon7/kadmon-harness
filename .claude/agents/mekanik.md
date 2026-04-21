@@ -20,6 +20,14 @@ You are an expert build error resolver. You diagnose and fix build, compilation,
 - Windows-specific path issues (backslash, long paths)
 
 ## Diagnostic Commands
+
+**Language detection**: mekanik picks the toolchain from the failure context. The tool name in the error output is the signal:
+- `tsc`, `vitest`, `eslint`, `node` -> TypeScript branch
+- `mypy`, `pytest`, `ruff`, `python`, `pip` -> Python branch
+
+If the failure context is ambiguous, check the edited file extension (`.ts`/`.tsx` -> TS, `.py` -> Python) before running diagnostics.
+
+### TypeScript / Node.js
 ```bash
 npm run build                              # Full compile to dist/
 npx tsc --noEmit --pretty                  # Type-check only, readable output
@@ -27,6 +35,17 @@ npx tsc --noEmit --pretty --incremental false  # Show ALL errors (no cache)
 npx vitest run                             # Run full test suite
 cat ~/.kadmon/hook-errors.log              # Recent hook errors
 npm audit                                  # Dependency vulnerabilities
+```
+
+### Python
+```bash
+mypy <path>                                # Type errors (use --strict for full coverage)
+pytest --collect-only                      # Test collection issues (import errors, missing fixtures)
+pytest -x --tb=short                       # Stop at first failure, short traceback
+pip check                                  # Dependency conflicts (incompatible installed packages)
+python -m py_compile <file>                # Syntax errors without running the module
+ruff check <path>                          # Lint + auto-fixable style issues
+pip-audit                                  # Dependency vulnerabilities
 ```
 
 ## Full Health Check (8 checks for /MediK)

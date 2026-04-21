@@ -127,5 +127,38 @@
     "minClusterSize": 3,
     "threshold": 2,
     "domain": "refactoring"
+  },
+  {
+    "type": "file_sequence",
+    "name": "mypy + pytest after editing Python types module",
+    "action": "Run mypy and pytest after editing types.py — ripple risk across consumers (Python parallel to types.ts pattern; plan-020 Phase D)",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/types.py",
+    "followedByCommands": ["mypy", "pytest"],
+    "withinToolCalls": 10,
+    "threshold": 1,
+    "domain": "data-layer"
+  },
+  {
+    "type": "file_sequence",
+    "name": "pytest after editing Python data access module",
+    "action": "Run pytest after editing models.py — data layer changes need the integration suite (Python parallel to state-store.ts pattern; plan-020 Phase D)",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/models.py",
+    "followedByCommands": ["pytest", "mypy"],
+    "withinToolCalls": 10,
+    "threshold": 1,
+    "domain": "data-layer"
+  },
+  {
+    "type": "file_sequence",
+    "name": "pip install + almanak after editing pyproject.toml",
+    "action": "After editing pyproject.toml, run pip install (or uv/poetry install) and look up version changes via /almanak (Python parallel to package.json pattern; plan-020 Phase D)",
+    "editTools": ["Edit", "Write"],
+    "filePathGlob": "**/pyproject.toml",
+    "followedByCommands": ["pip install", "uv install", "poetry install", "almanak", "/almanak"],
+    "withinToolCalls": 15,
+    "threshold": 1,
+    "domain": "harness-maintenance"
   }
 ]

@@ -22,6 +22,10 @@ You are a performance specialist identifying bottlenecks and optimizing speed, m
 - Claude Code hook latency optimization (observe < 50ms, guard < 100ms, all < 500ms)
 
 ## Diagnostic Commands
+
+Patterns below (Big-O analysis, memory leak detection, hotpath profiling) are universal across languages — only the diagnostic tooling differs. Pick the branch that matches the project under audit.
+
+### TypeScript / Node.js
 ```bash
 # Node.js profiling
 node --prof app.js && node --prof-process isolate-*.log
@@ -34,6 +38,25 @@ npx vitest run --reporter=verbose
 
 # Hook health and latency
 npx tsx scripts/dashboard.ts
+```
+
+### Python
+```bash
+# Import-time profiling (find slow imports)
+python -X importtime -c "import your_module" 2> importtime.log
+
+# Sampling profiler for running processes (CPU hotpath)
+py-spy record -o profile.svg --pid <pid>
+py-spy top --pid <pid>                     # Live top-like view
+
+# Deterministic profiler (per-function call counts)
+python -m cProfile -o profile.out -s cumulative your_script.py
+
+# Test timing per file
+pytest --durations=10
+
+# Memory profiling
+python -m memray run your_script.py && memray flamegraph memray-*.bin
 ```
 
 ## Workflow
