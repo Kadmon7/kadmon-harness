@@ -46,6 +46,50 @@ it('create -> reinforce -> promote', async () => {
 });
 ```
 
+### Python equivalent — pytest fixture + in-memory SQLite (ADR-020)
+```python
+# tests/test_instinct_lifecycle.py
+import sqlite3
+import pytest
+
+@pytest.fixture
+def db():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    yield conn
+    conn.close()
+
+def test_instinct_lifecycle_create_reinforce_promote(db):
+    from mypkg.instincts import create_instinct, reinforce_instinct, promote_instinct
+
+    inst = create_instinct(db, project_hash="p1", pattern="x", action="y", session_id="s1")
+    for sid in ("s2", "s3", "s4", "s5"):
+        reinforce_instinct(db, inst.id, sid)
+    promoted = promote_instinct(db, inst.id, skill_name="my-skill")
+    assert promoted.status == "promoted"
+```
+
+### Python browser E2E — pytest-playwright
+```python
+# tests/test_login_flow.py — install: pip install pytest-playwright && playwright install
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.fixture
+def base_url():
+    return "http://localhost:3000"
+
+def test_user_can_log_in(page: Page, base_url: str):
+    page.goto(f"{base_url}/login")
+    page.get_by_label("Email").fill("user@example.com")
+    page.get_by_label("Password").fill("hunter2")
+    page.get_by_role("button", name="Sign in").click()
+    expect(page).to_have_url(f"{base_url}/dashboard")
+    expect(page.get_by_text("Welcome back")).to_be_visible()
+```
+
+The Vitest and pytest examples test the same observable outcomes (DB rows, redirects, visible text) — only the runner and fixture syntax differ.
+
 ## Rules
 
 ### Mock vs Real Decision Matrix

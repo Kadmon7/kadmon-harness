@@ -76,6 +76,7 @@ Do not call `TaskCreate` for Phase 0: Research — read-only exploration is not 
 - feniks enforces red-green-refactor during implementation
 - feniks does NOT write a separate document — it operates inline
 - Each code-writing step follows: write failing test -> implement -> verify pass -> refactor
+- **Language detection (ADR-020)**: before invoking feniks, call `detectProjectLanguage()` from `scripts/lib/detect-project-language.ts` against the target project's cwd. Include the resulting `projectLanguage` in the feniks prompt so the agent chooses the correct test framework (Vitest for TypeScript, pytest for Python). feniks honors the `python-testing` skill already declared in its frontmatter when `projectLanguage === 'python'`.
 
 **If `needs_tdd: false`**: Implement directly without TDD guidance (config changes, docs, trivial edits).
 

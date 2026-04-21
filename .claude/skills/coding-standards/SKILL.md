@@ -18,6 +18,24 @@ TypeScript/JavaScript conventions for the Kadmon Harness ecosystem. These exist 
 ### TypeScript Strict Mode
 Strict mode is always enabled in tsconfig.json. This catches null/undefined bugs at compile time instead of runtime. Every strictness flag exists because a real bug category hides behind it.
 
+For Python consumers (ADR-020), strictness lives in `pyproject.toml` instead:
+
+```toml
+# pyproject.toml
+[tool.mypy]
+strict = true
+python_version = "3.11"
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "UP", "B"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+```
+
+Same principle, different file: enforce types and style at the config layer so individual modules inherit the rules.
+
 - No `any` types — use `unknown` and narrow with type guards, because `any` disables the compiler's ability to catch mistakes
 - No `!` non-null assertions without a justification comment, because they hide null-safety bugs
 - Prefer `interface` over `type` for object shapes — interfaces produce better error messages and support declaration merging

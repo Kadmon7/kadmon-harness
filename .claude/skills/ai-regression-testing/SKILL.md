@@ -47,7 +47,7 @@ The lesson: **sandbox/production path inconsistency** is the #1 AI-introduced re
 
 Most projects with AI-friendly architecture have a sandbox or mock mode. This is the key to fast, DB-free API testing.
 
-### Setup (Vitest + Next.js App Router)
+### Setup (Vitest + Next.js App Router — TypeScript)
 
 ```typescript
 // vitest.config.ts
@@ -65,6 +65,31 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, '.') },
   },
 })
+```
+
+### Setup (pytest + FastAPI — Python)
+
+```ini
+# pytest.ini
+[pytest]
+testpaths = tests
+python_files = test_*.py
+addopts = -ra --strict-markers
+markers =
+    regression: regression tests for previously-found bugs
+    sandbox: sandbox-mode API tests (no DB)
+```
+
+```python
+# tests/conftest.py
+import os
+import pytest
+
+@pytest.fixture(autouse=True)
+def sandbox_env(monkeypatch):
+    monkeypatch.setenv("SANDBOX_MODE", "true")
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_ANON_KEY", "")
 ```
 
 ```typescript
@@ -183,12 +208,18 @@ Wire the tests into a custom `bug-check` command that runs **before** any AI rev
 # bug-check (custom command)
 
 ## Step 1 — Automated tests (mandatory, cannot skip)
-Run these FIRST, before any code review:
+Run these FIRST, before any code review. Toolchain resolves at runtime via `detect-project-language.ts` (ADR-020):
+
+  # TypeScript
   npm run test
   npm run build
 
+  # Python (no build step — typecheck replaces it)
+  pytest
+  mypy .
+
 - If tests fail → report as highest-priority bug
-- If build fails → report type errors as highest-priority
+- If build/typecheck fails → report type errors as highest-priority
 - Only proceed to Step 2 if both pass
 
 ## Step 2 — AI code review

@@ -30,11 +30,27 @@ User may override by saying `"chekpoint lite"`, `"skip chekpoint"`, etc. Documen
 ## Steps
 
 ### Phase 1: Verification
-1. Build: `npm run build`
-2. Typecheck: `npx tsc --noEmit`
-3. Run tests: `npx vitest run`
-4. Lint: `npx eslint . --ext .ts,.js` (if configured)
-5. Stop at first failure — report which step failed. Do NOT proceed.
+
+Detect the project's toolchain at runtime, then run the appropriate build/typecheck/lint/test sequence. This is language-aware — per ADR-020 and the `detect-project-language.ts` module.
+
+**Step 1: Detect toolchain.** Run:
+```
+npx tsx -e "import('./scripts/lib/detect-project-language.js').then(m=>console.log(JSON.stringify(m.getToolchain())))"
+```
+or read the toolchain from the compiled `dist/scripts/lib/detect-project-language.js`. Expected fields: `build`, `typecheck`, `test`, `lint`, `audit`, `language`.
+
+**Step 2: Run the 4 checks using the detected toolchain.** For each step: if the toolchain returns `null` (e.g. `build` for Python projects), skip and log `(skipped: no X step for <language>)`. Otherwise execute the command.
+
+| # | Step | TypeScript toolchain | Python toolchain |
+|---|------|---------------------|------------------|
+| 1 | Build | `npm run build` | (skipped — null) |
+| 2 | Typecheck | `npx tsc --noEmit` | `mypy .` (fallback `pyright`) |
+| 3 | Test | `npx vitest run` | `pytest` |
+| 4 | Lint | `npx eslint . --ext .ts,.js` (if configured) | `ruff check . && black --check .` (skip if tool missing) |
+
+**Step 3: Stop at first failure** — report which step failed. Do NOT proceed.
+
+> **Missing Python tooling**: if the project is Python and the required tool (`mypy`, `pytest`, `ruff`) is not installed, treat that step as WARN, not FAIL, and proceed. The user is responsible for installing their own toolchain; we only invoke.
 
 ### Phase 2a: Specialist Review (parallel)
 1. Get diff: `git diff --staged` or `git diff HEAD~1`

@@ -201,7 +201,12 @@ test('creates user', () => {
 - Use `:memory:` SQLite for all database tests -- never touch production DB
 - Use execFileSync with input option for hook tests (Windows-safe)
 - Test happy path, error path, and at least one edge case per function
-- Run the full test suite (`npx vitest run`) before committing
+- Run the full test suite before committing. Command depends on target project toolchain (ADR-020):
+
+  | Toolchain | Command |
+  |-----------|---------|
+  | TypeScript | `npx vitest run` |
+  | Python | `pytest` |
 
 ## no_context Application
 TDD is the no_context principle applied to code itself. A test is evidence that behavior works — not an assumption, not a guess. When you write the test first, you prove you understand the requirement before you implement it. When the test passes, you have proof the code meets the requirement. No test means no evidence — and no_context demands evidence.
