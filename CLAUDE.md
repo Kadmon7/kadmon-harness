@@ -73,8 +73,26 @@ Kadmon-Harness/
 - `.claude/settings.local.json` — **Project personal**. Gitignored; machine-specific overrides only.
 
 ## Agents (16)
+| Agent | Model |
+|-------|-------|
+| arkitect | opus |
+| konstruct | opus |
+| kody | sonnet |
+| typescript-reviewer | sonnet |
+| orakle | sonnet |
+| spektr | opus |
+| feniks | sonnet |
+| mekanik | sonnet |
+| kurator | sonnet |
+| arkonte | sonnet |
+| python-reviewer | sonnet |
+| almanak | sonnet |
+| doks | opus |
+| kartograf | sonnet |
+| alchemik | opus |
+| skavenger | sonnet |
 
-Full catalog + model routing + skill chains at `.claude/rules/common/agents.md`. Key flow: `arkitect → konstruct → feniks (if TDD) → kody` via `/abra-kdabra` and `/chekpoint`.
+Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD) → kody`.
 
 ## Commands (11)
 - **Observe** (2): /kadmon-harness, /kompact
