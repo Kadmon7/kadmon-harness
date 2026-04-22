@@ -174,6 +174,48 @@ describe("session-manager", () => {
     expect(row!.duration_ms).toBeGreaterThanOrEqual(0);
   });
 
+  describe("endSession project_hash guard (ADR-022 Bug 2)", () => {
+    it("closes session when expectedProjectHash matches", () => {
+      startSession("guard-ok", PROJECT);
+      const result = endSession(
+        "guard-ok",
+        { summary: "done" },
+        PROJECT.projectHash,
+      );
+      expect(result).not.toBeNull();
+      expect(result!.endedAt).toBeTruthy();
+    });
+
+    it("closes session when expectedProjectHash is undefined (backwards-compat)", () => {
+      startSession("guard-legacy", PROJECT);
+      const result = endSession("guard-legacy", { summary: "done" });
+      expect(result).not.toBeNull();
+      expect(result!.endedAt).toBeTruthy();
+    });
+
+    it("throws when expectedProjectHash mismatches existing session", () => {
+      startSession("guard-cross", PROJECT);
+      expect(() =>
+        endSession(
+          "guard-cross",
+          { summary: "attempted" },
+          "different_project_hash",
+        ),
+      ).toThrow(/project_hash/i);
+
+      // Session must NOT be closed after the throw
+      const still = getDb()
+        .prepare("SELECT ended_at FROM sessions WHERE id = ?")
+        .get("guard-cross") as { ended_at: string | null };
+      expect(still.ended_at).toBeNull();
+    });
+
+    it("returns null when session does not exist (before guard check)", () => {
+      const result = endSession("nonexistent", {}, PROJECT.projectHash);
+      expect(result).toBeNull();
+    });
+  });
+
   it("(d) invariant scan: no row has ended_at < started_at", () => {
     // Perma-guard: run several session lifecycles and assert the DB is clean.
     startSession("scan-1", PROJECT);

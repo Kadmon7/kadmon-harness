@@ -91,9 +91,30 @@ async function main() {
 
       // Recover orphaned sessions (best-effort, most recent only)
       try {
+        const { isOrphanStale } = await import(
+          pathToFileURL(
+            path.join(
+              rootDir,
+              "dist",
+              "scripts",
+              "lib",
+              "orphan-staleness.js",
+            ),
+          ).href
+        );
         const orphans = getOrphanedSessions(projectHash, sid, 1);
-        if (orphans.length > 0) {
+        // ADR-022 Bug 2: skip recovery if the candidate looks alive (fresh
+        // observations.jsonl indicates another terminal is actively using
+        // it). Prevents pisando sesiones vivas del user en otra ventana.
+        // Falls through to the rest of session-start (context, patterns)
+        // without blocking — a live orphan just means "not my session to
+        // close, keep going".
+        if (
+          orphans.length > 0 &&
+          isOrphanStale(orphans[0].id, { startedAt: orphans[0].startedAt })
+        ) {
           const orphan = orphans[0];
+
           const orphanObsPath = path.join(
             os.tmpdir(),
             "kadmon",
@@ -130,7 +151,8 @@ async function main() {
             };
           }
 
-          endSession(orphan.id, recoveryData);
+          // Pass projectHash to activate endSession's cross-project guard.
+          endSession(orphan.id, recoveryData, projectHash);
 
           // Evaluate patterns after closing orphan (matches Stop lifecycle order)
           let orphanInstincts = 0;

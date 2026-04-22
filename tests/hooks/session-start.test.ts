@@ -39,17 +39,23 @@ function runHook(
   }
 }
 
-async function seedDbWithOrphan(orphanId: string): Promise<void> {
+async function seedDbWithOrphan(
+  orphanId: string,
+  ageMs = 10 * 60 * 1000,
+): Promise<void> {
   const SQL = await initSqlJs();
   const db = new SQL.Database();
   const schema = fs.readFileSync(SCHEMA_PATH, "utf8");
   for (const stmt of schema.split(";").filter((s) => s.trim())) {
     db.run(stmt + ";");
   }
-  // Insert the orphan session — no ended_at, no clean-exit marker
+  // Insert the orphan session — no ended_at, no clean-exit marker.
+  // Default started_at is 10 min in the past so ADR-022 staleness guard
+  // classifies the orphan as recoverable (threshold: 5 min).
+  const startedAt = new Date(Date.now() - ageMs).toISOString();
   db.run(
     "INSERT INTO sessions (id, project_hash, started_at, branch, compaction_count, message_count) VALUES (?, ?, ?, ?, ?, ?)",
-    [orphanId, PROJECT_HASH, new Date().toISOString(), "main", 0, 5],
+    [orphanId, PROJECT_HASH, startedAt, "main", 0, 5],
   );
   fs.writeFileSync(TEST_DB, Buffer.from(db.export()));
   db.close();
@@ -190,10 +196,12 @@ describe("session-start", () => {
       filePath: "/test/file.ts",
       timestamp: new Date().toISOString(),
     });
-    fs.writeFileSync(
-      path.join(orphanObsDir, "observations.jsonl"),
-      obsLine + "\n",
-    );
+    const obsFile = path.join(orphanObsDir, "observations.jsonl");
+    fs.writeFileSync(obsFile, obsLine + "\n");
+    // Backdate observations mtime so ADR-022 staleness guard classifies
+    // the orphan as abandoned (default threshold: 5 min).
+    const stale = new Date(Date.now() - 10 * 60 * 1000);
+    fs.utimesSync(obsFile, stale, stale);
 
     // Act
     const r = runHook({ session_id: SESSION_ID, cwd: process.cwd() });
