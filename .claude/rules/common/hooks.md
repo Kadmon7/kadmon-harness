@@ -16,7 +16,7 @@ alwaysApply: true
 |------|--------|---------|------|
 | block-no-verify | block-no-verify.js | Blocks git commands with --no-verify flag | 2 on match |
 | commit-format-guard | commit-format-guard.js | Blocks git commits that don't follow conventional commit format | 2 on violation |
-| commit-quality | commit-quality.js | Scans staged changes for console.log, debugger, secrets (skips .md, test, and hook files) | 2 on violation |
+| commit-quality | commit-quality.js | Language-aware staged-change scanner (ADR-020): console.log/debugger/secrets in .ts/.js; print()/breakpoint() in .py production code. Skips .md, test files (test_*.py, *_test.py, tests/) and hook files. | 2 on violation |
 | git-push-reminder | git-push-reminder.js | Warns before git push if typecheck/tests not run in session, OR if unpushed commits contain production code (scripts/lib/** or .claude/hooks/scripts/** .ts/.js) or touch 10+ files without review. Docs/metadata/config commits are legitimate skip-tier and no longer trigger false warnings. | 1 as warning |
 
 ### PreToolUse — Edit|Write matcher (2)
@@ -39,11 +39,11 @@ alwaysApply: true
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
-| post-edit-typecheck | post-edit-typecheck.js | Runs TypeScript typecheck on edited .ts/.tsx files | 1 on type errors |
-| quality-gate | quality-gate.js | Runs quality checks (lint, style) on edited files | 1 on issues |
-| ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts edits without code review in session | 1 as warning |
-| console-log-warn | console-log-warn.js | Warns about console.log() in production code | 1 as warning |
-| deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json dependencies change | 1 as warning |
+| post-edit-typecheck | post-edit-typecheck.js | Language-aware typecheck (ADR-020): .ts/.tsx → `tsc --noEmit`; .py → mypy → pyright → python -m py_compile (first installed). Exits 0 with warning if no Python typechecker is present. | 1 on type errors |
+| quality-gate | quality-gate.js | Language-aware lint (ADR-020): .ts/.tsx/.js/.jsx → ESLint; .py → ruff check. Skips with warning if the toolchain is not installed. | 1 on issues |
+| ts-review-reminder | ts-review-reminder.js | Warns after 5+ .ts/.tsx/.py edits without code review in session. Counter resets when kody, typescript-reviewer, or python-reviewer is invoked. (Script name retained for backwards compat; rename deferred to 1.3.) | 1 as warning |
+| console-log-warn | console-log-warn.js | Warns about console.log() in .ts/.js and print() in .py production code (ADR-020; closes `rules/python/hooks.md` print() mandate) | 1 as warning |
+| deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json, pyproject.toml, or requirements.txt dependencies change (ADR-020) | 1 as warning |
 | agent-metadata-sync | agent-metadata-sync.js | Detects edits to `.claude/agents/*.md`, parses YAML frontmatter, and auto-syncs model/trigger changes into the CLAUDE.md agents table + `rules/common/agents.md` catalog. Fast-bails for non-agent files. Test env vars `KADMON_SYNC_CLAUDE_MD_PATH` / `KADMON_SYNC_AGENTS_MD_PATH` are gated to VITEST/NODE_ENV=test. Never exits 2. | 0 ok / 1 on warning |
 
 ### PostToolUse — Bash matcher (1)
@@ -119,6 +119,6 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 - Changing the hook install location (moving `dist/` or the canonical root symlinks) requires updating `ensure-dist.js#resolveRootDir()` and the hooks.json generator in `scripts/generate-plugin-hooks.ts`.
 
 ## Windows Compatibility
-- All 21 hooks use `PATH="$PATH:/c/Program Files/nodejs"` prefix for Node.js resolution
+- All 21 registered hooks run via `${HOOK_CMD_PREFIX}` in `.claude-plugin/hooks.json`, which injects the Node.js PATH and `KADMON_RUNTIME_ROOT` in plugin mode (ADR-010 Phase 1). In local-dev mode the repo-root prefix is resolved via `ensure-dist.js#resolveRootDir()`.
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

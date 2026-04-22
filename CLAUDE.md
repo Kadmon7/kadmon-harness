@@ -61,7 +61,7 @@ Kadmon-Harness/
 |   `-- *.ts              # Migration + cleanup scripts
 |-- install.sh             # Sprint D bash bootstrap (plan-010 Phase 4)
 |-- install.ps1            # Sprint D PowerShell bootstrap (plan-010 Phase 5)
-|-- tests/                # Vitest suite (731 passing, 67 files)
+|-- tests/                # Vitest suite (870 passing, 70 files)
 |-- docs/
 |   |-- decisions/        # ADRs
 |   |-- plans/            # Implementation plans
@@ -201,8 +201,8 @@ See `install.sh` / `install.ps1` for the exact 11-step flow (arg parse → targe
 - Skills live at `.claude/skills/<name>/SKILL.md` — subdirectory layout with literal uppercase `SKILL.md` (ADR-013, plan-013, 2026-04-14). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. The `lint-agent-frontmatter.ts` linter (Check #8 of `/medik`) enforces this. `/evolve` step 6 Generate writes skill proposals at the new path via `buildTargetPath()`; commands/agents/rules stay flat.
 
 ## Status
-v1.1 — latest shipped: plan-020 runtime language detection (ADR-020, 2026-04-21) + Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20).
-Metrics: 863 tests / 70 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+v1.2.0 — latest shipped: plan-020 runtime language detection (ADR-020, 2026-04-21). Previous: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20).
+Metrics: 870 tests / 70 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
 Distribution: Claude Code plugin (agents/skills/commands/hooks via canonical root symlinks) + install.sh/install.ps1 (rules + permissions.deny + .kadmon-version). End-to-end dogfooded against Kadmon-Sports 2026-04-20 — cross-project SQLite isolation verified (distinct projectHash per directory).
 Language support: TypeScript and Python. `/chekpoint`, `/medik`, and 6 hooks detect the target project's toolchain at runtime via `scripts/lib/detect-project-language.ts` (ADR-020). Override with `KADMON_PROJECT_LANGUAGE=python|typescript`.
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
