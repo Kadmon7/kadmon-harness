@@ -93,4 +93,44 @@ describe("commit-format-guard", () => {
     const r = runHook({});
     expect(r.code).toBe(0);
   });
+
+  describe("substring false-positive guard (Bug 4, 2026-04-22)", () => {
+    it("allows echo with 'git commit' inside a double-quoted string", () => {
+      const r = runHook({
+        tool_input: {
+          command: 'echo "=== B5: git commit test section ==="',
+        },
+      });
+      expect(r.code).toBe(0);
+    });
+
+    it("allows echo with 'git commit' inside a single-quoted string", () => {
+      const r = runHook({
+        tool_input: {
+          command: "echo 'demo: git commit -m \"example\"'",
+        },
+      });
+      expect(r.code).toBe(0);
+    });
+
+    it("still blocks real git commit after a quoted echo", () => {
+      const r = runHook({
+        tool_input: {
+          command:
+            'echo "before git commit" && git commit -m "not conventional"',
+        },
+      });
+      expect(r.code).toBe(2);
+    });
+
+    it("allows real git commit following a quoted echo mention", () => {
+      const r = runHook({
+        tool_input: {
+          command:
+            'echo "about to git commit" && git commit -m "feat: add thing"',
+        },
+      });
+      expect(r.code).toBe(0);
+    });
+  });
 });
