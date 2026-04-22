@@ -190,4 +190,68 @@ describe("state-store hook_events", () => {
     expect(stats).toHaveLength(1);
     expect(stats[0].total).toBe(1);
   });
+
+  describe("dedup via UNIQUE INDEX (natural key)", () => {
+    it("collapses exact duplicates to a single row", () => {
+      const payload = {
+        sessionId: "s1",
+        hookName: "git-push-reminder",
+        eventType: "pre_tool" as const,
+        toolName: "Bash",
+        exitCode: 1,
+        blocked: false,
+        durationMs: 12,
+        timestamp: "2026-04-22T02:00:00.000Z",
+      };
+
+      insertHookEvent(payload);
+      insertHookEvent(payload);
+      insertHookEvent(payload);
+
+      expect(getHookEventsBySession("s1")).toHaveLength(1);
+    });
+
+    it("allows different timestamps for the same hook to coexist", () => {
+      insertHookEvent({
+        sessionId: "s1",
+        hookName: "ts-review-reminder",
+        eventType: "post_tool",
+        exitCode: 0,
+        blocked: false,
+        timestamp: "2026-04-22T02:00:00.000Z",
+      });
+      insertHookEvent({
+        sessionId: "s1",
+        hookName: "ts-review-reminder",
+        eventType: "post_tool",
+        exitCode: 0,
+        blocked: false,
+        timestamp: "2026-04-22T02:00:00.001Z",
+      });
+
+      expect(getHookEventsBySession("s1")).toHaveLength(2);
+    });
+
+    it("allows different event_type at the same timestamp to coexist", () => {
+      const ts = "2026-04-22T02:00:00.000Z";
+      insertHookEvent({
+        sessionId: "s1",
+        hookName: "observe-pre",
+        eventType: "pre_tool",
+        exitCode: 0,
+        blocked: false,
+        timestamp: ts,
+      });
+      insertHookEvent({
+        sessionId: "s1",
+        hookName: "observe-pre",
+        eventType: "post_tool",
+        exitCode: 0,
+        blocked: false,
+        timestamp: ts,
+      });
+
+      expect(getHookEventsBySession("s1")).toHaveLength(2);
+    });
+  });
 });

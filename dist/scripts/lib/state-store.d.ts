@@ -75,6 +75,21 @@ export declare function getHookEventStats(projectHash: string, since?: string): 
     avgDurationMs: number;
 }>;
 /**
+ * Remove duplicate rows from hook_events, keeping the earliest rowid per
+ * natural key (session_id, hook_name, event_type, timestamp). ADR-022
+ * migration sentinel — called from openDb to clean historical duplicates
+ * before the UNIQUE INDEX is applied, and exposed for tests + manual repair.
+ * @returns Number of rows removed.
+ */
+export declare function cleanupDuplicateHookEvents(): number;
+/**
+ * Remove duplicate rows from agent_invocations, keeping the earliest rowid per
+ * natural key (session_id, agent_type, timestamp). Mirrors
+ * cleanupDuplicateHookEvents per ADR-022.
+ * @returns Number of rows removed.
+ */
+export declare function cleanupDuplicateAgentInvocations(): number;
+/**
  * Clears the end-state fields (ended_at, duration_ms) for a session.
  * Called by startSession on the resume/merge path to prevent COALESCE from
  * preserving a stale ended_at from the previous lifecycle, which would produce

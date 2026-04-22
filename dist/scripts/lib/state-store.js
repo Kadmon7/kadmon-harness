@@ -130,6 +130,32 @@ export async function openDb(customPath) {
     const localDb = db;
     localDb.pragma("foreign_keys = ON");
     localDb.pragma("journal_mode = WAL");
+    // ADR-022 migration sentinel: existing DBs may contain duplicate rows in
+    // hook_events / agent_invocations from sessions persisted before the UNIQUE
+    // INDEX was added. Dedup BEFORE schema apply so `CREATE UNIQUE INDEX` does
+    // not fail on pre-existing duplicates. The catch is narrowed to only swallow
+    // "no such table" errors (fresh DB) — all other failures (corruption,
+    // disk-full, I/O) are surfaced so upstream visibility is preserved
+    // (spektr 2026-04-22 MEDIUM).
+    try {
+        localDb.exec(`DELETE FROM hook_events WHERE rowid NOT IN (
+         SELECT MIN(rowid) FROM hook_events
+         GROUP BY session_id, hook_name, event_type, timestamp
+       );`);
+        localDb.exec(`DELETE FROM agent_invocations WHERE rowid NOT IN (
+         SELECT MIN(rowid) FROM agent_invocations
+         GROUP BY session_id, agent_type, timestamp
+       );`);
+    }
+    catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (!/no such table/i.test(msg)) {
+            // Re-throw non-fresh-DB errors (disk full, corruption, I/O) so they
+            // surface instead of silently masking a DB-health problem.
+            throw err;
+        }
+        // Fresh DB — tables will be created by the schema apply below
+    }
     // Apply schema — one saveToDisk() at commit instead of one per statement
     const { fileURLToPath } = await import("node:url");
     const thisDir = path.dirname(fileURLToPath(import.meta.url));
@@ -544,10 +570,16 @@ function mapHookEventRow(row) {
 export function insertHookEvent(event) {
     const id = generateId();
     getDb()
-        .prepare(`INSERT INTO hook_events (id, session_id, hook_name, event_type, tool_name,
+        .prepare(
+    // ON CONFLICT DO NOTHING on the natural-key UNIQUE INDEX (ADR-022).
+    // Targets ONLY the idx_hook_events_natural_key conflict — FK violations
+    // (e.g., stale JSONL referencing a deleted session_id) still throw
+    // loudly instead of silently dropping rows (spektr 2026-04-22 MEDIUM).
+    `INSERT INTO hook_events (id, session_id, hook_name, event_type, tool_name,
          exit_code, blocked, duration_ms, error, timestamp)
        VALUES (@id, @session_id, @hook_name, @event_type, @tool_name,
-         @exit_code, @blocked, @duration_ms, @error, @timestamp)`)
+         @exit_code, @blocked, @duration_ms, @error, @timestamp)
+       ON CONFLICT(session_id, hook_name, event_type, timestamp) DO NOTHING`)
         .run({
         id,
         session_id: event.sessionId,
@@ -592,6 +624,39 @@ export function getHookEventStats(projectHash, since) {
     }));
 }
 /**
+ * Remove duplicate rows from hook_events, keeping the earliest rowid per
+ * natural key (session_id, hook_name, event_type, timestamp). ADR-022
+ * migration sentinel — called from openDb to clean historical duplicates
+ * before the UNIQUE INDEX is applied, and exposed for tests + manual repair.
+ * @returns Number of rows removed.
+ */
+export function cleanupDuplicateHookEvents() {
+    const db = getDb();
+    const before = Number(db.prepare("SELECT COUNT(*) as c FROM hook_events").get()?.c ?? 0);
+    db.exec(`DELETE FROM hook_events WHERE rowid NOT IN (
+       SELECT MIN(rowid) FROM hook_events
+       GROUP BY session_id, hook_name, event_type, timestamp
+     );`);
+    const after = Number(db.prepare("SELECT COUNT(*) as c FROM hook_events").get()?.c ?? 0);
+    return before - after;
+}
+/**
+ * Remove duplicate rows from agent_invocations, keeping the earliest rowid per
+ * natural key (session_id, agent_type, timestamp). Mirrors
+ * cleanupDuplicateHookEvents per ADR-022.
+ * @returns Number of rows removed.
+ */
+export function cleanupDuplicateAgentInvocations() {
+    const db = getDb();
+    const before = Number(db.prepare("SELECT COUNT(*) as c FROM agent_invocations").get()?.c ?? 0);
+    db.exec(`DELETE FROM agent_invocations WHERE rowid NOT IN (
+       SELECT MIN(rowid) FROM agent_invocations
+       GROUP BY session_id, agent_type, timestamp
+     );`);
+    const after = Number(db.prepare("SELECT COUNT(*) as c FROM agent_invocations").get()?.c ?? 0);
+    return before - after;
+}
+/**
  * Clears the end-state fields (ended_at, duration_ms) for a session.
  * Called by startSession on the resume/merge path to prevent COALESCE from
  * preserving a stale ended_at from the previous lifecycle, which would produce
@@ -619,10 +684,17 @@ function mapAgentInvocationRow(row) {
 export function insertAgentInvocation(invocation) {
     const id = generateId();
     getDb()
-        .prepare(`INSERT INTO agent_invocations (id, session_id, agent_type, model,
+        .prepare(
+    // ON CONFLICT DO NOTHING on the natural-key UNIQUE INDEX (ADR-022).
+    // Preserves FK error visibility; see insertHookEvent for rationale.
+    // Known caveat: natural key excludes agent sub-type / description, so
+    // two parallel sub-agents of the same agent_type firing within the same
+    // millisecond would be collapsed. Acceptable at current scale.
+    `INSERT INTO agent_invocations (id, session_id, agent_type, model,
          description, duration_ms, success, error, timestamp)
        VALUES (@id, @session_id, @agent_type, @model,
-         @description, @duration_ms, @success, @error, @timestamp)`)
+         @description, @duration_ms, @success, @error, @timestamp)
+       ON CONFLICT(session_id, agent_type, timestamp) DO NOTHING`)
         .run({
         id,
         session_id: invocation.sessionId,
