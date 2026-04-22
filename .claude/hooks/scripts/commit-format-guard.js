@@ -13,8 +13,19 @@ try {
   const input = parseStdin();
   const cmd = input.tool_input?.command ?? "";
 
-  // Only check git commit with -m flag
-  if (!cmd.includes("git commit") || !cmd.includes("-m")) process.exit(0);
+  // Strip quoted strings so we don't false-match on `echo "git commit ..."`
+  // or similar in HEREDOCs / comments / documentation (Bug 4, 2026-04-22).
+  // Quoted content inside a string literal cannot be the actual commit call.
+  const cmdStripped = cmd
+    .replace(/"(?:[^"\\]|\\.)*"/g, "") // double-quoted strings
+    .replace(/'(?:[^'\\]|\\.)*'/g, ""); // single-quoted strings
+
+  // Only check git commit with -m flag — match the actual invocation,
+  // allowing "git  commit" with extra whitespace or after &&/;/|/newline.
+  const GIT_COMMIT_RE = /(?:^|[;&|\n]|&&|\|\|)\s*git\s+commit\b/;
+  if (!GIT_COMMIT_RE.test(cmdStripped) || !cmdStripped.includes("-m")) {
+    process.exit(0);
+  }
 
   // Extract message: handle both "msg" and HEREDOC $(cat <<'EOF'\ntype: msg\n...)
   let msg = "";

@@ -14,9 +14,9 @@ Intelligent context compaction that preserves critical state. Replaces the manua
 
 ### 1. Audit
 Report current context state:
-- Count tool calls this session from observations JSONL — use pipes to avoid `$()` permission prompts:
-  - `ls -td /tmp/kadmon/*/ 2>/dev/null | head -1 | xargs -I{} wc -l {}observations.jsonl`
-  - `ls -td /tmp/kadmon/*/ 2>/dev/null | head -1 | xargs -I{} grep -o '"file_path":"[^"]*"' {}observations.jsonl | sort | uniq -c | sort -rn | head -5`
+- Count tool calls this session from observations JSONL — resolve tmpdir via Node for cross-platform support (Bug 3 fix, 2026-04-22 — hardcoded `/tmp/kadmon/*/` was Linux-only and broke on Windows Git Bash):
+  - ``TMPROOT=$(node -e "console.log(require('os').tmpdir())") && ls -td "$TMPROOT/kadmon"/*/ 2>/dev/null | head -1 | xargs -I{} wc -l {}observations.jsonl``
+  - ``TMPROOT=$(node -e "console.log(require('os').tmpdir())") && ls -td "$TMPROOT/kadmon"/*/ 2>/dev/null | head -1 | xargs -I{} grep -o '"file_path":"[^"]*"' {}observations.jsonl | sort | uniq -c | sort -rn | head -5``
 - Run `git diff --stat` to check for uncommitted changes
 
 ### 2. Safety Check
