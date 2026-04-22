@@ -115,7 +115,7 @@ Kadmon-Harness/
 - **Scan** (1): /skanner
 - **Research** (1): /skavenger (2 routes: A=Media via yt-dlp, B=General via WebSearch/WebFetch; flags: `--continue`, `--plan`, `--verify <hyp>`, `--drill <N>`, `--history <query>`, `--verify-citations <N>` — ADR-015 Groups A, B, D + ADR-016 slim refactor; auto-writes to `docs/research/` unless `KADMON_RESEARCH_AUTOWRITE=off`)
 - **Remember** (3): /chekpoint, /almanak, /doks
-- **Evolve** (2): /forge, /evolve (step 6 Generate is EXPERIMENTAL through 2026-04-28; /instinct is a deprecated alias until 2026-04-20)
+- **Evolve** (2): /forge, /evolve (step 6 Generate is EXPERIMENTAL through 2026-04-28)
 
 ## Skills (46)
 - **Workflow**: search-first, context-budget, token-budget-advisor, strategic-compact
@@ -203,7 +203,7 @@ See `install.sh` / `install.ps1` for the exact 11-step flow (arg parse → targe
 
 ## Status
 v1.2.2 — latest shipped: Bug 3 (kompact.md cross-platform tmpdir via `node -e "require('os').tmpdir()"`) + Bug 4 (commit-format-guard.js strips quoted strings before matching `git commit`, eliminates `echo "...git commit..."` false-positives). Previous v1.2.1: Bug 1 (hook_events dedup via UNIQUE INDEX + ON CONFLICT DO NOTHING) + Bug 2 (orphan recovery staleness guard + endSession project_hash assert). All 4 bugs detected from Kadmon-Sports dogfood 2026-04-22.
-Metrics: 898 tests / 73 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+Metrics: 887 tests / 71 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
 Distribution: Claude Code plugin (agents/skills/commands/hooks via canonical root symlinks) + install.sh/install.ps1 (rules + 14 permissions.deny + 9 permissions.allow CORE + .kadmon-version). End-to-end dogfooded against Kadmon-Sports 2026-04-20 — cross-project SQLite isolation verified (distinct projectHash per directory). ADR-020 (runtime language detection) validated on Windows 2026-04-21 in Kadmon-Sports; Mac dogfood pending to flip status to `accepted`.
 Language support: TypeScript and Python. `/chekpoint`, `/medik`, and 6 hooks detect the target project's toolchain at runtime via `scripts/lib/detect-project-language.ts` (ADR-020). Override with `KADMON_PROJECT_LANGUAGE=python|typescript`.
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).

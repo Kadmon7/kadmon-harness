@@ -149,7 +149,6 @@ After 7 days: /forge prunes it (prune phase, gated)
 
 ## Integration
 - **/forge** command -- unified pipeline with preview gate (Read → Extract → Reinforce/Create → Evaluate → Cluster → Gate → Apply → Report). Flags: `--dry-run` (no mutation), `export` (cross-project scaffold). See ADR-005 and `scripts/lib/forge-pipeline.ts`.
-- **/instinct** -- deprecated alias for /forge until 2026-04-20
 - **session-end-all** hook (pattern evaluation phase) -- fires at Stop, analyzes observations against pattern-definitions.json
 - **observe-pre / observe-post** hooks -- log tool calls and results to JSONL
 - **pattern-definitions.json** -- 12 pattern definitions (10 file_sequence + 1 tool_arg_presence + 1 cluster; ADR-006). `file_sequence` follow-up matching is dual-surface: it checks both `Bash.metadata.command` and `Skill.metadata.skillName`, because slash commands like `/doks`, `/forge`, `/almanak` are Skill tool calls, not Bash.
