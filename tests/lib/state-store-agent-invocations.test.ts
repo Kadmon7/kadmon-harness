@@ -168,4 +168,40 @@ describe("state-store agent_invocations", () => {
     expect(stats).toHaveLength(1);
     expect(stats[0].total).toBe(1);
   });
+
+  describe("dedup via UNIQUE INDEX (natural key)", () => {
+    it("collapses exact duplicates to a single row", () => {
+      const payload = {
+        sessionId: "s1",
+        agentType: "typescript-reviewer",
+        model: "sonnet",
+        description: "review diff",
+        durationMs: 25175,
+        success: true,
+        timestamp: "2026-04-22T02:00:00.000Z",
+      };
+
+      insertAgentInvocation(payload);
+      insertAgentInvocation(payload);
+      insertAgentInvocation({ ...payload, durationMs: 25301 });
+
+      expect(getAgentInvocationsBySession("s1")).toHaveLength(1);
+    });
+
+    it("allows different agent_type at the same timestamp to coexist", () => {
+      const ts = "2026-04-22T02:00:00.000Z";
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "kody",
+        timestamp: ts,
+      });
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "spektr",
+        timestamp: ts,
+      });
+
+      expect(getAgentInvocationsBySession("s1")).toHaveLength(2);
+    });
+  });
 });

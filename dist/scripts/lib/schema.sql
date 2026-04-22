@@ -123,9 +123,16 @@ CREATE INDEX IF NOT EXISTS idx_sync_queue_pending ON sync_queue(synced_at) WHERE
 CREATE INDEX IF NOT EXISTS idx_hook_events_session ON hook_events(session_id);
 CREATE INDEX IF NOT EXISTS idx_hook_events_hook ON hook_events(hook_name);
 CREATE INDEX IF NOT EXISTS idx_hook_events_timestamp ON hook_events(timestamp DESC);
+-- Natural-key dedup (ADR-022). Prevents the same hook firing being persisted
+-- twice when session-end-all re-ingests hook-events.jsonl (Stop hook retry,
+-- /compact cycle). Combined with INSERT OR IGNORE in state-store.ts.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hook_events_natural_key
+  ON hook_events(session_id, hook_name, event_type, timestamp);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_session ON agent_invocations(session_id);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_agent ON agent_invocations(agent_type);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_timestamp ON agent_invocations(timestamp DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_invocations_natural_key
+  ON agent_invocations(session_id, agent_type, timestamp);
 CREATE INDEX IF NOT EXISTS idx_research_reports_session ON research_reports(session_id);
 CREATE INDEX IF NOT EXISTS idx_research_reports_project ON research_reports(project_hash);
 CREATE INDEX IF NOT EXISTS idx_research_reports_generated ON research_reports(generated_at DESC);
