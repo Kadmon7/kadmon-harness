@@ -2,7 +2,8 @@
 number: 20
 title: Runtime language detection for language-agnostic commands and hooks
 date: 2026-04-21
-status: proposed
+status: accepted
+accepted_date: 2026-04-22
 route: A
 plan: plan-020-runtime-language-detection.md
 ---
@@ -133,3 +134,8 @@ The ADR moves from `proposed` to `accepted` when:
 - Two or more consumers report polyglot-default wrong
 - Any user reports `KADMON_PROJECT_LANGUAGE` set permanently in their shell config
 - A third language (Go, Rust) is requested — trigger ADR-021 to generalize the Toolchain map
+
+## Acceptance Log
+
+- **2026-04-21** — Windows validation in Kadmon-Sports (architect). Surfaced 4 cross-platform bugs that shipped in v1.2.1 (hook_events dedup, orphan recovery staleness) and v1.2.2 (kompact tmpdir cross-platform, commit-format-guard false-positive).
+- **2026-04-22** — Mac validation via Joe and Eden running `/chekpoint` on Kadmon-Sports. Criterion #7 met. Ongoing bug monitoring continues as part of normal consumer-dogfood loop.
