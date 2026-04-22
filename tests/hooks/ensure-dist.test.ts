@@ -61,7 +61,36 @@ describe("isDistStale", () => {
 
     const result = isDistStale(TEMP_ROOT);
     expect(result.stale).toBe(true);
-    expect(result.reason).toContain("stale");
+    expect(result.reason).toContain("older than source");
+  });
+
+  it("ignores orphan dist files with no .ts counterpart", () => {
+    setupTempDirs();
+    // Orphan dist file with very old mtime (simulates deleted source)
+    const orphan = path.join(DIST_DIR, "removed-module.js");
+    fs.writeFileSync(orphan, "x");
+    const veryOld = new Date(Date.now() - 1_000_000);
+    fs.utimesSync(orphan, veryOld, veryOld);
+
+    // Current source with matching fresh dist
+    const srcFile = path.join(SRC_DIR, "current.ts");
+    fs.writeFileSync(srcFile, "export const x = 1;");
+    const oldTime = new Date(Date.now() - 10_000);
+    fs.utimesSync(srcFile, oldTime, oldTime);
+    fs.writeFileSync(path.join(DIST_DIR, "current.js"), "export const x = 1;");
+
+    const result = isDistStale(TEMP_ROOT);
+    expect(result.stale).toBe(false);
+  });
+
+  it("returns stale:true with missing-file reason when src .ts has no dist .js", () => {
+    setupTempDirs();
+    fs.writeFileSync(path.join(SRC_DIR, "newmod.ts"), "x");
+    // dist/ exists but newmod.js does not
+
+    const result = isDistStale(TEMP_ROOT);
+    expect(result.stale).toBe(true);
+    expect(result.reason).toContain("missing dist");
   });
 
   it("returns stale:false when no source files exist", () => {
