@@ -62,9 +62,25 @@ export function startSession(
 export function endSession(
   sessionId: string,
   updates: Partial<SessionSummary>,
+  expectedProjectHash?: string,
 ): SessionSummary | null {
   const existing = getSession(sessionId);
   if (!existing) return null;
+
+  // ADR-022 Bug 2 defense-in-depth: caller may assert the session it is about
+  // to close belongs to a specific project. Prevents cross-project pisada if
+  // getOrphanedSessions ever returns a session from an unexpected project_hash
+  // (e.g., collision in project_hash derivation, buggy call site).
+  if (
+    expectedProjectHash !== undefined &&
+    existing.projectHash !== expectedProjectHash
+  ) {
+    throw new Error(
+      `endSession: project_hash mismatch for session ${sessionId} ` +
+        `(expected ${expectedProjectHash}, found ${existing.projectHash}) — ` +
+        `refusing to close`,
+    );
+  }
 
   const now = nowISO();
   const startMs = new Date(existing.startedAt).getTime();
