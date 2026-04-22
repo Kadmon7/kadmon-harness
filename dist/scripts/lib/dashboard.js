@@ -69,6 +69,7 @@ function statusBadge(status) {
     }
 }
 // ─── Rendering ───
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function renderConfidenceBar(confidence) {
     const width = 10;
     const filled = Math.round(confidence * width);
@@ -85,6 +86,7 @@ function separator() {
     return `${DIM}${"─".repeat(60)}${RESET}`;
 }
 // ─── Data fetching ───
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getInstinctRows(projectHash) {
     const instincts = getActiveInstincts(projectHash);
     const promotableSet = new Set(getPromotableInstincts(projectHash).map((i) => i.id));
@@ -96,6 +98,7 @@ export function getInstinctRows(projectHash) {
         isPromotable: promotableSet.has(i.id),
     }));
 }
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getSessionRows(projectHash, limit = 5) {
     const sessions = getRecentSessions(projectHash, limit + 10);
     let foundLive = false;
@@ -124,6 +127,7 @@ export function getSessionRows(projectHash, limit = 5) {
         isLive: !s.endedAt,
     }));
 }
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getHookHealthRows(events) {
     const relevant = events.filter((e) => e.eventType === "tool_post" || e.eventType === "tool_fail");
     if (relevant.length === 0)
@@ -151,6 +155,7 @@ export function getHookHealthRows(events) {
         return { tool, total: s.total, failures: s.failures, status };
     });
 }
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getModelCostRows(projectHash) {
     return getCostSummaryByModel(projectHash).map((r) => ({
         model: r.model,
