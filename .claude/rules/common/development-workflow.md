@@ -86,7 +86,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Evolve Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /forge | Forge session observations into instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`. (/instinct is a deprecated alias until 2026-04-20) | — |
+| /forge | Forge session observations into instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`. | — |
 | /evolve | Run harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads ClusterReports written by `/forge` and proposes new skills/commands/agents/rules through a preview gate; `/evolve` command invokes `skill-creator:skill-creator` plugin for PROMOTE proposals (target path `.claude/skills/<slug>/SKILL.md` per ADR-013) and `applyEvolveGenerate` for the rest (commands/agents/rules stay flat). | alchemik |
 
 ## Commits

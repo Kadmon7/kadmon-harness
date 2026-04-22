@@ -141,7 +141,7 @@ Rules:
 /kompact         context compaction
 /almanak         almanak (single lookup)
 /skavenger       skavenger (single researcher, loads deep-research skill)
-/forge           unified instinct pipeline (preview gate; /instinct is deprecated alias until 2026-04-20)
+/forge           unified instinct pipeline (preview gate)
 ```
 
 ## Approval Criteria
