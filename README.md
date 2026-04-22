@@ -2,8 +2,8 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-731%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-1.1-blue)]()
+[![Tests](https://img.shields.io/badge/tests-870%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-1.2-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
@@ -12,7 +12,9 @@
 
 ## What is this?
 
-Kadmon Harness is **infrastructure, not a product**. It is a portable set of agents, commands, skills, hooks, and rules that encode how Claude Code should work on any project. Built once, carried to every new project via bootstrap. It turns every session into an observable, memorable, self-improving loop.
+Kadmon Harness is **infrastructure, not a product**. It is a portable set of agents, commands, skills, hooks, and rules that encode how Claude Code should work on any TypeScript or Python project. Built once, carried to every new project via bootstrap. It turns every session into an observable, memorable, self-improving loop.
+
+> **Language support today**: TypeScript/JavaScript and Python. Commands and hooks detect the target project's toolchain at runtime ([ADR-020](docs/decisions/ADR-020-runtime-language-detection.md)). Override with `KADMON_PROJECT_LANGUAGE=python|typescript`.
 
 Instead of asking Claude "please write a test first", you define it in a rule, a hook enforces it, and an agent specializes in it. The next session already knows.
 
@@ -247,7 +249,7 @@ Distribution architecture: [ADR-010](docs/decisions/ADR-010-harness-distribution
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **731 passing** (67 files) |
+| Tests | **870 passing** (70 files) |
 | SQLite Tables | **7** + 17 indexes (research_reports added in ADR-015) |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -556,7 +558,9 @@ Example instincts:
 
 ## 📊 Status & Attribution
 
-**v1.1 — latest shipped: Sprint D hybrid distribution (plan-010 + plan-019 + ADR-010 + ADR-019, 2026-04-20)**
-`731 tests passing` · `67 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+**v1.2 — latest shipped: plan-020 runtime language detection TypeScript + Python (ADR-020, 2026-04-21)**
+`870 tests passing` · `70 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+
+See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 
 Built on concepts from [everything-claude-code](https://github.com/affaan-m/everything-claude-code) (MIT License) — Copyright (c) 2026 Affaan Mustafa.

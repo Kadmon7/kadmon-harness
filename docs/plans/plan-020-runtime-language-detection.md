@@ -2,7 +2,7 @@
 number: 20
 title: Runtime language detection for language-agnostic commands and hooks
 date: 2026-04-21
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-020-runtime-language-detection.md
