@@ -59,7 +59,7 @@ That's it — run `/plugin` and you'll see **kadmon-harness Enabled** with **16 
 
 ### 🧩 Want the rules and security permissions too?
 
-The plugin ships the **80 %** — agents, skills, commands, hooks — everything Claude Code distributes natively. The remaining **20 %** are the **19 conventions-as-rules** and **15 `permissions.deny` entries** (block `.env` reads, `rm -rf /`, `git push --force`, etc.). Claude Code plugins can't ship those today, so there's a one-shot bootstrap that copies them into your project:
+The plugin ships the **80 %** — agents, skills, commands, hooks — everything Claude Code distributes natively. The remaining **20 %** are the **19 conventions-as-rules**, **14 `permissions.deny` entries** (block `.env` reads, `rm -rf /`, `git push --force`, etc.), and **9 `permissions.allow` CORE entries** (git/npm/node/npx/cd/ls/pwd/which + Skill dispatch — see [ADR-021](docs/decisions/ADR-021-install-allow-merge-and-gitattributes.md)). Claude Code plugins can't ship those today, so there's a one-shot bootstrap that copies them into your project:
 
 <details>
 <summary><strong>🍎 macOS / 🐧 Linux · bash · 4 lines</strong></summary>
@@ -129,8 +129,9 @@ npm install && npm run build
 | 4 | Verify the 3 canonical root symlinks (`agents`, `skills`, `commands`) resolve — else abort with Developer Mode instructions | ADR-019 plugin-loader contract |
 | 5 | Verify `node --version >= 20` | Required for `npx tsx` |
 | 6 | Copy `.claude/rules/**` → `target/.claude/rules/` | Plugin can't ship rules |
-| 7a | Merge 15 canonical `permissions.deny` rules into `target/.claude/settings.json` | Block `.env` reads, `rm -rf /`, `git push --force` |
-| 7b | Write `extraKnownMarketplaces.kadmon-harness` + `enabledPlugins[...] = true` into user `~/.claude/settings.json` | Auto-register the plugin |
+| 7a | Merge **14 canonical `permissions.deny`** rules into `target/.claude/settings.json` | Block `.env` reads, `rm -rf /`, `git push --force` |
+| 7b | Merge **9 canonical `permissions.allow` CORE** rules into `target/.claude/settings.json` (ADR-021) | Skip permission prompts for git/npm/node/npx/cd/ls/pwd/which + Skill |
+| 7c | Write `extraKnownMarketplaces.kadmon-harness` + `enabledPlugins[...] = true` into user `~/.claude/settings.json` | Auto-register the plugin |
 | 8 | Preserve `target/.claude/settings.local.json` if present; else create `{}` template | Respect machine-specific overrides |
 | 9 | Append 3 lines to `target/.gitignore` (dedup): `.claude/settings.local.json`, `.claude/agent-memory/`, `dist/` | Avoid committing secrets/artifacts |
 | 10 | Write `target/.kadmon-version` with plugin version | Future `install.sh --update` marker |
