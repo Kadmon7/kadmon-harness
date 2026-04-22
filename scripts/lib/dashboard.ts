@@ -140,6 +140,7 @@ function statusBadge(status: "OK" | "WARN" | "FAIL" | "GOOD" | "MEH"): string {
 
 // ─── Rendering ───
 
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function renderConfidenceBar(confidence: number): string {
   const width = 10;
   const filled = Math.round(confidence * width);
@@ -164,6 +165,7 @@ function separator(): string {
 
 // ─── Data fetching ───
 
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getInstinctRows(projectHash: string): InstinctRow[] {
   const instincts = getActiveInstincts(projectHash);
   const promotableSet = new Set(
@@ -178,6 +180,7 @@ export function getInstinctRows(projectHash: string): InstinctRow[] {
   }));
 }
 
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getSessionRows(projectHash: string, limit = 5): SessionRow[] {
   const sessions = getRecentSessions(projectHash, limit + 10);
 
@@ -208,6 +211,7 @@ export function getSessionRows(projectHash: string, limit = 5): SessionRow[] {
   }));
 }
 
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getHookHealthRows(
   events: ObservabilityEvent[],
 ): HookHealthRow[] {
@@ -239,6 +243,7 @@ export function getHookHealthRows(
   });
 }
 
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export function getModelCostRows(projectHash: string): ModelCostRow[] {
   return getCostSummaryByModel(projectHash).map((r) => ({
     model: r.model,

@@ -30,9 +30,14 @@ export interface ModelCostRow {
     outputTokens: number;
     totalCost: number;
 }
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export declare function renderConfidenceBar(confidence: number): string;
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export declare function getInstinctRows(projectHash: string): InstinctRow[];
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export declare function getSessionRows(projectHash: string, limit?: number): SessionRow[];
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export declare function getHookHealthRows(events: ObservabilityEvent[]): HookHealthRow[];
+/** @internal — exported for tests only; internal helper of renderDashboard */
 export declare function getModelCostRows(projectHash: string): ModelCostRow[];
 export declare function renderDashboard(projectHash: string, events: ObservabilityEvent[]): string;
