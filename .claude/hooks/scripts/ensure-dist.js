@@ -22,7 +22,9 @@ export function resolveRootDir(metaUrl) {
 
 /**
  * Check if dist/scripts/lib/ is stale relative to scripts/lib/.
- * Compares max mtime of source .ts files vs min mtime of dist .js files.
+ * Per-file comparison: each src .ts must have a corresponding dist .js with
+ * mtime >= src mtime. Orphan dist .js files (no .ts counterpart) are ignored
+ * so deleted sources don't falsely mark dist as stale.
  * @param {string} rootDir - Project root directory
  * @returns {{ stale: boolean, reason: string }}
  */
@@ -38,9 +40,8 @@ export function isDistStale(rootDir) {
   try {
     srcFiles = fs
       .readdirSync(srcDir)
-      .filter((f) => f.endsWith(".ts"));
+      .filter((f) => f.endsWith(".ts") && !f.endsWith(".d.ts"));
   } catch {
-    // No source dir — nothing to compare
     return { stale: false, reason: "no source files" };
   }
 
@@ -48,36 +49,22 @@ export function isDistStale(rootDir) {
     return { stale: false, reason: "no source files" };
   }
 
-  let distFiles;
-  try {
-    distFiles = fs
-      .readdirSync(distDir)
-      .filter((f) => f.endsWith(".js"));
-  } catch {
-    return { stale: true, reason: "dist/ missing" };
-  }
-
-  if (distFiles.length === 0) {
-    return { stale: true, reason: "dist/ empty" };
-  }
-
-  // Max mtime of source files
-  let maxSrcMtime = 0;
-  for (const f of srcFiles) {
-    const mt = fs.statSync(path.join(srcDir, f)).mtimeMs;
-    if (mt > maxSrcMtime) maxSrcMtime = mt;
-  }
-
-  // Min mtime of dist files
-  let minDistMtime = Infinity;
-  for (const f of distFiles) {
-    const mt = fs.statSync(path.join(distDir, f)).mtimeMs;
-    if (mt < minDistMtime) minDistMtime = mt;
-  }
-
   // 1s tolerance for filesystem precision
-  if (maxSrcMtime > minDistMtime + 1000) {
-    return { stale: true, reason: "dist/ stale" };
+  const TOLERANCE_MS = 1000;
+  for (const srcFile of srcFiles) {
+    const base = srcFile.slice(0, -3); // strip .ts
+    const srcPath = path.join(srcDir, srcFile);
+    const distPath = path.join(distDir, `${base}.js`);
+
+    if (!fs.existsSync(distPath)) {
+      return { stale: true, reason: `missing dist/${base}.js` };
+    }
+
+    const srcMtime = fs.statSync(srcPath).mtimeMs;
+    const distMtime = fs.statSync(distPath).mtimeMs;
+    if (srcMtime > distMtime + TOLERANCE_MS) {
+      return { stale: true, reason: `${base}.js older than source` };
+    }
   }
 
   return { stale: false, reason: "dist/ up to date" };
@@ -106,10 +93,20 @@ export function ensureDist(rootDir) {
     });
     return { rebuilt: true, durationMs: Date.now() - start };
   } catch (err) {
+    // Include stderr/stdout in the error message so hook-errors.log has
+    // the actual build failure, not just "Command failed: npm run build".
+    const baseMsg = err instanceof Error ? err.message : String(err);
+    let details = "";
+    if (err && typeof err === "object") {
+      const stderr = err.stderr ? String(err.stderr).trim() : "";
+      const stdout = err.stdout ? String(err.stdout).trim() : "";
+      if (stderr) details += `\nstderr: ${stderr.slice(0, 500)}`;
+      if (stdout) details += `\nstdout: ${stdout.slice(0, 500)}`;
+    }
     return {
       rebuilt: false,
       durationMs: 0,
-      error: err instanceof Error ? err.message : String(err),
+      error: baseMsg + details,
     };
   }
 }
