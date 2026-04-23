@@ -15,6 +15,7 @@ import {
 import { readTodayLog, resolveMemoryDir } from "./daily-log.js";
 import { ensureDist, isDistStale, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
+import { logInstallDiagnostic } from "./install-diagnostic.js";
 import { rotateBackup } from "./backup-rotate.js";
 
 async function main() {
@@ -406,8 +407,40 @@ async function main() {
       }
     } catch {}
 
+    // Install health check (ADR-024): detect broken canonical symlinks,
+    // persist full diagnostic, surface actionable banner when anomalous.
+    let installBanner = "";
+    try {
+      const { checkInstallHealth } = await import(
+        pathToFileURL(
+          path.join(rootDir, "dist", "scripts", "lib", "install-health.js"),
+        ).href
+      );
+      const { renderRemediationBanner } = await import(
+        pathToFileURL(
+          path.join(
+            rootDir,
+            "dist",
+            "scripts",
+            "lib",
+            "install-remediation.js",
+          ),
+        ).href
+      );
+      const installReport = checkInstallHealth(rootDir);
+      logInstallDiagnostic(installReport);
+      if (!installReport.ok) {
+        installBanner = renderRemediationBanner(installReport.symlinks, {
+          inPluginCache: installReport.inPluginCache,
+          platform: installReport.platform,
+        });
+      }
+    } catch (installErr) {
+      logHookError("session-start", installErr, { phase: "install-health" });
+    }
+
     console.log(
-      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}${statusLine}${distNote}`,
+      `\u{1F680} Kadmon Session Started\n- Project: ${projectHash}\n- Branch: ${branch}\n- Instincts: ${instinctCount}${context}${statusLine}${distNote}${installBanner}`,
     );
   } catch (err) {
     logHookError("session-start", err, { phase: "main" });
