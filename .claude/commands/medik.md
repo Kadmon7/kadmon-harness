@@ -30,8 +30,11 @@ Run all 8 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: 
 | 7 | Dependencies | TS | `npm audit` | Vulnerable packages, outdated deps |
 |   |              | Python | `pip-audit` (warn if not installed) | Vulnerable packages |
 | 8 | Agent frontmatter | both | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
+| 9 | Install health | both | `npx tsx -e "import('./scripts/lib/install-health.ts').then(m => { const r = m.checkInstallHealth(process.cwd()); console.log(JSON.stringify(r, null, 2)); process.exit(r.ok ? 0 : 1); })"` | Canonical root symlinks (ADR-019) intact, `dist/` present and fresh, no anomalies. Report includes tri-state symlink detection (symlink_ok/junction_ok/broken_target/text_file/regular_dir/missing) + inPluginCache flag + runtimeRootEnv capture (ADR-024) |
 
 > **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language.
+>
+> **Note:** Check 9 exit code is 0 when `report.ok === true`, 1 otherwise. mekanik reads the JSON output in Phase 2 and suggests the matching remediation (PowerShell for plugin-cache, git checkout for dev-clone paths — see `scripts/lib/install-remediation.ts`). Historical diagnostics live in `~/.kadmon/install-diagnostic.log` (ADR-024).
 
 ### Phase 2: Deep Analysis (agents — always runs)
 

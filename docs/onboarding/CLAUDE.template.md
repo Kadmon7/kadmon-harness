@@ -90,6 +90,8 @@ This project consumes Kadmon Harness — **16 agents, 11 commands, 46 skills, 21
 
 Claude auto-loads that file every session. Source of truth: `Kadmon-Harness/docs/onboarding/reference_kadmon_harness.md`.
 
+**First-run issues?** See `Kadmon-Harness/docs/onboarding/TROUBLESHOOTING.md` for the 3 known install bugs (symlinks as text files on Windows, `PreToolUse:Agent hook error`, `/reload-plugins` required post-install) with copy-paste remediation. `/medik` Check #9 (ADR-024) is the fastest triage — it reports canonical symlink state + dist/ + runtime env and suggests the matching fix.
+
 ## External Tools [project-specific — extend with anything beyond the harness defaults]
 
 | Type | Name | Use |
