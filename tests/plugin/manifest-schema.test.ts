@@ -180,11 +180,11 @@ describe("plugin.json — required top-level fields", () => {
 
   it(
     // Test 2b — PASS (unchanged): canonical field values per ADR-010 contract.
-    "plugin.json name is 'kadmon-harness' and version is '1.2.2'",
+    "plugin.json name is 'kadmon-harness' and version is '1.2.3'",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
       expect(manifest.name).toBe("kadmon-harness");
-      expect(manifest.version).toBe("1.2.2");
+      expect(manifest.version).toBe("1.2.3");
     },
   );
 });

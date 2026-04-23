@@ -95,7 +95,7 @@ Kadmon-Harness/
 Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD) → kody`.
 
 ## Commands (11)
-- **Observe** (2): /kadmon-harness, /kompact
+- **Observe** (2): /nexus, /kompact
 - **Plan** (1): /abra-kdabra
 - **Build** (1): /medik (alias /MediK)
 - **Scan** (1): /skanner
@@ -161,7 +161,7 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.2.3-dev — 887 tests / 71 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
-Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python runtime-detected (ADR-020 `accepted` 2026-04-22).
+v1.2.3 — 934 tests / 75 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025).
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
 Shipping history: `docs/decisions/` and `git log`.
