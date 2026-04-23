@@ -123,7 +123,7 @@ Dry-run first: `.\install.ps1 -TargetPath C:\path\to\your\project -DryRun`
 <details>
 <summary>🩹 <strong>Troubleshooting</strong></summary>
 
-**Hooks don't fire · no `🚀 Kadmon Session Started` banner** — usually an environment issue, not a plugin bug. Check [`docs/runbooks/plugin-troubleshooting.md`](docs/runbooks/plugin-troubleshooting.md) — 6-item ordered checklist (symlinks, Node version, plugin registration, marketplace path, `.kadmon-version`, git remote). Verify the plugin is live with `/plugin` in Claude Code.
+**Hooks don't fire · no `🚀 Kadmon Session Started` banner** — usually an environment issue, not a plugin bug. Check [`docs/onboarding/TROUBLESHOOTING.md`](docs/onboarding/TROUBLESHOOTING.md#systematic-checklist-when-the-3-bugs-above-dont-cover-it) — 6-item ordered checklist (symlinks, Node version, plugin registration, marketplace path, `.kadmon-version`, git remote). Verify the plugin is live with `/plugin` in Claude Code.
 
 **Windows: symlinks appear as text files** — Developer Mode is OFF, `core.symlinks=true` was never set, OR `MSYS=winsymlinks:nativestrict` was unset at clone time (the third is the most common gotcha, verified 2026-04-22). Full remediation with PowerShell and git-checkout paths: [`docs/onboarding/TROUBLESHOOTING.md`](docs/onboarding/TROUBLESHOOTING.md#bug-1--canonical-symlinks-cloned-as-text-files-windows). Detect automatically: `/medik` Check #9 reports state of all 3 canonical symlinks + `dist/` + runtime env.
 

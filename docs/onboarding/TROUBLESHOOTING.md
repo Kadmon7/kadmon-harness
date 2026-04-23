@@ -135,6 +135,79 @@ After this, every future clone/install inherits the correct symlink behavior and
 
 ---
 
+## Systematic checklist (when the 3 bugs above don't cover it)
+
+If `/medik` Check #9 passes but the plugin still misbehaves, run this 6-step checklist in order. Stop at the first failing check and apply the fix. Ordered by empirical failure frequency.
+
+### Check 1 — Canonical symlinks resolve as symlinks
+
+Covered above as **Bug #1**. `ls -la agents commands skills` must show `lrwxrwxrwx`. If broken, jump to Fix A / Fix B / Fix C depending on where the clone lives.
+
+### Check 2 — Node version ≥ 20
+
+```bash
+node --version                         # expect v20.x or higher
+```
+
+`install.sh` enforces it at install time but a post-install Node downgrade silently breaks hooks that import modern APIs. Fix: upgrade via nvm/fnm/volta, re-run `install.sh`.
+
+### Check 3 — Plugin registered in user settings
+
+```bash
+cat ~/.claude/settings.json | grep -A1 enabledPlugins
+cat ~/.claude/settings.json | grep -A3 extraKnownMarketplaces
+```
+
+Expected:
+
+```json
+"enabledPlugins": {
+  "kadmon-harness@kadmon-harness": true
+},
+"extraKnownMarketplaces": {
+  "kadmon-harness": {
+    "path": "/absolute/path/to/Kadmon-Harness"
+  }
+}
+```
+
+Fix: re-run `install.sh /path/to/target` — idempotent, safe.
+
+### Check 4 — Marketplace path is valid and readable
+
+```bash
+MARKET_PATH=$(cat ~/.claude/settings.json | jq -r '.extraKnownMarketplaces["kadmon-harness"].path')
+ls -la "$MARKET_PATH/.claude-plugin/plugin.json"
+```
+
+The `path` points at the harness clone. If the clone moved or the path has unicode/spaces, the plugin loader can't find it. Fix: re-run `install.sh` from the current clone location so the path is re-written.
+
+### Check 5 — Target has `.kadmon-version` marker
+
+```bash
+cat /path/to/target/.kadmon-version    # expect a semver string like 1.2.3
+```
+
+Missing marker means the install didn't complete against that target. Fix: `cd` into the harness clone and run `bash install.sh /path/to/target`.
+
+### Check 6 — Target has `git remote origin` configured
+
+```bash
+cd /path/to/target
+git remote get-url origin
+```
+
+`session-start.js` early-exits with a log line "Kadmon: no git remote — session tracking disabled" when there's no remote. **This is intentional** — without a remote the harness can't compute a stable `projectHash`. Fix (choose one):
+
+- Add a remote if this is a real project: `git remote add origin git@github.com:user/repo.git`
+- Accept the behavior: standalone/experimental repos without remote intentionally have no session tracking. The banner line is the signal everything else is fine.
+
+### If all 6 checks pass and it still doesn't work
+
+See the "How to report a new install issue" section above. Gather the 3 artifacts (`/medik` Check #9 output, `install-diagnostic.log`, `hook-errors.log`) and open an issue. Do not patch without fresh evidence — most "urgent" plugin bugs have been environment issues.
+
+---
+
 ## References
 
 - **ADR-024** — Install Health Telemetry — Passive Diagnostic Channel (`docs/decisions/ADR-024-install-health-telemetry.md`)
@@ -143,3 +216,5 @@ After this, every future clone/install inherits the correct symlink behavior and
 - **`scripts/lib/install-health.ts`** — pure diagnostic module
 - **`scripts/lib/install-remediation.ts`** — banner template with adaptive PowerShell vs git remediation
 - **`.claude/commands/medik.md`** — `/medik` Check #9 row
+- **`scripts/lib/install-apply.ts:194`** — marketplace path logic (referenced by Check #4)
+- **`.claude/hooks/scripts/session-start.js`** — remote requirement (referenced by Check #6)
