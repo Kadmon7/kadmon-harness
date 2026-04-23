@@ -65,12 +65,21 @@ or read the toolchain from the compiled `dist/scripts/lib/detect-project-languag
 ### Phase 2b: Consolidation (sequential — AFTER 2a completes)
 1. **WAIT** for ALL Phase 2a reviewers to complete. Do NOT invoke kody in parallel with them.
 2. Invoke **kody** (sonnet) with the findings from every Phase 2a reviewer included in its prompt.
-3. kody deduplicates, prioritizes, and assigns final severity: BLOCK / WARN / NOTE.
+3. kody deduplicates, prioritizes, and assigns severity: BLOCK / WARN / NOTE, **subject to the Upstream BLOCK Preservation rule** in `.claude/agents/kody.md`. kody MAY consolidate duplicate BLOCKs and MAY escalate, but MUST NOT downgrade or suppress any BLOCK emitted by a Phase 2a specialist.
+4. Preserve the raw Phase 2a findings alongside kody's consolidated output — both sets are inputs to the Phase 3 gate.
 
-### Phase 3: Gate Decision
-- **Any BLOCK findings** -> STOP. Report issues. Do NOT commit.
-- **WARN only** -> report warnings, proceed to commit
-- **NOTE only or clean** -> proceed to commit
+### Phase 3: Gate Decision (dual check)
+
+The gate is computed against BOTH the raw Phase 2a reviewer output AND kody's consolidated output. This prevents any silent loss of a specialist BLOCK during consolidation.
+
+1. Collect `rawBlocks` = set of BLOCK findings emitted by any Phase 2a specialist (typescript-reviewer, python-reviewer, spektr, orakle).
+2. Collect `kodyBlocks` = set of BLOCK findings in kody's consolidated output.
+3. **If `rawBlocks` is non-empty OR `kodyBlocks` is non-empty** → STOP. Do NOT commit. Report both sets separately in the output so the user sees if consolidation dropped anything.
+4. **If `kodyBlocks.count < rawBlocks.count`** → flag explicitly as `kody consolidated N BLOCKs → M BLOCKs; verify deduplication was correct` and STOP for manual review, even when (3) already would have fired. This surfaces suspicious consolidation even if the counts happened to align by coincidence.
+5. **WARN only** (no BLOCK in either set) → report warnings, proceed to commit.
+6. **NOTE only or clean** → proceed to commit.
+
+Rationale: Fix A (preservation rule in kody.md) prevents downgrades at the prompt level; this dual gate is the mechanical safety net if the prompt is ignored or edited out. See `.claude/agents/kody.md` → "Upstream BLOCK Preservation" for the authoritative rule.
 
 ### Phase 4: Commit and Push
 1. `git add -A`
@@ -98,8 +107,11 @@ orakle:   0 issues
 ## Phase 2b: Consolidation (kody)
 kody: 0 BLOCK, 0 WARN, 1 NOTE — APPROVED
 
-## Phase 3: Gate
-0 BLOCK, 0 WARN, 1 NOTE — APPROVED
+## Phase 3: Gate (dual check)
+Raw Phase 2a BLOCKs:   0
+kody consolidated BLOCKs: 0
+Delta: 0 (no consolidation drop)
+Verdict: 0 BLOCK, 0 WARN, 1 NOTE — APPROVED
 
 ## Phase 4: Commit
 Commit: feat(instincts): add export functionality

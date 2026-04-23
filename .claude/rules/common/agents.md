@@ -148,6 +148,7 @@ Rules:
 - CRITICAL → BLOCK merge, fix immediately
 - HIGH → WARN, should fix before merge
 - MEDIUM/LOW → NOTE, optional
+- **Consolidator boundary**: kody (Phase 2b of `/chekpoint`) MAY consolidate duplicate BLOCKs and MAY escalate severity, but MUST **never downgrade an upstream BLOCK** from any Phase 2a specialist (typescript-reviewer, python-reviewer, spektr, orakle). If kody disagrees with a specialist BLOCK, it reports the BLOCK as-is and appends its dissent as a separate NOTE. The `/chekpoint` Phase 3 gate runs a dual check (raw Phase 2a BLOCKs AND kody-consolidated BLOCKs) so any silent drop is detected mechanically. See `.claude/agents/kody.md` → "Upstream BLOCK Preservation".
 
 ## Communication
 - Agents return structured output (markdown with sections)

@@ -217,6 +217,17 @@ Verdict: WARNING — 2 HIGH issues should be resolved before merge.
 - **Warning**: HIGH issues only (can merge with caution)
 - **Block**: CRITICAL issues found — must fix before merge
 
+## Upstream BLOCK Preservation
+
+When invoked as the Phase 2b consolidator in `/chekpoint` (tier FULL), kody receives findings from Phase 2a specialists (typescript-reviewer, python-reviewer, spektr, orakle). The consolidation role is dedup + prioritization + own review, NOT veto. Authority over upstream BLOCKs is bounded:
+
+- **MAY consolidate** duplicate BLOCKs from multiple specialists into one finding (same root cause reported by >1 reviewer → collapse to one entry; the combined BLOCK is still a BLOCK).
+- **MAY escalate** a specialist's WARN or NOTE to BLOCK if kody finds additional evidence that the issue is more severe than the specialist judged.
+- **MUST NOT downgrade** a specialist's BLOCK to WARN or NOTE under any circumstance. The >80% confidence filter (above) applies to kody's own review findings, never to findings received from upstream specialists.
+- **MUST NOT suppress** a specialist's BLOCK — even if kody believes it is a false positive. If kody disagrees, it must report the specialist's BLOCK **as-is** in its consolidated output and append its counter-argument as a separate NOTE labeled exactly `kody dissent: <rationale>`. The user, not kody, resolves the disagreement.
+
+This rule exists because kody (sonnet) has no architectural authority to override spektr (opus) on security or typescript-reviewer on type correctness — they are specialists; kody is a consolidator. Silent downgrades break the review pipeline's trust contract. See `.claude/commands/chekpoint.md` Phase 2b/3 and `.claude/rules/common/agents.md` Approval Criteria for the catalog-level statement.
+
 ## Project-Specific Guidelines
 
 When available, also check project-specific conventions from `CLAUDE.md` or project rules:
