@@ -493,31 +493,74 @@ Example instincts:
 <summary><strong>Dashboard</strong> — `/kadmon-harness` output</summary>
 
 ```
-╔══════════════════════════════════════╗
-║       KADMON HARNESS DASHBOARD       ║
-╚══════════════════════════════════════╝
+  ╔════════════════════════════════════════════╗
+  ║  🧠  KADMON HARNESS DASHBOARD              ║
+  ╚════════════════════════════════════════════╝
 
-── INSTINCTS (10 active | 10 promotable) ──
-  [█████████░] 0.9  Build after editing TypeScript (14x) → /forge (promote)
-  [█████████░] 0.9  Re-run tests after fixing failures (14x) → /forge (promote)
+  🎯 Health: 95/100 EXCELLENT    |  📊 12 sessions    |  💰 $8.47 total
+
+  ────────────────────────────────────────────────────────────
+  🔮 INSTINCTS (9 active, 5 promotable)
+
+  [██████████] 0.9  Build after editing types.ts (14x) → promote
+  [██████████] 0.9  Re-run tests after failures (12x) → promote
+  [████████░░] 0.8  Schema check after state-store edit (8x) → promote
   [███░░░░░░░] 0.3  Research before building (1x)
 
-── SESSIONS ──
+  ────────────────────────────────────────────────────────────
+  📅 RECENT SESSIONS
+
   Date        Branch              Files  Msgs  Cmps  Duration  Cost
-  2026-03-30  main                   12   640     2    3h 15m  $4.52  *
-  2026-03-29  main                    6    87     0    1h 30m  $0.45
+  2026-04-22  feat/install-health     8   145     1    2h 10m  $0.42 ▃▃▃
+  2026-04-21  main                    4    62     0       45m  $0.18 █
+  2026-04-20  feat/sprint-d          12   320     2    4h 05m  $1.87 █████████
+  ⚡ = live session
 
-── COST SUMMARY ──
+  ────────────────────────────────────────────────────────────
+  💰 COST SUMMARY (by model)
+
   Model              Sessions  Tokens In  Tokens Out   Cost
-  opus                      3      450.2K     125.3K  $3.20
-  sonnet                    8      280.1K      95.4K  $0.85
-  Total                                              $4.05
+  opus                      4       2.1M       0.8M    $6.12
+  sonnet                    8       1.4M       0.5M    $2.35
+  ──────────────────────────────────────────────────────────
+  Total                                                 $8.47
 
-── HOOK HEALTH ──
+  ────────────────────────────────────────────────────────────
+  🚨 HOOK EVENTS (persistent)
+
+  Hook                     Total  Blocks  Avg ms  Status
+  no-context-guard            84       3    42ms   [ WARN ]
+  block-no-verify             12       0    18ms   [ OK ]
+  quality-gate                96       0   124ms   [ OK ]
+
+  ────────────────────────────────────────────────────────────
+  🤖 AGENT USAGE (persistent)
+
+  Agent                Total  Avg Duration  Fail%  Status
+  kody                     8          12.3s     0%   [ OK ]
+  typescript-reviewer     14           8.1s     0%   [ OK ]
+  arkitect                 3          42.7s     0%   [ OK ]
+
+  ────────────────────────────────────────────────────────────
+  ⚡ LIVE SESSION (current)
+
   Tool            Total  Fail  Status
-  Read               62     0  OK
-  Edit               14     0  OK
-  Bash               45     0  OK
+  Read               62     0   [ OK ]
+  Edit               14     0   [ OK ]
+  Bash               45     0   [ OK ]
+
+  ────────────────────────────────────────────────────────────
+  💾 DATABASE (kadmon.db)
+
+  sessions                   45  ██████████
+  instincts                  12  ███
+  cost_events               160  ██████████
+  hook_events               480  ██████████
+  agent_invocations          32  ██████
+  sync_queue                  0
+  research_reports            7  ██
+
+  v1.0 | 2026-04-22T20:30:00 | project: 9444ca5b
 ```
 
 </details>
