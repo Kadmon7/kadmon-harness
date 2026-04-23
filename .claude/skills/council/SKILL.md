@@ -88,7 +88,7 @@ Do this **first** so the synthesis does not simply mirror whichever external voi
 
 ### 4. Launch three independent voices in parallel
 
-Each subagent gets:
+Launch via the `Task` tool from the main orchestrator — one call per voice, all three in a single message so they run concurrently. This skill is orchestrator-scoped: do NOT embed it in a sub-agent whose tools don't include `Task`. Each subagent gets:
 
 - The decision question
 - Compact context (only what's needed)
@@ -202,8 +202,9 @@ The value isn't unanimity. The value is making the disagreement legible *before*
 
 ## Integration
 
-- **konstruct agent** (opus) — primary owner. konstruct handles complex planning under uncertainty; this skill is the multi-voice technique konstruct uses when the planning question is ambiguous enough that a single perspective would anchor too quickly.
-- **/abra-kdabra command** — entry point. When a user says "I'm not sure which approach", konstruct can convene a council before producing a plan.
+- **/abra-kdabra command** — primary owner (command-level skill). Step 1.5 detects planning ambiguity and the main orchestrator convenes the council BEFORE invoking arkitect or konstruct, passing the synthesized recommendation into the planning agent as extra context.
+- **Main orchestrator (ad-hoc)** — council is also available to main Claude outside /abra-kdabra when the user asks for a multi-voice decision on any non-planning question (e.g. "monorepo vs polyrepo right now"). Load the skill and launch voices from the top-level conversation.
+- **konstruct agent** — downstream consumer, NOT owner. konstruct receives the council recommendation as input and produces the plan. It does NOT spawn voices itself — its tools list intentionally omits `Task` to keep the planner pure. Rationale: Anthropic's observable pattern is orchestrator-driven spawning; nesting `Task` in a sub-agent is neither documented nor endorsed. See `rules/common/agents.md` Command-Level Skills table.
 - **architecture-decision-records skill** — downstream artifact. When the council recommendation becomes long-lived system policy, capture it as an ADR.
 - **arkitect agent** — handoff target. After the council produces a recommendation that touches architecture, hand off to arkitect for the formal design.
 - **search-first skill** — upstream gathering. If the council needs external reference material, run search-first before convening.

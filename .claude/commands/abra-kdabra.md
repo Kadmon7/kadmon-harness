@@ -1,7 +1,7 @@
 ---
 description: Smart planning for complex tasks — arkitect -> konstruct -> feniks (if TDD) -> kody chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
 agent: arkitect, konstruct, feniks, kody
-skills: [architecture-decision-records, tdd-workflow, eval-harness]
+skills: [architecture-decision-records, tdd-workflow, eval-harness, council]
 ---
 
 ## Purpose
@@ -27,6 +27,25 @@ Scan the user's task description for these signals:
 - Bug fixes or known-pattern application
 
 Architecture signals take priority when both are present.
+
+### Step 1.5: Ambiguity Check (before routing)
+
+Scan the task for council triggers BEFORE routing to arkitect/konstruct:
+
+**Convene council when:**
+- Multiple credible paths exist with no obvious winner (e.g. "monorepo vs polyrepo", "ship now vs polish first", "rewrite vs refactor")
+- The decision has real tradeoffs that would anchor if only one perspective speaks first
+- User explicitly asks for a second opinion / "help me decide"
+
+**Skip council when:**
+- Task is verification/correctness (use verification-loop)
+- Task is code review (use kody/spektr)
+- Task is a factual lookup (use almanak)
+- Only one credible path exists
+
+**If triggered:** main Claude (NOT konstruct, NOT arkitect) loads the `council` skill and launches the 3 voices via `Task` in parallel per `council/SKILL.md` step 4. Synthesize the 4-voice recommendation. Pass the recommendation as extra context when invoking arkitect (Route A) or konstruct (Route B) in Step 2.
+
+**If not triggered:** proceed directly to Step 2.
 
 ### Step 2: Execute the Route
 

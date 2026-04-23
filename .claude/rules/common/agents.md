@@ -73,7 +73,7 @@ Rules:
 | Agent | Model | Trigger | Command | Skills |
 |-------|-------|---------|---------|--------|
 | arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records, api-design, docker-patterns, hexagonal-architecture |
-| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness, codebase-onboarding, council |
+| konstruct | opus | /abra-kdabra always | /abra-kdabra | architecture-decision-records, eval-harness, codebase-onboarding |
 | kody | sonnet | /chekpoint | /chekpoint | coding-standards, receiving-code-review, git-workflow, github-ops, regex-vs-llm-structured-text |
 | typescript-reviewer | sonnet | Auto on .ts/.tsx/.js/.jsx edits | /chekpoint | coding-standards, frontend-patterns |
 | orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns, content-hash-cache-pattern |
@@ -164,6 +164,7 @@ Not every skill is owned by an agent. Some skills are loaded directly by command
 | `verification-loop` | `/chekpoint` (Phase 1) | Build → typecheck → lint → test is a deterministic sequence. A reviewer agent is already invoked in Phase 2; verification is the command's job. |
 | `strategic-compact` | `/kompact` | The compaction-decision matrix is deterministic enough that routing through an agent adds no value. The skill is loaded directly when the user (or another skill) needs the decision guide. |
 | `skill-creator:skill-creator` (plugin) | `/evolve` step 6 Generate (PROMOTE proposals only) | Alchemik proposes `SkillSpec` objects in a JSON fence but NEVER invokes the mutator or plugin itself (ADR-008 Q2). The `/evolve` command parses the fence, renders the approval gate, then invokes the skill-creator plugin for PROMOTE proposals or calls `applyEvolveGenerate` for non-skill types. This orchestration lives at command level to keep alchemik pure-analysis and to centralize collision handling. |
+| `council` | `/abra-kdabra` Step 1.5 (ambiguity detected) + main orchestrator ad-hoc | The skill's core mechanism is spawning 3 fresh sibling sub-agents via `Task` for anti-anchoring. Anthropic's observable pattern is orchestrator-driven spawning; nesting `Task` inside a sub-agent is neither documented nor endorsed. Keeping council at the command/orchestrator level matches that pattern and avoids granting `Task` to planner agents (konstruct, arkitect) that don't otherwise need it. Moved here 2026-04-23 after empirical test proved konstruct's declared ownership was unexecutable (lacked `Task`). |
 
 When adding new command-level skills, document the rationale here so future audits don't flag them as orphaned.
 
