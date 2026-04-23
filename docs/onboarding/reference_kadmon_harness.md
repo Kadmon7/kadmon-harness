@@ -23,7 +23,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 ## 11 slash commands — organized by phase
 
 ### Observe (2)
-- `/kadmon-harness` — dashboard: instincts, sessions, costs, hook health.
+- `/nexus` — dashboard: instincts, sessions, costs, hook health.
 - `/kompact` — smart context compaction with audit and safety checks. `/kompact audit` = audit only.
 
 ### Plan (1)

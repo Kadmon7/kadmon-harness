@@ -26,7 +26,7 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 
 | Phase | What It Does | Key Components |
 |-------|-------------|----------------|
-| **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/kadmon-harness` |
+| **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/nexus` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
 | **Specialize** | Domain agents, curated skill catalog | 16 agents, 46 skills, `/abra-kdabra` |
@@ -151,7 +151,7 @@ Inside your first session in the target project:
 
 ```
 /plugin           → kadmon-harness Enabled
-/kadmon-harness   → dashboard
+/nexus            → dashboard
 /chekpoint        → full reviewer matrix on first change
 ```
 
@@ -209,7 +209,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Plan a new task | `/abra-kdabra` → konstruct agent (opus) |
 | Do TDD | `/abra-kdabra` with TDD → feniks agent (sonnet) |
 | Review code before commit | `/chekpoint` → 5 reviewers + kody consolidation |
-| Check harness state | `/kadmon-harness` |
+| Check harness state | `/nexus` |
 | Look up API documentation | `/almanak supabase-js insert` → almanak + Context7 MCP |
 | Fix build errors | `/medik` → mekanik agent |
 | Forge session observations into instincts | `/forge` (unified pipeline, preview gate) |
@@ -330,7 +330,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Observe (2)
 | Command | Purpose |
 |---------|---------|
-| `/kadmon-harness` | System state: instincts, sessions, costs, hook health |
+| `/nexus` | System state: instincts, sessions, costs, hook health |
 | `/kompact` | Smart compaction; `/kompact audit` audits context window usage |
 
 ### Plan (1)
@@ -490,7 +490,7 @@ Example instincts:
 </details>
 
 <details>
-<summary><strong>Dashboard</strong> — `/kadmon-harness` output</summary>
+<summary><strong>Dashboard</strong> — `/nexus` output</summary>
 
 ```
   ╔════════════════════════════════════════════╗

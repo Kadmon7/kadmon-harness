@@ -53,7 +53,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Observe Phase (2)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /kadmon-harness | Show harness dashboard (instincts, sessions, costs, hook health) | — |
+| /nexus | Show harness dashboard (instincts, sessions, costs, hook health) | — |
 | /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
 
 ### Plan Phase (1)

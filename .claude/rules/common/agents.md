@@ -137,7 +137,7 @@ Rules:
 
 #### Direct (no agent orchestration)
 ```
-/kadmon-harness  script execution
+/nexus           script execution
 /kompact         context compaction
 /almanak         almanak (single lookup)
 /skavenger       skavenger (single researcher, loads deep-research skill)
