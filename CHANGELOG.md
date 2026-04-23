@@ -2,7 +2,62 @@
 
 All notable changes to Kadmon Harness are documented here.
 
-Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/) applied to the `.claude-plugin/plugin.json` version. `package.json` tracks the same version for consistency.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/) applied to the `.claude-plugin/plugin.json` version. `package.json` tracks the same version for consistency. Release cadence policy: [ADR-025](docs/decisions/ADR-025-versioning-policy.md) — MINOR bumps for narrative features, PATCH only for post-release hotfixes.
+
+## [1.2.3] — 2026-04-23
+
+### Added
+- **Install Health Telemetry** — [ADR-024](docs/decisions/ADR-024-install-health-telemetry.md). Passive diagnostic channel surfacing the recurring Windows symlink-clone bug (2 of 5 collaborators hit it in 2026-04-22 dogfood).
+  - `scripts/lib/install-health.ts` — pure diagnostic with tri-state symlink detection (`symlink_ok | junction_ok | broken_target | text_file | regular_dir | missing`) using `realpath` divergence as the discriminator per arkitect review.
+  - `scripts/lib/install-remediation.ts` — adaptive banner renderer (PowerShell `New-Item -ItemType SymbolicLink` fix for plugin-cache paths; `git checkout` fix for dev-clone paths). PowerShell interpolation sanitizer guards against command injection via malicious `rootDir`.
+  - `scripts/lib/rotating-jsonl-log.ts` — shared rotation helper (100 KB / 50 lines). Extracted from `hook-logger.js` so both it and the new `install-diagnostic.js` share one source of truth.
+  - `.claude/hooks/scripts/install-diagnostic.js` — writes every session's `InstallHealthReport` to `~/.kadmon/install-diagnostic.log`. Test-env guard redirects to stderr so vitest never pollutes the production log.
+  - `session-start.js` — emits a non-blocking banner when `report.ok === false`, always persists to the log.
+  - `/medik` Check #9 — health check row with JSON output + exit code signaling (`0` when `ok`, `1` otherwise). mekanik analyzes anomalies in Phase 2 and suggests matching remediation.
+- **TROUBLESHOOTING.md** (`docs/onboarding/TROUBLESHOOTING.md`) — documents the 3 bugs from the 5-collaborator dogfood (symlinks as text files, `PreToolUse:Agent hook error — bash.exe skipping`, `/reload-plugins` required post-install) with copy-paste remediation and a "How to report" section.
+- **CLAUDE.md onboarding template** (`docs/onboarding/CLAUDE.template.md`) — cross-project reusable template that points to `reference_kadmon_harness.md` memory catalog instead of duplicating the harness surface.
+
+### Changed
+- **ADR-020 flipped `proposed` → `accepted`** — Windows (Ych-Kadmon) + Mac (Joe, Eden) dogfood complete; runtime language detection is now the permanent contract.
+- **`CLAUDE.md` trim 211 → 167 lines** — restored full 16-row Agents table, link-outs for Skills catalog, hard-cap comment above Status to keep future edits disciplined.
+- **`hook-logger.js` refactored** to delegate rotation to `rotating-jsonl-log.ts`. All 12 existing tests preserved; stack-trace truncation, test-env guard, and stderr shape unchanged.
+- **`session-start.js` install health integration** — 3 new integration tests (silent when healthy, banner when broken, diagnostic log written via stderr under VITEST).
+- **ADR-024 split** — on arkitect review, `install-health.ts` (pure diagnostic) separated from `install-remediation.ts` (presentation) to align with the `db-health.ts` SRP pattern.
+- **`/kadmon-harness` command renamed to `/nexus`** — shorter invocation, keeps the command namespace distinct from the plugin name itself. No functional change; dashboard behavior identical. CLAUDE.md Commands catalog updated accordingly.
+
+### Fixed
+- **`/kompact` tmpdir resolution regression (Bug 3)** — the v1.2.2 Node `os.tmpdir()` approach returned Windows `C:\...` paths that got mangled by `xargs` + MSYS forward-slash conversion on Git Bash. Replaced with env-var chain `TMPROOT="${TMPDIR:-${TEMP:-/tmp}}"` that coincides with Node's actual write location on every shell that can run bash pipelines.
+- **Latent grep regex bug in `/kompact`** — regex searched `'"file_path":"..."'` but `observations.jsonl` uses camelCase `"filePath"` since schema standardization. Opportunistic fix.
+- **`/instinct` deprecation alias removed** — sunset 2026-04-20 per plan-005 §Cleanup. `resolveAliasCommand` deleted along with its single test.
+- **`createRequire` of ESM `dist/` modules** — replaced in `hook-logger.js`, `install-diagnostic.js`, and `install-health.ts` with top-level-await dynamic `import()` via `pathToFileURL`. Required because project engine floor is `>=18` and `require()` of ESM throws `ERR_REQUIRE_ESM` on Node 18 and 20. Caught by typescript-reviewer during `/chekpoint` full tier.
+- **Windows path corruption in banner** — `lastIndexOf("/")` returned `-1` on backslash paths, corrupting `rootDir` derivation in PowerShell remediation. Replaced with `path.dirname`. Caught by typescript-reviewer.
+- **PowerShell command-injection vector** — unescaped `rootDir` interpolation in `renderPluginCacheRemediation`. Added `escapePwshDoubleQuoted` (backtick + dollar + quote escaping). Caught by spektr.
+
+### Notes
+- **First release under [ADR-025](docs/decisions/ADR-025-versioning-policy.md) versioning policy.** Consolidated 9 commits of 2026-04-22/23 into one MINOR bump instead of the noisy 1-per-commit PATCH cadence that produced v1.2.0/1/2 over 2 days. Going forward, PATCH bumps are reserved for post-release hotfixes only.
+- **Deferred to v1.2.4** (per `docs/roadmap/v1.2.4-export-and-diagnostics.md`): `/medik --export` shareable-diagnostic file, schema `_v: 1` field on `install-diagnostic.log` entries, typed reader wrapper. Both orakle MEDIUMs from the v1.2.3 `/chekpoint`.
+- **Deferred to Sprint E**: root-cause of `PreToolUse:Agent hook error — bash.exe skipping` (cousin bug, documented in TROUBLESHOOTING.md). Symlink fixes have resolved it indirectly in every field case to date.
+- **Metrics**: **934 tests passing** (75 files, +47 tests / +4 test files vs 1.2.2) · 21 hooks · 16 agents · 46 skills · 11 commands · 19 rules · 7 DB tables.
+- **Chain invoked**: `/abra-kdabra` (arkitect + konstruct) → TDD → `/chekpoint` full tier (typescript-reviewer + spektr + orakle + kody) → 3 BLOCK findings fixed pre-merge → PR #4 merged via rebase.
+
+## [1.2.2] — 2026-04-22
+
+### Fixed
+- `/kompact` cross-platform tmpdir resolution (first attempt; regressed on Git Bash and corrected in 1.2.3).
+- `commit-format-guard` hook false-positive on multi-line conventional commit bodies.
+
+### Notes
+- Retained as historical reference under the policy superseded by [ADR-025](docs/decisions/ADR-025-versioning-policy.md); equivalent work would ship as part of the next MINOR under the new policy.
+
+## [1.2.1] — 2026-04-22
+
+### Fixed
+- `hook_events` and `agent_invocations` tables gained `ON CONFLICT DO NOTHING` dedup guards (prevents duplicate inserts when lifecycle hooks fire twice for the same event).
+- Orphan recovery staleness guard (ADR-022) — session-start no longer pisa live sessions in other terminals; `isOrphanStale` threshold via `KADMON_ORPHAN_STALE_MS`.
+- `endSession` cross-project guard assert on `project_hash` mismatch.
+
+### Notes
+- Retained as historical reference under the policy superseded by [ADR-025](docs/decisions/ADR-025-versioning-policy.md).
 
 ## [1.2.0] — 2026-04-21
 

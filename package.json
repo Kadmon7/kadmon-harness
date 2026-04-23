@@ -1,6 +1,6 @@
 {
   "name": "kadmon-harness",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "description": "Universal operative layer for Claude Code. Observe → Remember → Verify → Specialize → Evolve",
   "scripts": {
