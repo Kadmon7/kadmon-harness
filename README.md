@@ -43,9 +43,20 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 
 Open a Claude Code session in any project and run each on its own line:
 
-1. `/plugin marketplace add https://github.com/Kadmon7/kadmon-harness.git`
-2. `/plugin install kadmon-harness@kadmon-harness`
-3. `/reload-plugins`
+**Step 1 — Register the marketplace**
+```
+/plugin marketplace add https://github.com/Kadmon7/kadmon-harness.git
+```
+
+**Step 2 — Install the plugin**
+```
+/plugin install kadmon-harness@kadmon-harness
+```
+
+**Step 3 — Reload to activate**
+```
+/reload-plugins
+```
 
 Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 46 skills · 11 commands · 21 hooks** live in the session.
 
@@ -56,19 +67,25 @@ Pick your OS:
 <details>
 <summary><strong>🍎 macOS / 🐧 Linux · bash</strong></summary>
 
-**Step 4 — Clone and build the harness**
+**Step 4 — Clone and build the harness** _(once per machine)_
 ```bash
 git clone https://github.com/Kadmon7/kadmon-harness.git ~/projects/kadmon-harness
 cd ~/projects/kadmon-harness
 npm install && npm run build
 ```
 
-**Step 5 — Run the installer for your project**
+**Step 5 — Run the installer for your project** _(once per project · re-run to update)_
 ```bash
 ./install.sh /path/to/your/project
 ```
 
 Dry-run first: `./install.sh --dry-run /path/to/your/project`
+
+**Updating the harness later**:
+```bash
+cd ~/projects/kadmon-harness && git pull && npm install && npm run build   # refresh clone
+./install.sh /path/to/your/project                                         # re-apply per project
+```
 
 </details>
 
@@ -80,7 +97,7 @@ Dry-run first: `./install.sh --dry-run /path/to/your/project`
 1. Settings → Privacy & Security → For Developers → **Developer Mode: ON**
 2. In any terminal: `git config --global core.symlinks true`
 
-**Step 4 — Clone and build the harness**
+**Step 4 — Clone and build the harness** _(once per machine)_
 ```powershell
 cd C:\projects
 git clone https://github.com/Kadmon7/kadmon-harness.git
@@ -88,12 +105,18 @@ cd kadmon-harness
 npm install; npm run build
 ```
 
-**Step 5 — Run the installer for your project**
+**Step 5 — Run the installer for your project** _(once per project · re-run to update)_
 ```powershell
 .\install.ps1 -TargetPath C:\path\to\your\project
 ```
 
 Dry-run first: `.\install.ps1 -TargetPath C:\path\to\your\project -DryRun`
+
+**Updating the harness later**:
+```powershell
+cd C:\projects\kadmon-harness; git pull; npm install; npm run build   # refresh clone
+.\install.ps1 -TargetPath C:\path\to\your\project                     # re-apply per project
+```
 
 </details>
 
