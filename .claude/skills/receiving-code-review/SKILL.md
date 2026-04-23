@@ -112,6 +112,19 @@ BAD: ANY gratitude expression
 
 Actions speak. Just fix it.
 
+## Handling "kody dissent" NOTEs
+
+When `/chekpoint` full tier runs, Phase 2a specialists (typescript-reviewer, python-reviewer, spektr, orakle) emit the authoritative severity. Phase 2b kody then consolidates but cannot downgrade any upstream BLOCK. If kody disagrees with a specialist BLOCK, it preserves the BLOCK and attaches a dissenting NOTE labeled exactly `kody dissent: <rationale>`.
+
+When you encounter a `kody dissent:` NOTE:
+
+1. **Do not treat the dissent as authoritative.** It is a second opinion, not a verdict. The upstream BLOCK still blocks the commit.
+2. **Read both findings in full** — the specialist's BLOCK and kody's counter-argument. The disagreement itself is load-bearing information about the diff.
+3. **Resolve with the user, not by picking a side.** If the specialist is right → fix the issue. If kody is right → fix the upstream false positive in the specialist's prompt or rule, file that as a separate concern, and only then proceed.
+4. **Never silently downgrade.** If you believe the BLOCK is a false positive, fix the triggering condition (refactor the code, adjust the rule, add a justification comment). Do not bypass via `--no-verify` or by editing the review output.
+
+See `.claude/agents/kody.md` → "Upstream BLOCK Preservation" for the authoring rule and `.claude/commands/chekpoint.md` → Phase 3 for the dual-check gate that enforces it mechanically.
+
 ## GitHub Thread Replies
 
 Reply in the comment thread, not as top-level PR comment:

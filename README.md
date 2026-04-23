@@ -2,8 +2,8 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-870%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-1.2-blue)]()
+[![Tests](https://img.shields.io/badge/tests-939%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-1.2.3-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
@@ -254,7 +254,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Commands | **11** |
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **870 passing** (70 files) |
+| Tests | **939 passing** (76 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -592,8 +592,8 @@ Example instincts:
 
 ## 📊 Status & Attribution
 
-**v1.2 — latest: TypeScript + Python runtime language support (2026-04-21)**
-`870 tests passing` · `70 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+**v1.2.3 — latest: install health telemetry + day's maintenance consolidated (2026-04-23)**
+`939 tests passing` · `76 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 
