@@ -14,7 +14,7 @@
 
 Kadmon Harness is **infrastructure, not a product**. It is a portable set of agents, commands, skills, hooks, and rules that encode how Claude Code should work on any TypeScript or Python project. Built once, carried to every new project via bootstrap. It turns every session into an observable, memorable, self-improving loop.
 
-> **Language support today**: TypeScript/JavaScript and Python. Commands and hooks detect the target project's toolchain at runtime ([ADR-020](docs/decisions/ADR-020-runtime-language-detection.md)). Override with `KADMON_PROJECT_LANGUAGE=python|typescript`.
+> **Language support today**: TypeScript/JavaScript and Python.
 
 Instead of asking Claude "please write a test first", you define it in a rule, a hook enforces it, and an agent specializes in it. The next session already knows.
 
@@ -34,87 +34,66 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 
 ---
 
-## 🚀 Install
+## 🚀 Install — 5 steps to install everything
 
-**Three slash commands.** Open a Claude Code session in any project and run each one on its own line:
+**Steps 1–3** install the plugin (agents, skills, commands, hooks — 80 %).
+**Steps 4–5** bootstrap the rules and security permissions (the 20 % Claude Code plugins can't ship: **19 rules**, **14 `permissions.deny`**, **9 `permissions.allow` CORE**).
 
-```
-/plugin marketplace add https://github.com/Kadmon7/kadmon-harness.git
-```
+### Steps 1–3 · Install the plugin
 
-```
-/plugin install kadmon-harness@kadmon-harness
-```
+Open a Claude Code session in any project and run each on its own line:
 
-```
-/reload-plugins
-```
+1. `/plugin marketplace add https://github.com/Kadmon7/kadmon-harness.git`
+2. `/plugin install kadmon-harness@kadmon-harness`
+3. `/reload-plugins`
 
-That's it — run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 46 skills · 11 commands · 21 hooks** live in the session.
+Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 46 skills · 11 commands · 21 hooks** live in the session.
 
-> ⚠️ **Run each command on its own line.** Pasting two together makes Claude Code concatenate the second into the first URL and clone fails.
-> 🍎 **Fresh Mac SSH error?** The HTTPS URL above bypasses SSH. If you prefer the short form `Kadmon7/kadmon-harness`, run `ssh -T git@github.com` once in your terminal.
+### Steps 4–5 · Bootstrap rules + permissions
 
----
-
-### 🧩 Want the rules and security permissions too?
-
-The plugin ships the **80 %** — agents, skills, commands, hooks — everything Claude Code distributes natively. The remaining **20 %** are the **19 conventions-as-rules**, **14 `permissions.deny` entries** (block `.env` reads, `rm -rf /`, `git push --force`, etc.), and **9 `permissions.allow` CORE entries** (git/npm/node/npx/cd/ls/pwd/which + Skill dispatch — see [ADR-021](docs/decisions/ADR-021-install-allow-merge-and-gitattributes.md)). Claude Code plugins can't ship those today, so there's a one-shot bootstrap that copies them into your project:
+Pick your OS:
 
 <details>
-<summary><strong>🍎 macOS / 🐧 Linux · bash · 4 lines</strong></summary>
+<summary><strong>🍎 macOS / 🐧 Linux · bash</strong></summary>
 
+**Step 4 — Clone and build the harness**
 ```bash
 git clone https://github.com/Kadmon7/kadmon-harness.git ~/projects/kadmon-harness
 cd ~/projects/kadmon-harness
 npm install && npm run build
+```
+
+**Step 5 — Run the installer for your project**
+```bash
 ./install.sh /path/to/your/project
 ```
 
-Dry-run first (preview without touching the filesystem): `./install.sh --dry-run /path/to/your/project`
+Dry-run first: `./install.sh --dry-run /path/to/your/project`
 
 </details>
 
 <details>
-<summary><strong>🪟 Windows · PowerShell · 5 lines</strong></summary>
+<summary><strong>🪟 Windows · PowerShell</strong></summary>
 
-**One-time machine setup** (the canonical root symlinks won't resolve without this):
+**One-time machine setup** (symlinks won't resolve without this):
 
-1. **Settings → Privacy & Security → For Developers → Developer Mode: ON**
+1. Settings → Privacy & Security → For Developers → **Developer Mode: ON**
 2. In any terminal: `git config --global core.symlinks true`
 
-Then:
-
+**Step 4 — Clone and build the harness**
 ```powershell
 cd C:\projects
 git clone https://github.com/Kadmon7/kadmon-harness.git
 cd kadmon-harness
 npm install; npm run build
+```
+
+**Step 5 — Run the installer for your project**
+```powershell
 .\install.ps1 -TargetPath C:\path\to\your\project
 ```
 
 Dry-run first: `.\install.ps1 -TargetPath C:\path\to\your\project -DryRun`
-
-</details>
-
-<details>
-<summary><strong>🪟 Windows · Git Bash · 4 lines</strong></summary>
-
-**One-time machine setup** (same as PowerShell above, plus symlink-mode export):
-
-```bash
-git config --global core.symlinks true
-export MSYS=winsymlinks:nativestrict   # add to ~/.bashrc to persist
-```
-
-Then:
-
-```bash
-git clone https://github.com/Kadmon7/kadmon-harness.git
-cd kadmon-harness
-npm install && npm run build
-./install.sh /c/path/to/your/project
-```
 
 </details>
 
@@ -126,11 +105,11 @@ npm install && npm run build
 | 1 | Parse args `<target>` + flags (`--dry-run`, `--force-permissions-sync`) | Flexibility |
 | 2 | Validate target is a writable directory and isn't the harness repo itself | Safety |
 | 3 | Detect OS (linux / darwin / gitbash / windows) | Error messaging |
-| 4 | Verify the 3 canonical root symlinks (`agents`, `skills`, `commands`) resolve — else abort with Developer Mode instructions | ADR-019 plugin-loader contract |
+| 4 | Verify the 3 canonical root symlinks (`agents`, `skills`, `commands`) resolve — else abort with Developer Mode instructions | Plugin loader needs these resolved to discover components |
 | 5 | Verify `node --version >= 20` | Required for `npx tsx` |
 | 6 | Copy `.claude/rules/**` → `target/.claude/rules/` | Plugin can't ship rules |
 | 7a | Merge **14 canonical `permissions.deny`** rules into `target/.claude/settings.json` | Block `.env` reads, `rm -rf /`, `git push --force` |
-| 7b | Merge **9 canonical `permissions.allow` CORE** rules into `target/.claude/settings.json` (ADR-021) | Skip permission prompts for git/npm/node/npx/cd/ls/pwd/which + Skill |
+| 7b | Merge **9 canonical `permissions.allow` CORE** rules into `target/.claude/settings.json` | Skip permission prompts for git/npm/node/npx/cd/ls/pwd/which + Skill |
 | 7c | Write `extraKnownMarketplaces.kadmon-harness` + `enabledPlugins[...] = true` into user `~/.claude/settings.json` | Auto-register the plugin |
 | 8 | Preserve `target/.claude/settings.local.json` if present; else create `{}` template | Respect machine-specific overrides |
 | 9 | Append 3 lines to `target/.gitignore` (dedup): `.claude/settings.local.json`, `.claude/agent-memory/`, `dist/` | Avoid committing secrets/artifacts |
@@ -144,13 +123,17 @@ npm install && npm run build
 <details>
 <summary>🩹 <strong>Troubleshooting</strong></summary>
 
-**`Host key verification failed`** when using `/plugin marketplace add Kadmon7/kadmon-harness` — use the HTTPS URL shown above. Permanent fix: `ssh -T git@github.com` in terminal, type `yes`.
+**Hooks don't fire · no `🚀 Kadmon Session Started` banner** — usually an environment issue, not a plugin bug. Check [`docs/runbooks/plugin-troubleshooting.md`](docs/runbooks/plugin-troubleshooting.md) — 6-item ordered checklist (symlinks, Node version, plugin registration, marketplace path, `.kadmon-version`, git remote). Verify the plugin is live with `/plugin` in Claude Code.
 
-**`Repository not found`** on the HTTPS URL — verify https://github.com/Kadmon7/kadmon-harness loads in your browser (no auth prompt, the repo is public). If it does, you probably pasted two slash commands on one line — run them separately.
+**Windows: symlinks appear as text files** — Developer Mode is OFF, `core.symlinks=true` was never set, OR `MSYS=winsymlinks:nativestrict` was unset at clone time (the third is the most common gotcha, verified 2026-04-22). Full remediation with PowerShell and git-checkout paths: [`docs/onboarding/TROUBLESHOOTING.md`](docs/onboarding/TROUBLESHOOTING.md#bug-1--canonical-symlinks-cloned-as-text-files-windows). Detect automatically: `/medik` Check #9 reports state of all 3 canonical symlinks + `dist/` + runtime env.
 
-**Hooks don't fire · no `🚀 Kadmon Session Started` banner** — usually an environment issue, not a plugin bug. Check [`docs/runbooks/plugin-troubleshooting.md`](docs/runbooks/plugin-troubleshooting.md) — 6-item ordered checklist (symlinks, Node version, plugin registration, marketplace path, `.kadmon-version`, git remote). The "silent banner" specifically happens when the target has no `git remote origin`: `session-start.js` now emits a visible "no git remote — session tracking disabled" log line instead of exiting silently (fixed 2026-04-21). Verify the plugin is live with `/plugin` in Claude Code.
+**`/plugin install` fails to clone** — verify https://github.com/Kadmon7/kadmon-harness loads in your browser (the repo is public). If it does and it still fails, run the three slash commands one at a time — don't paste them together.
 
-**Windows: symlinks appear as text files** — Developer Mode is OFF or `core.symlinks=true` was never set. Fix both, then re-clone. Verify with `Get-Item agents,skills,commands | Select LinkType` (should show `SymbolicLink`).
+**Installer can't find Node 20+** — `install.sh` / `install.ps1` aborts if `node --version` is below 20. Install Node 20 LTS and re-run. On Git Bash make sure `PATH` includes `/c/Program Files/nodejs`.
+
+**A hook is too noisy or misbehaving** — temporarily disable specific hooks with `KADMON_DISABLED_HOOKS` (comma-separated hook names), e.g. `KADMON_DISABLED_HOOKS=ts-review-reminder,console-log-warn`. Only non-critical hooks honor this — security hooks always run.
+
+**Windows: MCP server won't start** — MCP commands need the `cmd /c npx` wrapper on Windows (e.g. `cmd /c npx -y @context7/mcp`). Without it the server won't spawn in Git Bash or PowerShell.
 
 **Rollback**:
 ```bash
@@ -181,8 +164,6 @@ Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboardi
 ```
 
 Claude will fetch the catalog, detect your project's memory directory, write the file with proper frontmatter, and update the index. One turn, done.
-
-Distribution architecture: [ADR-010](docs/decisions/ADR-010-harness-distribution-hybrid.md) · [ADR-019](docs/decisions/ADR-019-canonical-root-symlinks-for-plugin-loader.md).
 
 ---
 
@@ -251,7 +232,7 @@ Distribution architecture: [ADR-010](docs/decisions/ADR-010-harness-distribution
 | Hooks | **21** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
 | Tests | **870 passing** (70 files) |
-| SQLite Tables | **7** + 17 indexes (research_reports added in ADR-015) |
+| SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
 
@@ -260,13 +241,13 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>16 Agents</strong> — 5 opus + 11 sonnet (click to expand)</summary>
 
-> New agents derive from `.claude/agents/_TEMPLATE.md.example` (per ADR-017, amended by ADR-019 dogfood 2026-04-20). The canonical skeleton defines 4 mandatory sections (frontmatter, identity, `## Output Format`, `## Memory`) plus strongly-recommended and optional blocks. The `.md.example` extension keeps the template invisible to Claude Code's sub-agent loader and the frontmatter linter, both of which scan only `.md` files. Contract summary lives in `.claude/rules/common/agents.md` §Agent Template Contract.
+> New agents derive from `.claude/agents/_TEMPLATE.md.example`. The canonical skeleton defines 4 mandatory sections (frontmatter, identity, `## Output Format`, `## Memory`) plus strongly-recommended and optional blocks. The `.md.example` extension keeps the template invisible to Claude Code's sub-agent loader and the frontmatter linter, both of which scan only `.md` files. Contract summary lives in `.claude/rules/common/agents.md` §Agent Template Contract.
 
 ### Opus Agents (5) — complex decisions
 
 | Agent | Role | Purpose | Auto-invokes when... | Manual |
 |-------|------|---------|---------------------|--------|
-| **arkitect** | Architect | System design, architecture decisions. Produces ADRs. | Never | `/abra-kdabra` |
+| **arkitect** | Architect | System design, architecture decisions. Produces decision records. | Never | `/abra-kdabra` |
 | **konstruct** | Planner | Breaks down complex tasks into ordered, verifiable steps. | Never | `/abra-kdabra` |
 | **spektr** | Security Specialist | Detects injection, XSS, path traversal, secrets. | On auth/keys/exec/SQL | `/chekpoint` |
 | **alchemik** | Evolution Analyst | Analyzes hook latency, instinct quality, skill gaps. | Never | `/evolve` |
@@ -293,7 +274,7 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>46 Skills</strong> — domain knowledge loaded on demand</summary>
 
-> Each skill lives at `.claude/skills/<name>/SKILL.md` (subdirectory layout with literal uppercase `SKILL.md`, per ADR-013). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. Layout enforced by `/medik` Check #8.
+> Each skill lives at `.claude/skills/<name>/SKILL.md` (subdirectory layout with literal uppercase `SKILL.md`). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. Layout enforced by `/medik` Check #8.
 
 ### TypeScript / Code Quality
 - **coding-standards** — Naming, `node:` prefix imports, .js extensions
@@ -319,7 +300,7 @@ Full component details are below (collapsed by default). For the operational cat
 
 ### Research / Documentation
 - **search-first** — Search existing codebase before writing new code
-- **architecture-decision-records** — ADR templates, lifecycle, Decision/Context/Options format
+- **architecture-decision-records** — Decision record templates, lifecycle, Decision/Context/Options format
 - **deep-research** — Multi-source research methodology with citations
 - **docs-sync** — 4-layer documentation synchronization: behavior-over-counts
 
@@ -370,7 +351,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Research (1)
 | Command | Purpose |
 |---------|---------|
-| `/skavenger` | Multi-source deep research (web, YouTube transcripts, PDFs, GitHub repos). Auto-writes to `docs/research/` (ADR-015). Flags: `--continue`, `--plan`, `--verify <h>`, `--drill <N>`, `--history <q>`, `--verify-citations <N>`. Disable auto-write with `KADMON_RESEARCH_AUTOWRITE=off` |
+| `/skavenger` | Multi-source deep research (web, YouTube transcripts, PDFs, GitHub repos). Auto-writes to `docs/research/`. Flags: `--continue`, `--plan`, `--verify <h>`, `--drill <N>`, `--history <q>`, `--verify-citations <N>`. Disable auto-write with `KADMON_RESEARCH_AUTOWRITE=off` |
 
 ### Remember (3)
 | Command | Purpose |
@@ -543,23 +524,9 @@ Example instincts:
 
 ---
 
-## 📚 Learn More
-
-| Document | What's In It |
-|----------|-------------|
-| [`CLAUDE.md`](CLAUDE.md) | Operational catalog for Claude Code — stack, env vars, pitfalls, agent/skill/command inventory |
-| [`docs/decisions/`](docs/decisions/) | Architecture Decision Records (ADRs) — why things are the way they are |
-| [`docs/roadmap/`](docs/roadmap/) | v1.0 (current), v1.1 (learning system), v2.0 (multi-project) |
-| [`docs/plans/`](docs/plans/) | Implementation plans for ongoing work |
-| [`.claude/rules/`](.claude/rules/) | The 19 rules that enforce conventions |
-
-> **Windows compatibility**: `parseStdin()` helper sanitizes unescaped backslashes in hook stdin; `PATH` prefix ensures Node.js resolution in Git Bash; MCP servers use `cmd /c npx` wrapper; non-critical hooks support `KADMON_DISABLED_HOOKS` env var.
-
----
-
 ## 📊 Status & Attribution
 
-**v1.2 — latest shipped: plan-020 runtime language detection TypeScript + Python (ADR-020, 2026-04-21)**
+**v1.2 — latest: TypeScript + Python runtime language support (2026-04-21)**
 `870 tests passing` · `70 files` · `21 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.

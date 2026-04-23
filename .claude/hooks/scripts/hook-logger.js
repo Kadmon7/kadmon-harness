@@ -1,12 +1,38 @@
 // Shared module: hook error logging to persistent file.
 // Logs hook errors to ~/.kadmon/hook-errors.log instead of losing them to stderr.
-import fs from "node:fs";
+// Rotation policy is delegated to scripts/lib/rotating-jsonl-log.ts (ADR-024)
+// so a single source of truth governs all rotating JSONL logs in the harness.
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const LOG_FILENAME = "hook-errors.log";
-const MAX_LOG_SIZE = 100_000; // 100KB
-const TRUNCATE_TO_LINES = 50;
+
+// Resolve the compiled rotating-jsonl-log module once at module load via
+// top-level await. Plain `require()` would throw ERR_REQUIRE_ESM on Node
+// 18/20 because dist/ output is ESM ("type": "module" + Node16). Dynamic
+// import() via pathToFileURL works on every supported runtime.
+const _rotatingLog = await (async () => {
+  try {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const modPath = path.resolve(
+      here,
+      "..",
+      "..",
+      "..",
+      "dist",
+      "scripts",
+      "lib",
+      "rotating-jsonl-log.js",
+    );
+    return await import(pathToFileURL(modPath).href);
+  } catch {
+    return {
+      writeRotatingJsonlLog: () => {},
+      readRotatingJsonlLog: () => [],
+    };
+  }
+})();
 
 /**
  * Log a hook error to the persistent error log.
@@ -38,7 +64,6 @@ export function logHookError(hookName, error, context, logDir) {
     }
 
     const dir = logDir ?? path.join(os.homedir(), ".kadmon");
-    fs.mkdirSync(dir, { recursive: true });
     const logPath = path.join(dir, LOG_FILENAME);
 
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -55,18 +80,7 @@ export function logHookError(hookName, error, context, logDir) {
       ...(context ? { context } : {}),
     };
 
-    // Truncate if file exceeds max size
-    if (fs.existsSync(logPath)) {
-      const stat = fs.statSync(logPath);
-      if (stat.size > MAX_LOG_SIZE) {
-        const content = fs.readFileSync(logPath, "utf8");
-        const lines = content.trim().split("\n");
-        const truncated = lines.slice(-TRUNCATE_TO_LINES).join("\n") + "\n";
-        fs.writeFileSync(logPath, truncated);
-      }
-    }
-
-    fs.appendFileSync(logPath, JSON.stringify(entry) + "\n");
+    _rotatingLog.writeRotatingJsonlLog(logPath, entry);
   } catch {
     // Never throw from the logger — that would mask the original error
   }
@@ -82,29 +96,7 @@ export function getHookErrors(logDir, limit) {
   try {
     const dir = logDir ?? path.join(os.homedir(), ".kadmon");
     const logPath = path.join(dir, LOG_FILENAME);
-
-    if (!fs.existsSync(logPath)) return [];
-
-    const lines = fs
-      .readFileSync(logPath, "utf8")
-      .trim()
-      .split("\n")
-      .filter(Boolean);
-
-    const entries = [];
-    for (const line of lines) {
-      try {
-        entries.push(JSON.parse(line));
-      } catch {
-        // Skip corrupted lines — don't lose valid entries
-      }
-    }
-
-    if (limit && limit < entries.length) {
-      return entries.slice(-limit);
-    }
-
-    return entries;
+    return _rotatingLog.readRotatingJsonlLog(logPath, limit);
   } catch {
     return [];
   }
