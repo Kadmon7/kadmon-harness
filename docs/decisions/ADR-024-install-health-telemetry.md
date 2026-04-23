@@ -99,9 +99,9 @@ The core principle: **warn, don't mutate.** The harness observes its own install
 - Root cause fix for the `PreToolUse:Agent hook error — bash.exe skipping` symptom. Sprint E; ADR-025 if confirmed as a separate issue.
 - Upstream fix for Claude Code's `/reload-plugins` post-install requirement. Not in our control.
 - Setting `KADMON_RUNTIME_ROOT` inside `.claude-plugin/hooks.json`. Pending Claude Code `env` block support investigation (flagged in `generate-plugin-hooks.ts` header).
-- **`/medik --export`** for shareable redacted diagnostic file (replaces copy-paste of stderr by collaborators). Tracked in [`docs/roadmap/v1.2.4-export-and-diagnostics.md`](../roadmap/v1.2.4-export-and-diagnostics.md).
-- **Schema `_v: 1` field** on persisted `InstallHealthReport` entries — orakle MEDIUM deferred from v1.2.3 `/chekpoint`. Roadmap'd in v1.2.4.
-- **Typed reader wrapper `readTypedInstallDiagnostics()`** — orakle MEDIUM deferred from v1.2.3 `/chekpoint`. Roadmap'd in v1.2.4.
+- **`/medik --export`** for shareable redacted diagnostic file (replaces copy-paste of stderr by collaborators). Tracked in [`docs/roadmap/v1.3-medik-expansion.md`](../roadmap/v1.3-medik-expansion.md) (renamed from v1.2.4 on 2026-04-23 per ADR-025).
+- **Schema `_v: 1` field** on persisted `InstallHealthReport` entries — orakle MEDIUM deferred from v1.2.3 `/chekpoint`. Roadmap'd in v1.3.
+- **Typed reader wrapper `readTypedInstallDiagnostics()`** — orakle MEDIUM deferred from v1.2.3 `/chekpoint`. Roadmap'd in v1.3.
 
 ## Review
 

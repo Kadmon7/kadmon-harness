@@ -35,7 +35,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ### Notes
 - **First release under [ADR-025](docs/decisions/ADR-025-versioning-policy.md) versioning policy.** Consolidated 9 commits of 2026-04-22/23 into one MINOR bump instead of the noisy 1-per-commit PATCH cadence that produced v1.2.0/1/2 over 2 days. Going forward, PATCH bumps are reserved for post-release hotfixes only.
-- **Deferred to v1.2.4** (per `docs/roadmap/v1.2.4-export-and-diagnostics.md`): `/medik --export` shareable-diagnostic file, schema `_v: 1` field on `install-diagnostic.log` entries, typed reader wrapper. Both orakle MEDIUMs from the v1.2.3 `/chekpoint`.
+- **Deferred to v1.3** (per `docs/roadmap/v1.3-medik-expansion.md`): `/medik --export` shareable-diagnostic file, schema `_v: 1` field on `install-diagnostic.log` entries, typed reader wrapper. Both orakle MEDIUMs from the v1.2.3 `/chekpoint`. Originally scoped as `v1.2.4` but renamed 2026-04-23 to align with ADR-025 — a new feature (`--export`) + expanded `/medik` checks is a MINOR narrative, not a PATCH hotfix. See v1.3-medik-expansion.md for the full scope (7 items including promoted v2.0 hygiene and the new `graphify` feature).
 - **Deferred to Sprint E**: root-cause of `PreToolUse:Agent hook error — bash.exe skipping` (cousin bug, documented in TROUBLESHOOTING.md). Symlink fixes have resolved it indirectly in every field case to date.
 - **Metrics**: **934 tests passing** (75 files, +47 tests / +4 test files vs 1.2.2) · 21 hooks · 16 agents · 46 skills · 11 commands · 19 rules · 7 DB tables.
 - **Chain invoked**: `/abra-kdabra` (arkitect + konstruct) → TDD → `/chekpoint` full tier (typescript-reviewer + spektr + orakle + kody) → 3 BLOCK findings fixed pre-merge → PR #4 merged via rebase.
