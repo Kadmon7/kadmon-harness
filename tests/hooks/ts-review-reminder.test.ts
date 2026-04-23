@@ -52,7 +52,7 @@ describe("ts-review-reminder", () => {
     expect(r.code).toBe(0);
   });
 
-  it("exits 0 for .ts file with fewer than 5 edits", () => {
+  it("exits 0 for .ts file with fewer than 10 edits", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
@@ -64,29 +64,39 @@ describe("ts-review-reminder", () => {
     expect(r.code).toBe(0);
   });
 
-  it("warns after 5+ .ts edits without review", () => {
+  it("warns after 10+ .ts edits without review", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.ts", eventType: "tool_pre" },
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.ts" },
+      tool_input: { file_path: "k.ts" },
     });
     expect(r.code).toBe(1);
     expect(r.stderr).toContain("review");
   });
 
-  it("exits 0 after 5+ edits if kody was invoked", () => {
+  it("exits 0 after 10+ edits if kody was invoked", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.ts", eventType: "tool_pre" },
       {
         toolName: "Agent",
         eventType: "tool_pre",
@@ -95,18 +105,23 @@ describe("ts-review-reminder", () => {
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.ts" },
+      tool_input: { file_path: "k.ts" },
     });
     expect(r.code).toBe(0);
   });
 
-  it("exits 0 after 5+ edits if typescript-reviewer was invoked", () => {
+  it("exits 0 after 10+ edits if typescript-reviewer was invoked", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.ts", eventType: "tool_pre" },
       {
         toolName: "Agent",
         eventType: "tool_pre",
@@ -115,51 +130,66 @@ describe("ts-review-reminder", () => {
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.ts" },
+      tool_input: { file_path: "k.ts" },
     });
     expect(r.code).toBe(0);
   });
 
   // ─── Python branching (plan-020 Phase B) ───────────────────────────────────
 
-  it("warns after 5+ .py edits without review", () => {
+  it("warns after 10+ .py edits without review", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "c.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.py", eventType: "tool_pre" },
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.py" },
+      tool_input: { file_path: "k.py" },
     });
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/review/i);
   });
 
-  it("warns on mixed .ts + .py edits totaling >=5", () => {
+  it("warns on mixed .ts + .py edits totaling >=10", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.ts", eventType: "tool_pre" },
-      { toolName: "Edit", filePath: "c.py", eventType: "tool_pre" },
-      { toolName: "Edit", filePath: "d.py", eventType: "tool_pre" },
-      { toolName: "Edit", filePath: "e.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.py", eventType: "tool_pre" },
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.py" },
+      tool_input: { file_path: "k.py" },
     });
     expect(r.code).toBe(1);
   });
 
-  it("exits 0 after 5+ .py edits if python-reviewer was invoked", () => {
+  it("exits 0 after 10+ .py edits if python-reviewer was invoked", () => {
     writeObs([
       { toolName: "Edit", filePath: "a.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "b.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "c.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.py", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.py", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.py", eventType: "tool_pre" },
       {
         toolName: "Agent",
         eventType: "tool_pre",
@@ -168,7 +198,7 @@ describe("ts-review-reminder", () => {
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.py" },
+      tool_input: { file_path: "k.py" },
     });
     expect(r.code).toBe(0);
   });
@@ -180,10 +210,15 @@ describe("ts-review-reminder", () => {
       { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.ts", eventType: "tool_pre" },
     ]);
     const r = runHook({
       session_id: SESSION_ID,
-      tool_input: { file_path: "f.ts" },
+      tool_input: { file_path: "k.ts" },
     });
     expect(r.code).toBe(1);
     // Wording should be agnostic — not hardcoded ".ts"

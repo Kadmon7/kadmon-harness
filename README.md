@@ -407,7 +407,7 @@ Full component details are below (collapsed by default). For the operational cat
 | Hook | Event | What It Does |
 |------|-------|-------------|
 | **git-push-reminder** | PreToolUse Bash | Reminds to run `/chekpoint` before git push |
-| **ts-review-reminder** | PostToolUse | Warns after 5+ `.ts` edits without code review |
+| **ts-review-reminder** | PostToolUse | Warns after 10+ `.ts` edits without code review |
 | **console-log-warn** | PostToolUse | Warns about `console.log()` in production code |
 | **deps-change-reminder** | PostToolUse | Reminds to run `/almanak` when package.json changes |
 | **agent-metadata-sync** | PostToolUse Edit/Write | Auto-syncs `.claude/agents/*.md` frontmatter changes to CLAUDE.md + `rules/common/agents.md` catalogs (never exit 2) |

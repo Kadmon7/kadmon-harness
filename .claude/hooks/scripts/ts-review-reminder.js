@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Hook: ts-review-reminder | Trigger: PostToolUse (Edit|Write)
-// Purpose: Warn after 5+ code edits (.ts/.tsx/.py) without code review. Exit 1 as warning.
+// Purpose: Warn after 10+ code edits (.ts/.tsx/.py) without code review. Exit 1 as warning.
 // File name kept for settings.json compatibility; counter is language-agnostic since plan-020 Phase B.
 import fs from "node:fs";
 import os from "node:os";
@@ -8,7 +8,7 @@ import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
 
-const EDIT_THRESHOLD = 5;
+const EDIT_THRESHOLD = 10;
 const CODE_EXTS = new Set([".ts", ".tsx", ".py"]);
 const REVIEWER_TYPES = ["kody", "typescript-reviewer", "python-reviewer"];
 

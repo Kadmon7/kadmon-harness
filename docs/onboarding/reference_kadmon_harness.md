@@ -123,7 +123,7 @@ Rules live at `.claude/rules/common|typescript|python/*.md`. They encode MUST / 
 
 ### Warn (exit 1) — 5
 - `git-push-reminder` (Bash) — before `git push` without `/chekpoint`.
-- `ts-review-reminder` (Edit) — after 5+ `.ts` edits without review.
+- `ts-review-reminder` (Edit) — after 10+ `.ts` edits without review.
 - `console-log-warn` (Edit) — `console.log` in production code.
 - `deps-change-reminder` (Edit) — reminds `/almanak` when `package.json` changes.
 - `agent-metadata-sync` (Edit) — auto-syncs agent frontmatter to CLAUDE.md tables.

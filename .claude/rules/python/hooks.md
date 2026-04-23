@@ -15,7 +15,7 @@ Since plan-020 (ADR-020), the shared harness hooks branch on file extension at r
 - **console-log-warn.js** — detects `print(` in `.py` files and warns to use the `logging` module (closes the "Warnings" mandate below).
 - **commit-quality.js** — blocks commits staging `print()` or `breakpoint()` in production `.py` files (exempts `test_*.py`, `*_test.py`, and `tests/` paths).
 - **deps-change-reminder.js** — triggers on `pyproject.toml` and `requirements.txt` dependency changes and suggests `/almanak`.
-- **ts-review-reminder.js** — counts `.py` edits toward the 5-edit threshold; `python-reviewer` invocation resets the counter.
+- **ts-review-reminder.js** — counts `.py` edits toward the 10-edit threshold; `python-reviewer` invocation resets the counter.
 
 These hooks need no per-project configuration — detection is automatic.
 

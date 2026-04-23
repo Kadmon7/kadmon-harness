@@ -323,8 +323,8 @@ describe("hook duration: console-log-warn", () => {
 });
 
 // ---------------------------------------------------------------------------
-// 9. ts-review-reminder — logHookEvent when 5+ TS edits without review
-//    Trigger: write 5 .ts edit observations, no review agent present
+// 9. ts-review-reminder — logHookEvent when 10+ TS edits without review
+//    Trigger: write 10 .ts edit observations, no review agent present
 // ---------------------------------------------------------------------------
 describe("hook duration: ts-review-reminder", () => {
   it("writes durationMs when warning about unreviewed TS edits", () => {
@@ -334,12 +334,17 @@ describe("hook duration: ts-review-reminder", () => {
       { toolName: "Edit", filePath: "c.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "d.ts", eventType: "tool_pre" },
       { toolName: "Edit", filePath: "e.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "f.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "g.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "h.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "i.ts", eventType: "tool_pre" },
+      { toolName: "Edit", filePath: "j.ts", eventType: "tool_pre" },
     ];
     fs.writeFileSync(obsFile, obs.map((o) => JSON.stringify(o)).join("\n") + "\n");
 
     runHook("ts-review-reminder", {
       session_id: sessionId,
-      tool_input: { file_path: "f.ts" },
+      tool_input: { file_path: "k.ts" },
     });
     const event = lastHookEvent(sessionId);
     assertDurationMs(event, "ts-review-reminder");
