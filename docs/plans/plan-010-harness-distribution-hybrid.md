@@ -278,7 +278,7 @@ Depends on Phase 2 (manifests) + Phase 3 (helpers) + **plan-019 (canonical root 
     8. `install.sh --force-permissions-sync /tmp/fake-target` re-merges even when settings.json already has the harness rules
     9. `install.sh /tmp/fake-target` appends to target's `.gitignore` the entries for `.claude/settings.local.json`, `.claude/agent-memory/`, `dist/`, dedup against existing content
     10. `install.sh` rewrites `${HOOK_CMD_PREFIX}` in the plugin's runtime `hooks.json` based on `uname` detection (Git Bash emits PATH prefix, Mac/Linux emits plain `node`)
-    11. `install.sh /tmp/fake-target-with spaces/nested` (target path contains literal space) completes without corruption — settings.json merge, rules copy, and hooks.json rewrite all produce valid paths. Protects Abraham-on-Windows scenario where user paths may live under `Documents\` or `OneDrive\` with embedded spaces.
+    11. `install.sh /tmp/fake-target-with spaces/nested` (target path contains literal space) completes without corruption — settings.json merge, rules copy, and hooks.json rewrite all produce valid paths. Protects Windows user scenario where user paths may live under `Documents\` or `OneDrive\` with embedded spaces.
   - Skip condition: if `bash` is not available on the test host, skip with a clear message (Mac/Linux/Git Bash will run it; native PowerShell will skip and rely on Phase 5 test)
   - Verify: all FAIL (red, no `install.sh` exists yet)
   - Depends on: 3.2, 3.3
@@ -415,7 +415,7 @@ Can run any time after Phase 1. Doesn't depend on Phase 4/5.
   - Risk: Low
 
 - [ ] Step 6.4: Cold-clone pre-commit hook verification (S, ~5 min)
-  - Purpose: catch the "works on my machine" case for Joe/Eden/Abraham on fresh clones. Husky `prepare` script in ESM projects can fail silently if npm lifecycle ordering is wrong.
+  - Purpose: catch the "works on my machine" case for collaborators on fresh clones. Husky `prepare` script in ESM projects can fail silently if npm lifecycle ordering is wrong.
   - Test file: `tests/build/cold-clone.test.ts` (NEW, 2 cases):
     1. Simulated cold clone: create `fs.mkdtempSync` copy of harness repo minus `node_modules/` and `.husky/_/`, run `npm install` via `execFileSync`, assert `.husky/pre-commit` exists and is executable (`fs.accessSync(path, fs.constants.X_OK)`).
     2. Assert `package.json` has `husky` pinned to exact version (no caret/tilde) — defense against future accidental loosening.
@@ -515,9 +515,9 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
   - Risk: Low
 
 - [ ] Step 8.6: Q5 verification — attempt `/plugin install` on private repo (M)
-  - Setup: target machine should be Windows (to exercise PowerShell path); target person should be Abraham per ADR-010 Q5
-  - **Mac coordination (2026-04-17 update)**: coordinate with Joe and/or Eden for a 30-min Mac dogfood slot during Phase 8 window. Mac validation is Sprint D scope, not deferred. If both are unavailable during the 4-5 day Sprint D window, fall back to explicit "Mac untested in Sprint D, revalidate Sprint E" note in README + docs/diagnostics.
-  - If Abraham is unavailable during Sprint D, user performs the verification themselves on their Windows host
+  - Setup: target machine should be Windows (to exercise PowerShell path); target person should be a Windows collaborator per ADR-010 Q5
+  - **macOS coordination (2026-04-17 update)**: coordinate with a macOS collaborator for a 30-min macOS dogfood slot during Phase 8 window. macOS validation is Sprint D scope, not deferred. If none available during the 4-5 day Sprint D window, fall back to explicit "macOS untested in Sprint D, revalidate Sprint E" note in README + docs/diagnostics.
+  - If the Windows collaborator is unavailable during Sprint D, user performs the verification themselves on their Windows host
   - Action: with `gh auth login` already configured, attempt `/plugin install Kadmon7/kadmon-harness` from a fresh Claude Code session
   - Record outcome in `docs/diagnostics/2026-04-DD-plugin-install-private-repo.md` (NEW) with: date, host, `gh auth status` output (redact token), full Claude Code response, screenshot if helpful
   - Outcomes (per ADR-010 Q5):
@@ -645,13 +645,13 @@ Final gate. MANUAL. No automated test — this is the "does it actually work in 
 | 5: install.ps1 PowerShell bootstrap | ~3 | Day 3 PM |
 | 6: Pre-commit hook + .gitattributes + cold-clone test | ~2.25 | Day 3 PM (parallel with 5) |
 | 7: Documentation + supersede chain | ~2 | Day 4 AM |
-| 8: Dogfood + Q5 + Mac coordination (Joe/Eden) | ~4 | Day 4 PM + Day 5 AM |
+| 8: Dogfood + Q5 + macOS coordination | ~4 | Day 4 PM + Day 5 AM |
 | **Total** | **~32.75 hours** | **4-5 days** |
 
 **Deltas from 2026-04-14 baseline (2026-04-17 plan refresh, 7 items applied)**:
 1. Baseline test count 549→627 (+78, plan-015 skavenger ULTIMATE)
 2. `KADMON_RESEARCH_AUTOWRITE` env var added to Phase 7.4 (ADR-015)
-3. Mac coordination with Joe/Eden made explicit in Step 8.6
+3. macOS coordination made explicit in Step 8.6
 4. Windows paths with spaces — test case 11 added to Phase 4.1 (~10 min)
 5. Step 2.5 new — mini-dogfood of `hooks.json` in Kadmon-Harness (~30 min)
 6. Step 6.4 new — cold-clone pre-commit hook verification (~5 min)

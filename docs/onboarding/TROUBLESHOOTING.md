@@ -19,7 +19,7 @@ ls -la ~/.claude/plugins/cache/kadmon-harness/kadmon-harness/*/agents
 # Healthy:  lrwxrwxrwx  1 user staff    14 ...  agents -> .claude/agents
 ```
 
-**Cause**: On Windows Git Bash, `git clone` writes symlinks as text files unless `MSYS=winsymlinks:nativestrict` is set *at clone time*. Developer Mode ON + `git config --global core.symlinks true` are necessary but **not sufficient** — the MSYS env var is the missing piece. Evidence: Abraham (2026-04-22) had Dev Mode + `GIT_SYMLINKS=true` but `MSYS=""` → bug reproduced.
+**Cause**: On Windows Git Bash, `git clone` writes symlinks as text files unless `MSYS=winsymlinks:nativestrict` is set *at clone time*. Developer Mode ON + `git config --global core.symlinks true` are necessary but **not sufficient** — the MSYS env var is the missing piece. Evidence: a Windows collaborator (2026-04-22) had Dev Mode + `GIT_SYMLINKS=true` but `MSYS=""` → bug reproduced.
 
 ### Fix A — Plugin cache (no re-install needed)
 

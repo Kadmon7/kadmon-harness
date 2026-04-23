@@ -14,7 +14,7 @@ plan: plan-020-runtime-language-detection.md
 
 ## Context
 
-CLAUDE.md:17 claims the harness is "infrastructure, not product. Built once, carried to every new project via bootstrap." ADR-010 then resolved the distribution side of that claim: a single plugin installs to any project regardless of language. But a recent dogfood against Kadmon-Sports (pure Python) surfaced that runtime behavior never caught up. Joe and Eden installed the plugin on Kadmon-Sports, ran `/chekpoint`, and watched Phase 1 fail on `npm run build` because there is no `package.json`. The harness ships Python rules (`.claude/rules/python/hooks.md:11-24` prescribes `black`, `ruff`, `mypy`, `bandit`, `pytest`), and the linter in `.claude/rules/common/agents.md` names `python-reviewer` as an auto-invoke, but every executable surface (commands, hooks, verification skills) is hardcoded to the TypeScript toolchain.
+CLAUDE.md:17 claims the harness is "infrastructure, not product. Built once, carried to every new project via bootstrap." ADR-010 then resolved the distribution side of that claim: a single plugin installs to any project regardless of language. But a recent dogfood against Kadmon-Sports (pure Python) surfaced that runtime behavior never caught up. macOS collaborators installed the plugin on Kadmon-Sports, ran `/chekpoint`, and watched Phase 1 fail on `npm run build` because there is no `package.json`. The harness ships Python rules (`.claude/rules/python/hooks.md:11-24` prescribes `black`, `ruff`, `mypy`, `bandit`, `pytest`), and the linter in `.claude/rules/common/agents.md` names `python-reviewer` as an auto-invoke, but every executable surface (commands, hooks, verification skills) is hardcoded to the TypeScript toolchain.
 
 A systematic audit mapped 21 sites of TS hardcoding across five surface classes:
 
@@ -113,7 +113,7 @@ The ADR moves from `proposed` to `accepted` when:
 4. `/medik` run against a Python fixture passes the 3 language-agnostic checks (hook-errors, DB-health, lint-agent-frontmatter on the *harness's own* agents) and adapts the 5 TS-specific checks (build, typecheck, tests, dist-sync, `npm audit`) to their Python equivalents or skips with a logged reason.
 5. The 6 hooks branch correctly on file extension without regressing TypeScript behavior — verified by running the existing TS hook tests plus 6 new Python cases.
 6. The 731-test baseline still passes + the ~15 new tests are green.
-7. Dogfood against Kadmon-Sports: Joe or Eden confirms `/chekpoint lite` succeeds on a real Python repo with no TS hardcoding visible in the output.
+7. Dogfood against Kadmon-Sports: a macOS collaborator confirms `/chekpoint lite` succeeds on a real Python repo with no TS hardcoding visible in the output.
 
 ## Related ADRs
 
@@ -138,4 +138,4 @@ The ADR moves from `proposed` to `accepted` when:
 ## Acceptance Log
 
 - **2026-04-21** — Windows validation in Kadmon-Sports (architect). Surfaced 4 cross-platform bugs that shipped in v1.2.1 (hook_events dedup, orphan recovery staleness) and v1.2.2 (kompact tmpdir cross-platform, commit-format-guard false-positive).
-- **2026-04-22** — Mac validation via Joe and Eden running `/chekpoint` on Kadmon-Sports. Criterion #7 met. Ongoing bug monitoring continues as part of normal consumer-dogfood loop.
+- **2026-04-22** — macOS validation via macOS collaborators running `/chekpoint` on Kadmon-Sports. Criterion #7 met. Ongoing bug monitoring continues as part of normal consumer-dogfood loop.

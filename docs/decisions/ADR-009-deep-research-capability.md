@@ -195,7 +195,7 @@ Ship A AND wire Perplexity at the same time as a premium fallback.
 
 ### Negative
 
-- `yt-dlp` is an external dependency that must be installed per machine (`winget install yt-dlp` on Windows, `brew install yt-dlp` on macOS, `pip install yt-dlp` cross-platform). Joe/Eden/Abraham will see an install step. The bootstrap script (plan-003) should document this but should NOT block on it — kerka must degrade gracefully when yt-dlp is missing.
+- `yt-dlp` is an external dependency that must be installed per machine (`winget install yt-dlp` on Windows, `brew install yt-dlp` on macOS, `pip install yt-dlp` cross-platform). Collaborators will see an install step. The bootstrap script (plan-003) should document this but should NOT block on it — kerka must degrade gracefully when yt-dlp is missing.
 - Iteration caps in D5 are prompt-enforced, not mechanical. A misbehaving model run could exceed them silently. Mitigation: kerka's output format requires enumerating every source fetched, making violations observable; and the caps can be promoted to hard-coded if abuse is seen in telemetry (cost-tracker logs for `/research` sessions will be the early warning).
 - Transcript quality varies: videos without auto-subs, with paywalled captions, or with non-English content degrade to `source: "unavailable"`. The skill must treat transcript availability as best-effort.
 - One new agent to maintain; model/tool changes must be auto-synced via `agent-metadata-sync` (already exists per ADR-008 Q8).

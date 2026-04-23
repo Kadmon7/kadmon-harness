@@ -146,7 +146,7 @@ The removal is a single-line deletion (plus the stub file) and does not require 
 
 ## Rationale
 
-**Why rename at all?** The verb/noun mismatch is the kind of papercut that compounds: every time a new collaborator (Joe, Eden, Abraham) reads the command name, they have to infer the action from the noun. `/forge` makes the action self-evident and protects the noun "instinct" for the data model, where it is correct.
+**Why rename at all?** The verb/noun mismatch is the kind of papercut that compounds: every time a new collaborator reads the command name, they have to infer the action from the noun. `/forge` makes the action self-evident and protects the noun "instinct" for the data model, where it is correct.
 
 **Why consolidate?** Six subcommands forced the user to sequence them mentally (learn → eval → promote → prune) and then run them one at a time. The pipeline encodes the sequence. The preview gate preserves user control at the exact point where mutation happens, which is the only control point that matters. This is the same reasoning that drove the `/medik` redesign — see memory `decision_medik_redesign.md`.
 
@@ -226,7 +226,7 @@ The removal is a single-line deletion (plus the stub file) and does not require 
     - All the UX improvements (single pipeline, preview gate, handoff contract).
 - **Cons**:
     - Preserves the verb/noun mismatch forever. The noun-named command would now mean "forge new instincts from observations" — even worse than today, because the name would actively mislead.
-    - Collaborators (Joe, Eden, Abraham) reading the command name for the first time would still have to infer the verb.
+    - Collaborators reading the command name for the first time would still have to infer the verb.
 - **Why not**: The rename is the cheap half of the decision and removes the papercut permanently. Keeping the bad name to avoid one week of alias friction is a poor trade.
 
 ### Alternative 4: Store `ClusterReport` in SQL instead of a JSON file

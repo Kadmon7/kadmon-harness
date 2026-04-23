@@ -40,7 +40,7 @@ Four parallel research agents, spawned from the same brief, converged on the sam
 ### Constraints
 
 - **Self-use must not break.** When working *on* the Kadmon-Harness repo directly (not via the plugin), Claude Code reads `.claude/<type>/` by convention. Any reorganization that moves agents/skills/commands out of `.claude/` forces ~50 internal reference updates plus test adjustments (609 tests currently passing, 59 test files).
-- **Cross-platform.** Joe and Eden work on macOS; Ych-Kadmon and Abraham on Windows. The distribution mechanism must work on both. Mac symlink support is native and invisible. Windows requires Developer Mode ON plus `git config --global core.symlinks true` — a known one-time setup cost.
+- **Cross-platform.** Two collaborators work on macOS; Ych-Kadmon and one collaborator on Windows. The distribution mechanism must work on both. macOS symlink support is native and invisible. Windows requires Developer Mode ON plus `git config --global core.symlinks true` — a known one-time setup cost.
 - **Fork semantics.** The harness is infrastructure, carried to every project via bootstrap (ADR-010). Whatever layout the root repo ships, forks inherit mechanically.
 - **No new MCPs, no new plugins.** The project stays lean. Enforcement must be in-process code, not external tooling.
 
@@ -87,7 +87,7 @@ Omit custom path fields from `plugin.json` so the Claude Code plugin loader fall
 - **Cons**:
   - **Windows requires one-time setup** (Developer Mode ON + `git config --global core.symlinks true`). Mitigated by: (a) documenting the setup in README, (b) `install.sh` / `install.ps1` detecting unresolved symlinks and aborting with a clear setup instruction that points at the exact Windows settings toggle and the exact git config command.
   - **Exposure if Claude Code ever changes symlink handling.** If the plugin cache starts dereferencing symlinks (materializing their targets as copies) or strips them entirely, this scheme breaks silently. Mitigated by: (a) the plugins-reference documentation explicitly commits to preservation — a breaking change there would be a Claude Code regression, not our design flaw; (b) the harness `/medik` health check can grow a "verify plugin distribution" step in Sprint E that reads the plugin cache and asserts the symlinks resolved.
-  - **Symlink creation on a fresh clone** requires git to have `core.symlinks = true`. Git defaults to `true` on macOS/Linux and `false` on Windows. Abraham (Windows collaborator) needs the one-time global config. Mitigated by `install.sh` gate with clear error message.
+  - **Symlink creation on a fresh clone** requires git to have `core.symlinks = true`. Git defaults to `true` on macOS/Linux and `false` on Windows. The Windows collaborator needs the one-time global config. Mitigated by `install.sh` gate with clear error message.
   - **Session-start banner silent bug (Bug 3) is NOT addressed.** That fix requires Claude Code to support `env` blocks in `hooks.json`, which is a Sprint E dependency tracked separately.
 
 ### Option C — install.sh fallback-copy (Ruta Z) — REJECTED (this was the pre-research Decision B)
@@ -196,7 +196,7 @@ Backward compatibility: total for self-use. Plugin-distribution compatibility: t
 
 ### Risks
 
-- **Windows symlink setup friction for new collaborators.** Mitigated by: (a) README documentation; (b) `install.sh` / `install.ps1` gate that halts with a clear setup instruction rather than failing silently; (c) Mac collaborators (Joe, Eden) bypass this entirely — their setup is zero-config; (d) the one-time nature of the setup means every affected developer only pays the cost once.
+- **Windows symlink setup friction for new collaborators.** Mitigated by: (a) README documentation; (b) `install.sh` / `install.ps1` gate that halts with a clear setup instruction rather than failing silently; (c) macOS collaborators bypass this entirely — their setup is zero-config; (d) the one-time nature of the setup means every affected developer only pays the cost once.
 - **Claude Code changes symlink handling in plugin cache.** Low-probability because plugins-reference documents preservation explicitly, and breaking it would regress many plugins beyond ours. Mitigations: (a) monitor plugins-reference for changes at the 2026-10-20 review date; (b) file a GitHub issue against anthropics/claude-code if stripping is observed in the wild, citing this ADR's dependency on the current behavior; (c) Sprint E `/medik` health check can detect the regression at install time, giving an early signal.
 - **Symlink creation on CI or fresh clone fails silently.** Mitigated by the install.sh gate — the first line of defense. Secondary mitigation: add a `/medik` assertion that the three root symlinks resolve; emit a clear failure if not.
 - **Bug 3 (session-start banner) remains open.** Not addressed by this ADR by design. Tracked as Sprint E dependency on Claude Code supporting `env` blocks in `hooks.json`. Acceptable because Bug 3 has a clean workaround today (the banner is a nice-to-have, not load-bearing for functionality) and the fix is external.

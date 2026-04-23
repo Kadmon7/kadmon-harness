@@ -18,7 +18,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - **CLAUDE.md onboarding template** (`docs/onboarding/CLAUDE.template.md`) — cross-project reusable template that points to `reference_kadmon_harness.md` memory catalog instead of duplicating the harness surface.
 
 ### Changed
-- **ADR-020 flipped `proposed` → `accepted`** — Windows (Ych-Kadmon) + Mac (Joe, Eden) dogfood complete; runtime language detection is now the permanent contract.
+- **ADR-020 flipped `proposed` → `accepted`** — Windows (Ych-Kadmon) + macOS collaborators dogfood complete; runtime language detection is now the permanent contract.
 - **`CLAUDE.md` trim 211 → 167 lines** — restored full 16-row Agents table, link-outs for Skills catalog, hard-cap comment above Status to keep future edits disciplined.
 - **`hook-logger.js` refactored** to delegate rotation to `rotating-jsonl-log.ts`. All 12 existing tests preserved; stack-trace truncation, test-env guard, and stderr shape unchanged.
 - **`session-start.js` install health integration** — 3 new integration tests (silent when healthy, banner when broken, diagnostic log written via stderr under VITEST).
@@ -88,7 +88,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `session-start.js` now emits a visible "no git remote — session tracking disabled" log line when the target repo has no `git remote origin` (previously a silent early-exit that looked like a plugin bug). Investigated and closed 2026-04-21.
 
 ### Notes
-- ADR-020 remains `status: proposed` until Kadmon-Sports dogfood (Joe/Eden on macOS) flips it to `accepted`. No code change required for the flip — doc-only bump.
+- ADR-020 remains `status: proposed` until Kadmon-Sports dogfood (macOS collaborators) flips it to `accepted`. No code change required for the flip — doc-only bump.
 - Metrics: **870 tests passing** (70 files) · 21 hooks · 16 agents · 46 skills · 11 commands · 19 rules · 7 DB tables.
 
 ## [1.1.0] — 2026-04-20

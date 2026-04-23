@@ -18,7 +18,7 @@ Between 2026-04-21 and 2026-04-22 the harness shipped three releases — `v1.2.0
 
 When the architect surveyed this cadence on 2026-04-23 the reaction was direct: **"v1.0 plugin listo, v1.1 alguna mejora, v1.2 todo lo de hoy"** — meaning, releases should be narrative moments (things worth telling a collaborator about), not "one per merged PR". The symptom was release noise; the root cause was an unwritten policy that bumped PATCH per commit.
 
-The retroactive-rename path (re-tag, force-push, update 155 cross-references in docs) was evaluated and rejected: git tags are history, and collaborators (Eden, Joe, Abraham, plus two new installs) had already pinned those tags or installed the plugin under them. Rewriting SHAs breaks trust without fixing the underlying cadence problem.
+The retroactive-rename path (re-tag, force-push, update 155 cross-references in docs) was evaluated and rejected: git tags are history, and collaborators (core 3 plus two new installs) had already pinned those tags or installed the plugin under them. Rewriting SHAs breaks trust without fixing the underlying cadence problem.
 
 This ADR captures the forward-facing policy so the next release reflects the architect's intent without relitigating the past.
 

@@ -36,7 +36,7 @@ Implement the bootstrap script decided in ADR-003. A single TypeScript file (`sc
 - Validated: Target projects are git repositories with an existing `package.json` (ADR-003 states targets are ToratNetz and KAIRON)
 - Validated: The harness source is always `Kadmon-Harness/` at a known location (script uses its own `__dirname` to resolve source)
 - Validated: `tsconfig.json` in target must include `scripts/lib/` path for compilation (ADR-003 Implementation Notes)
-- Updated: Small team with mixed OS -- Windows (Abraham, Ych-Kadmon) and Mac (Joe, Eden). Hook commands must work cross-platform.
+- Updated: Small team with mixed OS -- Windows (Ych-Kadmon + one collaborator) and macOS (two collaborators). Hook commands must work cross-platform.
 - Needs confirmation: Whether `enabledPlugins` from settings.json should be merged or skipped (plan assumes merge/preserve, matching ADR-003 description)
 
 ## Phase 0: Research (complete, refreshed 2026-04-14)

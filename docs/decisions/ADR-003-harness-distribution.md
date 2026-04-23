@@ -85,7 +85,7 @@ Claude Code's plugin system supports: agents, commands, skills, hooks (via hooks
 
 ## Decision Drivers
 
-1. **Small team (3-4 people, Mac + Windows)** -- Ych-Kadmon and Abraham on Windows, Joe and Eden on Mac. Bootstrap must work cross-platform with zero manual OS-specific steps
+1. **Small team (3-4 people, Mac + Windows)** -- Ych-Kadmon plus one Windows collaborator; two macOS collaborators. Bootstrap must work cross-platform with zero manual OS-specific steps
 2. **Two immediate targets** -- ToratNetz (Supabase + pgvector) and KAIRON (React Native + ElevenLabs)
 3. **Rules are critical** -- 19 files that enforce quality, security, and workflow. Losing them is unacceptable
 4. **Permissions are critical** -- deny rules prevent destructive operations. Losing them is a security regression

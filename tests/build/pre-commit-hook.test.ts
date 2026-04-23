@@ -62,7 +62,7 @@ describe(".husky/pre-commit hook — existence and structural invariants", () =>
     // Test 2b — RED today: .husky/pre-commit does not exist.
     // GREEN after Step 6.2: file has executable bit (on Mac/Linux).
     // On Windows, X_OK is always true for files — this check is a no-op there,
-    // but on Mac (Joe/Eden's machines) it matters for husky to invoke the script.
+    // but on macOS it matters for husky to invoke the script.
     "is executable (X_OK) — non-Windows assertion",
     () => {
       if (process.platform === "win32") {

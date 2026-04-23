@@ -25,9 +25,9 @@ Discovered on 2026-04-14 while preparing to dogfood the harness onto `Kadmon-Spo
 
 1. **Kadmon-Sports is Python.** It has `requirements.txt`, no `package.json`. plan-003's `mergePackageJson` step errors immediately with no file to merge into.
 2. **COLMILLO-NBA is also Python.** 100% of the user's current real targets are polyglot or non-TypeScript. The "merge into target's package.json" assumption is invalid on day one.
-3. **Windows PATH is hardcoded in 21 hook commands.** `.claude/settings.json` prefixes every hook with `PATH="$PATH:/c/Program Files/nodejs"`. A Mac collaborator (Joe, Eden) running a bootstrapped project would get either broken hooks or cosmetically ugly ones, depending on shell behavior.
+3. **Windows PATH is hardcoded in 21 hook commands.** `.claude/settings.json` prefixes every hook with `PATH="$PATH:/c/Program Files/nodejs"`. A macOS collaborator running a bootstrapped project would get either broken hooks or cosmetically ugly ones, depending on shell behavior.
 4. **Three lifecycle hooks import compiled TypeScript via a hardcoded 3-level relative path.** `session-start.js`, `session-end-all.js`, `pre-compact-save.js`, plus `evaluate-patterns-shared.js`, use `new URL("../../../dist/scripts/lib/MODULE.js", import.meta.url)`. `ensure-dist.js:14` centralizes `resolveRootDir(metaUrl)` but also assumes a fixed 3-level walk. Under a plugin-style layout, hooks live in `${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/` while runtime lives in `${CLAUDE_PLUGIN_DATA}/dist/`. The 3-level walk goes to the wrong place.
-5. **No install entry point.** There is no documented "how does Joe first obtain the harness on his Mac" step. A collaborator today has to know to clone the repo, `npm install`, understand the tsc build chain, and copy files manually.
+5. **No install entry point.** There is no documented "how does a collaborator first obtain the harness on macOS" step. A collaborator today has to know to clone the repo, `npm install`, understand the tsc build chain, and copy files manually.
 6. **No cross-machine update mechanism.** Once installed, there is no way to pull newer harness versions without manual re-bootstrap or rerunning an ad-hoc script.
 7. **package.json pollution of target.** plan-003 merges `sql.js`, `zod`, and `typescript` into the target's `package.json`. Python targets have no `package.json` to merge into; TypeScript targets end up with harness-runtime deps mixed into their product-runtime deps.
 8. **No `.gitattributes` controlling line endings.** Hook scripts containing `#!/usr/bin/env node` shebangs or bash commands can get corrupted by CRLF conversion when repos move between Windows and macOS.
@@ -130,7 +130,7 @@ Copy-based distribution is slightly staler (updates require `./install.sh /path/
 **Rationale** (user's stated preference):
 - Privacy during the Sprint D dogfood window outweighs the ergonomic cost of manual git clone.
 - The harness repo still contains WIP ADRs, incomplete plans, experimental agents, and internal feedback that the user does not want public-indexed until the distribution mechanism itself is validated.
-- Collaborator count is 3-4 people total (Ych-Kadmon, Abraham on Windows; Joe, Eden on Mac). A one-time `gh auth` setup per collaborator is tractable at that scale.
+- Collaborator count is 3-4 people total (Ych-Kadmon + one Windows collaborator; two macOS collaborators). A one-time `gh auth` setup per collaborator is tractable at that scale.
 
 **Open uncertainty that MUST be verified during Sprint D implementation**:
 
@@ -140,7 +140,7 @@ Claude Code's `/plugin install` command may or may not support private GitHub re
 2. **`/plugin install` does NOT support private repos** — the only entry points are manual `git clone + install.sh` (Sprint D) and going public later (Sprint F).
 3. **`/plugin install` supports private repos but only via a specific token scope / settings incantation** — document the incantation in the collaborator onboarding checklist.
 
-**Concrete Sprint D verification step**: During Sprint D, one collaborator (target: Abraham on Windows, since that exercises the native PowerShell path too) attempts `/plugin install Kadmon7/kadmon-harness` with their `gh auth` already configured. The result is recorded in `docs/diagnostics/2026-04-DD-plugin-install-private-repo.md`. If outcome 1, `plan-010` adds a Sprint E task to document the native entry point. If outcome 2, Sprint F adds "consider making repo public" to the review checklist. If outcome 3, the incantation goes into the README immediately.
+**Concrete Sprint D verification step**: During Sprint D, one collaborator (target: a Windows collaborator, since that exercises the native PowerShell path too) attempts `/plugin install Kadmon7/kadmon-harness` with their `gh auth` already configured. The result is recorded in `docs/diagnostics/2026-04-DD-plugin-install-private-repo.md`. If outcome 1, `plan-010` adds a Sprint E task to document the native entry point. If outcome 2, Sprint F adds "consider making repo public" to the review checklist. If outcome 3, the incantation goes into the README immediately.
 
 **Sprint E reconsideration window**: After Sprint D dogfood succeeds on Kadmon-Sports (target: 2026-04-21), reopen the public-vs-private question. The repo-privacy concern was load-bearing BEFORE the distribution mechanism was validated. After validation, the cost/benefit shifts — a publicly installable plugin is the dominant ergonomics win.
 
@@ -360,7 +360,7 @@ export function generateHookCommand(
 
 - **Ships to Python targets.** Kadmon-Sports, COLMILLO-NBA, and any other non-Node target can consume the harness without needing a `package.json`. Runtime deps live once in `${CLAUDE_PLUGIN_DATA}`.
 - **Zero target pollution.** Target `package.json` (if it even has one) is never touched. Target `.claude/settings.json` is only touched for `permissions.deny` merge.
-- **Mac collaborators get clean hook commands.** No more `PATH="$PATH:/c/Program Files/nodejs"` junk in Joe and Eden's `settings.json`.
+- **macOS collaborators get clean hook commands.** No more `PATH="$PATH:/c/Program Files/nodejs"` junk in macOS `settings.json` files.
 - **Rules and permissions fully distributed.** The gap that ADR-003 identified is solved by install.sh/install.ps1, not worked around.
 - **Native `/plugin update` path exists (Sprint E+).** Once the private-repo question is resolved, collaborators can run `claude plugin update kadmon-harness` for incremental updates instead of re-running install.sh.
 - **Future-proof.** If Claude Code eventually ships rules/permissions support in plugins, the bootstrap step can be retired incrementally. The plugin manifest structure is forward-compatible.

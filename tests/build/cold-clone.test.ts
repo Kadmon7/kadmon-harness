@@ -104,7 +104,7 @@ describe("package.json — husky exact-version pin", () => {
     // Test 2 — RED today: husky is not in devDependencies at all.
     // GREEN after Step 6.2: package.json has `"husky": "9.1.7"` (no ^ or ~).
     // Defense against future accidental loosening: the exact-version pin ensures
-    // Joe, Eden, and Abraham all get the same husky binary on a fresh clone.
+    // all collaborators get the same husky binary on a fresh clone.
     "has husky pinned to an exact version (no caret or tilde) in devDependencies",
     () => {
       // Read from REPO_ROOT (not tmpDir) — this is a static metadata assertion.
@@ -150,7 +150,7 @@ describe("cold-clone simulation — npm install creates .husky/pre-commit", () =
       }
 
       // Run npm install in the cold-clone tmpDir
-      // This simulates Joe/Eden/Abraham running `npm install` on a fresh clone.
+      // This simulates collaborators running `npm install` on a fresh clone.
       // Windows note: npm is a .cmd script — spawnSync with shell:true resolves it.
       // Use spawnSync (not execFileSync) to avoid Node's DEP0190 warning about
       // shell+execFileSync arg concatenation (args are hardcoded literals, not user input).

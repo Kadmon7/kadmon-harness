@@ -16,7 +16,7 @@ supersedes_partially: ADR-010 Q4
 
 Sprint D shipped `install.sh` / `install.ps1` and delegated permissions merging to `scripts/lib/install-apply.ts` via `mergePermissionsDeny()` in `scripts/lib/install-helpers.ts`. ADR-010 Q4 codified **deny-only** as the merge strategy; `permissions.allow` was not decided — it was omitted.
 
-Dogfooding against Kadmon-Sports (2026-04-20) and preparing onboarding for Joe/Eden (Mac) + Abraham (Windows) surfaced three gaps:
+Dogfooding against Kadmon-Sports (2026-04-20) and preparing onboarding for macOS + Windows collaborators surfaced three gaps:
 
 1. The harness's 63 `permissions.allow` entries never reach targets. Targets installing fresh hit permission prompts for routine tools (`Bash(git:*)`, `Bash(npm:*)`, `Skill(*:*)`) that the harness itself considers standard.
 2. `CANONICAL_DENY_RULES` contains `Read(/c/Users/kadmo/.ssh/**)` — a Git-Bash absolute path hardcoded to the maintainer's Windows home. On Mac it's a no-op (harmless) but it's identity contamination: the string announces "kadmo" inside every collaborator's settings.json. This was flagged as Sprint E scope but never closed.
@@ -69,7 +69,7 @@ The harness `.gitattributes` encodes ADR-019 canonical root symlinks (`agents`, 
 
 ### Q1 Alternative C — No merge, manual in post-install checklist
 - Pros: zero install surface change; user opts in per rule
-- Cons: defeats the purpose of the bootstrap; every new project re-types the same 9 core tools; friction for Joe/Eden/Abraham onboarding
+- Cons: defeats the purpose of the bootstrap; every new project re-types the same 9 core tools; friction for collaborator onboarding
 - Why not: a 9-item core is objectively universal to any Kadmon-based project; making users retype it is bootstrap failure.
 
 ### Q2 Alternative A — Replace with `Read(~/.ssh/**)`
@@ -90,7 +90,7 @@ The harness `.gitattributes` encodes ADR-019 canonical root symlinks (`agents`, 
 ## Consequences
 
 ### Positive
-- Fresh installs hit zero permission prompts for core toolchain (git/npm/node/shell/Skill) — Joe/Eden/Abraham onboarding smoother.
+- Fresh installs hit zero permission prompts for core toolchain (git/npm/node/shell/Skill) — collaborator onboarding smoother.
 - `permissions.allow` merge logic has test parity with deny (same shape, same return type, same harness-first ordering) — ~15 min to implement.
 - Removing `Read(/c/Users/kadmo/.ssh/**)` eliminates per-maintainer path leakage; no target settings.json carries "kadmo" anymore.
 - `.gitattributes` decision is explicit and documented — future audits won't re-debate it.

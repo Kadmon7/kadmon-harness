@@ -523,7 +523,7 @@ describe("install.sh — plan-010 Phase 4 narrowed by plan-019", () => {
   it.runIf(bashAvailable)(
     "Test 11: target path with embedded spaces completes without corruption",
     () => {
-      // Simulate Abraham-on-Windows: path under Documents/ or OneDrive/ with spaces
+      // Simulate Windows user: path under Documents/ or OneDrive/ with spaces
       const parent = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-space-"));
       tempTargets.push(parent);
       const target = path.join(parent, "with spaces", "nested");

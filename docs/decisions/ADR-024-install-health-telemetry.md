@@ -19,10 +19,10 @@ After ADR-019 shipped canonical root symlinks as the plugin loader contract, a r
 Symptoms: plugin loader finds only hooks (registered via `.claude-plugin/hooks.json`, bypass the symlinks), silently drops agents/skills/commands discovery. User sees a half-broken install with no actionable diagnostic.
 
 Aggravating factors:
-- **Developer Mode + `git config --global core.symlinks true` are necessary but not sufficient.** Abraham had both; he still hit the bug because `MSYS=winsymlinks:nativestrict` was unset at clone time.
+- **Developer Mode + `git config --global core.symlinks true` are necessary but not sufficient.** A Windows collaborator had both; the bug still reproduced because `MSYS=winsymlinks:nativestrict` was unset at clone time.
 - **`mklink` (cmd.exe) fails silently** when creating symlinks in the plugin cache post-clone. Only PowerShell `New-Item -ItemType SymbolicLink` reliably creates the real link.
 - **No telemetry.** When the bug reproduces on a collaborator's machine, we have no log to inspect remotely. Data is lost the moment the Claude Code session closes.
-- **Recurrence on every release.** Eden (Mac, clean install) confirmed the bug is not one-time: "cuando hagan update va a volver el error" — each `git pull` on Windows repeats the failure mode unless the env var is set permanently.
+- **Recurrence on every release.** A macOS collaborator (clean install) confirmed the bug is not one-time: "cuando hagan update va a volver el error" — each `git pull` on Windows repeats the failure mode unless the env var is set permanently.
 - **Unrelated cousin bug.** A separate symptom (`PreToolUse:Agent hook error — Failed with non-blocking status code: Skipping command-line '...bash.exe'`) surfaced in 1 case. It is out of scope for this ADR (Sprint E investigation) but the telemetry channel defined here will capture ambient diagnostics useful for that investigation too.
 
 ### Pre-ADR hypothesis (rejected)
@@ -50,7 +50,7 @@ Exports `checkInstallHealth(rootDir: string): InstallHealthReport`. Follows the 
 
 Exports `renderRemediation(report): string`. Separate from the diagnostic per arkitect MEDIUM-severity critique on SRP alignment with `db-health.ts`. Banner is adaptive:
 
-- If `report.inPluginCache === true` → render PowerShell `New-Item -ItemType SymbolicLink` remediation (the fix Abraham confirmed on 2026-04-22).
+- If `report.inPluginCache === true` → render PowerShell `New-Item -ItemType SymbolicLink` remediation (the fix confirmed on 2026-04-22).
 - Else → render `git checkout agents skills commands` with `MSYS=winsymlinks:nativestrict` env hint (local dev clone path).
 
 The `renderRemediation` function is pure string transformation, testable in isolation without filesystem stubs.
@@ -68,7 +68,7 @@ Extracted from `.claude/hooks/scripts/hook-logger.js` (inline rotation code) per
 
 ### 5. `/medik` Check #9
 
-Row added to `.claude/commands/medik.md` Phase 1 checks table. The check invokes `checkInstallHealth()` via `npx tsx -e`; mekanik analyzes anomalies in Phase 2 and suggests the remediation (never auto-applies). This gives users a mid-session debug path equivalent to the session-start banner — critical for the "every-release recurrence" scenario Eden flagged.
+Row added to `.claude/commands/medik.md` Phase 1 checks table. The check invokes `checkInstallHealth()` via `npx tsx -e`; mekanik analyzes anomalies in Phase 2 and suggests the remediation (never auto-applies). This gives users a mid-session debug path equivalent to the session-start banner — critical for the "every-release recurrence" scenario a macOS collaborator flagged.
 
 ## Why "passive" (non-negotiable)
 
@@ -82,7 +82,7 @@ The core principle: **warn, don't mutate.** The harness observes its own install
 
 **Positive**
 
-- Recurring bug now has telemetry. Next time Eden/Joe/Abraham hits it on update, `~/.kadmon/install-diagnostic.log` has the evidence, no copy-paste from stderr required.
+- Recurring bug now has telemetry. Next time a collaborator hits it on update, `~/.kadmon/install-diagnostic.log` has the evidence, no copy-paste from stderr required.
 - `/medik` Check #9 gives a mid-session remediation path — users self-serve without pinging the architect.
 - ADR-019 remains authoritative for the canonical symlink contract; this ADR adds an observability layer, no contract change.
 - `rotating-jsonl-log.ts` cleans up a latent drift risk between `hook-logger.js` and the new diagnostic log — single source of truth for rotation policy.
