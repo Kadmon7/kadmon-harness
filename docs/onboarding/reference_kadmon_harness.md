@@ -4,11 +4,17 @@ description: How to use the Kadmon Harness Claude Code plugin in this project. 1
 type: reference
 ---
 
-# Kadmon Harness v1.1 — quick reference
+# Kadmon Harness v1.2.3 — quick reference
 
 This project has the Kadmon Harness Claude Code plugin installed (and optionally the `install.sh` bootstrap for rules + permissions). This file tells Claude what's available and when to use each piece.
 
-**Source of truth** — https://github.com/Kadmon7/kadmon-harness · Release v1.1.0 · MIT licensed. Refresh this file when the harness version bumps.
+**Source of truth** — https://github.com/Kadmon7/kadmon-harness · Release v1.2.3 · MIT licensed. Refresh this file when the harness version bumps.
+
+**What's new since v1.1:**
+- **v1.2** — Python support (ADR-020): language-aware hooks branch on file extension (`.py` → ruff / mypy / print() warnings); python-reviewer auto-invokes on `.py` edits; Python rules at `.claude/rules/python/`.
+- **v1.2.2** — CORE permissions bootstrap (ADR-021): 9 essential `permissions.allow` shipped via installer.
+- **v1.2.3** — Install Health Telemetry (ADR-024) + Versioning Policy (ADR-025).
+- **Tests:** 637 → 934 (+47%). Files: 60 → 75. Hooks / agents / skills / commands / rules counts unchanged.
 
 ## Mantra
 
@@ -185,7 +191,7 @@ Each memory file has YAML frontmatter (`name`, `description`, `type`). The `MEMO
 
 - **Plugin** ships agents / skills / commands / hooks via canonical root symlinks in the harness repo (`agents`, `skills`, `commands` → `.claude/<type>/`). Registered in `~/.claude/settings.json` as `extraKnownMarketplaces` + `enabledPlugins`.
 - **Bootstrap** (`install.sh` / `install.ps1`) ships rules + `permissions.deny` + `.kadmon-version` + `.gitignore` entries. Run once per project — these two categories cannot be distributed via Claude Code plugins today.
-- ADR references: ADR-010 (hybrid distribution), ADR-013 (skills subdirectory), ADR-017 (agent template), ADR-019 (canonical root symlinks).
+- ADR references: ADR-010 (hybrid distribution), ADR-013 (skills subdirectory), ADR-017 (agent template), ADR-019 (canonical root symlinks), ADR-020 (Python language support), ADR-021 (CORE permissions bootstrap), ADR-024 (install health telemetry), ADR-025 (versioning policy).
 
 ---
 
