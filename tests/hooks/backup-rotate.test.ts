@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -120,5 +120,79 @@ describe("rotateBackup", () => {
     const result = rotateBackup(path.join(TEMP_DIR, "nonexistent.db"));
     expect(result.backupPath).toBe("");
     expect(result.removed).toEqual([]);
+  });
+
+  // EBUSY retry tests — Windows parallel-session race condition (verified in hook-errors.log)
+  describe("EBUSY retry behavior", () => {
+    let stderrSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      // logHookError writes to process.stderr in test-env (VITEST set)
+      stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    });
+
+    afterEach(() => {
+      stderrSpy.mockRestore();
+      vi.restoreAllMocks();
+    });
+
+    it("retries EBUSY on copyFileSync and succeeds on second attempt", () => {
+      setup();
+      let callCount = 0;
+      const originalCopyFileSync = fs.copyFileSync.bind(fs);
+      vi.spyOn(fs, "copyFileSync").mockImplementation((...args) => {
+        callCount++;
+        if (callCount === 1) {
+          const err = Object.assign(new Error("EBUSY: resource busy or locked"), {
+            code: "EBUSY",
+          });
+          throw err;
+        }
+        return originalCopyFileSync(...(args as Parameters<typeof fs.copyFileSync>));
+      });
+
+      const result = rotateBackup(DB_FILE);
+
+      expect(result.backupPath).toMatch(/kadmon\.db\.bak\.\d{8}-\d{6}$/);
+      expect(result.backupPath).not.toBe("");
+      expect(stderrSpy).not.toHaveBeenCalled();
+      // Content integrity: backup bytes must match source bytes (orakle WARN)
+      expect(fs.readFileSync(result.backupPath)).toEqual(fs.readFileSync(DB_FILE));
+    });
+
+    it("exhausts 3 EBUSY retries then returns empty result without logging", () => {
+      setup();
+      vi.spyOn(fs, "copyFileSync").mockImplementation(() => {
+        const err = Object.assign(new Error("EBUSY: resource busy or locked"), {
+          code: "EBUSY",
+        });
+        throw err;
+      });
+
+      const result = rotateBackup(DB_FILE);
+
+      expect(result.backupPath).toBe("");
+      expect(result.removed).toEqual([]);
+      // EBUSY exhausted → silent return, no logHookError call
+      expect(stderrSpy).not.toHaveBeenCalled();
+    });
+
+    it("still logs non-EBUSY errors (e.g. EACCES)", () => {
+      setup();
+      vi.spyOn(fs, "copyFileSync").mockImplementation(() => {
+        const err = Object.assign(new Error("EACCES: permission denied"), {
+          code: "EACCES",
+        });
+        throw err;
+      });
+
+      const result = rotateBackup(DB_FILE);
+
+      expect(result.backupPath).toBe("");
+      // Non-EBUSY → logHookError fires → stderr.write called
+      expect(stderrSpy).toHaveBeenCalledTimes(1);
+      const call = stderrSpy.mock.calls[0][0] as string;
+      expect(call).toContain("backup-rotate");
+    });
   });
 });
