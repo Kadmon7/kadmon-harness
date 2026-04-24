@@ -59,7 +59,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Plan Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /abra-kdabra | Smart planning — arkitect -> konstruct -> feniks (if TDD) -> kody chain with user approval gate | arkitect, konstruct, feniks, kody |
+| /abra-kdabra | Smart planning — arkitect -> konstruct -> feniks (if TDD) chain with user approval gate. Code review = /chekpoint's job. | arkitect, konstruct, feniks |
 
 ### Build Phase (1)
 | Command | Purpose | Agent |

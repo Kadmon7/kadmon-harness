@@ -129,7 +129,7 @@ Rules:
 
 #### Sequential (agents run in order)
 ```
-/abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd) → kody
+/abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd)
 /medik    direct (8 checks) → [mekanik, kurator] (parallel analysis) → gate → repair → verify
 /doks     doks
 /evolve   alchemik
