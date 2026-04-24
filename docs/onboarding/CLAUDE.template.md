@@ -1,7 +1,7 @@
 <!--
   Kadmon Harness — CLAUDE.md template
 
-  Two-step onboarding for a new project that consumes the harness:
+  Three-step onboarding for a new project that consumes the harness:
 
     1. Copy this file to <project-root>/CLAUDE.md and fill the sections
        marked [project-specific].
@@ -14,6 +14,22 @@
        46 skills, 22 hooks, 19 rules + orchestration chain + cheat sheet).
        Claude auto-loads it every session. Refresh it when the harness
        version bumps.
+
+    3. Copy the portable memory bundle (Tier 1 + Tier 2 as applicable) per
+       `docs/onboarding/portable_memories_index.md`. These carry the
+       architect's interaction style (honest pushback, tool discipline,
+       graphify-first, parallel-sessions rule, Spanish MX prose register,
+       reusable patterns) across every project slot so Claude does not
+       re-derive them through corrections each session.
+
+       Tier 1 (10 files) always copy. Tier 2 (8 files) copy only if the
+       corresponding component is installed in the target project. Do NOT
+       copy Tier 3 — those are Kadmon-Harness-internal (sprint state,
+       ADRs, gotchas) and pollute consumer slots.
+
+       After copying, append one line per file to the target slot's
+       MEMORY.md index under the matching slot heading. Slot caps still
+       apply (User 5, Feedback 10, References 8, etc.).
 
   Filename note: this file is `CLAUDE.template.md` (not `CLAUDE.md`) so
   Claude Code does NOT auto-load the template as the active CLAUDE.md.
