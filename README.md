@@ -2,8 +2,8 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-957%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-1.2.3-blue)]()
+[![Tests](https://img.shields.io/badge/tests-1053%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
@@ -254,7 +254,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Commands | **11** |
 | Hooks | **22** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **957 passing** (77 files) |
+| Tests | **1053 passing** (85 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -364,7 +364,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Build (1)
 | Command | Purpose |
 |---------|---------|
-| `/medik` | Full harness diagnostic — 8 health checks, repair, cleanup |
+| `/medik` | Full harness diagnostic — 14 health checks, repair, cleanup |
 
 ### Scan (1)
 | Command | Purpose |
@@ -625,8 +625,8 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 
 ## 📊 Status & Attribution
 
-**v1.2.3 — latest: install health telemetry + day's maintenance consolidated (2026-04-23)**
-`957 tests passing` · `77 files` · `22 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+**v1.3.0 — latest: /medik expansion (9→14 checks), --ALV diagnostic export, graphify adoption, Python SAST hook (2026-04-24)**
+`1053 tests passing` · `85 files` · `22 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

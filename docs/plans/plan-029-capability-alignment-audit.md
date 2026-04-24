@@ -2,7 +2,7 @@
 number: 29
 title: Capability & Metadata Alignment Audit
 date: 2026-04-24
-status: accepted
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-029-capability-alignment-audit.md

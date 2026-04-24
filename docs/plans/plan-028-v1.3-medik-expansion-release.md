@@ -2,7 +2,7 @@
 number: 28
 title: v1.3 Release — /medik Expansion + Diagnostic Export + Graphify Measurement Gate
 date: 2026-04-24
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-028-v1.3-medik-expansion-release.md

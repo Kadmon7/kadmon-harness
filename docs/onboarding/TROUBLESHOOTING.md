@@ -80,7 +80,7 @@ npx tsx -e "import('./scripts/lib/install-health.ts').then(m => console.log(m.ch
    '"C:\Program Files\Git\bin\..\usr\bin\bash.exe"'
 ```
 
-**Status**: Under investigation (Sprint E — out of scope for ADR-024 v1.2.3).
+**Status**: Under investigation (Sprint E — out of scope for ADR-024 v1.2.3, still open in v1.3.0).
 
 **Working hypothesis**: The generated `${HOOK_CMD_PREFIX}` in `.claude-plugin/hooks.json` injects bash-pipeline syntax (`PATH="$PATH:/c/Program Files/nodejs" node ...`). Claude Code's Agent tool context on Windows may invoke hooks via a shell that cannot execute bash pipelines, so the hook is skipped with a non-blocking status.
 

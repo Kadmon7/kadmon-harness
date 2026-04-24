@@ -37,7 +37,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 - `/abra-kdabra <task>` — sequential planning chain: arkitect (if architecture signals) → konstruct → feniks (if TDD) → kody. Produces ADRs + numbered plans in `docs/decisions/` + `docs/plans/`.
 
 ### Build (1)
-- `/medik` — 8-health-check harness diagnostic + parallel mekanik/kurator analysis + repair. Alias: `/MediK`.
+- `/medik` — 14-health-check harness diagnostic + parallel mekanik/kurator analysis + repair. Alias: `/MediK`. `--ALV` flag exports a redacted diagnostic bundle.
 
 ### Scan (1)
 - `/skanner` — deep system assessment: arkonte (performance) + kartograf (E2E tests) in parallel.
