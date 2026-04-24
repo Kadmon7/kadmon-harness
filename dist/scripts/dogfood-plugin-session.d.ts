@@ -28,7 +28,7 @@ export interface DogfoodReport {
     summary: {
         passed: number;
         failed: number;
-        total: 21;
+        total: 22;
     };
 }
 export declare const ALL_HOOK_NAMES: readonly string[];
@@ -39,7 +39,7 @@ export declare const ALL_HOOK_NAMES: readonly string[];
 export declare function checkSandbox(sandboxPath: string): SandboxStatus;
 /**
  * Builds a realistic sequence of ~10 Claude Code events that collectively
- * cover all 21 hooks. Order: SessionStart → N x (PreToolUse + PostToolUse) →
+ * cover all 22 hooks. Order: SessionStart → N x (PreToolUse + PostToolUse) →
  * PostToolUseFailure → PreCompact → Stop.
  */
 export declare function buildEventSequence(sessionId: string, sandboxCwd: string): SimulatedEvent[];

@@ -9,7 +9,7 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-## Hook Catalog (21 registered)
+## Hook Catalog (22 registered)
 
 ### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
@@ -35,7 +35,7 @@ alwaysApply: true
 |------|--------|---------|------|
 | observe-pre | observe-pre.js | Logs tool invocation to observations JSONL; captures Agent, TaskCreate, and TaskUpdate metadata | 0 always |
 
-### PostToolUse — Edit|Write matcher (7)
+### PostToolUse — Edit|Write matcher (8)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
@@ -45,6 +45,7 @@ alwaysApply: true
 | console-log-warn | console-log-warn.js | Warns about console.log() in .ts/.js and print() in .py production code (ADR-020; closes `rules/python/hooks.md` print() mandate) | 1 as warning |
 | deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json, pyproject.toml, or requirements.txt dependencies change (ADR-020) | 1 as warning |
 | agent-metadata-sync | agent-metadata-sync.js | Detects edits to `.claude/agents/*.md`, parses YAML frontmatter, and auto-syncs model/trigger changes into the CLAUDE.md agents table + `rules/common/agents.md` catalog. Fast-bails for non-agent files. Test env vars `KADMON_SYNC_CLAUDE_MD_PATH` / `KADMON_SYNC_AGENTS_MD_PATH` are gated to VITEST/NODE_ENV=test. Never exits 2. | 0 ok / 1 on warning |
+| post-edit-security | post-edit-security.js | Python SAST: runs `bandit -ll <file>` on .py edits (ADR-027). Warn-only. Graceful fallback when bandit not installed. Skips test files, fixtures, and dep paths. | 1 on findings |
 
 ### PostToolUse — Bash matcher (1)
 | Hook | Script | Purpose | Exit |
@@ -82,7 +83,7 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 
 | Module | Purpose | Used By |
 |--------|---------|---------|
-| parse-stdin.js | Sanitize Windows backslashes in JSON stdin | All 21 hooks |
+| parse-stdin.js | Sanitize Windows backslashes in JSON stdin | All 22 hooks |
 | evaluate-patterns-shared.js | Pattern evaluation against definitions | session-start, session-end-all, pre-compact-save |
 | generate-session-summary.js | Heuristic session summary from observations | session-start, session-end-all, pre-compact-save |
 | daily-log.js | Append/read daily session logs in memory/logs/ | session-start, session-end-all, pre-compact-save |
@@ -119,6 +120,6 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 - Changing the hook install location (moving `dist/` or the canonical root symlinks) requires updating `ensure-dist.js#resolveRootDir()` and the hooks.json generator in `scripts/generate-plugin-hooks.ts`.
 
 ## Windows Compatibility
-- All 21 registered hooks run via `${HOOK_CMD_PREFIX}` in `.claude-plugin/hooks.json`, which injects the Node.js PATH and `KADMON_RUNTIME_ROOT` in plugin mode (ADR-010 Phase 1). In local-dev mode the repo-root prefix is resolved via `ensure-dist.js#resolveRootDir()`.
+- All 22 registered hooks run via `${HOOK_CMD_PREFIX}` in `.claude-plugin/hooks.json`, which injects the Node.js PATH and `KADMON_RUNTIME_ROOT` in plugin mode (ADR-010 Phase 1). In local-dev mode the repo-root prefix is resolved via `ensure-dist.js#resolveRootDir()`.
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin

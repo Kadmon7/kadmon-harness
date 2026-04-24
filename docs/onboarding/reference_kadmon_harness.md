@@ -112,7 +112,7 @@ Rules live at `.claude/rules/common|typescript|python/*.md`. They encode MUST / 
 
 ---
 
-## 21 hooks — auto-fire on tool calls
+## 22 hooks — auto-fire on tool calls
 
 ### Block (exit 2) — 5
 - `block-no-verify` (Bash) — blocks `--no-verify` / `--no-gpg-sign` in git.

@@ -92,6 +92,10 @@
           {
             "type": "command",
             "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/agent-metadata-sync.js"
+          },
+          {
+            "type": "command",
+            "command": "${HOOK_CMD_PREFIX} ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/scripts/post-edit-security.js"
           }
         ],
         "matcher": "Edit|Write"

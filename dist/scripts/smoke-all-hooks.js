@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * smoke-all-hooks.ts
- * Capa 2 smoke test: itera los 21 hooks registrados en .claude/settings.json,
+ * Capa 2 smoke test: itera los 22 hooks registrados en .claude/settings.json,
  * genera stdin sintético, ejecuta cada hook con execFileSync, reporta pass/fail.
  *
  * Usage: npx tsx scripts/smoke-all-hooks.ts
@@ -23,6 +23,7 @@ const WARNING_HOOKS = new Set([
     "quality-gate",
     "post-edit-typecheck",
     "agent-metadata-sync",
+    "post-edit-security",
 ]);
 // Guard hooks: exit 2 is expected when their synthetic stdin triggers the guard
 const GUARD_HOOKS = new Set([

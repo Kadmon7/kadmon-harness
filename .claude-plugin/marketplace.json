@@ -8,7 +8,7 @@
     {
       "name": "kadmon-harness",
       "source": "./",
-      "description": "Full Kadmon Harness: 16 agents, 11 commands, 46 skills, 21 hooks."
+      "description": "Full Kadmon Harness: 16 agents, 11 commands, 46 skills, 22 hooks."
     }
   ]
 }

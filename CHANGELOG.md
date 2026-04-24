@@ -7,6 +7,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 ## [Unreleased]
 
 ### Added
+- **Python SAST hook** — [ADR-027](docs/decisions/ADR-027-python-bandit-sast-hook.md). New `post-edit-security.js` (hook #22) runs `bandit -ll <file>` on `.py` edits. Warn-only (exit 1 on findings). Graceful fallback when bandit is not installed. Skips test files, fixtures, and dep paths. Respects `KADMON_DISABLED_HOOKS`. Hook count 21 → 22. 11 new test cases at `tests/hooks/post-edit-security.test.ts`. Docs synced across `CLAUDE.md`, `rules/common/hooks.md`, `rules/typescript/hooks.md`, `rules/python/security.md`, `rules/python/hooks.md`, `README.md`, `marketplace.json`, `reference_kadmon_harness.md`, `CLAUDE.template.md`, `workspace-surface-audit/SKILL.md`.
 - **Graphify adoption** — [ADR-026](docs/decisions/ADR-026-graphify-adoption.md). External knowledge-graph layer ([safishamsi/graphify](https://github.com/safishamsi/graphify), MIT, Python 3.10+, 33k stars) shipped as the v1.3 roadmap item 7. Harness-side scope strictly limited to `.graphifyignore` (exclude instruction files from extraction), `.gitignore` entries (skip local-only artifacts), README "Using graphify" subsection, ADR-026, roadmap entry. Zero internal TS code. Single-commit reversible. Sprint E measurement gate: remove adoption if real token reduction < 3× on a 5-query benchmark. See `docs/research/research-007-graphify-spec-from-youtube.md` for spec sourcing.
 
 ### Changed

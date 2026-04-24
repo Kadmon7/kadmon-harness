@@ -4,10 +4,10 @@
  * E2E dogfood for plugin-mode hook verification.
  *
  * Simulates a complete Claude Code session against an external sandbox repo,
- * invoking all 21 hooks with plugin-mode env (KADMON_RUNTIME_ROOT unset, so
+ * invoking all 22 hooks with plugin-mode env (KADMON_RUNTIME_ROOT unset, so
  * the 3-level resolveRootDir() walk from the harness repo is exercised).
  *
- * Reports how many of the 21 hooks fire end-to-end in plugin mode.
+ * Reports how many of the 22 hooks fire end-to-end in plugin mode.
  *
  * Usage:
  *   npx tsx scripts/dogfood-plugin-session.ts [--sandbox <path>]
@@ -22,7 +22,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
 // ---------------------------------------------------------------------------
-// Constants: all 21 hook names (sourced from hooks.json/settings.json catalog)
+// Constants: all 22 hook names (sourced from hooks.json/settings.json catalog)
 // ---------------------------------------------------------------------------
 export const ALL_HOOK_NAMES = [
     // PreToolUse / Bash
@@ -47,6 +47,7 @@ export const ALL_HOOK_NAMES = [
     "console-log-warn",
     "deps-change-reminder",
     "agent-metadata-sync",
+    "post-edit-security",
     // PostToolUse / (all)
     "observe-post",
     // PostToolUseFailure / mcp__
@@ -73,6 +74,7 @@ const HOOK_MAP = {
         "console-log-warn",
         "deps-change-reminder",
         "agent-metadata-sync",
+        "post-edit-security",
     ],
     "PostToolUse/": ["observe-post"],
     "PostToolUseFailure/mcp__": ["mcp-health-failure"],
@@ -158,7 +160,7 @@ export function checkSandbox(sandboxPath) {
 // ---------------------------------------------------------------------------
 /**
  * Builds a realistic sequence of ~10 Claude Code events that collectively
- * cover all 21 hooks. Order: SessionStart → N x (PreToolUse + PostToolUse) →
+ * cover all 22 hooks. Order: SessionStart → N x (PreToolUse + PostToolUse) →
  * PostToolUseFailure → PreCompact → Stop.
  */
 export function buildEventSequence(sessionId, sandboxCwd) {
@@ -477,7 +479,7 @@ export async function runPluginModeDogfood(sandboxPath) {
     const summary = {
         passed: hooksInvoked.length,
         failed: hooksNotDisparados.length,
-        total: 21,
+        total: 22,
     };
     return {
         sandboxPath,
@@ -538,7 +540,7 @@ export function formatReport(report) {
         }
     }
     else {
-        lines.push("HOOKS NOT FIRED: (none — all 21 fired)");
+        lines.push("HOOKS NOT FIRED: (none — all 22 fired)");
     }
     lines.push("");
     // Summary

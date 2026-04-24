@@ -55,7 +55,7 @@ Kadmon-Harness/
 |   |-- commands/               # 11 slash commands
 |   |-- skills/                 # 46 skills at <name>/SKILL.md (ADR-013)
 |   |-- rules/                  # 19 rules (common + typescript + python)
-|   |-- hooks/scripts/          # 21 hooks + 8 shared modules
+|   |-- hooks/scripts/          # 22 hooks + 8 shared modules
 |   `-- settings.json
 |-- agents | commands | skills  # Canonical root symlinks → .claude/<type>/ (ADR-019, plugin loader discovery)
 |-- scripts/lib/                # TS: state-store, instincts, evolve-generate, install-apply, ...
@@ -140,7 +140,7 @@ Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: 
 Rules auto-load based on file context. See `.claude/rules/common/agents.md` for agent orchestration rules.
 
 ## Hooks
-21 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
+22 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
 
 ## Memory
 - **SQLite**: sessions, instincts, cost events, hook events, agent invocations, sync queue, research reports at `~/.kadmon/kadmon.db` (7 tables; research_reports added in ADR-015)
@@ -171,7 +171,7 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.2.3 — 939 tests / 76 files / 21 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+v1.2.3 — 957 tests / 77 files / 22 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
 Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025).
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
 Shipping history: `docs/decisions/` and `git log`.

@@ -58,9 +58,9 @@ describe("parseSettings", () => {
     expect(hooks[1].event).toBe("PreToolUse");
   });
 
-  it("returns EXACTLY 21 hooks for the real .claude/settings.json", () => {
+  it("returns EXACTLY 22 hooks for the real .claude/settings.json", () => {
     const hooks = parseSettings(REAL_SETTINGS_PATH);
-    expect(hooks).toHaveLength(21);
+    expect(hooks).toHaveLength(22);
   });
 
   it("all real hooks have valid event types", () => {
@@ -252,6 +252,11 @@ describe("classify", () => {
 
   it("exit 1 is pass for agent-metadata-sync (warning hook)", () => {
     const result = classify(makeResult("agent-metadata-sync", 1));
+    expect(result.status).toBe("pass");
+  });
+
+  it("exit 1 is pass for post-edit-security (warning hook)", () => {
+    const result = classify(makeResult("post-edit-security", 1));
     expect(result.status).toBe("pass");
   });
 

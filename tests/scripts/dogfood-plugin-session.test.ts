@@ -230,8 +230,8 @@ describe("buildEventSequence", () => {
     expect(parsed.cwd).toBe(SANDBOX_CWD);
   });
 
-  it("ALL_HOOK_NAMES has exactly 21 entries", () => {
-    expect(ALL_HOOK_NAMES).toHaveLength(21);
+  it("ALL_HOOK_NAMES has exactly 22 entries", () => {
+    expect(ALL_HOOK_NAMES).toHaveLength(22);
   });
 
   it("ALL_HOOK_NAMES includes known hooks", () => {
@@ -301,7 +301,7 @@ describe("formatReport", () => {
         makeHookResult("block-no-verify", 2, [0, 2], false),
       ],
       hooksNotDisparados: ["pre-compact-save"],
-      summary: { passed: 20, failed: 1, total: 21 },
+      summary: { passed: 21, failed: 1, total: 22 },
       ...overrides,
     };
   }
@@ -328,28 +328,28 @@ describe("formatReport", () => {
     expect(output).toContain("block-no-verify");
   });
 
-  it("all pass case: summary shows N/21 where N=21", () => {
+  it("all pass case: summary shows N/22 where N=22", () => {
     const allHooks: HookInvocationResult[] = ALL_HOOK_NAMES.map((h) =>
       makeHookResult(h, 1, [0], true),
     );
     const report = makeReport({
       hooksInvoked: allHooks,
       hooksNotDisparados: [],
-      summary: { passed: 21, failed: 0, total: 21 },
+      summary: { passed: 22, failed: 0, total: 22 },
     });
     const output = formatReport(report);
-    expect(output).toContain("21");
-    expect(output).toMatch(/21.*21|21\/21/);
+    expect(output).toContain("22");
+    expect(output).toMatch(/22.*22|22\/22/);
   });
 
   it("all fail case: summary shows failed count", () => {
     const report = makeReport({
       hooksInvoked: [],
       hooksNotDisparados: [...ALL_HOOK_NAMES],
-      summary: { passed: 0, failed: 21, total: 21 },
+      summary: { passed: 0, failed: 22, total: 22 },
     });
     const output = formatReport(report);
-    expect(output).toContain("21");
+    expect(output).toContain("22");
     // Failed hooks should be listed
     expect(output).toMatch(/0|none|failed/i);
   });
@@ -358,7 +358,7 @@ describe("formatReport", () => {
     const report = makeReport({
       hooksInvoked: [makeHookResult("session-start", 1, [0], true)],
       hooksNotDisparados: ["block-no-verify", "observe-pre"],
-      summary: { passed: 1, failed: 20, total: 21 },
+      summary: { passed: 1, failed: 21, total: 22 },
     });
     const output = formatReport(report);
     expect(output).toContain("session-start");
@@ -375,12 +375,12 @@ describe("formatReport", () => {
 
   it("includes summary passed/failed/total counts", () => {
     const report = makeReport({
-      summary: { passed: 15, failed: 6, total: 21 },
+      summary: { passed: 15, failed: 7, total: 22 },
     });
     const output = formatReport(report);
     expect(output).toContain("15");
-    expect(output).toContain("6");
-    expect(output).toContain("21");
+    expect(output).toContain("7");
+    expect(output).toContain("22");
   });
 
   it("includes projectHash in output", () => {
@@ -413,7 +413,7 @@ describe("DogfoodReport shape", () => {
     expect(result.persistedInDb).toBe(false);
   });
 
-  it("DogfoodReport summary totals to 21", () => {
+  it("DogfoodReport summary totals to 22", () => {
     const report: DogfoodReport = {
       sandboxPath: "/tmp/x",
       projectHash: "abc123def456789a",
@@ -421,9 +421,9 @@ describe("DogfoodReport shape", () => {
       totalEvents: 5,
       hooksInvoked: [],
       hooksNotDisparados: [...ALL_HOOK_NAMES],
-      summary: { passed: 0, failed: 21, total: 21 },
+      summary: { passed: 0, failed: 22, total: 22 },
     };
-    expect(report.summary.total).toBe(21);
-    expect(report.summary.passed + report.summary.failed).toBe(21);
+    expect(report.summary.total).toBe(22);
+    expect(report.summary.passed + report.summary.failed).toBe(22);
   });
 });
