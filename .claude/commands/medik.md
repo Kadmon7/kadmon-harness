@@ -25,7 +25,7 @@ Run all 8 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: 
 |   |       | Python | `pytest` | Test failures; warn if pytest missing |
 | 4 | Hook errors | both | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
 | 5 | DB health | both | Read `~/.kadmon/kadmon.db` | File exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), no corruption |
-| 6 | dist/ sync | TS | Compare `dist/` timestamps vs `scripts/lib/` | Stale compiled output, missing files |
+| 6 | dist/ sync | TS | Compare `dist/` timestamps vs `scripts/lib/` (excludes `*.d.ts` — declaration files don't compile) | Stale compiled output, missing files |
 |   |            | Python | (skipped — no dist/ in Python projects) | — |
 | 7 | Dependencies | TS | `npm audit` | Vulnerable packages, outdated deps |
 |   |              | Python | `pip-audit` (warn if not installed) | Vulnerable packages |
