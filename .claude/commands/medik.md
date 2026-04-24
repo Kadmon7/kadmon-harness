@@ -11,6 +11,32 @@ Always runs the full pipeline. If you're running /medik, you want the complete p
 
 ## Steps
 
+### Phase 0: Flag detection
+
+Before running any health checks, inspect `$ARGUMENTS` for special flags.
+
+**`--ALV` flag** (Attach-Log-Verify):
+If `$ARGUMENTS` matches `--ALV`, generate a redacted diagnostic report and exit — skip Phases 1-4 entirely.
+
+```bash
+npx tsx -e "
+import('./scripts/lib/medik-alv.js').then(m => {
+  const p = m.writeAlvReport(process.cwd());
+  console.log('ALV report written to: ' + p);
+});
+"
+```
+
+The report (`diagnostic-YYYY-MM-DDTHHmm.txt`) contains:
+- Header: timestamp, platform, Node version, git branch/HEAD
+- `=== INSTALL-DIAGNOSTIC ===` — last 10 install-diagnostic log entries
+- `=== HOOK-ERRORS ===` — last 10 hook-error log entries (or `(no recent hook errors)`)
+- `=== FRESH-HEALTH ===` — live `checkInstallHealth()` result
+
+All paths are redacted (homedir → `~`, cwd → `.`, user segments masked). File mode is `0o600`.
+
+If `$ARGUMENTS` is empty or does not match a known flag, continue to Phase 1.
+
 ### Phase 1: Health Checks (direct — no agent)
 
 Run all 13 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `scripts/lib/detect-project-language.ts`) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
