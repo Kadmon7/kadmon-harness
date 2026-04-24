@@ -19,7 +19,9 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 
 ## graphify
 
-This project has a graphify knowledge graph at graphify-out/.
+This project has a graphify knowledge graph at graphify-out/. Adoption confirmed Sprint E 2026-04-24 with **8.11× token reduction** (ADR-026).
+
+**Primary memory reference**: `~/.claude/projects/C--Command-Center-Kadmon-Harness/memory/reference_graphify.md` — 5 rules, commands cheat-sheet, benchmark results, foot-gun link.
 
 Rules:
 - Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
@@ -92,7 +94,7 @@ Kadmon-Harness/
 | alchemik | opus |
 | skavenger | sonnet |
 
-Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD) → kody`.
+Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD)`. Code review = `/chekpoint`'s job, not `/abra-kdabra`'s.
 
 ## Commands (11)
 - **Observe** (2): /nexus, /kompact
@@ -101,11 +103,11 @@ Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitec
 - **Scan** (1): /skanner
 - **Research** (1): /skavenger (routes A=Media / B=General — see skavenger agent doc)
 - **Remember** (3): /chekpoint, /almanak, /doks
-- **Evolve** (2): /forge, /evolve (step 6 Generate is EXPERIMENTAL through 2026-04-28)
+- **Evolve** (2): /forge, /evolve (step 6 Generate promoted to accepted 2026-04-24 after observation window)
 
 ## Skills (46)
 
-Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8.
+Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029).
 
 ## External Tools
 
@@ -162,6 +164,5 @@ Hybrid model (ADR-010 + ADR-019):
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
 v1.3.0 — 1053 tests / 85 files / 22 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables / 14 /medik checks.
-Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025). Graphify adoption (ADR-026, Sprint E PASS 8.11x). Python SAST hook (ADR-027). /medik expansion 9→14 + --ALV export (ADR-028, ADR-029).
-Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
+Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025). Graphify adoption (ADR-026, Sprint E PASS 8.11x). Python SAST hook (ADR-027). /medik expansion 9→14 + --ALV export (ADR-028, ADR-029). /evolve Generate step 6 promoted to accepted 2026-04-24.
 Shipping history: `docs/decisions/` and `git log`.

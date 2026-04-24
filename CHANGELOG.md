@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Docs
+- `/evolve` Generate step 6 promoted from EXPERIMENTAL to accepted (observation window ended 2026-04-24). CLAUDE.md + reference docs updated. ADR-008 was already accepted; the EXPERIMENTAL tag was a post-ship uncertainty marker that has been resolved.
+- v1.3.1 performance + quality roadmap published at `docs/roadmap/v1.3.1-performance-and-quality.md` — 15 deferred hygiene items catalogued (arkonte perf + kurator quality + mekanik integration + 4 LOW/feature items) with effort sizing and implementation order.
+- `/abra-kdabra` command cleanup: dropped redundant Step 5 (kody review) because command produces a PLAN not code; kody runs automatically in `/chekpoint` Phase 2b when implementation ships. Added Spanish + visual Approval Gate TL;DR block (Decisión / Por qué / Alcance / Riesgo / Esfuerzo / Tests) so user decides approve/reject in seconds without opening the ADR/plan files. 2 rules tables synced (`rules/common/agents.md`, `rules/common/development-workflow.md`). See plan-030 Phase B.
+- `.gitignore` now excludes `.claude/scheduled_tasks.lock` (per-session scheduler lock file created by `/schedule` + `/loop` skills).
+
 ## [1.3.0] — 2026-04-24
 
 ### Added
