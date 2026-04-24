@@ -71,6 +71,6 @@ No harness code to unpick. No schema migrations. No deprecated commands. The des
 
 ## Follow-ups (Sprint E)
 
-- [ ] 5-query token benchmark pre/post graphify on this repo
-- [ ] Promote adoption to first-class `/medik graphify` subcommand (Check #14) if benchmark passes and team commit-cadence for `graphify-out/` is consistent
-- [ ] Nexus badge for graph freshness (age of `graphify-out/graph.json` vs `HEAD` commit date)
+- [x] 5-query token benchmark pre/post graphify on this repo — **PASSED 2026-04-24**. Expanded to 10 queries for robustness. Method C (total session cost, GRAPH_REPORT amortized once + wiki notes per query): **8.11× avg**. Method B (per-query, GRAPH_REPORT amortized): **20.07× avg**. Method A literal (GRAPH_REPORT counted per query) gave 1.77× but formula has obvious flaw — GRAPH_REPORT.md is navigation index loaded once per session, not per query. Below creator's 71.5× claim but well above 3.0× threshold. Full table at `docs/roadmap/v1.3-medik-expansion.md` item 7. Adoption confirmed.
+- [ ] Promote adoption to first-class `/medik graphify` subcommand (Check #14) if benchmark passes and team commit-cadence for `graphify-out/` is consistent — deferred to v1.4
+- [ ] Nexus badge for graph freshness (age of `graphify-out/graph.json` vs `HEAD` commit date) — deferred to v1.4
