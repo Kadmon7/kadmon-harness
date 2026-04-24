@@ -1,21 +1,34 @@
-# Harness instruction files — Claude already reads these every session.
-# Extracting them as graph nodes pollutes clusters with meta-instruction content.
+# Only truly redundant / generated / self-referential files.
+# KEEP INCLUDED (so graphify maps the harness architecture):
+#   .claude/agents/   — 16 specialists + their skill chains
+#   .claude/skills/   — 46 reusable domain skills
+#   .claude/commands/ — 11 command orchestrations
+#   .claude/rules/    — 19 conventions enforced by hooks
+#   docs/decisions/   — ADRs (design rationale IS knowledge)
+#   docs/plans/       — implementation plans
+#   scripts/lib/      — runtime TypeScript
+#   tests/lib/        — unit tests as behavior spec
+
+# Instruction files Claude reads every session — extraction would be circular.
 CLAUDE.md
 AGENTS.md
-.claude/agents/
-.claude/skills/
-.claude/commands/
-.claude/rules/
 .claude/settings.json
+.claude/settings.local.json
 
-# Generated artifacts.
+# Generated artifacts (not knowledge).
 dist/
 node_modules/
 coverage/
+.husky/_/
+*.tsbuildinfo
 
-# Test fixtures and build-scratch noise.
+# Test fixtures and build scratch (not architecture).
 tests/fixtures/
 tests/build/
 
-# Harness's own graph output — never self-ingest.
+# Graphify's own output — NEVER self-ingest. Reading graph.json back in
+# would build a graph-of-the-graph on each rebuild = recursion noise.
 graphify-out/
+
+# Lock files (massive, machine-reproducible, no semantic value).
+package-lock.json
