@@ -1,6 +1,6 @@
 ---
-description: Smart planning for complex tasks — arkitect -> konstruct -> feniks (if TDD) -> kody chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
-agent: arkitect, konstruct, feniks, kody
+description: Smart planning for complex tasks — arkitect -> konstruct -> feniks (if TDD) chain with user approval gate. Invoke for multi-file, uncertain, or cross-system changes.
+agent: arkitect, konstruct, feniks
 skills: [architecture-decision-records, tdd-workflow, eval-harness, council]
 ---
 
@@ -69,13 +69,24 @@ Scan the task for council triggers BEFORE routing to arkitect/konstruct:
 
 **MANDATORY STOP.** Do not proceed to implementation without explicit user approval.
 
-Present to the user:
-- Route taken (A or B)
-- ADR path (if Route A)
-- Plan summary from `docs/plans/plan-NNN-[slug].md`
-- Whether TDD mode is flagged (`needs_tdd` value)
+**Render the gate exactly in this Spanish + visual format** (RUNTIME OUTPUT to user — emojis + español MX register match user's prose preference per global CLAUDE.md "Working Style"; this is gate prose, NOT artifact code, so emojis are compliant):
 
-Ask: **"Plan complete in docs/plans/plan-NNN-[slug].md. Continue to implementation?"**
+```
+## ✨ Approval Gate
+
+**🎯 Decisión**: <ADR title or plan title, one line>
+**🤔 Por qué**: <motivation from ADR Context or plan Overview, 1-2 lines>
+**📦 Alcance**: <files/components touched — derived from plan steps>
+**⚠️ Riesgo**: <main risk from plan Risks & Mitigations, one line>
+**⏱️ Esfuerzo**: <S/M/L + estimated hours>
+**🧪 Tests**: <count + new TDD targets — if needs_tdd: true, list test surfaces>
+
+📄 Full ADR: `docs/decisions/ADR-NNN-slug.md` · Plan: `docs/plans/plan-NNN-slug.md`
+```
+
+Then ask: **"¿Continúo a implementación?"**
+
+The TL;DR unblocks the user from opening full files just to decide approve/reject. Files stay linked for drill-down.
 
 Wait for explicit approval. If the user requests changes, update the plan and re-present.
 
@@ -99,12 +110,7 @@ Do not call `TaskCreate` for Phase 0: Research — read-only exploration is not 
 
 **If `needs_tdd: false`**: Implement directly without TDD guidance (config changes, docs, trivial edits).
 
-### Step 5: Code Review (after code exists)
-
-Invoke **kody agent** (sonnet) ONLY after implementation is complete.
-- Review all changes made during Step 4
-- Aggregate findings by severity: BLOCK / WARN / NOTE
-- BLOCK items must be fixed before proceeding
+> **No code review step here.** /abra-kdabra produces a PLAN, not code. konstruct already validates plan structure. When implementation actually ships, `/chekpoint` Phase 2b invokes kody automatically — doubling here would be redundant. Code review = `/chekpoint`'s job, not /abra-kdabra's.
 
 ## Shared Memory Bus
 - `docs/decisions/ADR-NNN-[slug].md` — arkitect's architecture decision record (Route A only)

@@ -54,7 +54,7 @@ export function logInstallDiagnostic(report, logDir) {
 
     const dir = logDir ?? path.join(os.homedir(), ".kadmon");
     const logPath = path.join(dir, LOG_FILENAME);
-    _rotatingLog.writeRotatingJsonlLog(logPath, report);
+    _rotatingLog.writeRotatingJsonlLog(logPath, { _v: 1, ...report });
   } catch {
     // Never throw from the logger — telemetry failures are non-fatal.
   }

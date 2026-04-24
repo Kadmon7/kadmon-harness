@@ -1,6 +1,6 @@
 {
   "name": "kadmon-harness",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "description": "Claude Code's operative layer for TypeScript and Python projects — agents, commands, skills, and hooks distributed via plugin; rules and permissions distributed via install.sh/install.ps1 bootstrap (ADR-010). Runtime language detection per ADR-020. Install health telemetry per ADR-024.",
   "author": { "name": "Kadmon7" },
   "license": "MIT",

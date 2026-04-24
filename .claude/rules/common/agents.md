@@ -129,7 +129,7 @@ Rules:
 
 #### Sequential (agents run in order)
 ```
-/abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd) → kody
+/abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd)
 /medik    direct (8 checks) → [mekanik, kurator] (parallel analysis) → gate → repair → verify
 /doks     doks
 /evolve   alchemik
@@ -167,6 +167,22 @@ Not every skill is owned by an agent. Some skills are loaded directly by command
 | `council` | `/abra-kdabra` Step 1.5 (ambiguity detected) + main orchestrator ad-hoc | The skill's core mechanism is spawning 3 fresh sibling sub-agents via `Task` for anti-anchoring. Anthropic's observable pattern is orchestrator-driven spawning; nesting `Task` inside a sub-agent is neither documented nor endorsed. Keeping council at the command/orchestrator level matches that pattern and avoids granting `Task` to planner agents (konstruct, arkitect) that don't otherwise need it. Moved here 2026-04-23 after empirical test proved konstruct's declared ownership was unexecutable (lacked `Task`). |
 
 When adding new command-level skills, document the rationale here so future audits don't flag them as orphaned.
+
+### Skill capability declaration — `requires_tools:` frontmatter (plan-029)
+
+Skills that invoke sub-agents, `WebFetch`, or other tools outside their owner agent's default grant SHOULD declare a `requires_tools:` field in frontmatter as a YAML flow (`[Task]`) or block list:
+
+```yaml
+---
+name: council
+description: ...
+requires_tools: [Task]
+---
+```
+
+Purpose: `/medik` Check #14 (capability-alignment) compares each skill's `requires_tools:` against its owner agent's `tools:` field. Mismatches emit severity **FAIL** — a skill whose owner lacks a required tool is silently unexecutable (the council pre-2026-04-23 pattern). Seed adopters: `council` (`[Task]`), `deep-research` (`[Task, WebFetch, WebSearch]`).
+
+Opt-in: when `requires_tools:` is missing, the check falls back to a heuristic body-scan (regex on `Task(`, `WebFetch`, `Bash(`) and emits severity **WARN** with a suggestion to formalize. Explicit declaration always beats heuristic.
 
 ## Agent Template Contract
 

@@ -125,6 +125,16 @@ describe("logInstallDiagnostic", () => {
       logInstallDiagnostic(mkReport(), "/definitely/not/a/real/dir/path"),
     ).not.toThrow();
   });
+
+  it("writes _v: 1 on every entry post-v1.3 (ADR-028 Item 2)", () => {
+    setup();
+    logInstallDiagnostic(mkReport(), TEMP_DIR);
+
+    const entries = readInstallDiagnostics(TEMP_DIR);
+    expect(entries.length).toBe(1);
+    expect(entries[0]!._v).toBe(1);
+    expect(entries[0]!.rootDir).toBe("/fake/root");
+  });
 });
 
 describe("readInstallDiagnostics", () => {

@@ -366,10 +366,13 @@ describe("session-start", () => {
       recursive: true,
     });
     // Copy dist modules so the hook can import them against the fake root.
+    // Skips subdirectories (e.g. medik-checks/) — only flat files needed for hook import.
     const realDist = path.join(process.cwd(), "dist", "scripts", "lib");
     for (const file of fs.readdirSync(realDist)) {
+      const srcPath = path.join(realDist, file);
+      if (fs.statSync(srcPath).isDirectory()) continue;
       fs.copyFileSync(
-        path.join(realDist, file),
+        srcPath,
         path.join(fakeRoot, "dist", "scripts", "lib", file),
       );
     }

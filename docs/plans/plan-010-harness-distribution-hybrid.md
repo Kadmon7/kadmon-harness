@@ -2,7 +2,7 @@
 number: 10
 title: Harness Distribution via Hybrid Plugin + Bootstrap
 date: 2026-04-14
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-010-harness-distribution-hybrid.md

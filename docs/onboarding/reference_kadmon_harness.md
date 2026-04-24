@@ -4,18 +4,18 @@ description: How to use the Kadmon Harness Claude Code plugin in this project. 1
 type: reference
 ---
 
-# Kadmon Harness v1.2.3 — quick reference
+# Kadmon Harness v1.3.0 — quick reference
 
 This project has the Kadmon Harness Claude Code plugin installed (and optionally the `install.sh` bootstrap for rules + permissions). This file tells Claude what's available and when to use each piece.
 
-**Source of truth** — https://github.com/Kadmon7/kadmon-harness · Release v1.2.3 · MIT licensed. Refresh this file when the harness version bumps.
+**Source of truth** — https://github.com/Kadmon7/kadmon-harness · Release v1.3.0 · MIT licensed. Refresh this file when the harness version bumps.
 
 **What's new since v1.1:**
 - **v1.2** — Python support (ADR-020): language-aware hooks branch on file extension (`.py` → ruff / mypy / print() warnings); python-reviewer auto-invokes on `.py` edits; Python rules at `.claude/rules/python/`.
 - **v1.2.2** — CORE permissions bootstrap (ADR-021): 9 essential `permissions.allow` shipped via installer.
 - **v1.2.3** — Install Health Telemetry (ADR-024) + Versioning Policy (ADR-025).
-- **Unreleased** — Python SAST hook (ADR-027): `post-edit-security` runs `bandit -ll` on `.py` edits (hook count 21 → 22).
-- **Tests:** 637 → 957 (+50%). Files: 60 → 77. Agents / skills / commands / rules counts unchanged.
+- **v1.3.0** — `/medik` expansion 9→14 checks (ADR-028, ADR-029): 5 new health checks (stale-plans, hook-health-24h, instinct-decay-candidates, skill-creator-probe, capability-alignment) regrouped under 4 categories. `/medik --ALV` diagnostic export with cross-platform path redaction. Typed install-diagnostic reader + `_v: 1` schema. Graphify adoption (ADR-026, Sprint E PASS at 8.11× token reduction). Python SAST hook (ADR-027): `post-edit-security` runs `bandit -ll` on `.py` edits.
+- **Tests:** 637 → 1053 (+65%). Files: 60 → 85. Hooks: 21 → 22. /medik checks: 8 → 14.
 
 ## Mantra
 
@@ -37,7 +37,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 - `/abra-kdabra <task>` — sequential planning chain: arkitect (if architecture signals) → konstruct → feniks (if TDD) → kody. Produces ADRs + numbered plans in `docs/decisions/` + `docs/plans/`.
 
 ### Build (1)
-- `/medik` — 8-health-check harness diagnostic + parallel mekanik/kurator analysis + repair. Alias: `/MediK`.
+- `/medik` — 14-health-check harness diagnostic + parallel mekanik/kurator analysis + repair. Alias: `/MediK`. `--ALV` flag exports a redacted diagnostic bundle.
 
 ### Scan (1)
 - `/skanner` — deep system assessment: arkonte (performance) + kartograf (E2E tests) in parallel.
