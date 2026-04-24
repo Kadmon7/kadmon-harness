@@ -60,3 +60,8 @@ docs/insights/
 graphify-out/cache/
 graphify-out/manifest.json
 graphify-out/cost.json
+# Obsidian vault: 883 regenerable visualization notes (re-build from graph.json via to_obsidian).
+# Human-facing only; Claude reads graph.json + wiki/, not the vault (ADR-026 + research-007).
+graphify-out/obsidian/
+# Ephemeral Q&A memory from graphify save-result (re-accrues on next runs).
+graphify-out/memory/
