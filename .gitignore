@@ -53,3 +53,10 @@ Thumbs.db
 
 # ─── Personal productivity notes (not for plugin distribution) ────────────────
 docs/insights/
+
+# ─── graphify — external knowledge-graph layer (ADR-026) ──────────────────────
+# Keep graph.json, GRAPH_REPORT.md, graph.html committable (team workflow).
+# Skip local-only heavy or machine-specific artifacts per upstream README.
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json

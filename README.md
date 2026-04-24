@@ -588,6 +588,38 @@ Example instincts:
 
 </details>
 
+<details>
+<summary><strong>Using graphify</strong> — external knowledge-graph layer (v1.3+, ADR-026)</summary>
+
+The harness adopts [`graphify`](https://github.com/safishamsi/graphify) (MIT, Python 3.10+) as an external knowledge-graph layer. It scans the repo, builds `graphify-out/graph.json`, and registers a PreToolUse hook nudging Claude to consult the graph before blanket `Grep` / `Glob` scans.
+
+**Install (one-time, per collaborator):**
+
+```bash
+uv tool install graphifyy          # or: pipx install graphifyy
+graphify install
+graphify claude install            # writes project-scoped CLAUDE.md section + .claude/settings.json hook
+```
+
+**First build** (LLM-expensive — Claude subagents extract concepts from non-code files):
+
+```bash
+graphify .
+git add graphify-out/ .graphifyignore
+git commit -m "chore: initial graphify build"
+```
+
+**Keep the graph fresh:**
+
+```bash
+graphify hook install              # post-commit hook, AST-only incremental rebuilds (no LLM cost for code-only changes)
+graphify --update                  # manual re-run when docs / ADRs / plans change significantly
+```
+
+**Measurement (Sprint E):** 5-query token benchmark pre/post graphify. Adoption removed if real reduction < 3×. See [`ADR-026`](docs/decisions/ADR-026-graphify-adoption.md).
+
+</details>
+
 ---
 
 ## 📊 Status & Attribution

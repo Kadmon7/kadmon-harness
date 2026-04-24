@@ -1,0 +1,21 @@
+# Harness instruction files — Claude already reads these every session.
+# Extracting them as graph nodes pollutes clusters with meta-instruction content.
+CLAUDE.md
+AGENTS.md
+.claude/agents/
+.claude/skills/
+.claude/commands/
+.claude/rules/
+.claude/settings.json
+
+# Generated artifacts.
+dist/
+node_modules/
+coverage/
+
+# Test fixtures and build-scratch noise.
+tests/fixtures/
+tests/build/
+
+# Harness's own graph output — never self-ingest.
+graphify-out/

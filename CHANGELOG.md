@@ -4,6 +4,17 @@ All notable changes to Kadmon Harness are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/) applied to the `.claude-plugin/plugin.json` version. `package.json` tracks the same version for consistency. Release cadence policy: [ADR-025](docs/decisions/ADR-025-versioning-policy.md) — MINOR bumps for narrative features, PATCH only for post-release hotfixes.
 
+## [Unreleased]
+
+### Added
+- **Graphify adoption** — [ADR-026](docs/decisions/ADR-026-graphify-adoption.md). External knowledge-graph layer ([safishamsi/graphify](https://github.com/safishamsi/graphify), MIT, Python 3.10+, 33k stars) shipped as the v1.3 roadmap item 7. Harness-side scope strictly limited to `.graphifyignore` (exclude instruction files from extraction), `.gitignore` entries (skip local-only artifacts), README "Using graphify" subsection, ADR-026, roadmap entry. Zero internal TS code. Single-commit reversible. Sprint E measurement gate: remove adoption if real token reduction < 3× on a 5-query benchmark. See `docs/research/research-007-graphify-spec-from-youtube.md` for spec sourcing.
+
+### Changed
+- `ts-review-reminder` hook threshold raised 5 → 10 edits without code review. DB history showed 0 fires historically; 5 was a guess, 10 better matches a single feature or ~5 TDD cycles. Docs synced across `rules/common/hooks.md`, `rules/python/hooks.md`, `README.md`, `docs/onboarding/reference_kadmon_harness.md`. Commit 8914b48.
+
+### Docs
+- Privacy scrub — replaced Joe/Eden/Abraham with generic roles (`collaborator`, `macOS collaborator`, `Windows collaborator`) across 16 docs + 3 test-comment files. Platform kept as technical fact where it matters. Ych-Kadmon + Kadmon7 handles retained (already public). Git history intentionally not rewritten. Commit 64103b8.
+
 ## [1.2.3] — 2026-04-23
 
 ### Added
