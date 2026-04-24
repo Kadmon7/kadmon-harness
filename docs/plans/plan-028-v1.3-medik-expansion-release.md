@@ -30,7 +30,7 @@ Ships v1.3.0 of Kadmon Harness: expand `/medik` from 9 to 13 runtime checks (sta
 - [ ] Read `tests/lib/db-health.test.ts` — copy `openDb(':memory:')` + seed + cleanup pattern for new check tests
 - [ ] Read `scripts/lib/install-remediation.ts` — confirm `escapeRegex` / `escapePwshDoubleQuoted` exports (reuse, DO NOT recreate)
 - [ ] Read `scripts/lib/utils.ts` — confirm `kadmonDataDir()` export (reuse for `~/.kadmon` resolution)
-- [ ] `git log --oneline af6e65e^..1f56014` — confirm the 4 graphify revert SHAs still reachable from `main`
+- [ ] `git log --oneline 1f5e8ab^..e75b050` — confirm the 5 graphify revert SHAs still reachable from `main`
 
 ### Phase 1: Item 5 — `/medik` Check #6 `.d.ts` spec fix (S, TDD-exempt per testing.md "config/docs" carve-out)
 - [ ] Step 1.1: Update Check #6 row in `medik.md` table + narrative
@@ -281,7 +281,7 @@ Common setup: create `scripts/lib/medik-checks/` + `tests/lib/medik-checks/`. Ea
 - **Phase 4 (Checks #10-12)**: delete `scripts/lib/medik-checks/{stale-plans,hook-health-24h,instinct-decay-candidates}.ts` + tests; revert medik.md table rows.
 - **Phase 5 (Check #13)**: delete `scripts/lib/medik-checks/skill-creator-probe.ts` + test; revert medik.md row.
 - **Phase 6 (`--ALV`)**: delete `scripts/lib/medik-alv.ts` + test; revert medik.md Phase 0 block + frontmatter description. No persistent state to clean (`diagnostic-*.txt` lives in user cwd).
-- **Phase 7 (graphify FAIL path)**: run `git revert af6e65e 7cfd583 de3395d 1f56014` (from ADR-026); update ADR-026 `status: rejected`; adjust CHANGELOG note accordingly. Commands are pre-identified and single-commit reversible by design.
+- **Phase 7 (graphify FAIL path)**: run `git revert 1f5e8ab 60ab099 28b4bb5 b50f96f e75b050` (verified 2026-04-24 via `git log | grep graphify`); update ADR-026 `status: rejected`; adjust CHANGELOG note accordingly. Commands are pre-identified and single-commit reversible by design.
 - **Phase 8 (release)**: `git tag -d v1.3.0 && git push origin :refs/tags/v1.3.0`; revert version-bump commit; re-run `/chekpoint`.
 
 ### Risks & Mitigations
@@ -290,7 +290,7 @@ Common setup: create `scripts/lib/medik-checks/` + `tests/lib/medik-checks/`. Ea
 - **`hook_events` scan cost on long-lived DBs** → `LIMIT 100`; index `idx_hook_events_timestamp` already exists.
 - **Cross-platform redaction completeness** → dedicated Windows/macOS/Linux fixtures; assert absence of `os.userInfo().username`.
 - **Commit fatigue across 8 commits** → TDD per phase; each commit independently reviewable; release commit is pure version-bump + CHANGELOG.
-- **Graphify FAIL triggers large revert** → revert SHAs pre-identified (`af6e65e`, `7cfd583`, `de3393d` → actual: `de3395d`, `1f56014`); ADR-026 designed single-commit reversible.
+- **Graphify FAIL triggers large revert** → revert SHAs pre-identified (`1f5e8ab`, `60ab099`, `28b4bb5`, `b50f96f`, `e75b050` — verified 2026-04-24); ADR-026 designed single-commit reversible.
 - **`/medik --ALV` file mode on Windows NTFS** → `fs.writeFileSync(..., { mode: 0o600 })` + post-write `fs.chmodSync` fallback; document that NTFS ACLs may render mode advisory rather than enforcing.
 
 ### Out of Scope (enforced guardrails against scope creep)

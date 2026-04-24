@@ -2,7 +2,7 @@
 number: 19
 title: Canonical Root Symlinks for Plugin Loader
 date: 2026-04-20
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-019-canonical-root-symlinks-for-plugin-loader.md

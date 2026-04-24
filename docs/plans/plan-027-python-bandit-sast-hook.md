@@ -2,7 +2,7 @@
 number: 27
 title: Python bandit SAST auto-invoke hook
 date: 2026-04-24
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-027-python-bandit-sast-hook.md

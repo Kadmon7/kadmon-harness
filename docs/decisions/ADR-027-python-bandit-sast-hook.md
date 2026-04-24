@@ -2,7 +2,7 @@
 number: 27
 title: Python bandit SAST auto-invoke hook
 date: 2026-04-24
-status: proposed
+status: accepted
 route: A
 plan: plan-027-python-bandit-sast-hook.md
 ---
