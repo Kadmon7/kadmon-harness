@@ -161,7 +161,7 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.2.3 — 957 tests / 77 files / 22 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
-Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025).
+v1.2.3 — 1053 tests / 85 files / 22 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables.
+Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025). Capability alignment audit via /medik Check #14 (ADR-029).
 Experimental: `/evolve` Generate step 6 (sunset review 2026-04-28).
 Shipping history: `docs/decisions/` and `git log`.

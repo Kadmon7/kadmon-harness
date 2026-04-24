@@ -36,3 +36,12 @@ export interface CapabilityMatrix {
 export declare function buildCapabilityMatrix(ctx: {
     cwd: string;
 }): CapabilityMatrix;
+export type ViolationKind = "capability-mismatch" | "ownership-drift" | "path-drift" | "command-skill-drift" | "orphan-skill" | "heuristic-tool-mismatch";
+export interface Violation {
+    kind: ViolationKind;
+    severity: "FAIL" | "WARN" | "NOTE";
+    subject: string;
+    message: string;
+    evidence: string;
+}
+export declare function findViolations(matrix: CapabilityMatrix): Violation[];

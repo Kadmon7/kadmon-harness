@@ -1,6 +1,7 @@
 ---
 name: deep-research
 description: Multi-source deep research methodology — plan sub-questions, search with WebSearch/WebFetch/Context7, deep-read key sources, synthesize cited reports with inline citations. Use this skill whenever the user asks to "research", "investigate", "deep dive", "compare", "evaluate options", "look into", or says "what's the current state of", "due diligence", "competitive analysis", "market sizing", or needs any evidence-based analysis drawing on sources beyond the current codebase. Also use when the user asks for an opinion on a technology or framework — research first, then recommend with citations. Prefer this over WebSearch-alone because the methodology forces sub-question decomposition and cross-referencing.
+requires_tools: [Task, WebFetch, WebSearch]
 ---
 
 # Deep Research

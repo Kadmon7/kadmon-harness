@@ -1,11 +1,11 @@
 ---
-description: "Full harness diagnostic — 8 health checks + deep agent analysis + repair. Alias: /MediK"
+description: "Full harness diagnostic — 14 health checks + deep agent analysis + repair. Alias: /MediK"
 agent: mekanik, kurator
 skills: [systematic-debugging, coding-standards]
 ---
 
 ## Purpose
-Full harness health diagnostic. Runs 13 mechanical checks grouped into 4 categories, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
+Full harness health diagnostic. Runs 14 mechanical checks grouped into 4 categories, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
 
 Always runs the full pipeline. If you're running /medik, you want the complete picture.
 
@@ -39,7 +39,7 @@ If `$ARGUMENTS` is empty or does not match a known flag, continue to Phase 1.
 
 ### Phase 1: Health Checks (direct — no agent)
 
-Run all 13 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `scripts/lib/detect-project-language.ts`) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
+Run all 14 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `scripts/lib/detect-project-language.ts`) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
 
 | # | Check | Language | Command / Method | What to look for |
 |---|-------|----------|-----------------|------------------|
@@ -65,12 +65,13 @@ Run all 13 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020:
 | **Knowledge hygiene** |
 | 10 | Stale plans | both | `scripts/lib/medik-checks/stale-plans.ts` | `status: pending` plans older than 3 days with recent git activity (WARN); accepted/completed plans ignored |
 | 12 | Instinct decay | both | `scripts/lib/medik-checks/instinct-decay-candidates.ts` | Active instincts with confidence < 0.3 and last_observed_at > 30 days ago (or NULL) — advisory NOTE, not blocking |
+| 14 | Capability alignment | both | `scripts/lib/medik-checks/capability-alignment.ts` | Skill/agent/command metadata drift: capability-mismatch (FAIL), path-drift (FAIL), command-skill-drift (FAIL), ownership-drift (WARN), heuristic-tool-mismatch (WARN), orphan-skill (NOTE). Opt-in `requires_tools:` skill frontmatter + heuristic body-scan fallback. See plan-029 + ADR-029. |
 
 > **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language.
 >
 > **Note:** Check 9 exit code is 0 when `report.ok === true`, 1 otherwise. mekanik reads the JSON output in Phase 2 and suggests the matching remediation (PowerShell for plugin-cache, git checkout for dev-clone paths — see `scripts/lib/install-remediation.ts`). Historical diagnostics live in `~/.kadmon/install-diagnostic.log` (ADR-024).
 >
-> **Note:** Checks 10-13 are implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `scripts/lib/medik-checks/`. Each exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database.
+> **Note:** Checks 10-14 are implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `scripts/lib/medik-checks/`. Each exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation.
 
 ### Phase 2: Deep Analysis (agents — always runs)
 

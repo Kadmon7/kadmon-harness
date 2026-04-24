@@ -168,6 +168,22 @@ Not every skill is owned by an agent. Some skills are loaded directly by command
 
 When adding new command-level skills, document the rationale here so future audits don't flag them as orphaned.
 
+### Skill capability declaration — `requires_tools:` frontmatter (plan-029)
+
+Skills that invoke sub-agents, `WebFetch`, or other tools outside their owner agent's default grant SHOULD declare a `requires_tools:` field in frontmatter as a YAML flow (`[Task]`) or block list:
+
+```yaml
+---
+name: council
+description: ...
+requires_tools: [Task]
+---
+```
+
+Purpose: `/medik` Check #14 (capability-alignment) compares each skill's `requires_tools:` against its owner agent's `tools:` field. Mismatches emit severity **FAIL** — a skill whose owner lacks a required tool is silently unexecutable (the council pre-2026-04-23 pattern). Seed adopters: `council` (`[Task]`), `deep-research` (`[Task, WebFetch, WebSearch]`).
+
+Opt-in: when `requires_tools:` is missing, the check falls back to a heuristic body-scan (regex on `Task(`, `WebFetch`, `Bash(`) and emits severity **WARN** with a suggestion to formalize. Explicit declaration always beats heuristic.
+
 ## Agent Template Contract
 
 Every new agent file MUST derive from the canonical skeleton at `.claude/agents/_TEMPLATE.md.example`. The template uses the `.md.example` extension so Claude Code's plugin loader and the frontmatter linter (both `.md`-only scanners) skip it — this replaces the original underscore-prefix-only convention (ADR-017, 2026-04-19), which ADR-019 dogfood 2026-04-20 proved the Claude Code plugin loader does NOT respect. The linter at `scripts/lib/lint-agent-frontmatter.ts` still filters `_`-prefix as an additional safety net.

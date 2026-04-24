@@ -1,6 +1,7 @@
 ---
 name: council
 description: Convene a four-voice council (Architect, Skeptic, Pragmatist, Critic) for ambiguous decisions, tradeoffs, and go/no-go calls — using subagent isolation as an anti-anchoring mechanism. Use this skill whenever a decision has multiple credible paths and no obvious winner, when you need explicit tradeoff surfacing, when conversational anchoring is a real risk, when the user asks for "second opinions", "dissent", "multiple perspectives", "council", "tradeoffs", "should we ship now or wait", or when a go/no-go call would benefit from adversarial challenge. Do NOT use for verifying correctness (use `verification-loop`), implementation planning (`konstruct`), system architecture (`arkitect`), code review (`kody`), straight factual questions, or obvious execution tasks.
+requires_tools: [Task]
 ---
 
 # Council

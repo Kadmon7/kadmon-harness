@@ -145,7 +145,8 @@ export function parseCommandLevelSkillsTable(agentsMdContent) {
         if (!m)
             continue;
         // Strip "plugin:" prefixes like "skill-creator:skill-creator" -> "skill-creator"
-        const name = m[1].includes(":") ? m[1].split(":").pop() : m[1];
+        const parts = m[1].split(":");
+        const name = parts.at(-1) ?? m[1];
         out.add(name);
     }
     return out;
@@ -181,6 +182,10 @@ export function buildCapabilityMatrix(ctx) {
         else
             agents.push(r);
     }
+    // Resolve command-level skills first so each SkillEntry is constructed with its final shape.
+    const commandLevelSkills = existsSync(agentsRulePath)
+        ? parseCommandLevelSkillsTable(readFileSync(agentsRulePath, "utf8"))
+        : new Set();
     for (const entry of safeReaddir(skillsDir)) {
         const skillDir = join(skillsDir, entry);
         let isDir = false;
@@ -195,11 +200,18 @@ export function buildCapabilityMatrix(ctx) {
         const filePath = join(skillDir, "SKILL.md");
         if (!existsSync(filePath))
             continue;
-        const r = parseSkillFrontmatter(readFileSync(filePath, "utf8"), filePath);
-        if ("error" in r)
+        const content = readFileSync(filePath, "utf8");
+        const r = parseSkillFrontmatter(content, filePath);
+        if ("error" in r) {
             parseErrors.push(r.error);
-        else
-            skills.push(r);
+            continue;
+        }
+        const bodyAfter = content.replace(FRONTMATTER_RE, "");
+        skills.push({
+            ...r,
+            heuristicTools: scanHeuristicTools(bodyAfter),
+            isCommandLevel: commandLevelSkills.has(r.name),
+        });
     }
     for (const f of safeReaddir(commandsDir)) {
         if (!f.endsWith(".md"))
@@ -211,13 +223,98 @@ export function buildCapabilityMatrix(ctx) {
         else
             commands.push(r);
     }
-    let commandLevelSkills = new Set();
-    if (existsSync(agentsRulePath)) {
-        commandLevelSkills = parseCommandLevelSkillsTable(readFileSync(agentsRulePath, "utf8"));
-    }
-    for (const s of skills) {
-        if (commandLevelSkills.has(s.name))
-            s.isCommandLevel = true;
-    }
     return { agents, skills, commands, commandLevelSkills, parseErrors };
+}
+function resolveOwner(skill, matrix) {
+    if (skill.declaredOwner) {
+        const byDecl = matrix.agents.find((a) => a.name === skill.declaredOwner);
+        if (byDecl)
+            return byDecl;
+    }
+    return matrix.agents.find((a) => a.skills.includes(skill.name));
+}
+function isPathDriftToken(token) {
+    // Valid declaration is a bare skill name. Path-like tokens (containing / or \
+    // or ending in .md) indicate ADR-013 violation.
+    return /[\\/]/.test(token) || /\.md$/i.test(token);
+}
+export function findViolations(matrix) {
+    const out = [];
+    const skillNames = new Set(matrix.skills.map((s) => s.name));
+    for (const skill of matrix.skills) {
+        const owner = resolveOwner(skill, matrix);
+        // orphan-skill: no owner AND not command-level
+        if (!owner && !skill.isCommandLevel) {
+            out.push({
+                kind: "orphan-skill",
+                severity: "NOTE",
+                subject: skill.name,
+                message: `Skill "${skill.name}" has no owner agent and is not a command-level skill.`,
+                evidence: skill.filePath,
+            });
+            continue;
+        }
+        // ownership-drift: declaredOwner exists but does not list this skill
+        if (skill.declaredOwner &&
+            owner &&
+            !owner.skills.includes(skill.name)) {
+            out.push({
+                kind: "ownership-drift",
+                severity: "WARN",
+                subject: skill.name,
+                message: `Agent "${owner.name}" is declared owner of "${skill.name}" but does not list it in skills:.`,
+                evidence: `${skill.filePath} <-> ${owner.filePath}`,
+            });
+        }
+        // capability-mismatch: declared requires_tools not covered by owner.tools
+        if (owner && skill.requiresTools.length > 0) {
+            const missing = skill.requiresTools.filter((t) => !owner.tools.includes(t));
+            if (missing.length > 0) {
+                out.push({
+                    kind: "capability-mismatch",
+                    severity: "FAIL",
+                    subject: skill.name,
+                    message: `Skill "${skill.name}" requires [${missing.join(", ")}] but owner "${owner.name}" lacks them.`,
+                    evidence: `${skill.filePath} requires ${missing.join(", ")} ; ${owner.filePath} tools=[${owner.tools.join(", ")}]`,
+                });
+            }
+        }
+        // heuristic-tool-mismatch: body-scan found tool, not in requires_tools, owner also lacks it
+        if (owner && skill.requiresTools.length === 0 && skill.heuristicTools.length > 0) {
+            const missing = skill.heuristicTools.filter((t) => !owner.tools.includes(t));
+            if (missing.length > 0) {
+                out.push({
+                    kind: "heuristic-tool-mismatch",
+                    severity: "WARN",
+                    subject: skill.name,
+                    message: `Skill "${skill.name}" body references ${missing.join(", ")} (heuristic); owner "${owner.name}" lacks them. Add requires_tools: to formalize.`,
+                    evidence: `${skill.filePath} (body scan) ; ${owner.filePath} tools=[${owner.tools.join(", ")}]`,
+                });
+            }
+        }
+    }
+    for (const cmd of matrix.commands) {
+        for (const ref of cmd.skills) {
+            if (isPathDriftToken(ref)) {
+                out.push({
+                    kind: "path-drift",
+                    severity: "FAIL",
+                    subject: cmd.name,
+                    message: `Command "${cmd.name}" references skill "${ref}" as a path (ADR-013 violation).`,
+                    evidence: cmd.filePath,
+                });
+                continue;
+            }
+            if (!skillNames.has(ref)) {
+                out.push({
+                    kind: "command-skill-drift",
+                    severity: "FAIL",
+                    subject: ref,
+                    message: `Command "${cmd.name}" references skill "${ref}" which does not exist.`,
+                    evidence: cmd.filePath,
+                });
+            }
+        }
+    }
+    return out;
 }
