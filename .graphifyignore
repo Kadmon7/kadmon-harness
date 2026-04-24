@@ -32,3 +32,14 @@ graphify-out/
 
 # Lock files (massive, machine-reproducible, no semantic value).
 package-lock.json
+
+# Security — secrets and local DBs. graphify's auto-skip is directory-only,
+# so root-level .env / *.db files leak into the graph without explicit patterns.
+.env
+.env.*
+*.db
+*.db-journal
+
+# Personal Claude scratch and curated insights (gitignored — keep out of graph too).
+.claude.local.md
+docs/insights/
