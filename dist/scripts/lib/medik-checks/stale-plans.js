@@ -12,7 +12,8 @@ function hasPlanRecentGitActivity(planPath, cwd) {
         // Use forward slashes for git — works cross-platform
         const relPath = path.relative(cwd, planPath).replace(/\\/g, "/");
         // execFileSync with arg array — NO shell interpolation (security rule, no command injection surface)
-        const output = execFileSync("git", ["log", "--since=7 days ago", "--", relPath], { encoding: "utf8", cwd, stdio: ["pipe", "pipe", "pipe"] });
+        // timeout 3000ms + stdin=ignore — matches medik-alv.ts runGit for hang-safety on network FS / credential prompts
+        const output = execFileSync("git", ["log", "--since=7 days ago", "--", relPath], { encoding: "utf8", cwd, timeout: 3000, stdio: ["ignore", "pipe", "pipe"] });
         return output.trim().length > 0;
     }
     catch {

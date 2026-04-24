@@ -34,6 +34,29 @@ function buildEscapeVariants(p) {
 }
 // Zod schema for entry records that expose a rootDir we should seed into redaction.
 const rootDirSchema = z.object({ rootDir: z.string().min(1) }).passthrough();
+// Matches Windows (C:\...) and POSIX (/...) absolute paths embedded in free-form strings.
+// Used by harvestPathsFromString to catch paths in error/stack fields (spektr HIGH-1).
+const ABS_PATH_RE = /(?:[A-Za-z]:(?:\\{1,4}|\/)|\/)[\w.\- ]+(?:(?:\\{1,4}|\/)[\w.\- ]+){1,}/g;
+function harvestPathsFromString(s, out) {
+    if (typeof s !== "string" || s.length === 0)
+        return;
+    const m = s.match(ABS_PATH_RE);
+    if (m)
+        for (const p of m)
+            out.add(path.dirname(p));
+}
+// Section-header forge prevention (spektr HIGH-2).
+// A log entry whose string contains `=== SOMETHING ===` on its own line could forge a fake
+// section boundary when embedded in the report. Indent any such line so the header is
+// neutralized without losing the content.
+const SECTION_FORGE_RE = /^\s*={3,}\s+[A-Z][A-Z0-9 _-]+\s+={3,}\s*$/m;
+function sanitizeForReport(s) {
+    return s
+        .replace(/\r\n/g, "\n")
+        .split("\n")
+        .map((line) => (SECTION_FORGE_RE.test(line) ? `  ${line}` : line))
+        .join("\n");
+}
 /**
  * Redact sensitive path segments from `text`.
  *
@@ -131,6 +154,10 @@ function collectAdditionalRoots(diagEntries, hookErrors) {
                 roots.add(path.dirname(val));
             }
         }
+        // spektr HIGH-1: scan free-form error/stack/context for embedded absolute paths
+        harvestPathsFromString(obj.error, roots);
+        harvestPathsFromString(obj.stack, roots);
+        harvestPathsFromString(obj.context, roots);
     }
     const runtimeRoot = process.env.KADMON_RUNTIME_ROOT;
     if (runtimeRoot)
@@ -146,13 +173,15 @@ export function generateAlvReport(cwd) {
     const hookErrorsLogPath = path.join(os.homedir(), ".kadmon", "hook-errors.log");
     const hookErrors = readRotatingJsonlLog(hookErrorsLogPath, 10);
     const extraRoots = collectAdditionalRoots(diagEntries, hookErrors);
+    // sanitizeForReport (spektr HIGH-2) neutralizes any `=== SECTION ===` forgery
+    // attempts embedded in log entries before concatenation.
     const diagSection = diagEntries.length === 0
         ? "(no install-diagnostic entries)"
-        : diagEntries.map((e) => JSON.stringify(e, null, 2)).join("\n\n");
+        : diagEntries.map((e) => sanitizeForReport(JSON.stringify(e, null, 2))).join("\n\n");
     const hookSection = hookErrors.length === 0
         ? "(no recent hook errors)"
-        : hookErrors.map((e) => JSON.stringify(e, null, 2)).join("\n\n");
-    const healthSection = JSON.stringify(checkInstallHealth(cwd), null, 2);
+        : hookErrors.map((e) => sanitizeForReport(JSON.stringify(e, null, 2))).join("\n\n");
+    const healthSection = sanitizeForReport(JSON.stringify(checkInstallHealth(cwd), null, 2));
     const raw = [
         buildHeader(cwd),
         "\n\n=== INSTALL-DIAGNOSTIC ===\n\n" + diagSection,

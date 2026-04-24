@@ -11,12 +11,15 @@ export function runCheck(ctx) {
         path.join(ctx.cwd, ".claude", "skills", "skill-creator", "SKILL.md"),
         path.join(homedir, ".claude", "skills", "skill-creator", "SKILL.md"),
     ];
-    for (const candidatePath of candidates) {
-        if (existsSync(candidatePath)) {
+    // Human-readable labels (NOT absolute paths) — avoids leaking username when
+    // the /medik conversational output is pasted (only --ALV output is redacted).
+    const labels = ["plugin cache", "project skills", "global skills"];
+    for (let i = 0; i < candidates.length; i++) {
+        if (existsSync(candidates[i])) {
             return {
                 status: "PASS",
                 category: "runtime",
-                message: `skill-creator found at ${candidatePath}`,
+                message: `skill-creator found (${labels[i]})`,
             };
         }
     }
