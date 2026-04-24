@@ -17,16 +17,6 @@ no_context — if no evidence exists, respond `no_context` and flag what is miss
 
 Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 
-## Self-Improvement Loop (mid-session)
-
-Commit-time learning runs via `/forge` + `/evolve`. This loop is for **immediate in-session reaction**:
-
-- **On correction** ("no así", "esto estuvo mal"): write to auto-memory (`feedback` type) BEFORE the next tool call.
-- **On validation** ("sí, perfecto, sigue así" or acceptance of a non-obvious choice): save as positive feedback memory — `/forge` biases toward failures, capture successes manually.
-- **On déjà-vu**: stop, read `memory/feedback_*.md` + `memory/project_*.md` before proceeding.
-
-See `continuous-learning-v2` skill and `~/.claude/projects/<project>/memory/MEMORY.md`.
-
 ## graphify
 
 This project has a graphify knowledge graph at graphify-out/.
