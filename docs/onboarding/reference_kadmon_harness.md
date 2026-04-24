@@ -1,6 +1,6 @@
 ---
 name: Kadmon Harness — commands, agents, skills, hooks catalog
-description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 46 skills, 21 auto-hooks, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
+description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 46 skills, 22 auto-hooks, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
 type: reference
 ---
 
@@ -14,7 +14,8 @@ This project has the Kadmon Harness Claude Code plugin installed (and optionally
 - **v1.2** — Python support (ADR-020): language-aware hooks branch on file extension (`.py` → ruff / mypy / print() warnings); python-reviewer auto-invokes on `.py` edits; Python rules at `.claude/rules/python/`.
 - **v1.2.2** — CORE permissions bootstrap (ADR-021): 9 essential `permissions.allow` shipped via installer.
 - **v1.2.3** — Install Health Telemetry (ADR-024) + Versioning Policy (ADR-025).
-- **Tests:** 637 → 934 (+47%). Files: 60 → 75. Hooks / agents / skills / commands / rules counts unchanged.
+- **Unreleased** — Python SAST hook (ADR-027): `post-edit-security` runs `bandit -ll` on `.py` edits (hook count 21 → 22).
+- **Tests:** 637 → 957 (+50%). Files: 60 → 77. Agents / skills / commands / rules counts unchanged.
 
 ## Mantra
 
@@ -131,8 +132,8 @@ Rules live at `.claude/rules/common|typescript|python/*.md`. They encode MUST / 
 ### Observe (exit 0) — 2
 - `observe-pre`, `observe-post` — log every tool call / result to JSONL.
 
-### Post-edit verification — 4
-- `post-edit-format`, `post-edit-typecheck`, `quality-gate`, `pr-created`.
+### Post-edit verification — 5
+- `post-edit-format`, `post-edit-typecheck` (language-aware: tsc for `.ts`, mypy/pyright for `.py`), `quality-gate` (ESLint for `.ts`, ruff for `.py`), `post-edit-security` (Python SAST via bandit, ADR-027), `pr-created`.
 
 ### Lifecycle — 3
 - `session-start`, `session-end-all`, `pre-compact-save`.

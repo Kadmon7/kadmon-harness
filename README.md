@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-939%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-957%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.2.3-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -199,7 +199,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
 │  │ PreTool  │→ │  Tool    │→ │ PostTool │             │
-│  │ Hooks(8) │  │ Execute  │  │ Hooks(10)│             │
+│  │ Hooks(8) │  │ Execute  │  │ Hooks(11)│             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │       │                            │                    │
 │       ▼                            ▼                    │
@@ -252,9 +252,9 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Agents | **16** (5 opus, 11 sonnet) |
 | Skills | **46** |
 | Commands | **11** |
-| Hooks | **21** |
+| Hooks | **22** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **939 passing** (76 files) |
+| Tests | **957 passing** (77 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -392,7 +392,7 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>21 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
+<summary><strong>22 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
 
 ### Security — block dangerous operations (exit 2)
 | Hook | Event | What It Does |
@@ -422,8 +422,9 @@ Full component details are below (collapsed by default). For the operational cat
 | Hook | Event | What It Does |
 |------|-------|-------------|
 | **post-edit-format** | PostToolUse | Auto-formats edited files with Prettier |
-| **post-edit-typecheck** | PostToolUse | Runs `tsc --noEmit` on `.ts`/`.tsx` |
-| **quality-gate** | PostToolUse | Runs ESLint on edited files |
+| **post-edit-typecheck** | PostToolUse | Language-aware: `tsc --noEmit` on `.ts`/`.tsx`; mypy/pyright/py_compile on `.py` |
+| **quality-gate** | PostToolUse | Language-aware: ESLint on `.ts`/`.js`; `ruff check` on `.py` |
+| **post-edit-security** | PostToolUse | Python SAST: `bandit -ll` on `.py` edits (warn-only, graceful fallback) — ADR-027 |
 | **pr-created** | PostToolUse | Detects PR creation and logs URL |
 
 ### Session lifecycle
