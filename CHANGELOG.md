@@ -6,12 +6,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
-### Docs
-- `/evolve` Generate step 6 promoted from EXPERIMENTAL to accepted (observation window ended 2026-04-24). CLAUDE.md + reference docs updated. ADR-008 was already accepted; the EXPERIMENTAL tag was a post-ship uncertainty marker that has been resolved.
-- v1.3.1 performance + quality roadmap published at `docs/roadmap/v1.3.1-performance-and-quality.md` — 15 deferred hygiene items catalogued (arkonte perf + kurator quality + mekanik integration + 4 LOW/feature items) with effort sizing and implementation order.
-- `/abra-kdabra` command cleanup: dropped redundant Step 5 (kody review) because command produces a PLAN not code; kody runs automatically in `/chekpoint` Phase 2b when implementation ships. Added Spanish + visual Approval Gate TL;DR block (Decisión / Por qué / Alcance / Riesgo / Esfuerzo / Tests) so user decides approve/reject in seconds without opening the ADR/plan files. 2 rules tables synced (`rules/common/agents.md`, `rules/common/development-workflow.md`). See plan-030 Phase B.
-- `.gitignore` now excludes `.claude/scheduled_tasks.lock` (per-session scheduler lock file created by `/schedule` + `/loop` skills).
-
 ## [1.3.0] — 2026-04-24
 
 ### Added
@@ -38,6 +32,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ### Docs
 - Privacy scrub — replaced collaborator personal names with generic roles (`collaborator`, `macOS collaborator`, `Windows collaborator`) across 16 docs + 3 test-comment files. Platform kept as technical fact where it matters. Ych-Kadmon + Kadmon7 handles retained (already public). Git history intentionally not rewritten.
+
+### Post-release hygiene (consolidated 2026-04-24 same-day, per plan-030)
+- **`/evolve` Generate step 6 promoted EXPERIMENTAL → accepted.** Observation window ended 2026-04-24. ADR-008 was already accepted; the EXPERIMENTAL tag was a post-ship uncertainty marker that has been resolved. CLAUDE.md + reference docs updated accordingly.
+- **`/abra-kdabra` command cleanup.** Dropped redundant Step 5 (kody review) because the command produces a PLAN not code; kody runs automatically in `/chekpoint` Phase 2b when implementation ships. Added Spanish + visual Approval Gate TL;DR block (Decisión / Por qué / Alcance / Riesgo / Esfuerzo / Tests) so user decides approve/reject in seconds without opening the ADR/plan files. 2 rules tables synced (`rules/common/agents.md`, `rules/common/development-workflow.md`). See plan-030 Phase B.
+- **v1.3.1 backlog roadmap published** at `docs/roadmap/v1.3.1-performance-and-quality.md` — 15 deferred hygiene items catalogued (arkonte perf + kurator quality + mekanik integration + 4 LOW/feature items) with effort sizing and implementation order. ~12-14h total estimated.
+- **ADR-028 status drift fixed** — was `proposed`, now `accepted` (shipped in this release).
+- **`.gitignore`** now excludes `.claude/scheduled_tasks.lock` (per-session scheduler lock file created by `/schedule` + `/loop` skills).
+- **CLAUDE.md drift audit note** updated: `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029).
+- plan-028, plan-029, plan-030 frontmatter statuses flipped to `completed`.
 
 ### Notes
 - **Sprint E graphify benchmark (PASS, 8.11×)** — 10-query benchmark on this repo. Method C (total session cost, GRAPH_REPORT amortized once + wikis per query): **8.11×** avg ratio. Method B (per-query, GRAPH amortized): **20.07×**. Method A literal (GRAPH counted per query): 1.77× — formula flaw flagged: GRAPH_REPORT.md is a navigation index loaded once per session, not per query. Below creator's 71.5× claim but well above 3.0× threshold. ADR-026 stays accepted. Promotion to first-class `/medik graphify` subcommand deferred to v1.4. Full table at `docs/roadmap/v1.3-medik-expansion.md` item 7.
