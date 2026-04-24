@@ -109,7 +109,7 @@ Workflow:
 
 ### Phase 4: Verify
 
-Re-run all 13 health checks to confirm everything is green. Report final status in conversation grouped by category (Core / Runtime / Code hygiene / Knowledge hygiene).
+Re-run all 14 health checks to confirm everything is green. Report final status in conversation grouped by category (Core / Runtime / Code hygiene / Knowledge hygiene).
 
 ## Output
 Health check table + agent findings + fix results + verification — all in conversation, no file artifacts.
