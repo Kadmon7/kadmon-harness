@@ -50,6 +50,8 @@ Thumbs.db
 .claude.local.md
 .claude/agent-memory/
 .claude/settings.local.json
+# Session scheduler lock (created by /schedule + /loop skills — per-session pid+sessionId)
+.claude/scheduled_tasks.lock
 
 # ─── Personal productivity notes (not for plugin distribution) ────────────────
 docs/insights/
