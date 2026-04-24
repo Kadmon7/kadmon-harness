@@ -2,7 +2,7 @@
 number: 30
 title: v1.3.0 Post-Release Hygiene
 date: 2026-04-24
-status: in_progress
+status: completed
 needs_tdd: false
 route: B
 adr: none
