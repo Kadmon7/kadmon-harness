@@ -8,15 +8,15 @@ globs: [".claude/hooks/scripts/*.js"]
 > This file extends [common/hooks.md](../common/hooks.md) with TypeScript-specific content.
 
 ## Compilation
-- Hook scripts are .js files that run directly via Node.js
-- Lifecycle hooks import compiled TypeScript from dist/scripts/lib/
+- Hook scripts are `.js` files that run directly via Node.js
+- Lifecycle hooks import compiled TypeScript from the project's `dist/` output
 - MUST run `npm run build` before lifecycle hooks work
-- MUST handle import failures gracefully with visible WARNING message
+- MUST handle import failures gracefully with a visible WARNING message
 
 ## Types
-- MUST import types from scripts/lib/types.ts for type checking
-- MUST handle null/undefined from sql.js queries (rows can be null)
-- MUST type all JSON.parse results (use unknown + validation)
+- MUST import types from the project's shared types module (single source of truth)
+- MUST handle null/undefined from database queries (rows can be null)
+- MUST type all `JSON.parse` results (use `unknown` + validation)
 
 ## Input
 - MUST read stdin as: `fs.readFileSync(0, 'utf8')`

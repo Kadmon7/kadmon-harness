@@ -16,8 +16,8 @@ alwaysApply: true
 |------|--------|---------|------|
 | block-no-verify | block-no-verify.js | Blocks git commands with --no-verify flag | 2 on match |
 | commit-format-guard | commit-format-guard.js | Blocks git commits that don't follow conventional commit format | 2 on violation |
-| commit-quality | commit-quality.js | Language-aware staged-change scanner (ADR-020): console.log/debugger/secrets in .ts/.js; print()/breakpoint() in .py production code. Skips .md, test files (test_*.py, *_test.py, tests/) and hook files. | 2 on violation |
-| git-push-reminder | git-push-reminder.js | Warns before git push if typecheck/tests not run in session, OR if unpushed commits contain production code (scripts/lib/** or .claude/hooks/scripts/** .ts/.js) or touch 10+ files without review. Docs/metadata/config commits are legitimate skip-tier and no longer trigger false warnings. | 1 as warning |
+| commit-quality | commit-quality.js | Language-aware staged-change scanner: console.log/debugger/secrets in .ts/.js; print()/breakpoint() in .py production code. Skips .md, test files (test_*.py, *_test.py, tests/) and hook files. | 2 on violation |
+| git-push-reminder | git-push-reminder.js | Warns before git push if typecheck/tests not run in session, OR if unpushed commits contain production code (project source tree or hook scripts) or touch 10+ files without review. Docs/metadata/config commits are legitimate skip-tier and no longer trigger false warnings. | 1 as warning |
 
 ### PreToolUse — Edit|Write matcher (2)
 | Hook | Script | Purpose | Exit |
@@ -39,13 +39,13 @@ alwaysApply: true
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
 | post-edit-format | post-edit-format.js | Auto-formats edited files after write | 0 always |
-| post-edit-typecheck | post-edit-typecheck.js | Language-aware typecheck (ADR-020): .ts/.tsx → `tsc --noEmit`; .py → mypy → pyright → python -m py_compile (first installed). Exits 0 with warning if no Python typechecker is present. | 1 on type errors |
-| quality-gate | quality-gate.js | Language-aware lint (ADR-020): .ts/.tsx/.js/.jsx → ESLint; .py → ruff check. Skips with warning if the toolchain is not installed. | 1 on issues |
-| ts-review-reminder | ts-review-reminder.js | Warns after 10+ .ts/.tsx/.py edits without code review in session. Counter resets when kody, typescript-reviewer, or python-reviewer is invoked. (Script name retained for backwards compat; rename deferred to 1.3.) | 1 as warning |
-| console-log-warn | console-log-warn.js | Warns about console.log() in .ts/.js and print() in .py production code (ADR-020; closes `rules/python/hooks.md` print() mandate) | 1 as warning |
-| deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json, pyproject.toml, or requirements.txt dependencies change (ADR-020) | 1 as warning |
-| agent-metadata-sync | agent-metadata-sync.js | Detects edits to `.claude/agents/*.md`, parses YAML frontmatter, and auto-syncs model/trigger changes into the CLAUDE.md agents table + `rules/common/agents.md` catalog. Fast-bails for non-agent files. Test env vars `KADMON_SYNC_CLAUDE_MD_PATH` / `KADMON_SYNC_AGENTS_MD_PATH` are gated to VITEST/NODE_ENV=test. Never exits 2. | 0 ok / 1 on warning |
-| post-edit-security | post-edit-security.js | Python SAST: runs `bandit -ll <file>` on .py edits (ADR-027). Warn-only. Graceful fallback when bandit not installed. Skips test files, fixtures, and dep paths. | 1 on findings |
+| post-edit-typecheck | post-edit-typecheck.js | Language-aware typecheck: .ts/.tsx → `tsc --noEmit`; .py → mypy → pyright → python -m py_compile (first installed). Exits 0 with warning if no Python typechecker is present. | 1 on type errors |
+| quality-gate | quality-gate.js | Language-aware lint: .ts/.tsx/.js/.jsx → ESLint; .py → ruff check. Skips with warning if the toolchain is not installed. | 1 on issues |
+| ts-review-reminder | ts-review-reminder.js | Warns after 10+ .ts/.tsx/.py edits without code review in session. Counter resets when kody, typescript-reviewer, or python-reviewer is invoked. | 1 as warning |
+| console-log-warn | console-log-warn.js | Warns about console.log() in .ts/.js and print() in .py production code | 1 as warning |
+| deps-change-reminder | deps-change-reminder.js | Reminds to run /almanak when package.json, pyproject.toml, or requirements.txt dependencies change | 1 as warning |
+| agent-metadata-sync | agent-metadata-sync.js | Detects edits to `.claude/agents/*.md`, parses YAML frontmatter, and auto-syncs model/trigger changes into the CLAUDE.md agents table + agents catalog. Fast-bails for non-agent files. Never exits 2. | 0 ok / 1 on warning |
+| post-edit-security | post-edit-security.js | Python SAST: runs `bandit -ll <file>` on .py edits. Warn-only. Graceful fallback when bandit not installed. Skips test files, fixtures, and dep paths. | 1 on findings |
 
 ### PostToolUse — Bash matcher (1)
 | Hook | Script | Purpose | Exit |
@@ -75,7 +75,7 @@ alwaysApply: true
 ### Stop — all (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (replaces 4 separate hooks to avoid sql.js race condition) | 0 always |
+| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (single hook avoids races on shared SQLite handle) | 0 always |
 
 ## Shared Modules (8)
 
@@ -88,8 +88,8 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 | generate-session-summary.js | Heuristic session summary from observations | session-start, session-end-all, pre-compact-save |
 | daily-log.js | Append/read daily session logs in memory/logs/ | session-start, session-end-all, pre-compact-save |
 | ensure-dist.js | Detect stale dist/ and auto-rebuild | session-start, session-end-all, pre-compact-save |
-| hook-logger.js | Persist hook errors to ~/.kadmon/hook-errors.log | session-start, session-end-all, pre-compact-save, evaluate-patterns-shared |
-| backup-rotate.js | Maintain 3 timestamped backups of kadmon.db | session-start |
+| hook-logger.js | Persist hook errors to a local log file | session-start, session-end-all, pre-compact-save, evaluate-patterns-shared |
+| backup-rotate.js | Maintain 3 timestamped backups of the local SQLite database | session-start |
 | log-hook-event.js | Append hook execution events to session-scoped JSONL | 9 blocking/warning hooks (persisted to DB by session-end-all) |
 
 ## Safety
@@ -106,16 +106,16 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 - Hooks read input from stdin as JSON
 - observe hooks write to JSONL files (file append, no DB)
 - 9 blocking/warning hooks write to `hook-events.jsonl` via `logHookEvent()` (persisted to SQLite by session-end-all)
-- Sprint C (2026-04-14) instrumented 9 hooks with `durationMs = Date.now() - start` on every `logHookEvent` call: block-no-verify, commit-format-guard, commit-quality, config-protection, console-log-warn, deps-change-reminder, git-push-reminder, no-context-guard, ts-review-reminder. The `log-hook-event.js` JSDoc now documents `durationMs` as required. ADR-007 fixes the prior bug where `hook_events.duration_ms` was always NULL.
+- Blocking/warning hooks log `durationMs = Date.now() - start` on every `logHookEvent` call for performance telemetry
 - session-end-all extracts agent invocations from `observations.jsonl` and hook events from `hook-events.jsonl`, persists both to DB
 - Lifecycle hooks (session-start, session-end-all) may access SQLite via compiled TypeScript in dist/
 - MUST run `npm run build` before lifecycle hooks can access state-store
 
-## Plugin-Mode Runtime Resolution (ADR-010 Phase 1)
+## Plugin-Mode Runtime Resolution
 
-Lifecycle hooks (session-start, session-end-all, pre-compact-save) import from `dist/scripts/lib/*.js`. Local-dev mode resolves via 3-level walk (`ensure-dist.js#resolveRootDir()`); plugin mode resolves via `KADMON_RUNTIME_ROOT=${CLAUDE_PLUGIN_DATA}` set by `.claude-plugin/hooks.json`. MUST leave `KADMON_RUNTIME_ROOT` unset in local dev. Changing hook install location requires updating `ensure-dist.js#resolveRootDir()` AND `scripts/generate-plugin-hooks.ts`. Full reference (why the walk fails in plugin mode, plugin cache layout, hooks.json generator contract) — see **`hook-authoring` skill**.
+Lifecycle hooks (session-start, session-end-all, pre-compact-save) import from compiled TypeScript in `dist/`. Local-dev mode resolves via repo-root walk; plugin mode resolves via `KADMON_RUNTIME_ROOT` env var set by the plugin manifest. Full reference (resolver logic, plugin cache layout, hooks.json generator contract) — see **`hook-authoring` skill**.
 
 ## Windows Compatibility
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin
-- `${HOOK_CMD_PREFIX}` injection + plugin-mode `KADMON_RUNTIME_ROOT` deep detail — see **`hook-authoring` skill**
+- Plugin-mode hook command prefix injection + Windows PATH deep detail — see **`hook-authoring` skill**

@@ -17,7 +17,7 @@ If you skip the chain, the user's investment in agents and skills is wasted.
 
 Agents declare their skills in YAML frontmatter. Claude Code's native sub-agent loader parses the `skills:` field as a YAML list, resolves each name to a file on disk, and **injects the full skill content into the sub-agent's context at spawn** (per [Anthropic docs — Skills](https://code.claude.com/docs/en/skills) and [sub-agents](https://docs.claude.com/en/docs/claude-code/sub-agents)). Sub-agents do NOT inherit skills from the parent conversation — the frontmatter is the only channel.
 
-**Authoritative layout — subdirectory + literal `SKILL.md`** (per ADR-013):
+**Authoritative layout — subdirectory + literal `SKILL.md`**:
 
 ```
 .claude/skills/
@@ -30,7 +30,7 @@ Agents declare their skills in YAML frontmatter. Claude Code's native sub-agent 
 
 Each skill is a directory, the entrypoint is always `SKILL.md` (literal uppercase), and the frontmatter must contain at minimum `name` and `description`. The project-scope path is `.claude/skills/<skill-name>/SKILL.md`. Flat files like `.claude/skills/<name>.md` are invisible to the loader — it silently injects nothing, no error.
 
-**Authoritative syntax — YAML block list** (per ADR-012):
+**Authoritative syntax — YAML block list**:
 
 ```yaml
 ---
@@ -53,14 +53,14 @@ skills: coding-standards, receiving-code-review, git-workflow   # BROKEN
 ```
 
 Rules:
-- MUST declare every skill used by an agent in its `skills:` frontmatter as a YAML list (see ADR-012)
-- MUST place each skill at `.claude/skills/<name>/SKILL.md` with literal uppercase `SKILL.md` filename (see ADR-013)
+- MUST declare every skill used by an agent in its `skills:` frontmatter as a YAML list
+- MUST place each skill at `.claude/skills/<name>/SKILL.md` with literal uppercase `SKILL.md` filename
 - MUST quote `description:` fields that contain embedded colons (e.g. `"... Command: /foo. Severity: HIGH."`) — unquoted colons break YAML parsing silently
 - MUST read skill files listed in **command** frontmatter when executing the command (commands run in the main session, not a sub-agent — the agent-level injection does not apply)
 - MUST use skill-creator:skill-creator plugin for ALL skill work (create, edit, optimize, evaluate). Invoke via Skill tool: `skill: "skill-creator:skill-creator"`. The plugin handles: interview, drafting, test cases, evaluation loop, and description optimization. Never create skill files manually.
 - Skills are domain knowledge — agents are the executors that USE that knowledge
-- The `rules/common/agents.md` catalog table below lists skills in comma-separated shorthand for human readability; the **authoritative declaration lives in each agent's frontmatter**
-- Both layout and syntax are enforced by `scripts/lint-agent-frontmatter.ts` as Check #8 of `/medik`
+- The catalog table below lists skills in comma-separated shorthand for human readability; the **authoritative declaration lives in each agent's frontmatter**
+- Both layout and syntax are enforced by the agent frontmatter linter (run via `/medik`)
 
 ## Routing
 - MUST use opus model for: arkitect, konstruct, spektr, alchemik
@@ -79,7 +79,7 @@ Rules:
 | orakle | sonnet | Auto on SQL/schema/migration/Supabase | /chekpoint | database-migrations, postgres-patterns, content-hash-cache-pattern |
 | spektr | opus | Auto on auth/keys/input/exec/paths/SQL | /chekpoint | safety-guard, security-review, security-scan |
 | feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing, eval-harness, ai-regression-testing |
-| mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging, agent-introspection-debugging |
+| mekanik | sonnet | /medik Phase 2 (always), auto on TypeScript or test-runner failures | /medik | systematic-debugging, agent-introspection-debugging |
 | kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
 | arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner (profile-aware: harness\|web\|cli) | /skanner, auto-invoke | context-budget, token-budget-advisor, benchmark |
 | python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing, claude-api |
@@ -94,7 +94,7 @@ Rules:
 - Editing .ts/.tsx/.js/.jsx files → typescript-reviewer
 - Editing .py files → python-reviewer
 - Editing SQL/schema/migration/Supabase client → orakle
-- TypeScript compilation or Vitest fails → mekanik
+- TypeScript compilation or test runner fails → mekanik
 - Performance concerns (O(n^2), slow queries, memory patterns) → arkonte
 - /abra-kdabra with architecture signals → arkitect before konstruct
 - Encountering unfamiliar external API or library → almanak (via /almanak)
@@ -106,7 +106,7 @@ Rules:
 - MUST invoke konstruct via /abra-kdabra — runs for every /abra-kdabra invocation
 - MUST invoke arkitect before konstruct when /abra-kdabra task contains architecture signals
 - MUST invoke almanak when referencing unfamiliar APIs or when no_context principle requires verification
-- MUST invoke mekanik when TypeScript compilation or Vitest tests fail (skip for obvious typos)
+- MUST invoke mekanik when TypeScript compilation or test runner reports failures (skip for obvious typos)
 - MUST invoke doks after commits that add/remove agents, skills, or commands
 - MUST use skill-creator:skill-creator plugin for any skill creation, editing, or evaluation. Invoke: `skill: "skill-creator:skill-creator"`. Never create skill files manually — the plugin handles structure, frontmatter, and description optimization.
 - NEVER invoke arkitect for routine bug fixes or small features
@@ -136,12 +136,12 @@ Three modes: **Parallel-then-Sequential** (`/chekpoint` reviewers → kody conso
 
 ## Command-Level Skills (no agent owner by design)
 
-Some skills are loaded directly by commands because the work is deterministic and indirection through an agent adds no value. These are **not** routing bugs — doks and audit tools treat them as intentional. Current command-level skills: `verification-loop` (loaded by `/chekpoint` Phase 1), `strategic-compact` (loaded by `/kompact`), `skill-creator:skill-creator` plugin (loaded by `/evolve` step 6 Generate for PROMOTE proposals only, per ADR-008 Q2), `council` (loaded by `/abra-kdabra` Step 1.5 + main orchestrator ad-hoc — anti-anchoring via sibling sub-agents). Full rationale per skill (why no agent owner, history, contract) — see **`agent-authoring` skill**. When adding new command-level skills, document the rationale in that skill's table.
+Some skills are loaded directly by commands because the work is deterministic and indirection through an agent adds no value. These are **not** routing bugs — doks and audit tools treat them as intentional. Current command-level skills: `verification-loop` (loaded by `/chekpoint` Phase 1), `strategic-compact` (loaded by `/kompact`), `skill-creator:skill-creator` plugin (loaded by `/evolve` step 6 Generate for PROMOTE proposals only — keeps the analysis agent pure and centralizes collision handling at command level), `council` (loaded by `/abra-kdabra` Step 1.5 + main orchestrator ad-hoc — anti-anchoring via sibling sub-agents). Full rationale per skill (why no agent owner, history, contract) — see **`agent-authoring` skill**. When adding new command-level skills, document the rationale in that skill's table.
 
-### Skill capability declaration — `requires_tools:` frontmatter (plan-029)
+### Skill capability declaration — `requires_tools:` frontmatter
 
-Skills that invoke sub-agents (`Task`), `WebFetch`, or tools outside their owner agent's default grant SHOULD declare `requires_tools:` in frontmatter as a YAML list. `/medik` Check #14 verifies alignment against the owner agent's `tools:` field. Full pattern (YAML example, FAIL/WARN severity rules, heuristic fallback, seed adopters) — see **`agent-authoring` skill**.
+Skills that invoke sub-agents (`Task`), `WebFetch`, or tools outside their owner agent's default grant SHOULD declare `requires_tools:` in frontmatter as a YAML list. The capability-alignment check (run via `/medik`) verifies alignment against the owner agent's `tools:` field. Full pattern (YAML example, FAIL/WARN severity rules, heuristic fallback, seed adopters) — see **`agent-authoring` skill**.
 
 ## Agent Template Contract
 
-Every new agent file MUST derive from the canonical skeleton at `.claude/agents/_TEMPLATE.md.example`. Mandatory sections (frontmatter + identity paragraph + `## Output Format` + `## Memory`), strongly recommended sections (`## Expertise`, `## Workflow`, `## no_context Rule`), optional sections by use case, K-first naming convention, opus-vs-sonnet model decision tree, anti-patterns flagged by kody and `/medik` Check #8 — full reference in the **`agent-authoring` skill** (loads on-demand when creating, editing, or reviewing an agent). Enforcement: `scripts/lib/lint-agent-frontmatter.ts` (mechanical) + kody review during `/chekpoint`.
+Every new agent file MUST derive from the canonical skeleton at `.claude/agents/_TEMPLATE.md.example`. Mandatory sections (frontmatter + identity paragraph + `## Output Format` + `## Memory`), strongly recommended sections (`## Expertise`, `## Workflow`, `## no_context Rule`), optional sections by use case, K-first naming convention, opus-vs-sonnet model decision tree, anti-patterns flagged by kody and the agent frontmatter linter — full reference in the **`agent-authoring` skill** (loads on-demand when creating, editing, or reviewing an agent). Enforcement: agent frontmatter linter (mechanical, run via `/medik`) + kody review during `/chekpoint`.
