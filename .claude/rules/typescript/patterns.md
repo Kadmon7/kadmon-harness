@@ -92,13 +92,13 @@ export function useDebounce<T>(value: T, delay: number): T {
 }
 ```
 
-## sql.js Typing
-- MUST type all query results explicitly (sql.js returns Record<string, unknown>)
-- MUST use mapping functions (mapSessionRow, mapInstinctRow) for type conversion
-- NEVER trust raw sql.js output types
+## Database Query Typing
+- MUST type all query results explicitly (raw drivers typically return `Record<string, unknown>`)
+- MUST use dedicated mapping functions for row-to-domain-type conversion (e.g. `mapSessionRow`, `mapUserRow`)
+- NEVER trust raw driver output types — narrow with type guards or schema validation
 
 ## Enforcement
 - kody agent validates pattern compliance on .ts/.tsx edits (TypeScript specialist mode)
-- orakle agent validates sql.js typing and Zod validation patterns when editing database code
+- orakle agent validates database row typing and Zod validation patterns when editing data-access code
 - kody agent checks error handling and immutability patterns via /chekpoint
 - post-edit-typecheck hook catches type errors from pattern violations immediately

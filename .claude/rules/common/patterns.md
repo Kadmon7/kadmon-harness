@@ -17,8 +17,8 @@ alwaysApply: true
 - MUST include context in error messages: what failed, why, and what input caused it
 
 ## Data
-- MUST use TypeScript interfaces from types.ts as source of truth
-- MUST convert camelCase ↔ snake_case only in state-store.ts
+- MUST use a single shared types module as the source of truth for cross-layer interfaces
+- MUST convert camelCase ↔ snake_case only at the data-access boundary, never at call sites
 - NEVER store derived data that can be computed
 - MUST use immutable data structures — create new objects, never mutate existing ones
 

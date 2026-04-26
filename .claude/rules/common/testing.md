@@ -10,9 +10,9 @@ alwaysApply: true
 - MUST test: happy path + error path + edge cases
 
 ## Framework
-- MUST use Vitest as test runner
-- Test file naming: `[module].test.ts` in `tests/` directory
-- MUST use :memory: SQLite for database tests — NEVER touch production DB
+- MUST use the project's standard test runner (TypeScript: Vitest; Python: pytest)
+- Test file naming follows the runner's convention (e.g., `[module].test.ts` for Vitest, `test_[module].py` for pytest), under `tests/`
+- MUST use in-memory or ephemeral databases for tests — NEVER touch production DB
 
 ## Patterns
 - PREFER arrange-act-assert structure

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Hook: agent-metadata-sync | Trigger: PostToolUse (Edit|Write)
-// Purpose: Auto-sync agent frontmatter changes to CLAUDE.md + agents.md catalogs
+// Purpose: Auto-sync agent frontmatter changes to CLAUDE.md + .claude/agents/CATALOG.md (ADR-035)
 import fs from "node:fs";
 import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
@@ -96,7 +96,7 @@ try {
   const agentsMdPath =
     isTestEnv && process.env.KADMON_SYNC_AGENTS_MD_PATH
       ? process.env.KADMON_SYNC_AGENTS_MD_PATH
-      : path.resolve(process.cwd(), ".claude/rules/common/agents.md");
+      : path.resolve(process.cwd(), ".claude/agents/CATALOG.md");
 
   const warnings = [];
   let changed = false;
@@ -121,7 +121,7 @@ try {
     warnings.push(`agent "${agentName}" not found in catalog: CLAUDE.md`);
   }
 
-  // Sync agents.md catalog: | agentName | model | ... |
+  // Sync .claude/agents/CATALOG.md: | agentName | model | ... |
   const agentsMd = fs.readFileSync(agentsMdPath, "utf8");
   const agentsRowPattern = new RegExp(
     `(\\|\\s*${escapeRegex(agentName)}\\s*\\|\\s*)[a-zA-Z0-9]+( \\|)`,
@@ -133,7 +133,7 @@ try {
       changed = true;
     }
   } else {
-    warnings.push(`agent "${agentName}" not found in catalog: agents.md`);
+    warnings.push(`agent "${agentName}" not found in catalog: .claude/agents/CATALOG.md`);
   }
 
   if (warnings.length > 0) {

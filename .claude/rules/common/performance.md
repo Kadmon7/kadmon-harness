@@ -4,11 +4,11 @@ alwaysApply: true
 
 # Performance Rules
 
-## SQLite (sql.js)
+## Database
 - PREFER batch operations over individual inserts in loops
-- MUST call saveToDisk() after write operations (handled by wrapper)
-- MUST use :memory: for tests — never touch production database
-- PREFER prepared statements over raw exec for queries with parameters
+- MUST flush/commit writes through the project's data-access wrapper (avoid raw client calls)
+- MUST use in-memory or ephemeral databases for tests — never touch production database
+- PREFER prepared/parameterized statements over raw query strings
 
 ## Context Window
 - NEVER load files > 50KB into context without explicit reason
@@ -28,4 +28,4 @@ alwaysApply: true
 - session-end-all hook tracks token usage per session (Stop event, via cost-tracker sub-module)
 - observe-pre and observe-post hooks enforce < 50ms latency budget
 - alchemik agent analyzes hook latency and cost trends via /evolve
-- orakle agent validates sql.js query patterns when editing database code
+- orakle agent validates database query patterns when editing data-access code

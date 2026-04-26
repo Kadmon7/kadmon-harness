@@ -280,7 +280,7 @@ describe("canonical root symlinks — existence and resolution (ADR-019)", () =>
       // Expected file counts accessible through each symlink
       const expectedCounts: Record<string, number> = {
         agents: 16,
-        skills: 46,
+        skills: 48,
         commands: 11,
       };
 
@@ -318,17 +318,22 @@ describe("canonical root symlinks — existence and resolution (ADR-019)", () =>
 
         // 4. File count through the symlink must match the source
         // (agents + commands: flat .md; skills: <name>/SKILL.md subdirectory layout)
-        // Agents filter: underscore-prefixed files (e.g. _TEMPLATE.md) are loader-ignored
-        // per ADR-017 agent template convention — exclude from the count.
+        // Filters:
+        //  - underscore-prefixed files (e.g. _TEMPLATE.md) are loader-ignored per
+        //    ADR-017 agent template convention.
+        //  - CATALOG.md is a non-auto-loaded reference file per ADR-035 — it lives
+        //    inside .claude/{agents,commands}/ but is not itself an agent or command.
         let count: number;
         if (type === "skills") {
           count = countGlob3(linkPath, "SKILL.md");
         } else if (type === "agents") {
           count = basenamesGlob2(linkPath, ".md").filter(
-            (n) => !n.startsWith("_"),
+            (n) => !n.startsWith("_") && n !== "CATALOG.md",
           ).length;
         } else {
-          count = countGlob2(linkPath, ".md");
+          count = basenamesGlob2(linkPath, ".md").filter(
+            (n) => n !== "CATALOG.md",
+          ).length;
         }
         expect(
           count,

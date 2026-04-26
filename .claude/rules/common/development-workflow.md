@@ -15,11 +15,11 @@ alwaysApply: true
 
 Before any commit, classify the diff scope and choose a tier. Default is **full** when ambiguous. Mechanical verification (build + typecheck + tests + lint) runs for ALL tiers.
 
-> **Language routing (ADR-020)**: the diff's file extensions determine the language reviewer. `.ts/.tsx/.js/.jsx` → `typescript-reviewer`. `.py` → `python-reviewer`. Mixed diffs → both in parallel. `spektr`, `orakle`, and `kody` are language-agnostic and route the same in either case.
+> **Language routing**: the diff's file extensions determine the language reviewer. `.ts/.tsx/.js/.jsx` → `typescript-reviewer`. `.py` → `python-reviewer`. Mixed diffs → both in parallel. `spektr`, `orakle`, and `kody` are language-agnostic and route the same in either case.
 
 | Trigger | Tier | Reviewers |
 |---------|------|-----------|
-| Production `.ts`/`.js` in `scripts/lib/` or `.claude/hooks/scripts/` | **full** | typescript-reviewer + spektr + orakle + kody |
+| Production `.ts`/`.js` in the project's source tree (e.g. `src/`, `lib/`, `scripts/`, or `.claude/hooks/scripts/`) | **full** | typescript-reviewer + spektr + orakle + kody |
 | Production `.py` in target project (src/, lib/, app/) | **full** | python-reviewer + spektr + orakle + kody |
 | Multi-file refactor (5+ files) | **full** | Full parallel (reviewers match file extensions) |
 | New feature / bug fix in production code | **full** | Full parallel (reviewers match file extensions) |
@@ -48,46 +48,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 
 **When in doubt:** default to **full**. Err on the side of safety. Never apply `skip` to anything touching runtime behavior.
 
-## Command Reference (11)
-
-### Observe Phase (2)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /nexus | Show harness dashboard (instincts, sessions, costs, hook health) | — |
-| /kompact | Smart context compaction with audit and safety checks. Use `/kompact audit` for context audit only | — |
-
-### Plan Phase (1)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /abra-kdabra | Smart planning — arkitect -> konstruct -> feniks (if TDD) chain with user approval gate. Code review = /chekpoint's job. | arkitect, konstruct, feniks |
-
-### Build Phase (1)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /medik | Full harness diagnostic — 8 health checks, approval gate, repair, cleanup. Alias: /MediK. Use `/medik build`, `/medik hooks`, `/medik db`, or `/medik clean` for single phase | mekanik, kurator |
-
-### Scan Phase (1)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /skanner | Deep system assessment — performance profiling + E2E workflow tests in parallel. Profile-aware (`harness|web|cli` per ADR-031): explicit profile arg > `KADMON_SKANNER_PROFILE` env > marker scan. Phase 1a hook-latency benchmarking activates only on harness profile; Phase 1b scenarios are profile-matched (5 harness lifecycle / 4 web auth-search-CRUD-realtime / 4 cli invocation-config-IO-subprocess). Optional agent evaluation. | arkonte, kartograf |
-
-### Research Phase (1)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /skavenger | Multi-source deep research — web, media transcripts (YouTube/Vimeo/SoundCloud/Twitch/X/TikTok/Archive.org/Dailymotion via yt-dlp), PDFs. Two routes: A=Media, B=General (per ADR-016 slim refactor — Route D removed; ad-hoc GitHub research runs inline via `gh api`). Auto-writes reports to `docs/research/` unless `KADMON_RESEARCH_AUTOWRITE=off`. Flags (one at a time): `--continue` (extend last session report), `--plan <topic>` (zero-fetch dry-run), `--verify <hypothesis>` (pro/contra tagging), `--drill <N>` (expand open question N), `--history <query>` (search archive), `--verify-citations <N>` (re-fetch URLs of report N). Skavenger spawns sub-agents via `Task` for ≥3 sub-questions (F9); enforces source diversity (F10). `--premium` (Perplexity Sonar) remains deferred per ADR-009 Fase 2. | skavenger |
-
-### Remember Phase (3)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /chekpoint | Tiered verification + review + commit and push (full/lite/skip — see Tiers section) | kody + specialists |
-| /almanak | Look up live documentation for any library or framework | almanak |
-| /doks | Sync project documentation with code changes (4-layer sync) | doks |
-
-### Evolve Phase (2)
-| Command | Purpose | Agent |
-|---------|---------|-------|
-| /forge | Forge session observations into instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`. | — |
-| /evolve | Run harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads ClusterReports written by `/forge` and proposes new skills/commands/agents/rules through a preview gate; `/evolve` command invokes `skill-creator:skill-creator` plugin for PROMOTE proposals (target path `.claude/skills/<slug>/SKILL.md` per ADR-013) and `applyEvolveGenerate` for the rest (commands/agents/rules stay flat). | alchemik |
+> Full Command Reference (11 commands across 7 phases: Observe, Plan, Build, Scan, Research, Remember, Evolve) — see [.claude/commands/CATALOG.md](../../commands/CATALOG.md). Single source-of-truth per ADR-035.
 
 ## Commits
 - MUST use conventional commits: feat/fix/chore/docs/refactor/test

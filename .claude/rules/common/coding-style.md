@@ -8,7 +8,7 @@ alwaysApply: true
 - MUST use camelCase for variables, functions, and object properties
 - MUST use PascalCase for types, interfaces, and classes
 - MUST use kebab-case for file names (e.g., instinct-manager.ts)
-- MUST use snake_case ONLY for SQL column names (conversion in state-store.ts)
+- MUST use snake_case ONLY for SQL column names (convert at the data-access boundary, never at call sites)
 - PREFER descriptive names: `getActiveInstincts` not `getAI`
 
 ## Types
