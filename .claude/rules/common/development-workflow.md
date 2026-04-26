@@ -48,6 +48,8 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 
 **When in doubt:** default to **full**. Err on the side of safety. Never apply `skip` to anything touching runtime behavior.
 
+> **Runtime authority**: As of ADR-034, `getDiffScope()` (in `scripts/lib/detect-project-language.ts`) is the runtime authority for Phase 2a reviewer routing within the `full` tier. The table above is **descriptive** (matches typical behavior) but the helper's gates are the source of truth. Drift between the table and the helper resolves via an ADR amendment, not in-line table edits. Override flags (`--force-spektr`, `--force-orakle`, `--force-ts-reviewer`, `--force-python-reviewer`, `--force-all`) restore mandatory invocation when needed.
+
 ## Command Reference (11)
 
 ### Observe Phase (2)

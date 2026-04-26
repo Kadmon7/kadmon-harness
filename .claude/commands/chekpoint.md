@@ -39,28 +39,53 @@ npx tsx -e "import('./scripts/lib/detect-project-language.js').then(m=>console.l
 ```
 or read the toolchain from the compiled `dist/scripts/lib/detect-project-language.js`. Expected fields: `build`, `typecheck`, `test`, `lint`, `audit`, `language`.
 
-**Step 2: Run the 4 checks using the detected toolchain.** For each step: if the toolchain returns `null` (e.g. `build` for Python projects), skip and log `(skipped: no X step for <language>)`. Otherwise execute the command.
+**Step 1.5: Detect diff scope.** Run:
+```
+npx tsx -e "import('./scripts/lib/detect-project-language.js').then(async m => { const cp = await import('node:child_process'); const files = cp.execSync('git diff --staged --name-only', {encoding:'utf8'}).trim().split('\n').filter(Boolean); console.log(JSON.stringify(m.getDiffScope(files))); })"
+```
+Or use the equivalent compiled path from `dist/scripts/lib/detect-project-language.js`. Returns the `DiffScope` object with 8 boolean gates + rationale. **Always log the rationale at the start of Phase 1** so the user can see what will run and what will be skipped.
 
-| # | Step | TypeScript toolchain | Python toolchain |
-|---|------|---------------------|------------------|
-| 1 | Build | `npm run build` | (skipped — null) |
-| 2 | Typecheck | `npx tsc --noEmit` | `mypy .` (fallback `pyright`) |
-| 3 | Test | `npx vitest run` | `pytest` |
-| 4 | Lint | `npx eslint . --ext .ts,.js` (if configured) | `ruff check . && black --check .` (skip if tool missing) |
+**Step 2: Run the 4 checks using the detected toolchain, gated by `DiffScope`.** For each step: if the corresponding `needs*` gate is `false`, log `(skipped: <rationale>)` instead of running. If the toolchain returns `null` (e.g. `build` for Python), skip with the existing `(skipped: no X step for <language>)` message. Conservative-by-default: ambiguous → run.
+
+| # | Step | TypeScript toolchain | Python toolchain | Skip if |
+|---|------|---------------------|------------------|---------|
+| 1 | Build | `npm run build` | (skipped — null) | `!needsBuild` |
+| 2 | Typecheck | `npx tsc --noEmit` | `mypy .` (fallback `pyright`) | `!needsTypecheck` |
+| 3 | Test | `npx vitest run` | `pytest` | `!needsTests` |
+| 4 | Lint | `npx eslint . --ext .ts,.js` (if configured) | `ruff check . && black --check .` (skip if tool missing) | `!needsLint` |
 
 **Step 3: Stop at first failure** — report which step failed. Do NOT proceed.
 
 > **Missing Python tooling**: if the project is Python and the required tool (`mypy`, `pytest`, `ruff`) is not installed, treat that step as WARN, not FAIL, and proceed. The user is responsible for installing their own toolchain; we only invoke.
 
-### Phase 2a: Specialist Review (parallel)
-1. Get diff: `git diff --staged` or `git diff HEAD~1`
-2. Detect file types in diff
-3. Launch specialist reviewers **in parallel** (single message, multiple Agent calls):
-   - TypeScript (.ts/.tsx/.js/.jsx) present -> invoke **typescript-reviewer** (sonnet)
-   - Python (.py) present -> invoke **python-reviewer** (sonnet)
-   - Both present -> both in parallel
-   - **Always**: invoke **spektr** (opus) in parallel
-   - **Always**: invoke **orakle** (sonnet) in parallel
+### Phase 2a: Specialist Review (parallel, conditional per DiffScope)
+
+1. Reuse the `DiffScope` object from Phase 1 Step 1.5 (no second computation).
+2. Get diff: `git diff --staged` or `git diff HEAD~1`
+3. Launch specialist reviewers **in parallel** (single message, multiple Agent calls), each gated on the corresponding `needs*` flag:
+   - `needsTypescriptReviewer` → invoke **typescript-reviewer** (sonnet)
+   - `needsPythonReviewer` → invoke **python-reviewer** (sonnet)
+   - `needsSpektr` → invoke **spektr** (opus)
+   - `needsOrakle` → invoke **orakle** (sonnet)
+4. **Conservative-by-default**: any gate ambiguity (uncertain → TRUE) means the specialist runs.
+5. **kody (Phase 2b) ALWAYS runs as consolidator** regardless of which specialists fired. Never gated by `DiffScope`.
+
+**User override flags** (always available, restore mandatory invocation):
+- `/chekpoint full --force-spektr` — invoke spektr regardless of `needsSpektr`
+- `/chekpoint full --force-orakle` — invoke orakle regardless of `needsOrakle`
+- `/chekpoint full --force-ts-reviewer` — invoke typescript-reviewer regardless of `needsTypescriptReviewer`
+- `/chekpoint full --force-python-reviewer` — invoke python-reviewer regardless of `needsPythonReviewer`
+- `/chekpoint full --force-all` — restore current always-on behavior (all 4 specialists)
+
+**Output**: Phase 2a logs which specialists were invoked vs skipped, mirroring the Phase 1 skip-logging pattern. Example:
+```
+Phase 2a specialists:
+  typescript-reviewer: INVOKED (needsTypescriptReviewer: true — .ts files in diff)
+  python-reviewer:     SKIPPED (needsPythonReviewer: false — no .py files in diff)
+  spektr:              SKIPPED (needsSpektr: false — no auth/exec/path/SQL keywords)
+  orakle:              SKIPPED (needsOrakle: false — no SQL/schema/migration/Supabase touch)
+Override flags applied: none
+```
 
 ### Phase 2b: Consolidation (sequential — AFTER 2a completes)
 1. **WAIT** for ALL Phase 2a reviewers to complete. Do NOT invoke kody in parallel with them.
@@ -72,7 +97,9 @@ or read the toolchain from the compiled `dist/scripts/lib/detect-project-languag
 
 The gate is computed against BOTH the raw Phase 2a reviewer output AND kody's consolidated output. This prevents any silent loss of a specialist BLOCK during consolidation.
 
-1. Collect `rawBlocks` = set of BLOCK findings emitted by any Phase 2a specialist (typescript-reviewer, python-reviewer, spektr, orakle).
+If a specialist was skipped per `DiffScope`, it contributes 0 BLOCKs to `rawBlocks`. The dual-gate logic is unaffected — `rawBlocks` is the union of BLOCKs from *invoked* specialists only.
+
+1. Collect `rawBlocks` = set of BLOCK findings emitted by any Phase 2a specialist that was actually invoked (typescript-reviewer, python-reviewer, spektr, orakle).
 2. Collect `kodyBlocks` = set of BLOCK findings in kody's consolidated output.
 3. **If `rawBlocks` is non-empty OR `kodyBlocks` is non-empty** → STOP. Do NOT commit. Report both sets separately in the output so the user sees if consolidation dropped anything.
 4. **If `kodyBlocks.count < rawBlocks.count`** → flag explicitly as `kody consolidated N BLOCKs → M BLOCKs; verify deduplication was correct` and STOP for manual review, even when (3) already would have fired. This surfaces suspicious consolidation even if the counts happened to align by coincidence.

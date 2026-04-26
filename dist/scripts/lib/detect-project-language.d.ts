@@ -79,3 +79,31 @@ export declare function detectMedikProfile(cwd?: string, explicitArg?: string): 
  * mixed and unknown fall back to the TypeScript toolchain (conservative default).
  */
 export declare function getToolchain(cwd?: string): Toolchain;
+/**
+ * Content-based diff classifier for /chekpoint Phase 1 (mechanical gates) and
+ * Phase 2a (reviewer-relevance gates). Pure function — no filesystem I/O.
+ * Caller optionally passes fileContents map for content-keyword secondary detection.
+ *
+ * Conservative-by-default invariant: ambiguous input → TRUE (run the gate).
+ */
+export interface DiffScope {
+    readonly needsBuild: boolean;
+    readonly needsTypecheck: boolean;
+    readonly needsTests: boolean;
+    readonly needsLint: boolean;
+    readonly needsTypescriptReviewer: boolean;
+    readonly needsPythonReviewer: boolean;
+    readonly needsOrakle: boolean;
+    readonly needsSpektr: boolean;
+    readonly rationale: Readonly<Record<string, string>>;
+}
+/**
+ * Classifies a staged diff and returns 8 boolean gates + human-readable rationale.
+ *
+ * @param stagedFiles   Relative file paths (Windows or POSIX separators).
+ * @param fileContents  Optional map of file path → text for content-keyword scanning.
+ *                      getDiffScope does NOT read the filesystem itself.
+ *
+ * Conservative-by-default: uncertain → TRUE (never silently skip a needed gate).
+ */
+export declare function getDiffScope(stagedFiles: readonly string[], fileContents?: Readonly<Record<string, string>>): DiffScope;
