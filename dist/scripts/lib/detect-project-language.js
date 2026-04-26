@@ -1,7 +1,8 @@
-// Kadmon Harness — Runtime language detection (ADR-020) + skanner profile detection (ADR-031)
-// Detects project language from filesystem markers or env var override.
+// Kadmon Harness — Runtime language detection (ADR-020) + project profile detection (ADR-031, ADR-032)
+// Detects project language and runtime profile from filesystem markers or env var override.
 // Exports: detectProjectLanguage, getToolchain, ProjectLanguage, Toolchain
-//          detectSkannerProfile, SkannerProfile
+//          detectProjectProfile, ProjectProfile (renamed from detectSkannerProfile/SkannerProfile per ADR-032)
+//          detectSkannerProfile, SkannerProfile (deprecated aliases preserved for plan-031 callers)
 import fs from "node:fs";
 import path from "node:path";
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -78,28 +79,29 @@ export function detectProjectLanguage(cwd = process.cwd()) {
     process.stderr.write(JSON.stringify({ source: "markers", language, markers }) + "\n");
     return language;
 }
-const VALID_SKANNER_PROFILES = new Set([
+const VALID_PROJECT_PROFILES = new Set([
     "harness",
     "web",
     "cli",
 ]);
-function isSkannerProfile(value) {
-    return VALID_SKANNER_PROFILES.has(value);
+function isProjectProfile(value) {
+    return VALID_PROJECT_PROFILES.has(value);
 }
 /** Web UI dependency names to detect in package.json. */
 const WEB_DEPS = new Set(["react", "next", "vite"]);
 /**
- * Detects the /skanner runtime profile for the project at `cwd`.
+ * Detects the runtime profile for the project at `cwd`.
  *
  * Precedence (top wins):
  *  1. `explicitArg` — validated against whitelist ['harness','web','cli']
- *  2. `KADMON_SKANNER_PROFILE` env var — trim + lowercase + whitelist
- *  3. Harness markers — presence of any of:
+ *  2. `KADMON_PROJECT_PROFILE` env var (umbrella, ADR-032) — trim + lowercase + whitelist
+ *  3. `KADMON_SKANNER_PROFILE` env var (back-compat, ADR-031) — same normalization
+ *  4. Harness markers — presence of any of:
  *       scripts/lib/state-store.ts  |  hooks/observe-pre.ts  |  data/observations.jsonl
- *  4. Web markers — package.json deps include react|next|vite,
+ *  5. Web markers — package.json deps include react|next|vite,
  *                   OR pyproject.toml text includes 'fastapi'|'django'
- *  5. CLI markers — package.json has a `bin` field AND no web deps matched
- *  6. Fallback — 'web' (most common consumer scenario, per ADR-031)
+ *  6. CLI markers — package.json has a `bin` field AND no web deps matched
+ *  7. Fallback — 'web' (most common consumer scenario, per ADR-031)
  *
  * Always writes one stderr diagnostic JSON line: { source, profile, markers }.
  * source ∈ { 'arg', 'env', 'markers' }
@@ -107,20 +109,27 @@ const WEB_DEPS = new Set(["react", "next", "vite"]);
  * @param cwd         Root of the consumer project (defaults to process.cwd())
  * @param explicitArg Profile override passed directly by the caller (e.g. /skanner arg)
  */
-export function detectSkannerProfile(cwd = process.cwd(), explicitArg) {
+export function detectProjectProfile(cwd = process.cwd(), explicitArg) {
     // ── 1. Explicit arg (highest priority) ─────────────────────────────────────
     if (explicitArg !== undefined) {
         const normalized = explicitArg.trim().toLowerCase();
-        if (isSkannerProfile(normalized)) {
+        if (isProjectProfile(normalized)) {
             process.stderr.write(JSON.stringify({ source: "arg", profile: normalized, markers: [] }) + "\n");
             return normalized;
         }
         // Invalid arg — fall through to next precedence level
     }
-    // ── 2. Env var override ────────────────────────────────────────────────────
-    const rawEnv = process.env["KADMON_SKANNER_PROFILE"];
-    const envVal = rawEnv?.trim().toLowerCase() ?? "";
-    if (envVal && isSkannerProfile(envVal)) {
+    // ── 2. Env var override (umbrella, then back-compat) ───────────────────────
+    // KADMON_PROJECT_PROFILE wins over KADMON_SKANNER_PROFILE per ADR-032.
+    const umbrellaRaw = process.env["KADMON_PROJECT_PROFILE"];
+    const umbrellaVal = umbrellaRaw?.trim().toLowerCase() ?? "";
+    if (umbrellaVal && isProjectProfile(umbrellaVal)) {
+        process.stderr.write(JSON.stringify({ source: "env", profile: umbrellaVal, markers: [] }) + "\n");
+        return umbrellaVal;
+    }
+    const skannerRaw = process.env["KADMON_SKANNER_PROFILE"];
+    const envVal = skannerRaw?.trim().toLowerCase() ?? "";
+    if (envVal && isProjectProfile(envVal)) {
         process.stderr.write(JSON.stringify({ source: "env", profile: envVal, markers: [] }) + "\n");
         return envVal;
     }
@@ -187,6 +196,11 @@ export function detectSkannerProfile(cwd = process.cwd(), explicitArg) {
     process.stderr.write(JSON.stringify({ source: "markers", profile: "web", markers: [] }) + "\n");
     return "web";
 }
+/**
+ * @deprecated Use detectProjectProfile (alias preserved for plan-031 callers).
+ * Function reference is identical, so behavior is preserved exactly.
+ */
+export const detectSkannerProfile = detectProjectProfile;
 // ─── Toolchain factory ────────────────────────────────────────────────────────
 const TS_BASE = {
     build: "npm run build",

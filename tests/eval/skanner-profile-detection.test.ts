@@ -22,6 +22,7 @@ import os from "node:os";
 
 import {
   detectSkannerProfile,
+  detectProjectProfile,
   type SkannerProfile,
 } from "../../scripts/lib/detect-project-language.js";
 
@@ -29,6 +30,7 @@ import {
 
 function cleanProfileEnv(): void {
   delete process.env["KADMON_SKANNER_PROFILE"];
+  delete process.env["KADMON_PROJECT_PROFILE"];
 }
 
 /** Create a fresh tmp dir for marker files. */
@@ -245,6 +247,45 @@ describe("detectSkannerProfile", () => {
     // "browser" is not in the whitelist
     writeMarker(tmpDir, "hooks/observe-pre.ts");
     const result: SkannerProfile = detectSkannerProfile(tmpDir, "browser");
+    expect(result).toBe("harness");
+  });
+
+  // ─── plan-032 alias parity (ADR-032) ──────────────────────────────────────
+
+  it("detectSkannerProfile is the same reference as detectProjectProfile (alias contract)", () => {
+    // The deprecated alias must be function-reference-identical to the new symbol.
+    // This guarantees behavior parity for plan-031 callers.
+    expect(detectSkannerProfile).toBe(detectProjectProfile);
+  });
+
+  it("detectProjectProfile behaves identically to detectSkannerProfile for the harness case", () => {
+    writeMarker(tmpDir, "scripts/lib/state-store.ts");
+    const oldName: SkannerProfile = detectSkannerProfile(tmpDir);
+    const newName: SkannerProfile = detectProjectProfile(tmpDir);
+    expect(oldName).toBe("harness");
+    expect(newName).toBe("harness");
+    expect(oldName).toBe(newName);
+  });
+
+  // Closes review WARN-1: canonical eval suite must cover the umbrella env
+  // var directly so a typo in "KADMON_PROJECT_PROFILE" at the source can't
+  // silently fall through to the legacy back-compat path undetected.
+  it("KADMON_PROJECT_PROFILE=cli (umbrella) overrides harness markers", () => {
+    writeMarker(tmpDir, "scripts/lib/state-store.ts");
+    process.env["KADMON_PROJECT_PROFILE"] = "cli";
+    const result: SkannerProfile = detectProjectProfile(tmpDir);
+    expect(result).toBe("cli");
+
+    const diag = getDiagnostic();
+    expect(diag).not.toBeNull();
+    expect(diag!["source"]).toBe("env");
+    expect(diag!["profile"]).toBe("cli");
+  });
+
+  it("KADMON_PROJECT_PROFILE precedence beats KADMON_SKANNER_PROFILE when both set", () => {
+    process.env["KADMON_PROJECT_PROFILE"] = "harness";
+    process.env["KADMON_SKANNER_PROFILE"] = "web";
+    const result: SkannerProfile = detectProjectProfile(tmpDir);
     expect(result).toBe("harness");
   });
 });
