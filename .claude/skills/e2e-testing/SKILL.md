@@ -173,8 +173,8 @@ Read both branches: exit 0 and exit 2. A hook that only tests one path has a sil
 
 ## Integration
 
-- **kartograf agent** (sonnet) — owner of this skill. kartograf specializes in full workflow tests: Vitest for the harness itself, Playwright for web apps. Invoked via `/skanner` (Phase 1b). Never auto-invoked — E2E runs are expensive.
-- **/skanner command** — runs `kartograf` in parallel with `arkonte` (performance). Phase 1b executes the critical harness workflows: session lifecycle, instinct lifecycle, hook chain, no-context-guard, cost tracking.
+- **kartograf agent** (sonnet) — owner of this skill. kartograf specializes in full workflow tests, profile-aware (`harness|web|cli` per ADR-031): Vitest/pytest for the harness itself, Playwright/Stagehand for web apps, subprocess + exit-code contracts for CLI tools. Invoked via `/skanner` (Phase 1b). Never auto-invoked — E2E runs are expensive.
+- **/skanner command** — runs `kartograf` in parallel with `arkonte` (performance). Phase 1b executes profile-matched scenarios: harness profile = session lifecycle + instinct lifecycle + hook chain + no-context-guard + cost tracking (5); web profile = auth + search + CRUD + realtime (4); cli profile = invocation + config-load + IO contract + subprocess wrapper (4).
 - **/abra-kdabra command** — when `needs_tdd: true` and the plan mentions E2E scope, feniks consults this skill during the red phase to structure workflow-level tests alongside unit tests.
 - **tdd-workflow skill** — unit tests are the default; E2E is the escalation when a workflow spans multiple modules (session + hook + instinct + DB). This skill picks up where tdd-workflow stops.
 

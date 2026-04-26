@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-1053%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1069%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -254,7 +254,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Commands | **11** |
 | Hooks | **22** |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) |
-| Tests | **1053 passing** (85 files) |
+| Tests | **1069 passing** (85 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -289,7 +289,7 @@ Full component details are below (collapsed by default). For the operational cat
 | **arkonte** | Performance | Analyzes O(n²) loops, slow queries, memory patterns. | On performance patterns | auto-invoke only |
 | **python-reviewer** | Python Specialist | Reviews Python: PEP 8, type hints, ML, security. | On `.py` edits | `/chekpoint` |
 | **almanak** | Docs Lookup | Searches live documentation via Context7 MCP. | On unfamiliar APIs | `/almanak` |
-| **kartograf** | E2E Testing | Writes and runs E2E tests: Vitest (harness), Playwright (web). | Never | `/skanner` |
+| **kartograf** | E2E Testing | Writes and runs E2E tests, profile-aware (`harness|web|cli` per ADR-031): Vitest/pytest (harness), Playwright/Stagehand (web), subprocess + exit-code contracts (cli). | Never | `/skanner` |
 | **skavenger** | Researcher | Multi-source deep research: web, YouTube transcripts, PDFs. Synthesizes cited reports. | On research/investigate/deep-dive intent | `/skavenger` |
 
 </details>
@@ -369,7 +369,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Scan (1)
 | Command | Purpose |
 |---------|---------|
-| `/skanner` | Deep system assessment — performance + E2E workflow tests |
+| `/skanner` | Deep system assessment — performance + E2E workflow tests. Profile-aware (`harness|web|cli` per ADR-031); hook-latency benchmarking is harness-only |
 
 ### Research (1)
 | Command | Purpose |
@@ -625,8 +625,8 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 
 ## 📊 Status & Attribution
 
-**v1.3.0 — latest: /medik expansion (9→14 checks), --ALV diagnostic export, graphify adoption, Python SAST hook (2026-04-24)**
-`1053 tests passing` · `85 files` · `22 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
+**v1.3.0 — latest: project-agnostic /skanner stack — kartograf + arkonte + /skanner profile-aware (harness|web|cli, ADR-031, 2026-04-26)**
+`1069 tests passing` · `85 files` · `22 hooks` · `16 agents` · `46 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

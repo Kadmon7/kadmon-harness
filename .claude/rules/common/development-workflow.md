@@ -69,7 +69,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 ### Scan Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /skanner | Deep system assessment — performance profiling + E2E workflow tests in parallel. Optional agent evaluation. | arkonte, kartograf |
+| /skanner | Deep system assessment — performance profiling + E2E workflow tests in parallel. Profile-aware (`harness|web|cli` per ADR-031): explicit profile arg > `KADMON_SKANNER_PROFILE` env > marker scan. Phase 1a hook-latency benchmarking activates only on harness profile; Phase 1b scenarios are profile-matched (5 harness lifecycle / 4 web auth-search-CRUD-realtime / 4 cli invocation-config-IO-subprocess). Optional agent evaluation. | arkonte, kartograf |
 
 ### Research Phase (1)
 | Command | Purpose | Agent |
