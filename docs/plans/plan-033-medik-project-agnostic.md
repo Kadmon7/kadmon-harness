@@ -1,6 +1,6 @@
 ---
 number: 33
-title: /medik project-agnostic via runtime profile detection
+title: /medik project-agnostic via cwd-target-existence detection
 date: 2026-04-26
 status: pending
 needs_tdd: true
@@ -8,281 +8,422 @@ route: A
 adr: ADR-033-medik-project-agnostic.md
 ---
 
-## Plan: /medik project-agnostic via runtime profile detection [konstruct]
+## Plan: /medik project-agnostic via cwd-target-existence detection [konstruct]
 
 ### Overview
-Implements ADR-033. Adds runtime profile detection to `/medik` so the command runs cleanly in consumer projects (Kadmon-Sports, ToratNetz, KAIRON), not only inside the harness self-repo. The 5 generic checks (#1–#5) keep working unchanged via ADR-020 language routing; the 8 harness-only checks gate behind a new `profile: 'harness' | 'consumer'` field on `CheckContext` and emit a `NOTE` (not a `FAIL`) when invoked outside the harness. Renames `detectSkannerProfile` → `detectProjectProfile` with a deprecated alias to keep plan-031 callers green.
+
+Implements ADR-033. Makes `/medik` semantically correct in any cwd by adding (1) a thin `detectMedikProfile()` adapter for the diagnostic banner ONLY (no skip gate), and (2) per-check cwd-target-existence guards inside the 5 checks (#8, #11, #12, #13, #14) that the original ADR-033 draft mis-classified as "harness-only". `CheckContext` shape is unchanged — no `profile` field. Consumer NOTE messages use the symmetric phrasing "no consumer-local <kind> in this project — nothing to <verb>". The `detectSkannerProfile` → `detectProjectProfile` rename + `KADMON_PROJECT_PROFILE` umbrella env var ALREADY shipped in plan-032 commit `8484ee2`; plan-033 inherits via the existing alias and adds only the `detectMedikProfile` adapter.
 
 ### Assumptions
-- ADR-033 accepted with its 6 risks and the Check #13 re-classification noted in Risk #6 — validated by reading `docs/decisions/ADR-033-medik-project-agnostic.md`.
-- Plan directs Check #13 (capability-alignment) to remain **harness-only** in v1.3 per the explicit instruction in the user's task brief, deferring fork-aware mode to v1.4. The ADR Risk #6 mitigation (run when `.claude/skills/` + `.claude/agents/` exist) is acknowledged but explicitly out of scope for v1.3 — validated by user task instruction.
-- The `medik-checks` module pattern is established for checks #10–#14 only. Checks #1–#9 are inline in `.claude/commands/medik.md` and run via the language-aware ADR-020 toolchain — validated by reading `.claude/commands/medik.md` and `scripts/lib/medik-checks/*.ts`.
-- `CheckContext` lives at `scripts/lib/medik-checks/types.ts` with shape `{ projectHash: string; cwd: string }` — validated by reading the file (lines 10–13).
-- Plan-028 Phase 4/5 has merged (5 module-per-check files exist on disk). Risk #5 from ADR-033 (collision) is therefore retired — validated via `Glob scripts/lib/medik-checks/*.ts`.
-- `detectSkannerProfile` returns `'harness' | 'web' | 'cli'`. The `/medik` adapter collapses `web | cli` → `consumer` at the call site — validated by reading `scripts/lib/detect-project-language.ts` lines 120–257.
-- `process.cwd()` (not `KADMON_RUNTIME_ROOT`) is the correct cwd input for profile detection per ADR-010 (plugin path resolution): `KADMON_RUNTIME_ROOT` points at the plugin cache, not the consumer workspace — validated by reading `CLAUDE.md` "Plugin-Mode Runtime Resolution" rule and ADR-033 reference list.
-- `mkdtempSync` fixture pattern works for medik-check tests; this is what the existing `tests/lib/medik-checks/*.test.ts` files already use — validated by listing existing test files and reading the skanner-profile-detection test header (lines 30–60).
+
+- ADR-033 (rewritten) is on disk and is the authoritative spec — validated by reading `docs/decisions/ADR-033-medik-project-agnostic.md`. Decision section enumerates per-check cwd-target-existence detection (NOT a binary profile gate); CheckContext is unchanged; Check #14 v1.4 defer is canceled.
+- `detectProjectProfile` rename + `detectSkannerProfile` deprecated alias + `KADMON_PROJECT_PROFILE` env var support already shipped in plan-032 commit `8484ee2` — validated by reading `scripts/lib/detect-project-language.ts` lines 113–280. No rename work in plan-033.
+- `CheckContext` lives at `scripts/lib/medik-checks/types.ts` with shape `{ projectHash: string; cwd: string }` (no profile field) — validated by reading the file. **Plan-033 keeps this shape unchanged.**
+- 5 module-per-check files exist on disk: `capability-alignment.ts`, `hook-health-24h.ts`, `instinct-decay-candidates.ts`, `skill-creator-probe.ts`, `stale-plans.ts` — validated by directory listing.
+- `stale-plans.ts` already uses the cwd-target-existence pattern (returns PASS when `<cwd>/docs/plans/` absent at lines 35–41) — this is the canonical reference for the new guards.
+- `skill-creator-probe.ts` already probes 3 candidate paths and is meaningful in any project (lines 13–17) — no change needed.
+- Inline checks #1–#7, #9, #10 are in `.claude/commands/medik.md` and run via the language-aware ADR-020 toolchain — already project-agnostic.
+- Inline Check #8 (`npx tsx scripts/lint-agent-frontmatter.ts`) is wrapped in the command markdown — needs a cwd-existence guard wrapper added at the command level.
+- Consumer projects WILL have project-local `.claude/{agents,skills,commands}/` and project-scoped instincts — per ADR-033 §Empirical correction. The cwd-existence pattern serves both consumers WITH local catalogs (full audit) and consumers WITHOUT local catalogs (informational NOTE).
+- `process.cwd()` (not `KADMON_RUNTIME_ROOT`) is the correct cwd input — `KADMON_RUNTIME_ROOT` points at the plugin cache, not the workspace.
+- Test count baseline: 1069 + plan-031's 12 alias parity cases that landed with plan-032 = 1081 + plan-032's 8 doks-profile cases = 1091. Plan-033 adds 1 alias parity case + 11 medik-profile cases (10 in tests/lib/medik-profile-detection.test.ts + 1 alias case in tests/eval/skanner-profile-detection.test.ts) = 1103 target. Phase 0 records the live baseline; Phase 4 asserts against it.
 
 ### Phase 0: Research (read-only)
 
-- [ ] Step 0.1: Read ADR-033 in full and confirm Risk #6 (capability-alignment re-classification) is acknowledged but **deferred** to v1.4 per user task brief (S)
+- [ ] Step 0.1: Read ADR-033 in full. (S)
   - File: `docs/decisions/ADR-033-medik-project-agnostic.md`
-  - Verify: ADR text confirms Check #13 should run in any project with `.claude/skills/` and `.claude/agents/`; plan deviates by simpler harness-only gate. Document deviation in Phase 1 Step 1.0 of this plan.
+  - Verify: Decision section confirms per-check cwd-target-existence detection (NO `profile` field on CheckContext); the v1.4 defer of Check #14 is canceled; canonical NOTE phrasing template ("no consumer-local <kind> in this project — nothing to <verb>") is documented.
   - Depends on: none
   - Risk: Low
 
-- [ ] Step 0.2: Read `scripts/lib/detect-project-language.ts` to confirm `detectSkannerProfile` signature, marker priority, and stderr diagnostic format (S)
+- [ ] Step 0.2: Confirm `detectProjectProfile` rename already shipped. (S)
   - File: `scripts/lib/detect-project-language.ts`
-  - Verify: function returns `'harness' | 'web' | 'cli'`; explicit arg > env > markers > fallback `web`; stderr diagnostic has shape `{ source, profile, markers }`.
+  - Verify: `detectProjectProfile` exported at line ~161; `detectSkannerProfile` alias at line ~280; `KADMON_PROJECT_PROFILE` umbrella env var honored at lines 179–186; `KADMON_SKANNER_PROFILE` back-compat at lines 188–195. **NO rename work needed in plan-033** — only `detectMedikProfile` adapter to be added.
   - Depends on: none
-  - Risk: Low
+  - Risk: Low (premise-critical; if rename absent, plan-032 is broken upstream — pause and escalate)
 
-- [ ] Step 0.3: Read `scripts/lib/medik-checks/types.ts` and the 5 module-per-check files to confirm current `runCheck(ctx: CheckContext)` shape (S)
-  - File: `scripts/lib/medik-checks/{types.ts, capability-alignment.ts, hook-health-24h.ts, instinct-decay-candidates.ts, skill-creator-probe.ts, stale-plans.ts}`
-  - Verify: every `runCheck` consumes `ctx.cwd` and/or `ctx.projectHash`; none reads `ctx.profile` today.
-  - Depends on: none
-  - Risk: Low
-
-- [ ] Step 0.4: Read `tests/eval/skanner-profile-detection.test.ts` header for `mkdtempSync` fixture pattern + stderr-spy idiom (S)
-  - File: `tests/eval/skanner-profile-detection.test.ts`
-  - Verify: pattern uses `vi.spyOn(process.stderr, "write")` + per-test `tmpDir` cleanup; reuse verbatim in new test file.
-  - Depends on: none
-  - Risk: Low
-
-### Phase 1: Detection refactor + rename (TDD-flavored)
-
-- [ ] Step 1.0: Document Check #13 scope decision (S)
-  - File: this plan, "Assumptions" section above (already documented)
-  - Verify: assumption explicitly states v1.3 keeps Check #13 harness-only; v1.4 fork-aware mode out of scope.
-  - Depends on: 0.1
-  - Risk: Low
-
-- [ ] Step 1.1: Extend `tests/eval/skanner-profile-detection.test.ts` with 1 new case proving the deprecated alias works (RED) (S)
-  - File: `tests/eval/skanner-profile-detection.test.ts`
-  - Verify: new test imports `detectSkannerProfile` and asserts it equals `detectProjectProfile` (referential or behavioral equality). Test FAILS until 1.2 lands.
-  - Depends on: 0.2, 0.4
-  - Risk: Low
-
-- [ ] Step 1.2: Rename `detectSkannerProfile` → `detectProjectProfile`; export deprecated alias (M)
-  - File: `scripts/lib/detect-project-language.ts`
-  - Implementation:
-    - Rename the function declaration to `detectProjectProfile` (signature unchanged).
-    - Export `export const detectSkannerProfile = detectProjectProfile;` with JSDoc `@deprecated Use detectProjectProfile. Removed in v1.4.`.
-    - Rename `SkannerProfile` type → `ProjectProfile`; export `export type SkannerProfile = ProjectProfile;` deprecated alias.
-    - Update file header comment to reflect dual-name export.
-  - Verify: `npx tsc --noEmit` clean; Step 1.1 test PASS; existing `tests/eval/skanner-profile-detection.test.ts` cases still PASS.
-  - Depends on: 1.1
-  - Risk: Medium — touches a hot module; mitigation = aliases preserve public API
-
-- [ ] Step 1.3: Add a `MedikProfile = 'harness' | 'consumer'` adapter in `detect-project-language.ts` (S)
-  - File: `scripts/lib/detect-project-language.ts`
-  - Implementation: new exported function `detectMedikProfile(cwd?: string, explicitArg?: string): MedikProfile` that calls `detectProjectProfile(cwd, explicitArg)` and collapses `web | cli` → `consumer`. Honors `KADMON_MEDIK_PROFILE` env var (precedence: arg > `KADMON_MEDIK_PROFILE` > underlying `detectProjectProfile`). Emits one stderr diagnostic line `{ source, profile, markers }` matching ADR-031 contract.
-  - Verify: returns `'harness'` for harness markers; returns `'consumer'` for any web/cli/fallback case; `KADMON_MEDIK_PROFILE=harness` overrides marker scan.
-  - Depends on: 1.2
-  - Risk: Low
-
-### Phase 2: CheckContext extension + check guards (TDD-flavored)
-
-- [ ] Step 2.1: Write failing tests in `tests/lib/medik-profile-detection.test.ts` (RED) (M)
-  - File: `tests/lib/medik-profile-detection.test.ts` (NEW)
-  - Test cases (10):
-    1. `detectMedikProfile(harnessTmpDir)` → `'harness'`
-    2. `detectMedikProfile(webTmpDir)` → `'consumer'` (collapse from `web`)
-    3. `detectMedikProfile(cliTmpDir)` → `'consumer'` (collapse from `cli`)
-    4. `KADMON_MEDIK_PROFILE=harness` overrides web markers
-    5. `KADMON_MEDIK_PROFILE=consumer` overrides harness markers
-    6. Explicit arg `harness` beats env var `consumer`
-    7. Each of 8 harness-only checks (`hook-health-24h`, `instinct-decay-candidates`, `skill-creator-probe`, `capability-alignment` + 4 inline guards via integration adapter — see Step 2.4) returns `status: 'NOTE'` with `message` containing `"requires harness profile"` when `ctx.profile === 'consumer'`
-    8. Each of those 8 checks runs as before when `ctx.profile === 'harness'` (unchanged status / message)
-    9. `stale-plans` runs in `consumer` profile if `docs/plans/` exists; returns existing skip-PASS when `docs/plans/` absent (regardless of profile)
-    10. Backward compat: `detectSkannerProfile` import still resolves (re-asserted here for full coverage)
-  - Use `mkdtempSync` fixture pattern from `tests/eval/skanner-profile-detection.test.ts` (Phase 0 Step 0.4).
-  - Verify: all 10 cases FAIL until 2.2–2.4 land.
-  - Depends on: 1.3
-  - Risk: Medium — multi-fixture setup; mitigation = small helper functions like the skanner test
-
-- [ ] Step 2.2: Extend `CheckContext` with `profile` field (S)
+- [ ] Step 0.3: Read `scripts/lib/medik-checks/types.ts`. (S)
   - File: `scripts/lib/medik-checks/types.ts`
-  - Implementation: add `profile: 'harness' | 'consumer'` after `cwd`. Reuse the `MedikProfile` type via `import type { MedikProfile } from "../detect-project-language.js"` (or inline the union — pick whichever keeps the type file zero-runtime).
-  - Verify: `npx tsc --noEmit` clean across the 5 existing checks (they ignore the new field, so they keep compiling).
-  - Depends on: 2.1
+  - Verify: `CheckContext = { projectHash: string; cwd: string }`. **Plan-033 keeps this shape unchanged** — no `profile` field is added.
+  - Depends on: none
   - Risk: Low
 
-- [ ] Step 2.3: Add profile guards to the 4 module-per-check files that should be harness-only (M)
-  - Files (4):
-    - `scripts/lib/medik-checks/hook-health-24h.ts`
-    - `scripts/lib/medik-checks/instinct-decay-candidates.ts`
-    - `scripts/lib/medik-checks/skill-creator-probe.ts`
-    - `scripts/lib/medik-checks/capability-alignment.ts`
-  - Implementation: at the top of each `runCheck`, before any DB / fs work:
+- [ ] Step 0.4: Read each affected check file to confirm current shape and target. (S)
+  - Files:
+    - `scripts/lib/medik-checks/capability-alignment.ts` — calls `buildCapabilityMatrix({ cwd: ctx.cwd })`; needs guard for `<cwd>/.claude/agents/` AND `<cwd>/.claude/skills/`.
+    - `scripts/lib/medik-checks/hook-health-24h.ts` — SQLite query filtered by `ctx.projectHash`; ALREADY project-aware. Needs ZERO existence guard — empty result already yields PASS message at lines 50–56. Confirm by reading.
+    - `scripts/lib/medik-checks/instinct-decay-candidates.ts` — SQLite query filtered by `ctx.projectHash`; ALREADY project-aware. Needs ZERO existence guard — empty result already yields PASS message at lines 40–46. Confirm by reading.
+    - `scripts/lib/medik-checks/skill-creator-probe.ts` — already probes 3 paths in any project. Needs ZERO change.
+    - `scripts/lib/medik-checks/stale-plans.ts` — canonical reference for the cwd-target-existence pattern (lines 35–41).
+  - Verify: only checks #8 (inline) and #14 (capability-alignment.ts) need new guards. Checks #11, #12, #13 are already correctly project-scoped.
+  - Depends on: 0.3
+  - Risk: Low
+
+- [ ] Step 0.5: Read `.claude/commands/medik.md` Phase 0 + Phase 1 to identify inline-check edit sites. (S)
+  - File: `.claude/commands/medik.md`
+  - Verify: Phase 0 currently handles `--ALV` only (lines 14–38); Phase 1 has the 14-check table (lines 40–74); Check #8 is inline (line 64) referencing `npx tsx scripts/lint-agent-frontmatter.ts`. Plan-033 inserts profile-detection banner in Phase 0 + cwd-existence guard wrapper around Check #8.
+  - Depends on: none
+  - Risk: Low
+
+- [ ] Step 0.6: Read `tests/eval/skanner-profile-detection.test.ts` for fixture patterns. (S)
+  - File: `tests/eval/skanner-profile-detection.test.ts`
+  - Verify: pattern uses `mkdtempSync` + per-test cleanup + `vi.spyOn(process.stderr, "write")`. Reuse verbatim in `tests/lib/medik-profile-detection.test.ts`.
+  - Depends on: none
+  - Risk: Low
+
+- [ ] Step 0.7: Confirm baseline test count. (S)
+  - Command: `npx vitest run 2>&1 | tail -5`
+  - Verify: record actual baseline (target: 1091 after plan-032 ships). If divergent, adjust Phase 4 targets.
+  - Depends on: 0.1–0.6
+  - Risk: Low
+
+### Phase 1: Detection adapter — `detectMedikProfile` + `MedikProfile` type (TDD)
+
+RED-GREEN-REFACTOR. The rename is already shipped (plan-032). Plan-033 adds only the `MedikProfile` two-value type and the `detectMedikProfile` adapter that collapses `web | cli` → `consumer`.
+
+- [ ] Step 1.1: Append 1 alias parity case to plan-031's existing test file. (S)
+  - File: `tests/eval/skanner-profile-detection.test.ts`
+  - Action: Append one `it` block at the bottom of the existing describe block:
+    `"detectMedikProfile collapses web|cli to consumer and respects KADMON_MEDIK_PROFILE"` — imports `detectMedikProfile`, asserts:
+    - harness markers → `'harness'`
+    - web markers (react in package.json) → `'consumer'`
+    - cli markers (bin field) → `'consumer'`
+    - `KADMON_MEDIK_PROFILE=harness` overrides web markers
+  - Verify: `npx vitest run tests/eval/skanner-profile-detection.test.ts` — RED (`detectMedikProfile` does not exist yet).
+  - Depends on: 0.7
+  - Risk: Low (test-only)
+
+- [ ] Step 1.2: Add `MedikProfile` type + `detectMedikProfile()` adapter. (M)
+  - File: `scripts/lib/detect-project-language.ts`
+  - Actions:
+    1. Add type after `ProjectProfile` (around line 121):
+       ```typescript
+       /**
+        * Two-value profile for /medik diagnostic banner (ADR-033).
+        * Collapses web|cli → consumer; harness stays harness.
+        * Used as DIAGNOSTIC HINT only — never as a per-check skip gate.
+        */
+       export type MedikProfile = "harness" | "consumer";
+       ```
+    2. Add adapter function at bottom of file (after `detectSkannerProfile` alias at line 280):
+       ```typescript
+       /**
+        * Returns the /medik diagnostic-banner profile for the project at `cwd`.
+        *
+        * Precedence (top wins):
+        *  1. `explicitArg` — validated against ['harness','consumer']
+        *  2. `KADMON_MEDIK_PROFILE` env var — trim + lowercase + whitelist
+        *  3. delegate to detectProjectProfile() and collapse 'web'|'cli' → 'consumer'
+        *
+        * NOT consumed by any runCheck() as a skip gate — diagnostic only (ADR-033).
+        */
+       export function detectMedikProfile(
+         cwd: string = process.cwd(),
+         explicitArg?: string,
+       ): MedikProfile {
+         // 1. Explicit arg
+         if (explicitArg !== undefined) {
+           const normalized = explicitArg.trim().toLowerCase();
+           if (normalized === "harness" || normalized === "consumer") {
+             return normalized;
+           }
+         }
+         // 2. KADMON_MEDIK_PROFILE env override
+         const envRaw = process.env["KADMON_MEDIK_PROFILE"];
+         const envVal = envRaw?.trim().toLowerCase() ?? "";
+         if (envVal === "harness" || envVal === "consumer") {
+           return envVal;
+         }
+         // 3. Delegate + collapse
+         const underlying = detectProjectProfile(cwd);
+         return underlying === "harness" ? "harness" : "consumer";
+       }
+       ```
+    3. Update file header comment to mention ADR-033 + `detectMedikProfile`.
+  - Verify: `npx vitest run tests/eval/skanner-profile-detection.test.ts` GREEN. `npx tsc --noEmit` clean.
+  - Depends on: 1.1
+  - Risk: Low (additive — no rename, no shape change)
+
+### Phase 2: Per-check cwd-target-existence guards (TDD)
+
+CheckContext is NOT extended. Each affected check resolves its target locally. Inline Check #8 is wrapped in a cwd-existence guard at the command-markdown level.
+
+- [ ] Step 2.1: Write failing test in `tests/lib/medik-profile-detection.test.ts` (RED). (M)
+  - File: `tests/lib/medik-profile-detection.test.ts` (NEW)
+  - Test cases (10) — using `mkdtempSync` fixture pattern from Phase 0.6:
+    1. `detectMedikProfile()` returns `'harness'` for harness markers (state-store.ts present in tmpDir).
+    2. `detectMedikProfile()` returns `'consumer'` for web markers (`react` in package.json).
+    3. `detectMedikProfile()` returns `'consumer'` for cli markers (package.json `bin` field).
+    4. `detectMedikProfile()` returns `'consumer'` for empty tmpDir (fallback collapse from `web`).
+    5. `KADMON_MEDIK_PROFILE=harness` overrides web markers.
+    6. `KADMON_MEDIK_PROFILE=consumer` overrides harness markers.
+    7. Explicit arg `harness` beats env `KADMON_MEDIK_PROFILE=consumer`.
+    8. Capability-alignment guard: when `<cwd>/.claude/agents/` AND `<cwd>/.claude/skills/` are both ABSENT, `runCheck` from `capability-alignment.ts` returns `{ status: 'NOTE', message: <contains "no consumer-local"> }`.
+    9. Capability-alignment guard: when both dirs are PRESENT (write a synthetic agent + skill into tmpDir), `runCheck` runs the matrix and returns the existing PASS or violation status (no NOTE-skip).
+    10. Profile detection is diagnostic-only: assert that `detectMedikProfile` is NOT imported from any file under `scripts/lib/medik-checks/` (grep assertion proving the gate is at command level only). Use `fs.readdirSync` + `fs.readFileSync` over the directory.
+  - Verify: all 10 cases FAIL until 1.2 + 2.2 + 2.3 land.
+  - Depends on: 0.7
+  - Risk: Medium — multi-fixture setup; mitigation = reuse skanner test helpers verbatim
+
+- [ ] Step 2.2: Add cwd-target-existence guard to `capability-alignment.ts`. (M)
+  - File: `scripts/lib/medik-checks/capability-alignment.ts`
+  - Action: insert at the top of `runCheck`, before `buildCapabilityMatrix`:
     ```typescript
-    if (ctx.profile !== 'harness') {
-      return {
-        status: 'NOTE',
-        category: '<existing-category>',
-        message: '<check-name> requires harness profile — skipped in consumer'
-      };
-    }
-    ```
-    Preserve each file's existing `category` value (e.g. `runtime` for hook-health-24h, `knowledge-hygiene` for capability-alignment when no runtime kinds present — defer to existing default).
-  - Verify: each file's existing test suite still PASSES when run with `ctx.profile = 'harness'`; new test cases from 2.1 PASS for `ctx.profile = 'consumer'`.
-  - Depends on: 2.2
-  - Risk: Medium — must not regress existing per-check tests; mitigation = guard added BEFORE existing logic, no other edits
+    import fs from "node:fs";
+    import path from "node:path";
+    // ...existing imports
 
-- [ ] Step 2.4: Update `stale-plans.ts` to keep its current docs/plans-existence skip (no profile gate) (S)
-  - File: `scripts/lib/medik-checks/stale-plans.ts`
-  - Implementation: NO change required — current code already returns `status: 'PASS'` with `message: 'No stale pending plans'` when `docs/plans/` missing. Confirm this is what we want for consumer profile (run in any profile, skip when no plans dir).
-  - Verify: read existing stale-plans.ts confirms the existence guard is already in place (lines 35–41). Add a test case (within 2.1's existing 10) confirming consumer profile + missing `docs/plans/` → PASS, harness profile + present `docs/plans/` → existing behavior.
+    export function runCheck(ctx: CheckContext): CheckResult {
+      const agentsDir = path.join(ctx.cwd, ".claude", "agents");
+      const skillsDir = path.join(ctx.cwd, ".claude", "skills");
+      if (!fs.existsSync(agentsDir) || !fs.existsSync(skillsDir)) {
+        return {
+          status: "NOTE",
+          category: "knowledge-hygiene",
+          message:
+            "no consumer-local agents/skills in this project — nothing to audit (capability-alignment requires both .claude/agents/ and .claude/skills/)",
+        };
+      }
+      // ...existing matrix + violations logic unchanged
+    ```
+  - Verify: `npx vitest run tests/lib/medik-profile-detection.test.ts` cases 8 + 9 GREEN. Existing `tests/lib/medik-checks/capability-alignment.test.ts` (if present) STILL PASSES — guard is added BEFORE existing logic, no behavior change when both dirs are present.
+  - Depends on: 2.1
+  - Risk: Medium — must not regress existing capability-alignment tests; mitigation = guard is additive and non-destructive
+
+- [ ] Step 2.3: Confirm `hook-health-24h.ts`, `instinct-decay-candidates.ts`, `skill-creator-probe.ts`, `stale-plans.ts` need NO change. (S)
+  - Files: 4 listed above.
+  - Action: re-verify per Phase 0.4 readings — these are already correctly cwd-aware or project_hash-filtered. **Document in plan but make NO edits.**
+  - Verify: `git status` shows zero diff on these 4 files after Phase 2.
   - Depends on: 2.2
   - Risk: Low
 
-- [ ] Step 2.5: For inline checks #6, #7, #8, #11, #12 in `.claude/commands/medik.md` — these are not module-per-check files. Decide & document gating strategy (M)
-  - File: `.claude/commands/medik.md` (read-only here, edit in Step 3.1)
-  - Decision: inline checks are gated by the runtime wiring step (3.2) which inspects the detected profile and skips invocation entirely (does NOT add per-check guards inside the command markdown).
-  - Verify: this plan documents the inline-vs-module split: 4 modules guarded inside `runCheck`, 5 inline checks gated at the command level by runtime wiring.
+- [ ] Step 2.4: Inline Check #8 cwd-existence guard at command markdown level. (S)
+  - File: `.claude/commands/medik.md`
+  - Action: replace the Check #8 invocation row's `npx tsx scripts/lint-agent-frontmatter.ts` with a guarded wrapper. Concretely, change the "Command / Method" cell for row #8 to:
+    ```
+    `node -e "if (!require('fs').existsSync('.claude/agents')) { console.log(JSON.stringify({ status: 'NOTE', category: 'code-hygiene', message: 'no consumer-local agents in this project — nothing to lint' })); process.exit(0); }"` then `npx tsx scripts/lint-agent-frontmatter.ts` if guard passed
+    ```
+    Or, equivalently, add a one-line note above row #8: "Check #8 is wrapped in a cwd-existence guard — if `.claude/agents/` is absent in cwd, emit NOTE and skip the linter invocation."
+  - Verify: `grep -n "no consumer-local agents" .claude/commands/medik.md` — at least 1 hit. Existing harness self-`/medik` still finds `.claude/agents/` in the harness root, so the linter runs identically (no behavioral regression).
   - Depends on: 2.3
   - Risk: Low
 
-### Phase 3: Command + runtime wiring
+### Phase 3: Command markdown — diagnostic banner wiring
 
-- [ ] Step 3.1: Update `.claude/commands/medik.md` with profile detection + Arguments section (M)
+- [ ] Step 3.1: Update `.claude/commands/medik.md` Phase 0 with profile detection banner. (M)
   - File: `.claude/commands/medik.md`
-  - Implementation:
-    - Add a new `## Arguments` section between frontmatter and `## Purpose`: documents `harness | consumer` override (or `KADMON_MEDIK_PROFILE` env var) and the precedence rule from ADR-033.
-    - Modify Phase 0 to:
-      1. Detect `--ALV` (existing behavior preserved).
-      2. Detect profile via `detectMedikProfile(process.cwd(), $ARGUMENTS)` and emit `Detected: <profile> (source: markers|env|arg)` as the first runtime output line, matching ADR-031.
-    - In Phase 1, add a paragraph above the check table: "When `profile === 'consumer'`, checks #6, #7, #8, #11, #12, #13, #14 are skipped with a NOTE; checks #1–#5, #9, #10 run normally per their language-aware logic."
-    - Renumber the post-table notes if needed; keep the example output current.
-    - **The 14-check table itself stays identical** — only the surrounding prose + Phase 0 detection change.
-  - Verify: `/medik` Check #14 (capability-alignment) still PASSes against the edited command markdown (no frontmatter drift, no ownership drift).
-  - Depends on: 2.5
-  - Risk: Medium — markdown edits to a hot command; mitigation = run Check #14 immediately after edit
+  - Action:
+    1. Insert an `## Arguments` section between frontmatter and `## Purpose`:
+       ```
+       ## Arguments
+       - `harness | consumer` — explicit profile override (highest precedence). Optional. Diagnostic banner only — does NOT skip any check (ADR-033).
+       - `KADMON_MEDIK_PROFILE=harness|consumer` — env var fallback.
+       - `KADMON_PROJECT_PROFILE=harness|web|cli` — umbrella env var (lower precedence; collapsed `web|cli` → `consumer`).
+       - Without args: profile detected from filesystem markers via `detectMedikProfile()`.
+       ```
+    2. Insert profile-detection step at the START of Phase 0 (before `--ALV` handling):
+       ```
+       ### Phase 0: Detection banner + flag detection
 
-- [ ] Step 3.2: Wire profile detection into runtime CheckContext construction (M)
-  - File: `scripts/lib/medik-checks/types.ts` (already extended in 2.2). The actual orchestration of `CheckContext` happens in the inline `npx tsx -e "..."` blocks inside `.claude/commands/medik.md`. Therefore: introduce a thin helper `scripts/lib/medik-checks/run-with-profile.ts` (NEW) that exports `buildCheckContext(cwd: string, explicitArg?: string): CheckContext`. The helper calls `detectMedikProfile`, builds `{ projectHash, cwd, profile }`, and returns it.
-  - Update `.claude/commands/medik.md` Phase 1 invocation snippets for checks #11, #12, #13, #14 to use the helper:
-    ```bash
-    npx tsx -e "
-    import('./scripts/lib/medik-checks/run-with-profile.js').then(async (rwp) => {
-      const ctx = rwp.buildCheckContext(process.cwd(), process.env.KADMON_MEDIK_PROFILE_ARG);
-      const m = await import('./scripts/lib/medik-checks/<check>.js');
-      const r = m.runCheck(ctx);
-      console.log(JSON.stringify(r, null, 2));
-      process.exit(r.status === 'FAIL' ? 1 : 0);
-    });
-    "
-    ```
-    For inline checks #6, #7, #8 (no module file), the command runs detection at the top of Phase 1 and conditionally skips the check block when `profile !== 'harness'`, printing the NOTE message inline.
-  - Verify: harness self-test → 14 checks invoked; consumer self-test → 5 generic checks + #10 stale-plans + 8 NOTE-skipped.
-  - Depends on: 3.1
-  - Risk: Medium — orchestration changes; mitigation = manual harness self-test + consumer dogfood are both verification steps in Phase 4
+       Before any health checks or flag parsing, emit the diagnostic banner:
+
+       ```bash
+       npx tsx -e "
+       import('./scripts/lib/detect-project-language.js').then(m => {
+         const profile = m.detectMedikProfile(process.cwd(), process.argv[2]);
+         const source = process.argv[2] ? 'arg' : (process.env.KADMON_MEDIK_PROFILE ? 'env' : 'markers');
+         console.log('Detected: ' + profile + ' (source: ' + source + ')');
+       });
+       " "$ARGUMENTS"
+       ```
+
+       The banner is INFORMATIONAL ONLY. All 14 checks run regardless of profile (ADR-033). Per-check NOTE responses (e.g. "no consumer-local agents — nothing to lint") come from the checks themselves, not from this banner.
+
+       Then handle `--ALV` flag (existing behavior preserved).
+       ```
+    3. Update the `> **Note:**` block beneath the 14-check table to add: "All 14 checks run in any cwd (ADR-033). Checks #8 and #14 emit a NOTE when their target directories (`.claude/agents/`, `.claude/skills/`) are absent — informational, not a defect. Checks #11 and #12 are already SQLite-filtered by `project_hash` derived from cwd."
+  - Verify: `grep -n "Detected:\|ADR-033\|no consumer-local" .claude/commands/medik.md` — at least 4 hits.
+  - Depends on: 2.4
+  - Risk: Medium — markdown edits to a hot command; mitigation = run Check #14 immediately after the edit + harness self-`/medik` smoke
 
 ### Phase 4: Verification
 
-- [ ] Step 4.1: Run mechanical verification (S)
-  - Verify:
-    - `npx vitest run` → all existing 1069 tests + 10 new = 1079 PASS
-    - `npx tsc --noEmit` → 0 errors
-    - `npx eslint .` → 0 new issues
-  - Depends on: 3.2
+- [ ] Step 4.1: Mechanical — full vitest, tsc, eslint. (S)
+  - Commands: `npx vitest run`, `npx tsc --noEmit`, `npx eslint .`
+  - Verify: 1091 baseline + 1 alias case + 10 new = 1102 PASS (adjust to live Phase 0.7 baseline). Zero `tsc` errors. Zero new eslint errors.
+  - Depends on: 3.1
   - Risk: Low
 
-- [ ] Step 4.2: Run `/medik` Check #14 (capability-alignment) on the edited command markdown + new helper file (S)
-  - Verify: Check #14 PASSes — `medik.md` frontmatter clean, `run-with-profile.ts` doesn't introduce orphan-skill or capability-mismatch.
+- [ ] Step 4.2: `/medik` Check #8 (frontmatter linter) clean. (S)
+  - Verify: harness self-test runs the linter identically (cwd-existence guard passes — `.claude/agents/` exists in harness root); 0 violations.
   - Depends on: 4.1
   - Risk: Low
 
-- [ ] Step 4.3: Manual harness self-test (M)
-  - Run: `/medik` from `C:\Command-Center\Kadmon-Harness`
-  - Verify:
-    - First line of output is `Detected: harness (source: markers)`
-    - All 14 checks run (no NOTE-skips for profile reason)
-    - Pass/fail counts match pre-refactor baseline (capture baseline before Step 1.2 lands; diff after Step 3.2)
+- [ ] Step 4.3: `/medik` Check #14 (capability-alignment) clean for own edits. (S)
+  - Verify: capability-alignment runs against the harness, finds zero new violations introduced by plan-033 (no orphan-skill, no capability-mismatch on the new helper code).
   - Depends on: 4.2
-  - Risk: Medium — primary acceptance test for ADR-033 Risk #2 (harness self-test breakage); mitigation = pre/post diff
-
-- [ ] Step 4.4: Manual consumer dogfood (M)
-  - Setup: create or reuse `/tmp/scratch-web` with `package.json` (no harness markers, has `react` dependency).
-  - Run: `cd /tmp/scratch-web && /medik`
-  - Verify:
-    - First line is `Detected: consumer (source: markers)`
-    - Checks #1–#5 run language-aware against the consumer's `npm`/`vitest`/etc.
-    - Check #10 stale-plans either runs (if `docs/plans/` present) or skips with the existing "No stale pending plans" PASS.
-    - Checks #6, #7, #8, #11, #12, #13, #14 each emit NOTE with `"requires harness profile — skipped"` text.
-  - Depends on: 4.3
-  - Risk: Medium — first time `/medik` ships into a consumer; mitigation = NOTE not FAIL means worst case is noise, not breakage
-
-- [ ] Step 4.5: Backward-compat sanity check (S)
-  - Run: `npx vitest run tests/eval/skanner-profile-detection.test.ts`
-  - Verify: pre-existing 12 cases still PASS via the deprecated alias; new alias-equality case from Step 1.1 also PASSes.
-  - Depends on: 4.4
   - Risk: Low
 
-- [ ] Step 4.6: `git diff --stat` review (S)
-  - Verify: only expected paths changed:
-    - `scripts/lib/detect-project-language.ts` (rename + alias + new `detectMedikProfile` + new `MedikProfile` type)
-    - `scripts/lib/medik-checks/types.ts` (CheckContext extended)
-    - `scripts/lib/medik-checks/{hook-health-24h,instinct-decay-candidates,skill-creator-probe,capability-alignment}.ts` (4 profile guards)
-    - `scripts/lib/medik-checks/run-with-profile.ts` (NEW helper)
-    - `.claude/commands/medik.md` (Arguments section + Phase 0 detection + Phase 1 invocation snippets)
-    - `tests/lib/medik-profile-detection.test.ts` (NEW, 10 cases)
-    - `tests/eval/skanner-profile-detection.test.ts` (1 new alias-equality case)
-  - No drift into kody, /chekpoint, /doks, agents/, skills/, hooks/.
+- [ ] Step 4.4: Harness self-test snapshot — byte-diff. (M)
+  - Action:
+    1. **Before any Phase 1–3 edits land**, on a clean checkout of the pre-change state, capture: `<run /medik in harness root> > /tmp/medik-snapshot-pre.txt`.
+    2. After Phase 1–3 ship, repeat with the new code: `> /tmp/medik-snapshot-post.txt`.
+    3. `diff /tmp/medik-snapshot-pre.txt /tmp/medik-snapshot-post.txt` — must show ONLY additive lines for the new `Detected: harness (source: markers)` first line. Pass/Fail/NOTE/WARN counts and per-check status MUST be byte-identical.
+  - Verify: diff output reviewed manually; no removed or modified pre-existing lines except the additive banner.
+  - Depends on: 4.3
+  - Risk: High (regression backstop for harness use case — failure here means Phase 2 inadvertently changed behavior)
+
+- [ ] Step 4.5: Consumer dogfood at `/tmp/scratch-cs`. (M)
+  - Action:
+    1. `mkdir -p /tmp/scratch-cs && cd /tmp/scratch-cs && git init && npm init -y && npm pkg set dependencies.react=^18`.
+    2. `bash <harness-root>/install.sh /tmp/scratch-cs`.
+    3. Verify `/tmp/scratch-cs/.claude/` has `rules/`, `settings.json`, NO `agents/`, NO `skills/`, NO `commands/` (consumer with NO project-local catalog).
+    4. Capture plugin cache mtime baseline: `stat -c %Y ~/.claude/plugins/cache/kadmon-harness/kadmon-harness/1.2.3/.claude/agents/*.md > /tmp/plugin-mtime-pre.txt`.
+    5. Capture harness git status baseline (must be clean): `git -C <harness-root> status --short > /tmp/harness-status-pre.txt`.
+    6. Run `/medik` from `/tmp/scratch-cs`.
+    7. Verify output:
+       - First line: `Detected: consumer (source: markers)`.
+       - All 14 checks invoked (no "harness-only required" skips).
+       - Checks #1–#5 run language-aware against the consumer's npm/vitest toolchain.
+       - Check #8 emits `NOTE: no consumer-local agents in this project — nothing to lint`.
+       - Check #11 (hook-health-24h): SQLite query by consumer's `project_hash` returns 0 rows → existing PASS message ("No hook health issues in last 24h").
+       - Check #12 (instinct-decay): SQLite query by consumer's `project_hash` returns 0 rows → existing PASS message ("No instinct decay candidates"). Cross-project instincts (scope=`cross_project`) surface in either query.
+       - Check #13 (skill-creator-probe): probes 3 paths; whichever exists wins.
+       - Check #14 (capability-alignment): emits `NOTE: no consumer-local agents/skills in this project — nothing to audit`.
+    8. Post-run verify:
+       - Plugin cache mtime UNCHANGED: `diff /tmp/plugin-mtime-pre.txt <(stat -c %Y ~/.claude/plugins/cache/kadmon-harness/kadmon-harness/1.2.3/.claude/agents/*.md)` → empty.
+       - Harness git status UNCHANGED: `diff /tmp/harness-status-pre.txt <(git -C <harness-root> status --short)` → empty.
+  - Verify: all assertions in step 7 + step 8 pass.
+  - Depends on: 4.4
+  - Risk: High (consumer-corruption test — if plugin cache mtime or harness git status diverges, ABORT and revert)
+
+- [ ] Step 4.6: Consumer-with-local-catalog dogfood at `/tmp/scratch-cs-rich`. (M)
+  - Action:
+    1. `mkdir -p /tmp/scratch-cs-rich && cd /tmp/scratch-cs-rich && git init && npm init -y`.
+    2. `bash <harness-root>/install.sh /tmp/scratch-cs-rich`.
+    3. CREATE consumer-local agent + skill:
+       ```
+       mkdir -p .claude/agents .claude/skills/local-skill
+       cat > .claude/agents/local-test.md <<EOF
+       ---
+       name: local-test
+       description: Consumer-local test agent
+       model: sonnet
+       tools: Read
+       skills: [local-skill]
+       ---
+       Test agent for /medik consumer dogfood with rich catalog.
+       EOF
+       cat > .claude/skills/local-skill/SKILL.md <<EOF
+       ---
+       name: local-skill
+       description: Consumer-local test skill
+       ---
+       Test skill body.
+       EOF
+       ```
+    4. Run `/medik` from `/tmp/scratch-cs-rich`.
+    5. Verify output:
+       - First line: `Detected: consumer (source: markers)`.
+       - Check #8 (frontmatter linter): runs against `local-test.md`, returns PASS or its actual lint result (NOT a NOTE skip).
+       - Check #14 (capability-alignment): runs against the local catalog, audits `local-test` ↔ `local-skill` linkage. Result depends on actual alignment but NOT a NOTE-skip.
+  - Verify: full audit coverage demonstrated for consumer with local catalog. The cancellation of the v1.4 defer (ADR-033) is justified by this evidence.
   - Depends on: 4.5
+  - Risk: Medium — first time `/medik` audits a consumer-local catalog; mitigation = test asserts behavioral correctness, not specific PASS counts
+
+- [ ] Step 4.7: Backward-compat — plan-031 + plan-032 tests still pass. (S)
+  - Command: `npx vitest run tests/eval/skanner-profile-detection.test.ts tests/lib/doks-profile-detection.test.ts`
+  - Verify: pre-existing cases all PASS via the deprecated `detectSkannerProfile` alias and via `detectProjectProfile`; new alias-equality case from Step 1.1 also PASSes.
+  - Depends on: 4.1
+  - Risk: Low (alias is identity)
+
+- [ ] Step 4.8: `git diff --stat` matches expected file set. (S)
+  - Expected paths (and ONLY these):
+    - `scripts/lib/detect-project-language.ts` (`MedikProfile` type + `detectMedikProfile` adapter)
+    - `tests/eval/skanner-profile-detection.test.ts` (1 alias case appended)
+    - `scripts/lib/medik-checks/capability-alignment.ts` (cwd-existence guard at top of `runCheck`)
+    - `.claude/commands/medik.md` (Arguments section + Phase 0 banner + Note block update + Check #8 wrapper)
+    - `tests/lib/medik-profile-detection.test.ts` (NEW)
+    - `docs/decisions/ADR-033-medik-project-agnostic.md` (already rewritten upstream)
+    - `docs/plans/plan-033-medik-project-agnostic.md` (this file)
+  - **NOT expected** (ADR-033 keeps these unchanged):
+    - `scripts/lib/medik-checks/types.ts` — CheckContext shape unchanged
+    - `scripts/lib/medik-checks/hook-health-24h.ts` — already `project_hash`-filtered
+    - `scripts/lib/medik-checks/instinct-decay-candidates.ts` — already `project_hash`-filtered
+    - `scripts/lib/medik-checks/skill-creator-probe.ts` — already path-probing
+    - `scripts/lib/medik-checks/stale-plans.ts` — already cwd-existence-gated
+    - `scripts/lib/medik-checks/run-with-profile.ts` — NOT created (no command-level helper needed; banner is inline)
+  - Verify: `git diff --stat main...HEAD` shows exactly the 7 expected paths; no kody scope creep, no /doks scope creep.
+  - Depends on: 4.7
   - Risk: Low
 
 ### Test Plan (TDD targets)
 
-**RED phase first** (test written before implementation, every time):
-
-| Test | When written | Expected RED reason | Resolves at |
-|------|--------------|---------------------|-------------|
-| `tests/eval/skanner-profile-detection.test.ts` (1 new alias case) | Step 1.1 | `detectSkannerProfile === detectProjectProfile` reference fails — `detectProjectProfile` doesn't exist yet | Step 1.2 |
-| `tests/lib/medik-profile-detection.test.ts` (10 cases) | Step 2.1 | `detectMedikProfile` doesn't exist; `ctx.profile` not in `CheckContext`; checks don't honor profile | Steps 1.3, 2.2, 2.3, 2.4 |
-
-**Existing suites stay GREEN throughout**:
-- `tests/lib/medik-checks/*.test.ts` (5 files) — verify each still passes after Step 2.3 adds the guard. Existing tests use `ctx.profile` undefined OR add it explicitly to fixtures (fix per-test if needed; preferably keep `profile: 'harness'` in fixtures so the guard never trips during the existing happy path).
-- `tests/eval/skanner-profile-detection.test.ts` (12 existing) — verify still passes after Step 1.2 rename via deprecated alias.
-
-**Coverage target**: 100% of new lines in `detect-project-language.ts` (`detectMedikProfile` + `MedikProfile` type), 100% of new guard lines in 4 check modules, 100% of `run-with-profile.ts`.
+| Phase | Test file | TDD step | Cases | Notes |
+|------|-----------|----------|-------|-------|
+| 1 | `tests/eval/skanner-profile-detection.test.ts` | RED 1.1 → GREEN 1.2 | 1 new (`detectMedikProfile` collapse + env override) | Reuses existing tmpdir + stderr-spy harness |
+| 2 | `tests/lib/medik-profile-detection.test.ts` (NEW) | RED 2.1 → GREEN 1.2 + 2.2 | 10 (4 detection + 3 override + 2 capability-alignment guard + 1 architectural assertion) | Mirrors plan-032 doks-profile-detection test layout |
+| 4 | Harness self-`/medik` snapshot diff | Behavioral regression backstop | 1 (byte-diff harness output pre/post) | Manual; `/tmp/medik-snapshot-{pre,post}.txt`. ONLY additive line allowed = `Detected: harness (source: markers)` |
+| 4 | Consumer dogfood (no local catalog) at `/tmp/scratch-cs` | E2E behavioral verification | 1 (14 checks invoked, NOTEs for absent targets, plugin cache stable, harness git clean) | Manual; transcript in PR body |
+| 4 | Consumer dogfood (with local catalog) at `/tmp/scratch-cs-rich` | E2E coverage demonstration | 1 (Check #8 + #14 audit local catalog, no NOTE-skip) | Manual; justifies ADR-033 v1.4-defer cancellation |
 
 ### Risks & Mitigations
 
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| Harness self-test regression after rename (ADR-033 Risk #2) | High | Step 4.3 captures pre-refactor baseline output, diffs against post-refactor output. Any divergence = blocker. |
-| Plan-031 callers (kartograf, arkonte) break on rename | Medium | Deprecated alias `detectSkannerProfile` retained until v1.4 (ADR-033 §Decision). Step 4.5 explicitly tests alias resolution. |
-| Misdetection in monorepos (ADR-033 Risk #1) | Medium | `KADMON_MEDIK_PROFILE` env var + explicit arg always beat marker scan. `Detected: <profile> (source: ...)` first-line output is auditable. Same mitigation as ADR-031 → already proven in plan-031. |
-| Existing `medik-checks` tests have fixtures missing `profile` field | Medium | Step 2.3 adds the guard at the top, but each file's existing test must pass `profile: 'harness'` in its CheckContext fixture. Step 2.3 sub-task: audit each test file and add `profile: 'harness'` to fixtures if absent (compile-time error after 2.2 makes this self-locating). |
-| Inline checks #6, #7, #8 in command markdown can't have a runtime guard | Medium | Step 3.2 gates them at command-orchestration level: detect profile in Phase 0, conditionally skip the inline block in Phase 1, print NOTE text directly. Dogfood verifies (4.4). |
-| Check #13 (capability-alignment) gated harness-only diverges from ADR-033 Risk #6 mitigation (which proposes "run in any project with `.claude/skills/` + `.claude/agents/`") | Medium | Documented in Assumptions + Step 1.0. v1.3 ships harness-only; v1.4 fork-aware mode opens a follow-up plan. User explicitly approved this scope reduction in task brief. |
-| `process.cwd()` ≠ `KADMON_RUNTIME_ROOT` confusion (ADR-010) | Low | `detectMedikProfile` defaults to `process.cwd()`; never reads `KADMON_RUNTIME_ROOT`. Documented in Assumptions and code comment in Step 1.3. |
+| Risk | Mitigation |
+|------|------------|
+| Harness self-`/medik` regression (catastrophic for downstream `/medik` users) | Step 4.4 byte-diff snapshot is the gate. Only the `Detected:` first line is an allowed additive change. If pre-existing per-check status text changes, revert Phase 2 commits and re-design with strictly additive output. |
+| Consumer corruption — `/medik` accidentally writes outside cwd | Step 4.5 stat-mtime check on plugin cache + harness git-status diff. Both must be empty post-run. ABORT-and-revert protocol if either diverges. |
+| NOTE message phrasing drift across checks | Plan-033 specifies the canonical phrasing template ("no consumer-local <kind> in this project — nothing to <verb>") in Step 2.2 and Step 2.4. capability-alignment.ts and the inline Check #8 wrapper use the same shape. Future check additions must follow the template. |
+| `KADMON_MEDIK_PROFILE` collides with `KADMON_PROJECT_PROFILE` | Step 1.2 documents precedence: explicit arg → `KADMON_MEDIK_PROFILE` (banner-level) → `KADMON_PROJECT_PROFILE` (umbrella, via `detectProjectProfile`) → markers. Banner is diagnostic only, so a misconfigured precedence has no behavioral consequence — only a misleading banner line. |
+| Plan-031 + plan-032 regression via the new adapter | Step 1.1 RED test asserts `detectMedikProfile` collapse + override semantics. Step 4.7 explicitly re-runs plan-031 + plan-032 test files. Both must remain GREEN. |
+| Inline Check #8 wrapper produces a stack trace on consumer fresh install | Step 2.4 wraps the linter invocation in a `node -e "if (!fs.existsSync('.claude/agents')) ..."` guard that short-circuits with a NOTE before the linter spawn. Step 4.5 dogfood verifies the consumer-fresh-install case produces NOTE, not a stack trace. |
+| Check #14 fork-aware mode regresses harness self-audit | Step 4.4 byte-diff catches any harness self-`/medik` regression. Step 4.6 (consumer with local catalog) demonstrates the fork-aware behavior is correct. |
+| Misdetection in monorepos | ADR-033 Risk #1 → env var (`KADMON_MEDIK_PROFILE`) + explicit arg always beat marker scan. `Detected: <profile> (source: ...)` first-line output is auditable. Same mitigation as ADR-031, ADR-032. |
 
 ### Verification
 
 **Mechanical**:
-- `npx vitest run` → 1069 (existing) + 10 (new medik-profile) + 1 (new skanner alias case) = 1080 PASS
-- `npx tsc --noEmit` → 0 errors
-- `npx eslint .` → no new issues
-- `/medik` Check #8 (frontmatter linter) → PASS (no agent files changed)
-- `/medik` Check #14 (capability-alignment) → PASS for the refactor itself
+- `npx vitest run` — 1091 baseline + 1 alias + 10 new = 1102 PASS (adjust to live Phase 0.7 baseline).
+- `npx tsc --noEmit` — 0 errors.
+- `npx eslint .` — 0 new errors.
+- `/medik` Check #8 (agent frontmatter linter) — clean (existing harness behavior preserved).
+- `/medik` Check #14 (capability-alignment) — clean for own edits.
 
-**Manual**:
-- Harness self-test: `/medik` from harness root → first line `Detected: harness`, 14 checks invoked, output diff vs pre-refactor baseline = empty (or limited to the new `Detected:` first line)
-- Consumer dogfood: `/medik` from `/tmp/scratch-web` → first line `Detected: consumer`, ≤ 6 checks run with PASS/WARN/FAIL, 7-8 checks emit NOTE with `"requires harness profile — skipped"`
-- Backward compat: `import { detectSkannerProfile } from "scripts/lib/detect-project-language.js"` resolves to the renamed function via alias; `tests/eval/skanner-profile-detection.test.ts` runs unchanged and PASSes
+**Behavioral**:
+- Harness self-`/medik` snapshot byte-identical pre/post except the additive `Detected: harness (source: markers)` first line. Pass/Fail/NOTE/WARN counts and per-check status text unchanged.
+- Consumer dogfood (fresh install) at `/tmp/scratch-cs`: profile detected as consumer, all 14 checks invoked, Checks #8 + #14 emit informational NOTEs, plugin cache mtime unchanged, harness git status clean.
+- Consumer dogfood (rich catalog) at `/tmp/scratch-cs-rich`: profile detected as consumer, Checks #8 + #14 audit the consumer-local catalog (NOT a NOTE-skip), justifying the v1.4-defer cancellation.
+- Backward-compat: plan-031 + plan-032 test files all PASS.
+
+**Diff hygiene**:
+- `git diff --stat main...HEAD` matches the expected 7 paths in Step 4.8.
+- Conventional commit message includes `Reviewed: full` footer (per `git-workflow.md`).
 
 ### Acceptance Criteria
 
-- [ ] All file modifications complete (1 rename in `detect-project-language.ts` + 1 type extension in `types.ts` + 4 module-per-check guards + 1 new helper file `run-with-profile.ts` + 1 command-markdown edit + 1 new test file + 1 new assertion in skanner test)
-- [ ] `tests/lib/medik-profile-detection.test.ts` PASS 10/10
-- [ ] `tests/eval/skanner-profile-detection.test.ts` PASS 13/13 (12 existing + 1 alias case)
-- [ ] Pre-existing 1069 harness tests PASS (no regressions)
-- [ ] `npx tsc --noEmit` → 0 errors
-- [ ] `/medik` Check #8 (frontmatter linter) → PASS
-- [ ] `/medik` Check #14 (capability-alignment) → PASS
-- [ ] Manual harness self-test → 14 checks invoked, output baseline-stable
-- [ ] Manual consumer self-test → ≤ 6 checks invoked, others NOTE-skipped with consistent message
-- [ ] `detectSkannerProfile` deprecated alias still resolves and works in plan-031 callers
-- [ ] `git diff --stat` shows only the 7 expected paths — no kody scope creep, no /doks scope creep (that's plan-034)
+- [ ] All 7 file modifications complete:
+  - [ ] `scripts/lib/detect-project-language.ts` — `MedikProfile` type + `detectMedikProfile` adapter (NO rename — already shipped in plan-032)
+  - [ ] `tests/eval/skanner-profile-detection.test.ts` — 1 new alias parity case appended
+  - [ ] `scripts/lib/medik-checks/capability-alignment.ts` — cwd-existence guard at top of `runCheck`
+  - [ ] `.claude/commands/medik.md` — Arguments section + Phase 0 banner + Note block update + Check #8 wrapper
+  - [ ] `tests/lib/medik-profile-detection.test.ts` — NEW file with 10 cases
+  - [ ] `docs/decisions/ADR-033-medik-project-agnostic.md` — already rewritten upstream
+  - [ ] `docs/plans/plan-033-medik-project-agnostic.md` — this file
+- [ ] **Files NOT modified** (verified by `git diff --stat`):
+  - [ ] `scripts/lib/medik-checks/types.ts` — CheckContext shape unchanged (no `profile` field)
+  - [ ] `scripts/lib/medik-checks/hook-health-24h.ts` — already correctly project-scoped
+  - [ ] `scripts/lib/medik-checks/instinct-decay-candidates.ts` — already correctly project-scoped
+  - [ ] `scripts/lib/medik-checks/skill-creator-probe.ts` — already meaningful in any project
+  - [ ] `scripts/lib/medik-checks/stale-plans.ts` — already cwd-existence-gated
+- [ ] New test file passes: 10/10.
+- [ ] Existing baseline tests still pass: full vitest run = baseline + 11.
+- [ ] `npx tsc --noEmit` → 0 errors.
+- [ ] `npx eslint .` → 0 new errors.
+- [ ] `/medik` Check #8 frontmatter linter clean.
+- [ ] `/medik` Check #14 capability-alignment clean for own edits.
+- [ ] Harness self-`/medik` snapshot byte-identical pre/post except additive banner.
+- [ ] Consumer dogfood (no local catalog) at `/tmp/scratch-cs`: all 14 checks invoked, Checks #8 + #14 emit NOTE, plugin cache mtime unchanged, harness git status clean.
+- [ ] Consumer dogfood (with local catalog) at `/tmp/scratch-cs-rich`: Checks #8 + #14 audit the local catalog (no NOTE-skip).
+- [ ] Backward-compat: plan-031 (`tests/eval/skanner-profile-detection.test.ts`) + plan-032 (`tests/lib/doks-profile-detection.test.ts`) all PASS.
+- [ ] `git diff --stat` shows only the expected 7 paths — no kody scope creep, no /doks scope creep.
+- [ ] Conventional commit message includes `Reviewed: full` footer.
