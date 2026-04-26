@@ -113,13 +113,9 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 
 ## Plugin-Mode Runtime Resolution (ADR-010 Phase 1)
 
-- Lifecycle hooks (session-start, session-end-all, pre-compact-save) import from `dist/scripts/lib/*.js` at runtime.
-- **Local-dev mode**: `ensure-dist.js#resolveRootDir()` walks 3 levels up from `import.meta.url` to find the repo root.
-- **Plugin mode**: `.claude-plugin/hooks.json` sets `KADMON_RUNTIME_ROOT=${CLAUDE_PLUGIN_DATA}` via the generated command prefix, so `resolveRootDir()` points at the plugin cache (`~/.claude/plugins/cache/kadmon-harness/...`). Required — the plugin cache directory does NOT have a predictable depth, so the relative walk would fail.
-- MUST leave `KADMON_RUNTIME_ROOT` unset in local dev — the 3-level walk works from repo layout.
-- Changing the hook install location (moving `dist/` or the canonical root symlinks) requires updating `ensure-dist.js#resolveRootDir()` and the hooks.json generator in `scripts/generate-plugin-hooks.ts`.
+Lifecycle hooks (session-start, session-end-all, pre-compact-save) import from `dist/scripts/lib/*.js`. Local-dev mode resolves via 3-level walk (`ensure-dist.js#resolveRootDir()`); plugin mode resolves via `KADMON_RUNTIME_ROOT=${CLAUDE_PLUGIN_DATA}` set by `.claude-plugin/hooks.json`. MUST leave `KADMON_RUNTIME_ROOT` unset in local dev. Changing hook install location requires updating `ensure-dist.js#resolveRootDir()` AND `scripts/generate-plugin-hooks.ts`. Full reference (why the walk fails in plugin mode, plugin cache layout, hooks.json generator contract) — see **`hook-authoring` skill**.
 
 ## Windows Compatibility
-- All 22 registered hooks run via `${HOOK_CMD_PREFIX}` in `.claude-plugin/hooks.json`, which injects the Node.js PATH and `KADMON_RUNTIME_ROOT` in plugin mode (ADR-010 Phase 1). In local-dev mode the repo-root prefix is resolved via `ensure-dist.js#resolveRootDir()`.
 - Non-critical hooks support `KADMON_DISABLED_HOOKS` env var (comma-separated names to skip)
 - MUST use `parseStdin()` helper to sanitize unescaped Windows backslashes in JSON stdin
+- `${HOOK_CMD_PREFIX}` injection + plugin-mode `KADMON_RUNTIME_ROOT` deep detail — see **`hook-authoring` skill**
