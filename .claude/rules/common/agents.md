@@ -81,11 +81,11 @@ Rules:
 | feniks | sonnet | /abra-kdabra (if needs_tdd) | /abra-kdabra | tdd-workflow, python-testing, eval-harness, ai-regression-testing |
 | mekanik | sonnet | /medik Phase 2 (always), auto on TS/Vitest failures | /medik | systematic-debugging, agent-introspection-debugging |
 | kurator | sonnet | /medik Phase 2 (always, parallel with mekanik) | /medik | coding-standards |
-| arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner | /skanner, auto-invoke | context-budget, token-budget-advisor, benchmark |
+| arkonte | sonnet | Auto on O(n^2)/slow queries/memory, /skanner (profile-aware: harness\|web\|cli) | /skanner, auto-invoke | context-budget, token-budget-advisor, benchmark |
 | python-reviewer | sonnet | Auto on .py edits | /chekpoint | python-patterns, python-testing, claude-api |
 | almanak | sonnet | /almanak, unfamiliar APIs, no_context | /almanak | mcp-server-patterns, documentation-lookup |
 | doks | opus | /doks, after feature/structural commits | /doks | docs-sync, skill-stocktake, rules-distill, code-tour |
-| kartograf | sonnet | /skanner (E2E component) | /skanner | e2e-testing |
+| kartograf | sonnet | /skanner (E2E component, profile-aware: harness\|web\|cli) | /skanner | e2e-testing |
 | alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2, skill-stocktake, agent-eval, prompt-optimizer, skill-comply, workspace-surface-audit, cost-aware-llm-pipeline |
 | skavenger | sonnet | /skavenger, research/investigate/deep-dive intent | /skavenger | deep-research |
 
