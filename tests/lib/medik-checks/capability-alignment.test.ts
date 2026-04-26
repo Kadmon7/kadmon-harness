@@ -88,10 +88,12 @@ describe("capability-alignment check (#14)", () => {
     expect(result.message).toMatch(/FAIL/);
   });
 
-  it("(e) missing .claude/ -> PASS (consistent with stale-plans)", () => {
-    // tmp exists but no .claude subdir
+  it("(e) missing .claude/agents/ or .claude/skills/ -> NOTE (ADR-033 cwd-existence guard)", () => {
+    // tmp exists but no .claude subdir — consumer without local catalog
     const result = runCheck({ projectHash: "test", cwd: tmp });
-    expect(result.status).toBe("PASS");
+    expect(result.status).toBe("NOTE");
+    expect(result.category).toBe("knowledge-hygiene");
+    expect(result.message).toContain("no consumer-local");
   });
 
   it("(f) malformed YAML in an agent file -> does not throw, PASS or NOTE only", () => {

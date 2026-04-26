@@ -58,6 +58,23 @@ export declare function detectProjectProfile(cwd?: string, explicitArg?: string)
  */
 export declare const detectSkannerProfile: typeof detectProjectProfile;
 /**
+ * Two-value profile for /medik diagnostic banner (ADR-033).
+ * Collapses web|cli → consumer; harness stays harness.
+ * Used as DIAGNOSTIC HINT only — never as a per-check skip gate.
+ */
+export type MedikProfile = "harness" | "consumer";
+/**
+ * Returns the /medik diagnostic-banner profile for the project at `cwd`.
+ *
+ * Precedence (top wins):
+ *  1. `explicitArg` — validated against ['harness','consumer']
+ *  2. `KADMON_MEDIK_PROFILE` env var — trim + lowercase + whitelist
+ *  3. delegate to detectProjectProfile() and collapse 'web'|'cli' → 'consumer'
+ *
+ * NOT consumed by any runCheck() as a skip gate — diagnostic only (ADR-033).
+ */
+export declare function detectMedikProfile(cwd?: string, explicitArg?: string): MedikProfile;
+/**
  * Returns the toolchain configuration for the project at `cwd`.
  * mixed and unknown fall back to the TypeScript toolchain (conservative default).
  */

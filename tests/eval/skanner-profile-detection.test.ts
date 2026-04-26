@@ -23,7 +23,9 @@ import os from "node:os";
 import {
   detectSkannerProfile,
   detectProjectProfile,
+  detectMedikProfile,
   type SkannerProfile,
+  type MedikProfile,
 } from "../../scripts/lib/detect-project-language.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ import {
 function cleanProfileEnv(): void {
   delete process.env["KADMON_SKANNER_PROFILE"];
   delete process.env["KADMON_PROJECT_PROFILE"];
+  delete process.env["KADMON_MEDIK_PROFILE"];
 }
 
 /** Create a fresh tmp dir for marker files. */
@@ -287,5 +290,42 @@ describe("detectSkannerProfile", () => {
     process.env["KADMON_SKANNER_PROFILE"] = "web";
     const result: SkannerProfile = detectProjectProfile(tmpDir);
     expect(result).toBe("harness");
+  });
+
+  // ─── plan-033 alias parity — detectMedikProfile collapses web|cli → consumer ─
+
+  it("detectMedikProfile collapses web|cli to consumer and respects KADMON_MEDIK_PROFILE", () => {
+    // harness markers → 'harness'
+    writeMarker(tmpDir, "scripts/lib/state-store.ts");
+    expect(detectMedikProfile(tmpDir)).toBe("harness");
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    tmpDir = makeTmpDir();
+
+    // web markers (react in package.json) → 'consumer'
+    const webPkg = { name: "web-app", dependencies: { react: "^18" } };
+    writeMarker(tmpDir, "package.json", JSON.stringify(webPkg));
+    expect(detectMedikProfile(tmpDir)).toBe("consumer");
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    tmpDir = makeTmpDir();
+
+    // cli markers (bin field) → 'consumer'
+    const cliPkg = { name: "my-cli", bin: { "my-cli": "./bin/index.js" }, dependencies: { commander: "^11" } };
+    writeMarker(tmpDir, "package.json", JSON.stringify(cliPkg));
+    expect(detectMedikProfile(tmpDir)).toBe("consumer");
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    tmpDir = makeTmpDir();
+
+    // KADMON_MEDIK_PROFILE=harness overrides web markers
+    const webPkg2 = { name: "web-app2", dependencies: { react: "^18" } };
+    writeMarker(tmpDir, "package.json", JSON.stringify(webPkg2));
+    process.env["KADMON_MEDIK_PROFILE"] = "harness";
+    expect(detectMedikProfile(tmpDir)).toBe("harness");
+    delete process.env["KADMON_MEDIK_PROFILE"];
+
+    // The MedikProfile type is exactly two values
+    const harnessVal: MedikProfile = "harness";
+    const consumerVal: MedikProfile = "consumer";
+    expect(harnessVal).toBe("harness");
+    expect(consumerVal).toBe("consumer");
   });
 });

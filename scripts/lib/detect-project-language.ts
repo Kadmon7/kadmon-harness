@@ -1,8 +1,9 @@
-// Kadmon Harness — Runtime language detection (ADR-020) + project profile detection (ADR-031, ADR-032)
+// Kadmon Harness — Runtime language detection (ADR-020) + project profile detection (ADR-031, ADR-032, ADR-033)
 // Detects project language and runtime profile from filesystem markers or env var override.
 // Exports: detectProjectLanguage, getToolchain, ProjectLanguage, Toolchain
 //          detectProjectProfile, ProjectProfile (renamed from detectSkannerProfile/SkannerProfile per ADR-032)
 //          detectSkannerProfile, SkannerProfile (deprecated aliases preserved for plan-031 callers)
+//          detectMedikProfile, MedikProfile (/medik diagnostic-banner adapter, ADR-033)
 
 import fs from "node:fs";
 import path from "node:path";
@@ -278,6 +279,47 @@ export function detectProjectProfile(
  * Function reference is identical, so behavior is preserved exactly.
  */
 export const detectSkannerProfile = detectProjectProfile;
+
+// ─── /medik diagnostic-banner profile (ADR-033) ───────────────────────────────
+
+/**
+ * Two-value profile for /medik diagnostic banner (ADR-033).
+ * Collapses web|cli → consumer; harness stays harness.
+ * Used as DIAGNOSTIC HINT only — never as a per-check skip gate.
+ */
+export type MedikProfile = "harness" | "consumer";
+
+/**
+ * Returns the /medik diagnostic-banner profile for the project at `cwd`.
+ *
+ * Precedence (top wins):
+ *  1. `explicitArg` — validated against ['harness','consumer']
+ *  2. `KADMON_MEDIK_PROFILE` env var — trim + lowercase + whitelist
+ *  3. delegate to detectProjectProfile() and collapse 'web'|'cli' → 'consumer'
+ *
+ * NOT consumed by any runCheck() as a skip gate — diagnostic only (ADR-033).
+ */
+export function detectMedikProfile(
+  cwd: string = process.cwd(),
+  explicitArg?: string,
+): MedikProfile {
+  // 1. Explicit arg
+  if (explicitArg !== undefined) {
+    const normalized = explicitArg.trim().toLowerCase();
+    if (normalized === "harness" || normalized === "consumer") {
+      return normalized;
+    }
+  }
+  // 2. KADMON_MEDIK_PROFILE env override
+  const envRaw = process.env["KADMON_MEDIK_PROFILE"];
+  const envVal = envRaw?.trim().toLowerCase() ?? "";
+  if (envVal === "harness" || envVal === "consumer") {
+    return envVal;
+  }
+  // 3. Delegate + collapse
+  const underlying = detectProjectProfile(cwd);
+  return underlying === "harness" ? "harness" : "consumer";
+}
 
 // ─── Toolchain factory ────────────────────────────────────────────────────────
 
