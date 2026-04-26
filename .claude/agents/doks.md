@@ -30,8 +30,6 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 
 ## Documentation Files (ALL of these must be checked)
 
-| File | Language | Purpose | What to check |
-|------|----------|---------|---------------|
 ### Layer 1 — Public docs (users + Claude)
 | File | Language | What to check |
 |------|----------|---------------|
