@@ -38,12 +38,19 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 | **CLAUDE.md** | English | Component counts, file structure, Memory section, Hook catalog, Status line |
 | **README.md** | English | Complete reference: architecture, agents, skills, commands, hooks, rules, database, tests, plugins |
 
-### Layer 2 — Rules (Claude reads every session)
+### Layer 1.5 — Catalogs (non-auto-loaded, read on-demand by hooks/audits — ADR-035)
 | File | What to check |
 |------|---------------|
-| **.claude/rules/common/hooks.md** | Hook catalog (20 entries) — descriptions MUST match actual hook behavior |
-| **.claude/rules/common/agents.md** | Agent catalog — triggers, model routing, auto-invoke rules |
-| **.claude/rules/common/development-workflow.md** | Command reference table — if commands change, update here |
+| **.claude/agents/CATALOG.md** | Full 16-agent table (model, trigger, command, skills) + Auto-Invoke list. Auto-synced by `agent-metadata-sync` hook on agent edits. Verify row count = `ls .claude/agents/*.md \| grep -v _TEMPLATE \| grep -v CATALOG \| wc -l`. |
+| **.claude/hooks/CATALOG.md** | 22 registered hooks across 9 matcher groups + 8 shared modules. Verify hook script count matches. |
+| **.claude/commands/CATALOG.md** | 11 commands across 7 phases (Observe / Plan / Build / Scan / Research / Remember / Evolve). Verify command count matches. |
+
+### Layer 2 — Rules (Claude reads every session — operational logic only, NO catalogs per ADR-035)
+| File | What to check |
+|------|---------------|
+| **.claude/rules/common/hooks.md** | Operational hook rules: exit codes, safety, performance budgets, plugin-mode resolution, Windows compat. Catalog lives in `.claude/hooks/CATALOG.md`. |
+| **.claude/rules/common/agents.md** | Operational agent rules: orchestration chain, skill-loading layout, routing principles, manual invocation, parallel execution, approval criteria, command-level skills. Full catalog lives in `.claude/agents/CATALOG.md`. |
+| **.claude/rules/common/development-workflow.md** | Operational workflow rules: order, /chekpoint tiers decision table, commits, research, enforcement. Full command reference lives in `.claude/commands/CATALOG.md`. |
 | Other rules | Only if the change affects enforcement descriptions |
 
 ### Layer 3 — Commands (workflow definitions)
@@ -85,6 +92,12 @@ Gather current state from the filesystem. Never trust memory or cached counts.
 - `ls .claude/rules/**/*.md | wc -l` — rule count by category
 - `npx vitest run 2>&1 | tail -5` — test count
 - Check for NEW root files (vitest.config.ts, etc.) vs what docs say
+
+**CATALOG.md drift check (ADR-035)** — verify catalog row counts match filesystem:
+- agents: `grep -c "^| [a-z]" .claude/agents/CATALOG.md` MUST equal `ls .claude/agents/*.md | grep -vE '_TEMPLATE|CATALOG' | wc -l`
+- hooks: `grep -c "^| [a-z]" .claude/hooks/CATALOG.md` MUST equal `ls .claude/hooks/scripts/*.js | wc -l` (modulo helper-vs-registered split)
+- commands: `grep -c "^| /" .claude/commands/CATALOG.md` MUST equal `ls .claude/commands/*.md | wc -l`
+If any drift → repair the CATALOG.md (single source of truth) before touching CLAUDE.md table.
 
 ### 3. Update Documentation (in priority order)
 
