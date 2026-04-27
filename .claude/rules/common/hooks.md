@@ -28,7 +28,7 @@ alwaysApply: true
 - Blocking/warning hooks log `durationMs = Date.now() - start` on every `logHookEvent` call for performance telemetry
 - session-end-all extracts agent invocations from `observations.jsonl` and hook events from `hook-events.jsonl`, persists both to DB
 - Lifecycle hooks (session-start, session-end-all) may access SQLite via compiled TypeScript in dist/
-- MUST run `npm run build` before lifecycle hooks can access state-store
+- MUST run `npm run build` (or project equivalent) before lifecycle hooks can import compiled TypeScript modules from `dist/`
 
 ## Plugin-Mode Runtime Resolution
 

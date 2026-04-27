@@ -11,7 +11,7 @@
          ~/.claude/projects/<project-slug>/memory/reference_kadmon_harness.md
 
        That file is the authoritative harness catalog (16 agents, 11 commands,
-       46 skills, 22 hooks, 19 rules + orchestration chain + cheat sheet).
+       48 skills, 22 hooks + 9 shared modules, 19 rules + orchestration chain + cheat sheet).
        Claude auto-loads it every session. Refresh it when the harness
        version bumps.
 
@@ -74,7 +74,7 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 
 ## Harness Components
 
-This project consumes Kadmon Harness — **16 agents, 11 commands, 46 skills, 22 hooks, 19 rules**. The full catalog, orchestration chain, trigger rules, and cheat sheet live in:
+This project consumes Kadmon Harness — **16 agents, 11 commands, 48 skills, 22 hooks + 9 shared modules, 19 rules**. 11/11 commands cross-project. The full catalog, orchestration chain, trigger rules, and cheat sheet live in:
 
 `~/.claude/projects/<project-slug>/memory/reference_kadmon_harness.md`
 

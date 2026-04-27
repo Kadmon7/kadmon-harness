@@ -10,7 +10,7 @@ globs: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 ## Mocking
 - PREFER vi.fn() over manual mock objects
 - MUST mock external dependencies (git commands, file system) in unit tests
-- PREFER real :memory: SQLite over mocking state-store in integration tests
+- PREFER real :memory: SQLite (or in-memory equivalent) over mocking the data-access wrapper in integration tests
 
 ## Type Testing
 - MUST test TypeScript types with `expectTypeOf` where relevant

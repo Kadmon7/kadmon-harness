@@ -1,6 +1,6 @@
 ---
 name: Kadmon Harness — commands, agents, skills, hooks catalog
-description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 46 skills, 22 auto-hooks, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
+description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 48 skills, 22 auto-hooks + 9 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
 type: reference
 ---
 
@@ -14,8 +14,8 @@ This project has the Kadmon Harness Claude Code plugin installed (and optionally
 - **v1.2** — Python support (ADR-020): language-aware hooks branch on file extension (`.py` → ruff / mypy / print() warnings); python-reviewer auto-invokes on `.py` edits; Python rules at `.claude/rules/python/`.
 - **v1.2.2** — CORE permissions bootstrap (ADR-021): 9 essential `permissions.allow` shipped via installer.
 - **v1.2.3** — Install Health Telemetry (ADR-024) + Versioning Policy (ADR-025).
-- **v1.3.0** — `/medik` expansion 9→14 checks (ADR-028, ADR-029): 5 new health checks (stale-plans, hook-health-24h, instinct-decay-candidates, skill-creator-probe, capability-alignment) regrouped under 4 categories. `/medik --ALV` diagnostic export with cross-platform path redaction. Typed install-diagnostic reader + `_v: 1` schema. Graphify adoption (ADR-026, Sprint E PASS at 8.11× token reduction). Python SAST hook (ADR-027): `post-edit-security` runs `bandit -ll` on `.py` edits.
-- **Tests:** 637 → 1053 (+65%). Files: 60 → 85. Hooks: 21 → 22. /medik checks: 8 → 14.
+- **v1.3.0** — `/medik` expansion 9→14 checks (ADR-028, ADR-029): 5 new health checks (stale-plans, hook-health-24h, instinct-decay-candidates, skill-creator-probe, capability-alignment). `/medik --ALV` diagnostic export with cross-platform path redaction. Typed install-diagnostic reader + `_v: 1` schema. Graphify adoption (ADR-026, Sprint E PASS at 8.11× token reduction). Python SAST hook (ADR-027): `post-edit-security` runs `bandit -ll` on `.py` edits. **Cross-project stack 11/11**: `/skanner` profile-aware (ADR-031), `/doks` per-layer eligibility (ADR-032 + Amendment 2026-04-26 — rules out of scope universally; layers collapsed 4→3), `/medik` cwd-target-existence (ADR-033), `/chekpoint` diff-scope-aware via `getDiffScope()` (ADR-034). Catalogs split (ADR-035): `.claude/{agents,hooks,commands}/CATALOG.md` non-auto-loaded, ~11k tokens/turn saved. `agent-authoring` + `hook-authoring` skills extracted from rules as on-demand reference (skills 46→48). `/evolve` step 6 Generate promoted EXPERIMENTAL → accepted 2026-04-24.
+- **Tests:** 637 → 1115 (+75%). Files: 60 → 89. Hooks: 21 → 22 (+9 shared modules). /medik checks: 8 → 14. Skills: 46 → 48.
 
 ## Mantra
 
@@ -48,11 +48,11 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 ### Remember (3)
 - `/chekpoint` — tiered (full / lite / skip) verification + review + commit + push. Reviewers run in parallel.
 - `/almanak <library>` — live docs via Context7 MCP. Use whenever referencing an unfamiliar API.
-- `/doks` — 4-layer doc sync (CLAUDE.md, README, rules, agent metadata).
+- `/doks` — 3-layer doc sync (CLAUDE.md/README, commands, skills+agents). Rules out of scope (ADR-032 Amendment 2026-04-26 — hand-curated via deliberate ADR; auto-edit caused silent drift per research-008).
 
 ### Evolve (2)
 - `/forge` — session observations → tempered instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`.
-- `/evolve` — harness self-optimization. Step 6 Generate (EXPERIMENTAL through 2026-04-28) reads forge ClusterReports and proposes new skills / commands / agents / rules through an approval gate.
+- `/evolve` — `cwd`-aware self-optimization (writes proposals to `{cwd}/.claude/{type}/{slug}.md`). Step 6 Generate (accepted 2026-04-24, was EXPERIMENTAL) reads forge ClusterReports and proposes new skills / commands / agents / rules through an approval gate.
 
 ---
 
@@ -80,7 +80,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 
 ---
 
-## 46 skills — domain knowledge loaded by agents
+## 48 skills — domain knowledge loaded by agents
 
 Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inject full content at sub-agent spawn; they are NOT inherited from parent session. Location: `.claude/skills/<name>/SKILL.md` (subdirectory + literal uppercase filename, per ADR-013).
 
@@ -90,7 +90,7 @@ Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inj
 - **Architecture**: architecture-decision-records · api-design · hexagonal-architecture · docker-patterns
 - **Data**: database-migrations · postgres-patterns · content-hash-cache-pattern
 - **Integration**: claude-api · mcp-server-patterns · documentation-lookup
-- **Meta**: skill-stocktake · agent-eval · agent-introspection-debugging · prompt-optimizer · skill-comply · rules-distill · workspace-surface-audit · codebase-onboarding
+- **Meta**: skill-stocktake · agent-eval · agent-introspection-debugging · prompt-optimizer · skill-comply · rules-distill · workspace-surface-audit · codebase-onboarding · **agent-authoring** · **hook-authoring**
 - **Python**: python-patterns · python-testing
 - **Frontend**: frontend-patterns
 - **Research**: deep-research
@@ -100,6 +100,8 @@ Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inj
 - **Git / GitHub**: git-workflow · github-ops
 - **Decision**: council · regex-vs-llm-structured-text
 - **Other**: systematic-debugging · receiving-code-review
+
+`agent-authoring` + `hook-authoring` (added 2026-04-26 per ADR-035 companion split): on-demand deep-mechanics reference for agent template contract and hook plugin-mode runtime resolution. Loaded only when relevant (creating/editing agent, lifecycle hook edits, KADMON_RUNTIME_ROOT debug). Companion to `_TEMPLATE.md.example` (scaffold) — skill is the encyclopedia, template is the blank form.
 
 ---
 
@@ -192,7 +194,7 @@ Each memory file has YAML frontmatter (`name`, `description`, `type`). The `MEMO
 
 - **Plugin** ships agents / skills / commands / hooks via canonical root symlinks in the harness repo (`agents`, `skills`, `commands` → `.claude/<type>/`). Registered in `~/.claude/settings.json` as `extraKnownMarketplaces` + `enabledPlugins`.
 - **Bootstrap** (`install.sh` / `install.ps1`) ships rules + `permissions.deny` + `.kadmon-version` + `.gitignore` entries. Run once per project — these two categories cannot be distributed via Claude Code plugins today.
-- ADR references: ADR-010 (hybrid distribution), ADR-013 (skills subdirectory), ADR-017 (agent template), ADR-019 (canonical root symlinks), ADR-020 (Python language support), ADR-021 (CORE permissions bootstrap), ADR-024 (install health telemetry), ADR-025 (versioning policy).
+- ADR references: ADR-010 (hybrid distribution), ADR-013 (skills subdirectory), ADR-017 (agent template), ADR-019 (canonical root symlinks), ADR-020 (Python language support), ADR-021 (CORE permissions bootstrap), ADR-024 (install health telemetry), ADR-025 (versioning policy), ADR-026 (graphify adoption), ADR-027 (Python bandit SAST hook), ADR-028/029 (medik 9→14 checks + capability-alignment), ADR-031 (project-agnostic /skanner), ADR-032 + Amendment 2026-04-26 (project-agnostic /doks, rules out-of-scope), ADR-033 (project-agnostic /medik), ADR-034 (chekpoint diff-scope-aware), ADR-035 (rules/catalogs split).
 
 ---
 
