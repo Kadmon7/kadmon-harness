@@ -133,3 +133,52 @@ Adopt **runtime profile detection with per-layer eligibility** for `/doks`.
 ## Plan reference
 
 Implementation plan: `docs/plans/plan-032-doks-project-agnostic.md` (rewritten in same number — see konstruct phase 2).
+
+---
+
+## Amendment 2026-04-26 — Layer 2 (rules) removed entirely from /doks scope
+
+**Status**: amended (in-place addition; original Decision still stands for Layers 1, 3, 4 — renumbered to Layers 1, 2, 3 below).
+
+### Context for amendment
+
+Original ADR-032 Decision specified `Layer 2 (.claude/rules/)` as writable in harness profile, read-only in consumer profile. Subsequent reasoning (driven by `docs/research/research-008-auto-loaded-rules-vs-on-demand-skills.md`):
+
+1. **Rules are general for any project** — the same justification ADR-032 used to make Layer 2 read-only in consumer (rules harness-shared) applies symmetrically to harness self-`/doks`. The asymmetry was incidental, not principled.
+2. **ADR-035 already extracted dynamic content** — counts, tables, and component inventories moved from `.claude/rules/` into `.claude/{agents,hooks,commands}/CATALOG.md` (Layer 1.5). What remains in rules is hand-curated operational logic (exit codes, performance budgets, orchestration principles, security rules) — content that changes only via deliberate ADR, not via diff-driven sync.
+3. **Auto-loaded context degradation** — research-008 cites Anthropic's own best-practices doc warning that bloated CLAUDE.md / rules files cause Claude to ignore instructions. Lost-in-the-middle: 20-50pp positional attention degradation at 100k+ tokens. Auto-edit by `/doks` introduces silent rule drift, which compounds the problem.
+4. **In practice harness self-doks rarely edited rules** — recent commits show rule edits accompany ADRs explicitly (e.g., 657a83c "teach docs-sync about CATALOG.md layer" landed with ADR-035), not via standalone /doks runs. Removing the auto-edit path doesn't lose meaningful sync; it loses a footgun.
+
+### Amended decision
+
+`.claude/rules/` is **out of scope** for `/doks` in **any profile** (harness or consumer).
+
+- The /doks workflow no longer includes a writable rules layer.
+- If a behavioral change implies a rule update, /doks emits a NOTE in its output: `"rule X may need manual update — see ADR Y"`. It does NOT call Edit/Write on any file inside `.claude/rules/`.
+- Rule updates happen only via deliberate ADR + manual edit. The `rules-distill` skill remains the recommended workflow for cross-skill rule extraction; it is invoked deliberately, not auto.
+- Layer numbering collapses from 4 to 3:
+  - Layer 1 (CLAUDE.md, README.md) — unchanged
+  - Layer 1.5 (CATALOGs) — unchanged (harness-only writable per ADR-035)
+  - Layer 2 (`.claude/commands/`) — was Layer 3
+  - Layer 3 (`.claude/agents/`, `.claude/skills/`) — was Layer 4
+
+### Consumer-vs-harness behavior post-amendment
+
+Both profiles now have identical layer eligibility for the writable layers — the only consumer-vs-harness difference is **enumeration scope** (cwd-only in consumer; full repo scan in harness self-`/doks`). Rules are out of scope universally; the `Layer 2 read-only NOTE` from the original Decision is replaced by a universal `rules out-of-scope NOTE`.
+
+### Files affected by this amendment
+
+- `.claude/agents/doks.md` — Layer 2 (Rules) section removed; Layers 3-4 renumbered to 2-3; Workflow Step 0 + Step 3 guards updated
+- `.claude/commands/doks.md` — step 4 (Rules) removed; steps 5-6 renumbered to 4-5; new step 6 = read-only rules surface check
+- `.claude/skills/docs-sync/SKILL.md` — frontmatter description, layer table, verification checklist all updated to 3-layer model
+- `tests/lib/doks-profile-detection.test.ts` — `LayerEligibility` interface drops `layer4`, adds `rules: out-of-scope`; case 8 asserts new contract
+
+### Verification
+
+- `npx vitest run tests/lib/doks-profile-detection.test.ts` → 8/8 PASS post-amendment.
+- Snapshot diff harness self-`/doks` vs pre-amendment: expected change = "Layer 2 rules sync" output disappears, replaced by "Rules surface NOTE (read-only)" if any hook/feature change touches a rule keyword.
+
+### References
+
+- `docs/research/research-008-auto-loaded-rules-vs-on-demand-skills.md` — research backing the amendment (Anthropic best-practices, MRCR v2, lost-in-the-middle, skill activation reliability).
+- ADR-035 — Rules / Catalogs split that made this amendment safe (dynamic content already lives in CATALOG.md).

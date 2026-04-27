@@ -1,4 +1,5 @@
-// plan-032 Phase 3 — doks profile detection + per-layer eligibility (ADR-032)
+// plan-032 Phase 3 — doks profile detection + per-layer eligibility
+// (ADR-032 + Amendment 2026-04-26: rules out of scope)
 //
 // The doks agent body is markdown — directly testing the agent requires running
 // `/doks` end-to-end (Phase 4 manual verification — harness self-test snapshot
@@ -7,6 +8,7 @@
 //   2. KADMON_DOKS_PROFILE override semantics simulated via the umbrella env var
 //   3. Backward-compat alias (detectSkannerProfile === detectProjectProfile)
 //   4. computeLayerEligibility helper that mirrors the agent body Step 0 logic
+//      — 3 layers (1, 2, 3); rules are out of scope and never edited.
 //
 // Drift between the helper here and the agent body is caught by Phase 4
 // self-test snapshot (harness) + consumer dogfood (/tmp/scratch-web).
@@ -41,38 +43,32 @@ function writeMarker(dir: string, relPath: string, content = ""): void {
 }
 
 // ─── Layer eligibility helper (mirrors doks agent body Step 0) ───────────────
-// In consumer profile, Layer 1 always writable; Layer 2 read-only (rules
-// harness-shared); Layers 3-4 writable but cwd-only enumeration.
-// In harness profile, all 4 layers writable.
+// 3-layer model post-Amendment 2026-04-26:
+//   - Layer 1 (CLAUDE.md, README.md): always writable
+//   - Layer 2 (.claude/commands/): writable; cwd-only in consumer
+//   - Layer 3 (.claude/agents/, .claude/skills/): writable; cwd-only in consumer
+// `.claude/rules/` is out of scope (any profile) — never edited by /doks.
 
 type DoksMode = "harness" | "consumer";
-type Eligibility = "writable" | "read-only";
+type Eligibility = "writable" | "read-only" | "out-of-scope";
 
 interface LayerEligibility {
   layer1: Eligibility;
   layer2: Eligibility;
   layer3: Eligibility;
-  layer4: Eligibility;
+  rules: Eligibility;
 }
 
 function profileToDoksMode(profile: ProjectProfile): DoksMode {
   return profile === "harness" ? "harness" : "consumer";
 }
 
-function computeLayerEligibility(mode: DoksMode): LayerEligibility {
-  if (mode === "harness") {
-    return {
-      layer1: "writable",
-      layer2: "writable",
-      layer3: "writable",
-      layer4: "writable",
-    };
-  }
+function computeLayerEligibility(_mode: DoksMode): LayerEligibility {
   return {
     layer1: "writable",
-    layer2: "read-only",
+    layer2: "writable",
     layer3: "writable",
-    layer4: "writable",
+    rules: "out-of-scope",
   };
 }
 
@@ -167,18 +163,21 @@ describe("doks profile detection (ADR-032)", () => {
   });
 
   // ─── Case 8: computeLayerEligibility mirrors agent body Step 0 ────────────
+  // Post-Amendment 2026-04-26: rules out-of-scope universally; all 3 layers
+  // writable in both profiles. Consumer-vs-harness difference is enumeration
+  // scope (cwd-only in consumer), not eligibility — captured at agent-body level.
 
-  it("computeLayerEligibility: harness profile → all 4 layers writable; consumer → Layer 1 writable, Layer 2 read-only, Layers 3-4 writable", () => {
+  it("computeLayerEligibility: 3 layers writable in both profiles; rules out-of-scope", () => {
     const harnessElig = computeLayerEligibility("harness");
     expect(harnessElig.layer1).toBe("writable");
     expect(harnessElig.layer2).toBe("writable");
     expect(harnessElig.layer3).toBe("writable");
-    expect(harnessElig.layer4).toBe("writable");
+    expect(harnessElig.rules).toBe("out-of-scope");
 
     const consumerElig = computeLayerEligibility("consumer");
     expect(consumerElig.layer1).toBe("writable");
-    expect(consumerElig.layer2).toBe("read-only");
+    expect(consumerElig.layer2).toBe("writable");
     expect(consumerElig.layer3).toBe("writable");
-    expect(consumerElig.layer4).toBe("writable");
+    expect(consumerElig.rules).toBe("out-of-scope");
   });
 });

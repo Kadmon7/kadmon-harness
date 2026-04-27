@@ -16,7 +16,7 @@ You are a documentation specialist. You ensure all project documentation accurat
 ## Expertise
 
 - Behavioral-description extraction — read source to describe what code DOES, not just that it exists
-- Multi-layer documentation sync — public docs (CLAUDE.md, README.md), rules, commands, and skills kept consistent
+- Multi-layer documentation sync — public docs (CLAUDE.md, README.md), commands, and skills+agents kept consistent (rules out of scope per Amendment 2026-04-26)
 - Multi-language doc awareness — Spanish vs English files stay in their original language
 - Catalog maintenance — agent / skill / command / hook / rule tables match the filesystem
 - Stale-reference hunting — `No existe` markers, references to deleted files, descriptions that contradict current behavior
@@ -43,17 +43,7 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 | **.claude/hooks/CATALOG.md** | 22 registered hooks across 9 matcher groups + 8 shared modules. Verify hook script count matches. |
 | **.claude/commands/CATALOG.md** | 11 commands across 7 phases (Observe / Plan / Build / Scan / Research / Remember / Evolve). Verify command count matches. |
 
-### Layer 2 — Rules (Claude reads every session — operational logic only, NO catalogs per ADR-035)
-| File | What to check |
-|------|---------------|
-| **.claude/rules/common/hooks.md** | Operational hook rules: exit codes, safety, performance budgets, plugin-mode resolution, Windows compat. Catalog lives in `.claude/hooks/CATALOG.md`. |
-| **.claude/rules/common/agents.md** | Operational agent rules: orchestration chain, skill-loading layout, routing principles, manual invocation, parallel execution, approval criteria, command-level skills. Full catalog lives in `.claude/agents/CATALOG.md`. |
-| **.claude/rules/common/development-workflow.md** | Operational workflow rules: order, /chekpoint tiers decision table, commits, research, enforcement. Full command reference lives in `.claude/commands/CATALOG.md`. |
-| Other rules | Only if the change affects enforcement descriptions |
-
-In consumer profile, this layer is READ-ONLY. Skip with NOTE: rules are harness-shared (general for all projects); update from harness self-/doks; `install.sh` re-run resyncs the consumer copy.
-
-### Layer 3 — Commands (workflow definitions) — Write-eligibility: cwd-only
+### Layer 2 — Commands (workflow definitions) — Write-eligibility: cwd-only
 | File | What to check |
 |------|---------------|
 | **.claude/commands/doks.md** | This agent's own workflow — keep in sync with agent changes |
@@ -61,7 +51,7 @@ In consumer profile, this layer is READ-ONLY. Skip with NOTE: rules are harness-
 
 In consumer profile, scan ONLY cwd-relative `.claude/commands/*.md`. Plugin-provided commands are NOT enumerated.
 
-### Layer 4 — Skills + Agents (domain knowledge + executors) — Write-eligibility: cwd-only
+### Layer 3 — Skills + Agents (domain knowledge + executors) — Write-eligibility: cwd-only
 | File | What to check |
 |------|---------------|
 | Skills referencing hooks or sessions | grep for hook names in `.claude/skills/` — update stale descriptions |
@@ -72,19 +62,19 @@ In consumer profile, scan ONLY cwd-relative `.claude/{agents,skills}/`. NEVER tr
 
 ## Workflow
 
-### 0. Detect profile and per-layer write-eligibility (ADR-032)
+### 0. Detect profile and per-layer write-eligibility (ADR-032 + Amendment 2026-04-26)
 
 Before any layer scan, resolve the runtime profile and compute per-layer eligibility.
 
 1. Resolve profile via `detectProjectProfile(cwd, explicitArg)` from `scripts/lib/detect-project-language.ts`. Precedence: explicit `/doks <profile>` arg → `KADMON_DOKS_PROFILE` → `KADMON_PROJECT_PROFILE` → `KADMON_SKANNER_PROFILE` (back-compat) → markers → fallback consumer.
 2. Map detector output to write-mode:
-   - `harness` → harness write-mode (all 4 layers writable)
+   - `harness` → harness write-mode
    - `web` | `cli` | unknown → consumer write-mode
 3. Per-layer eligibility:
    - **Layer 1 (CLAUDE.md, README.md)**: ALWAYS writable. Project-root files, never plugin-shared.
-   - **Layer 2 (.claude/rules/)**: writable IF profile=harness; SKIP with NOTE in consumer profile: `"Rules harness-shared (general for all projects). Update from harness self-/doks; install.sh re-run resyncs the consumer copy."`
-   - **Layer 3 (.claude/commands/)**: writable always; in consumer profile, describe ONLY consumer-local commands via cwd-relative `ls .claude/commands/*.md`. Plugin-provided commands NOT enumerated.
-   - **Layer 4 (.claude/agents/, .claude/skills/)**: writable always; in consumer profile, describe ONLY consumer-local components. Plugin-provided components NOT enumerated.
+   - **`.claude/rules/`**: NEVER touched by /doks (any profile). Rules are hand-curated operational logic; updates happen only via deliberate ADR + manual edit, not via diff-driven sync. Auto-edit drift is the failure mode being prevented (research-008 — auto-loaded rules vs on-demand skills tradeoff).
+   - **Layer 2 (.claude/commands/)**: writable always; in consumer profile, describe ONLY consumer-local commands via cwd-relative `ls .claude/commands/*.md`. Plugin-provided commands NOT enumerated.
+   - **Layer 3 (.claude/agents/, .claude/skills/)**: writable always; in consumer profile, describe ONLY consumer-local components. Plugin-provided components NOT enumerated.
 4. Print a per-layer eligibility summary at the start of the run (see Output Format) so the user sees what will and will not sync before edits begin.
 
 ### 1. Understand What Changed
@@ -141,8 +131,8 @@ For each behavioral change found in Step 1:
 
 **ADR-032 per-layer guards (apply in every priority above)**:
 - Layer 1 (CLAUDE.md, README.md): ALWAYS writable.
-- Layer 2 (rules): if eligibility=read-only (consumer profile), do NOT call Edit/Write on files inside `.claude/rules/`; emit the NOTE from Step 0 instead.
-- Layer 3-4 (commands/agents/skills): in consumer profile, scan ONLY cwd-relative `.claude/{commands,agents,skills}/`. NEVER traverse `~/.claude/plugins/cache/` or any harness install path. Describe ONLY consumer-local components; plugin-provided components are NOT enumerated.
+- `.claude/rules/`: NEVER call Edit/Write on any file inside this directory. Any profile. If a behavioral change implies a rule update, surface it as a NOTE in the output ("rule X may need manual update — see ADR Y") and stop there.
+- Layer 2-3 (commands/agents/skills): in consumer profile, scan ONLY cwd-relative `.claude/{commands,agents,skills}/`. NEVER traverse `~/.claude/plugins/cache/` or any harness install path. Describe ONLY consumer-local components; plugin-provided components are NOT enumerated.
 
 ### 4. Self-Verify (NON-NEGOTIABLE)
 After making all edits, run ALL of these checks. Do not skip any.
@@ -164,12 +154,12 @@ grep -rn "No existe" docs/
 # For each match, verify the file actually doesn't exist on disk
 ```
 
-**C. Rules sync** — for each hook modified in the diff:
+**C. Rules surface check (read-only)** — for each hook modified in the diff:
 ```bash
-# Verify hook description in rules matches actual behavior
+# Read-only check: does any rule reference this hook by name?
 grep -n "hook_name" .claude/rules/common/hooks.md
-# Compare with actual code in .claude/hooks/scripts/hook_name.js
 ```
+If a rule mentions the hook AND the diff changed its behavior, append a NOTE to the output: `"Rule reference to <hook_name> in rules/common/hooks.md may need manual update — verify against current code."` Never edit the rule file. Rules are out of /doks scope (Amendment 2026-04-26).
 
 **D. Skills sync** — check skills for stale hook references:
 ```bash
@@ -206,13 +196,13 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 ```markdown
 ## Documentation Updates [doks]
 
-### Profile (ADR-032)
+### Profile (ADR-032 + Amendment 2026-04-26)
 - Profile: harness | consumer (source: arg | env | markers)
 - Layer eligibility:
   - Layer 1 (CLAUDE.md, README.md): writable
-  - Layer 2 (rules/): writable | read-only (harness-shared)
-  - Layer 3 (commands/): writable (cwd-only in consumer)
-  - Layer 4 (agents/, skills/): writable (cwd-only in consumer)
+  - .claude/rules/: NEVER edited (any profile — Amendment 2026-04-26)
+  - Layer 2 (commands/): writable (cwd-only in consumer)
+  - Layer 3 (agents/, skills/): writable (cwd-only in consumer)
 
 ### Plugin-inherited components (consumer profile only)
 NOTE: Plugin kadmon-harness provides shared infra (16 agents, 46 skills, 11 commands, rules/) — not enumerated here. See harness self-docs.
@@ -224,7 +214,9 @@ NOTE: Plugin kadmon-harness provides shared infra (16 agents, 46 skills, 11 comm
 ### Files Updated
 - CLAUDE.md: Memory section updated with carry-forward description
 - README.md: hook table descriptions updated, vitest.config.ts documented
-- rules/common/hooks.md: hook descriptions updated to match current behavior
+
+### Rules surface notes (read-only — Amendment 2026-04-26)
+- rules/common/hooks.md mentions <hook_name>; behavior changed in commit X — verify manually if stale.
 
 ### Verification
 - [x] All behavioral changes documented in at least 2 files
