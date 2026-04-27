@@ -92,13 +92,19 @@ cd ~/projects/kadmon-harness && git pull && npm install && npm run build   # ref
 <details>
 <summary><strong>🪟 Windows · PowerShell</strong></summary>
 
-**One-time machine setup** (symlinks won't resolve without this):
+**One-time machine setup** (symlinks + script execution won't work without these):
 
 1. Settings → Privacy & Security → For Developers → **Developer Mode: ON**
 2. In any terminal: `git config --global core.symlinks true`
+3. In **PowerShell** (one-time, current user scope):
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+   Default Windows policy `Restricted` blocks `.ps1` execution with `UnauthorizedAccess`. `RemoteSigned` allows local scripts and signed remote scripts. Verify with `Get-ExecutionPolicy -Scope CurrentUser`.
 
 **Step 4 — Clone and build the harness** _(once per machine)_
 ```powershell
+# Pick any path — examples: C:\projects, C:\Command-Center, $HOME\dev
 cd C:\projects
 git clone https://github.com/Kadmon7/kadmon-harness.git
 cd kadmon-harness
@@ -112,11 +118,12 @@ npm install; npm run build
 
 Dry-run first: `.\install.ps1 -TargetPath C:\path\to\your\project -DryRun`
 
-**Updating the harness later**:
+**Updating the harness later** (replace paths with your actual clone + project locations):
 ```powershell
 cd C:\projects\kadmon-harness; git pull; npm install; npm run build   # refresh clone
-.\install.ps1 -TargetPath C:\path\to\your\project                     # re-apply per project
+.\install.ps1 -TargetPath C:\path\to\your\project -ForcePermissionsSync  # re-apply + clear drift
 ```
+`-ForcePermissionsSync` re-aligns `permissions.deny` with the current canonical list (drops removed rules like the old hardcoded `~/.ssh` deny). Omit it for additive merges only.
 
 </details>
 
@@ -153,6 +160,8 @@ cd C:\projects\kadmon-harness; git pull; npm install; npm run build   # refresh 
 **`/plugin install` fails to clone** — verify https://github.com/Kadmon7/kadmon-harness loads in your browser (the repo is public). If it does and it still fails, run the three slash commands one at a time — don't paste them together.
 
 **Installer can't find Node 20+** — `install.sh` / `install.ps1` aborts if `node --version` is below 20. Install Node 20 LTS and re-run. On Git Bash make sure `PATH` includes `/c/Program Files/nodejs`.
+
+**Windows: `install.ps1` fails with `UnauthorizedAccess` / "ejecución de scripts está deshabilitada"** — default ExecutionPolicy is `Restricted`. Run once per user: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` (admin not required). Verify with `Get-ExecutionPolicy -Scope CurrentUser`. Avoid `-ExecutionPolicy Bypass` flags — they weaken security globally; the per-user `RemoteSigned` scope is the safe default.
 
 **A hook is too noisy or misbehaving** — temporarily disable specific hooks with `KADMON_DISABLED_HOOKS` (comma-separated hook names), e.g. `KADMON_DISABLED_HOOKS=ts-review-reminder,console-log-warn`. Only non-critical hooks honor this — security hooks always run.
 
