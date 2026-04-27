@@ -73,11 +73,6 @@ Kadmon-Harness/
 - `KADMON_MEDIK_PROFILE` — `/medik`-specific profile override (`harness`|`consumer`); informational banner only — does not skip checks (ADR-033).
 - `KADMON_SKANNER_PROFILE` — `/skanner` profile override (`harness`|`web`|`cli`); back-compat env var (ADR-031).
 
-## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
-- `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all projects (absolute paths, platform-specific commands). Not committed.
-- `.claude/settings.json` — **Project team-shared**. Hooks + `permissions.allow` (generic tools). Since Sprint D (ADR-010): hooks ship via `.claude-plugin/hooks.json`; `permissions.deny` is merged into targets by `install.sh`/`install.ps1`.
-- `.claude/settings.local.json` — **Project personal**. Gitignored; machine-specific overrides only.
-
 ## Agents (16)
 | Agent | Model |
 |-------|-------|
@@ -168,5 +163,5 @@ Hybrid model (ADR-010 + ADR-019):
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
 v1.3.0 — 1115 tests / 89 files / 22 hooks / 16 agents / 48 skills / 11 commands / 19 rules / 7 DB tables / 14 /medik checks.
-Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025). Graphify adoption (ADR-026, Sprint E PASS 8.11x). Python SAST hook (ADR-027). /medik expansion 9→14 + --ALV export (ADR-028, ADR-029). /evolve Generate step 6 promoted to accepted 2026-04-24. Project-agnostic stack: /skanner (ADR-031), /doks (ADR-032 + Amendment 2026-04-26 — rules out of scope), /medik (ADR-033 — cwd-target-existence). /chekpoint diff-scope-aware Phase 1 + Phase 2a (ADR-034 — getDiffScope helper). Catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035 — cuts ~11k auto-loaded tokens).
-Shipping history: `docs/decisions/` and `git log`.
+Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
+Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.
