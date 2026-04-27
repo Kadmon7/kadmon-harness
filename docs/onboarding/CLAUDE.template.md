@@ -10,8 +10,9 @@
        Kadmon-Harness repo into the project's memory dir:
          ~/.claude/projects/<project-slug>/memory/reference_kadmon_harness.md
 
-       That file is the authoritative harness catalog (16 agents, 11 commands,
-       48 skills, 22 hooks + 9 shared modules, 19 rules + orchestration chain + cheat sheet).
+       That file is the authoritative harness catalog (component counts,
+       orchestration chain, trigger rules, cheat sheet). Single source-of-truth
+       for harness shape — counts live there, not duplicated here.
        Claude auto-loads it every session. Refresh it when the harness
        version bumps.
 
@@ -74,13 +75,13 @@ Mantra: Observe -> Remember -> Verify -> Specialize -> Evolve
 
 ## Harness Components
 
-This project consumes Kadmon Harness — **16 agents, 11 commands, 48 skills, 22 hooks + 9 shared modules, 19 rules**. 11/11 commands cross-project. The full catalog, orchestration chain, trigger rules, and cheat sheet live in:
+This project consumes Kadmon Harness. Full catalog (component counts, orchestration chain, trigger rules, cheat sheet) lives in:
 
 `~/.claude/projects/<project-slug>/memory/reference_kadmon_harness.md`
 
-Claude auto-loads that file every session. Source of truth: `Kadmon-Harness/docs/onboarding/reference_kadmon_harness.md`.
+Claude auto-loads that file every session. Source of truth: `Kadmon-Harness/docs/onboarding/reference_kadmon_harness.md` — refresh when harness version bumps.
 
-**First-run issues?** See `Kadmon-Harness/docs/onboarding/TROUBLESHOOTING.md` for the 3 known install bugs (symlinks as text files on Windows, `PreToolUse:Agent hook error`, `/reload-plugins` required post-install) with copy-paste remediation. `/medik` Check #9 (ADR-024) is the fastest triage — it reports canonical symlink state + dist/ + runtime env and suggests the matching fix.
+**First-run issues?** See `Kadmon-Harness/docs/onboarding/TROUBLESHOOTING.md` for known install bugs (symlinks as text files on Windows, `PreToolUse:Agent hook error`, `/reload-plugins` required post-install) with copy-paste remediation. `/medik` Check #9 (ADR-024) is the fastest triage — reports canonical symlink state + dist/ + runtime env and suggests the matching fix.
 
 ## External Tools [project-specific — extend with anything beyond the harness defaults]
 
