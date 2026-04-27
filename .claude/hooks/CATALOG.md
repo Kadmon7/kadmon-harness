@@ -1,6 +1,6 @@
 ---
 name: hooks-catalog
-description: Full hook catalog (22 registered hooks + 8 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
+description: Full hook catalog (22 registered hooks + 9 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
 ---
 
 <!-- DO NOT AUTO-LOAD: this file is read on-demand by /doks and human readers. Lives outside .claude/rules/ to avoid eager context injection. See ADR-035. -->
@@ -75,7 +75,7 @@ description: Full hook catalog (22 registered hooks + 8 shared modules) with mat
 |------|--------|---------|------|
 | session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (single hook avoids races on shared SQLite handle) | 0 always |
 
-## Shared Modules (8)
+## Shared Modules (9)
 
 Not registered as hooks — imported by lifecycle hooks as utilities.
 
@@ -89,3 +89,4 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 | hook-logger.js | Persist hook errors to a local log file | session-start, session-end-all, pre-compact-save, evaluate-patterns-shared |
 | backup-rotate.js | Maintain 3 timestamped backups of the local SQLite database | session-start |
 | log-hook-event.js | Append hook execution events to session-scoped JSONL | 9 blocking/warning hooks (persisted to DB by session-end-all) |
+| install-diagnostic.js | Append InstallHealthReport to `~/.kadmon/install-diagnostic.log` on every session-start (ADR-024). Test-env guard redirects to stderr. | session-start |

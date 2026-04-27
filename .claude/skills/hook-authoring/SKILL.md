@@ -8,7 +8,7 @@ requires_tools: []
 
 Authoritative reference for the runtime resolution and platform-compatibility contract of Kadmon Harness hooks. Content here was previously inlined in `.claude/rules/common/hooks.md` and moved to on-demand loading 2026-04-26 to reduce auto-load footprint (see plan at `~/.claude/plans/se-puede-algo-entre-sunny-crayon.md`).
 
-The full 22-hook catalog and 8 shared-modules table live in `.claude/hooks/CATALOG.md` (non-auto-loaded, read on-demand per ADR-035). The exit-code table, performance budgets, safety rules, and Windows compatibility short rules remain in `.claude/rules/common/hooks.md` (auto-loaded). This skill covers only the deep runtime/platform mechanics.
+The full 22-hook catalog and 9 shared-modules table live in `.claude/hooks/CATALOG.md` (non-auto-loaded, read on-demand per ADR-035). The exit-code table, performance budgets, safety rules, and Windows compatibility short rules remain in `.claude/rules/common/hooks.md` (auto-loaded). This skill covers only the deep runtime/platform mechanics.
 
 ## Plugin-Mode Runtime Resolution (ADR-010 Phase 1)
 

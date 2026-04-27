@@ -43,11 +43,11 @@ Rules:
 Kadmon-Harness/
 |-- .claude-plugin/             # Plugin manifest (plugin.json, hooks.json, marketplace.json)
 |-- .claude/
-|   |-- agents/                 # 16 specialists + _TEMPLATE.md.example
-|   |-- commands/               # 11 slash commands
-|   |-- skills/                 # 46 skills at <name>/SKILL.md (ADR-013)
-|   |-- rules/                  # 19 rules (common + typescript + python)
-|   |-- hooks/scripts/          # 22 hooks + 8 shared modules
+|   |-- agents/                 # 16 specialists + CATALOG.md + _TEMPLATE.md.example (ADR-035)
+|   |-- commands/               # 11 slash commands + CATALOG.md (ADR-035)
+|   |-- skills/                 # 48 skills at <name>/SKILL.md (ADR-013)
+|   |-- rules/                  # 19 rules (common + typescript + python) — operational logic only; catalogs moved (ADR-035)
+|   |-- hooks/scripts/          # 22 hooks + 9 shared modules + CATALOG.md (ADR-035)
 |   `-- settings.json
 |-- agents | commands | skills  # Canonical root symlinks → .claude/<type>/ (ADR-019, plugin loader discovery)
 |-- scripts/lib/                # TS: state-store, instincts, evolve-generate, install-apply, ...
@@ -68,6 +68,10 @@ Kadmon-Harness/
 - `KADMON_USER_SETTINGS_PATH` — Override user-scope `settings.json` for installer tests.
 - `KADMON_PROJECT_LANGUAGE` — Force language detection (`typescript`|`python`|`mixed`|`unknown`); bypasses file-marker scan (ADR-020).
 - `KADMON_ORPHAN_STALE_MS` — Inactivity ms before a session is orphan-recovery-eligible (default: 300000, ADR-022).
+- `KADMON_PROJECT_PROFILE` — Umbrella profile override (`harness`|`web`|`cli`); applies across `/skanner`, `/doks`, `/medik` (ADR-032).
+- `KADMON_DOKS_PROFILE` — `/doks`-specific profile override (`harness`|`consumer`); higher precedence than `KADMON_PROJECT_PROFILE` (ADR-032).
+- `KADMON_MEDIK_PROFILE` — `/medik`-specific profile override (`harness`|`consumer`); informational banner only — does not skip checks (ADR-033).
+- `KADMON_SKANNER_PROFILE` — `/skanner` profile override (`harness`|`web`|`cli`); back-compat env var (ADR-031).
 
 ## Settings Hierarchy (3 tiers, merged additively — Managed → User → Project → Local)
 - `~/.claude/settings.json` — **User global**. Machine-specific permissions that apply across all projects (absolute paths, platform-specific commands). Not committed.
@@ -94,7 +98,7 @@ Kadmon-Harness/
 | alchemik | opus |
 | skavenger | sonnet |
 
-Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD)`. Code review = `/chekpoint`'s job, not `/abra-kdabra`'s.
+Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (ADR-035). Routing logic at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD)`. Code review = `/chekpoint`'s job, not `/abra-kdabra`'s.
 
 ## Commands (11)
 - **Observe** (2): /nexus, /kompact
@@ -105,9 +109,9 @@ Full routing + skill chains at `.claude/rules/common/agents.md`. Chain: `arkitec
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (2): /forge, /evolve (step 6 Generate promoted to accepted 2026-04-24 after observation window)
 
-## Skills (46)
+## Skills (48)
 
-Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029).
+Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029). Recent additions: `agent-authoring`, `hook-authoring` (extracted from agents.md / hooks.md to keep on-demand reference deep without bloating auto-loaded rules — ADR-035 sibling pattern).
 
 ## External Tools
 
@@ -129,10 +133,10 @@ Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: 
 - `typescript/` — ts-specific coding-style, patterns, security, testing, hooks
 - `python/` — py-specific coding-style, patterns, security, testing, hooks
 
-Rules auto-load based on file context. See `.claude/rules/common/agents.md` for agent orchestration rules.
+Rules auto-load based on file context. They contain **operational orchestration logic only** (decision trees, severity rules, enforcement mappings) — catalog data moved to dedicated `CATALOG.md` files per ADR-035 to cut ~11k auto-loaded tokens. See `.claude/rules/common/agents.md` for agent orchestration rules.
 
 ## Hooks
-22 registered hooks + 8 shared modules in `.claude/hooks/scripts/`. See `rules/common/hooks.md` for catalog.
+22 registered hooks + 9 shared modules in `.claude/hooks/scripts/`. See `.claude/hooks/CATALOG.md` for the full catalog (ADR-035 — non-auto-loaded).
 
 ## Memory
 - **SQLite**: sessions, instincts, cost events, hook events, agent invocations, sync queue, research reports at `~/.kadmon/kadmon.db` (7 tables; research_reports added in ADR-015)
@@ -163,6 +167,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.3.0 — 1069 tests / 85 files / 22 hooks / 16 agents / 46 skills / 11 commands / 19 rules / 7 DB tables / 14 /medik checks.
-Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025). Graphify adoption (ADR-026, Sprint E PASS 8.11x). Python SAST hook (ADR-027). /medik expansion 9→14 + --ALV export (ADR-028, ADR-029). /evolve Generate step 6 promoted to accepted 2026-04-24. Project-agnostic /skanner stack — kartograf + arkonte + /skanner detect `harness|web|cli` profile at runtime (ADR-031).
+v1.3.0 — 1115 tests / 89 files / 22 hooks / 16 agents / 48 skills / 11 commands / 19 rules / 7 DB tables / 14 /medik checks.
+Distribution: Claude Code plugin + install.sh/install.ps1 (ADR-010). Language support: TypeScript + Python (ADR-020). Install health telemetry (ADR-024). Versioning policy (ADR-025). Graphify adoption (ADR-026, Sprint E PASS 8.11x). Python SAST hook (ADR-027). /medik expansion 9→14 + --ALV export (ADR-028, ADR-029). /evolve Generate step 6 promoted to accepted 2026-04-24. Project-agnostic stack: /skanner (ADR-031), /doks (ADR-032 + Amendment 2026-04-26 — rules out of scope), /medik (ADR-033 — cwd-target-existence). /chekpoint diff-scope-aware Phase 1 + Phase 2a (ADR-034 — getDiffScope helper). Catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035 — cuts ~11k auto-loaded tokens).
 Shipping history: `docs/decisions/` and `git log`.
