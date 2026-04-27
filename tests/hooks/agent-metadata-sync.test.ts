@@ -8,7 +8,7 @@ const HOOK = path.resolve(".claude/hooks/scripts/agent-metadata-sync.js");
 
 // Absolute paths to real catalog files (never mutated — tests use tmp copies)
 const REAL_CLAUDE_MD = path.resolve("CLAUDE.md");
-const REAL_AGENTS_MD = path.resolve(".claude/rules/common/agents.md");
+const REAL_AGENTS_MD = path.resolve(".claude/agents/CATALOG.md");
 
 // Minimal alchemik agent file with opus model (matches real frontmatter)
 const ALCHEMIK_OPUS_CONTENT = `---
@@ -67,6 +67,7 @@ interface RunResult {
 function runHook(
   input: object,
   env?: Record<string, string>,
+  cwd?: string,
 ): RunResult {
   const start = Date.now();
   try {
@@ -75,6 +76,7 @@ function runHook(
       input: JSON.stringify(input),
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, ...env },
+      cwd,
     });
     return { code: 0, stdout, stderr: "", durationMs: Date.now() - start };
   } catch (err: unknown) {
@@ -298,5 +300,65 @@ describe("agent-metadata-sync", () => {
       },
     );
     expect(r.code).toBe(0);
+  });
+
+  // Production path: ensure the hook defaults to .claude/agents/CATALOG.md
+  // (NOT the legacy .claude/rules/common/agents.md) when no env override is set.
+  // This guards ADR-035 against regression.
+  it("production path: defaults to .claude/agents/CATALOG.md, not rules/common/agents.md", () => {
+    // Build a synthetic project layout under tmpDir that mirrors a real Kadmon project
+    const projectRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "agent-metadata-sync-prod-"),
+    );
+    const projAgentsDir = path.join(projectRoot, ".claude", "agents");
+    const projLegacyRulesDir = path.join(projectRoot, ".claude", "rules", "common");
+    fs.mkdirSync(projAgentsDir, { recursive: true });
+    fs.mkdirSync(projLegacyRulesDir, { recursive: true });
+
+    const projClaudeMd = path.join(projectRoot, "CLAUDE.md");
+    const projCatalog = path.join(projAgentsDir, "CATALOG.md");
+    const projLegacy = path.join(projLegacyRulesDir, "agents.md");
+    const projAgentFile = path.join(projAgentsDir, "alchemik.md");
+
+    // Seed: real CLAUDE.md + real CATALOG.md + an OLD-shape agents.md (must NOT be touched)
+    fs.copyFileSync(REAL_CLAUDE_MD, projClaudeMd);
+    fs.copyFileSync(REAL_AGENTS_MD, projCatalog);
+    fs.writeFileSync(
+      projLegacy,
+      `# Legacy agents.md should not be written by hook\n| alchemik | opus |\n`,
+      "utf8",
+    );
+    fs.writeFileSync(projAgentFile, ALCHEMIK_SONNET_CONTENT, "utf8");
+
+    const legacyBefore = fs.readFileSync(projLegacy, "utf8");
+
+    // Run hook WITHOUT env override, with cwd at the synthetic project root.
+    // Strip the override env vars to force production resolution.
+    const r = runHook(
+      {
+        tool_name: "Edit",
+        tool_input: { file_path: projAgentFile },
+      },
+      {
+        KADMON_SYNC_CLAUDE_MD_PATH: "",
+        KADMON_SYNC_AGENTS_MD_PATH: "",
+        NODE_ENV: "production",
+        VITEST: "",
+      },
+      projectRoot,
+    );
+
+    expect(r.code).toBe(0);
+
+    // CATALOG.md must contain the synced sonnet row
+    const catalogAfter = fs.readFileSync(projCatalog, "utf8");
+    expect(catalogAfter).toMatch(/\|\s*alchemik\s*\|\s*sonnet\s*\|/);
+
+    // Legacy agents.md must be UNTOUCHED — the hook no longer writes here
+    const legacyAfter = fs.readFileSync(projLegacy, "utf8");
+    expect(legacyAfter).toBe(legacyBefore);
+
+    // Cleanup
+    fs.rmSync(projectRoot, { recursive: true, force: true });
   });
 });
