@@ -2,7 +2,7 @@
 number: 33
 title: /medik project-agnostic via cwd-target-existence detection
 date: 2026-04-26
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-033-medik-project-agnostic.md

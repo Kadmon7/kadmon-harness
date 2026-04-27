@@ -2,7 +2,7 @@
 number: 34
 title: /chekpoint diff-scope-aware Phase 1 + Phase 2a routing
 date: 2026-04-26
-status: proposed
+status: accepted
 route: A
 plan: plan-034-chekpoint-phase1-diff-scope.md
 ---

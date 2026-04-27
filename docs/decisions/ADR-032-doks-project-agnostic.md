@@ -2,7 +2,7 @@
 number: 32
 title: /doks project-agnostic via runtime profile detection
 date: 2026-04-26
-status: proposed
+status: accepted
 route: A
 plan: plan-032-doks-project-agnostic.md
 ---

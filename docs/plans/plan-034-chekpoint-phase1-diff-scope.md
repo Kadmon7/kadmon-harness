@@ -2,7 +2,7 @@
 number: 34
 title: /chekpoint diff-scope-aware optimization (Phase 1 mechanical + Phase 2a reviewer routing)
 date: 2026-04-26
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-034-chekpoint-diff-scope-aware.md

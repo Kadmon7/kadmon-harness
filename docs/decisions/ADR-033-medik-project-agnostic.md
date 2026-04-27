@@ -2,7 +2,7 @@
 number: 33
 title: /medik project-agnostic via cwd-target-existence detection
 date: 2026-04-26
-status: proposed
+status: accepted
 route: A
 plan: plan-033-medik-project-agnostic.md
 ---

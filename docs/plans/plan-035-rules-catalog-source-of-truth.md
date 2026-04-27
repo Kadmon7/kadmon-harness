@@ -2,7 +2,7 @@
 number: 35
 title: Rules catalog source-of-truth via non-auto-loaded CATALOG.md
 date: 2026-04-26
-status: pending
+status: completed
 needs_tdd: true
 route: A
 adr: ADR-035-rules-catalog-source-of-truth.md
