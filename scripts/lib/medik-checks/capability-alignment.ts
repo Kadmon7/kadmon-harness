@@ -1,6 +1,8 @@
-// /medik Check #14 — capability-alignment (plan-029 Phase 4.2).
+// /medik Check #14 — capability-alignment (plan-029 Phase 4.2, ADR-033 guard).
 // Detects skill/agent/command metadata drift using the capability-matrix library.
 
+import fs from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   buildCapabilityMatrix,
@@ -17,6 +19,18 @@ function worstStatus(violations: Violation[]): CheckStatus {
 }
 
 export function runCheck(ctx: CheckContext): CheckResult {
+  // ADR-033: consumer projects without local .claude/agents/ or .claude/skills/ emit NOTE.
+  const agentsDir = path.join(ctx.cwd, ".claude", "agents");
+  const skillsDir = path.join(ctx.cwd, ".claude", "skills");
+  if (!fs.existsSync(agentsDir) || !fs.existsSync(skillsDir)) {
+    return {
+      status: "NOTE",
+      category: "knowledge-hygiene",
+      message:
+        "no consumer-local agents/skills in this project — nothing to audit (capability-alignment requires both .claude/agents/ and .claude/skills/)",
+    };
+  }
+
   const matrix = buildCapabilityMatrix({ cwd: ctx.cwd });
   const violations = findViolations(matrix);
 

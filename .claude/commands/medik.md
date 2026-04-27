@@ -4,6 +4,13 @@ agent: mekanik, kurator
 skills: [systematic-debugging, coding-standards]
 ---
 
+## Arguments
+
+- `harness | consumer` — explicit profile override (highest precedence). Optional. Diagnostic banner only — does NOT skip any check (ADR-033).
+- `KADMON_MEDIK_PROFILE=harness|consumer` — env var fallback (banner-level).
+- `KADMON_PROJECT_PROFILE=harness|web|cli` — umbrella env var (lower precedence; `web|cli` collapsed → `consumer`).
+- Without args: profile auto-detected from filesystem markers via `detectMedikProfile()`.
+
 ## Purpose
 Full harness health diagnostic. Runs 14 mechanical checks grouped into 4 categories, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
 
@@ -11,9 +18,23 @@ Always runs the full pipeline. If you're running /medik, you want the complete p
 
 ## Steps
 
-### Phase 0: Flag detection
+### Phase 0: Detection banner + flag detection
 
-Before running any health checks, inspect `$ARGUMENTS` for special flags.
+Before running any health checks, emit the diagnostic banner then inspect `$ARGUMENTS`.
+
+**Profile detection** (ADR-033 — informational only, all 14 checks run regardless):
+
+```bash
+npx tsx -e "
+import('./scripts/lib/detect-project-language.js').then(m => {
+  const profile = m.detectMedikProfile(process.cwd(), process.argv[2]);
+  const source = process.argv[2] ? 'arg' : (process.env.KADMON_MEDIK_PROFILE ? 'env' : 'markers');
+  console.log('Detected: ' + profile + ' (source: ' + source + ')');
+});
+" "$ARGUMENTS"
+```
+
+The banner is INFORMATIONAL ONLY. All 14 checks run regardless of profile (ADR-033). Per-check NOTE responses (e.g. "no consumer-local agents — nothing to lint") come from the checks themselves via cwd-existence guards, not from this banner.
 
 **`--ALV` flag** (Attach-Log-Verify):
 If `$ARGUMENTS` matches `--ALV`, generate a redacted diagnostic report and exit — skip Phases 1-4 entirely.
@@ -61,17 +82,17 @@ Run all 14 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020:
 |   |            | Python | (skipped — no dist/ in Python projects) | — |
 | 7 | Dependencies | TS | `npm audit` | Vulnerable packages, outdated deps |
 |   |              | Python | `pip-audit` (warn if not installed) | Vulnerable packages |
-| 8 | Agent frontmatter | both | `npx tsx scripts/lint-agent-frontmatter.ts` | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
+| 8 | Agent frontmatter | both | `node -e "if (!require('fs').existsSync('.claude/agents')) { console.log(JSON.stringify({ status: 'NOTE', category: 'code-hygiene', message: 'no consumer-local agents in this project — nothing to lint' })); process.exit(0); }"` then `npx tsx scripts/lint-agent-frontmatter.ts` if guard passed | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
 | **Knowledge hygiene** |
 | 10 | Stale plans | both | `scripts/lib/medik-checks/stale-plans.ts` | `status: pending` plans older than 3 days with recent git activity (WARN); accepted/completed plans ignored |
 | 12 | Instinct decay | both | `scripts/lib/medik-checks/instinct-decay-candidates.ts` | Active instincts with confidence < 0.3 and last_observed_at > 30 days ago (or NULL) — advisory NOTE, not blocking |
 | 14 | Capability alignment | both | `scripts/lib/medik-checks/capability-alignment.ts` | Skill/agent/command metadata drift: capability-mismatch (FAIL), path-drift (FAIL), command-skill-drift (FAIL), ownership-drift (WARN), heuristic-tool-mismatch (WARN), orphan-skill (NOTE). Opt-in `requires_tools:` skill frontmatter + heuristic body-scan fallback. See plan-029 + ADR-029. |
 
-> **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language.
+> **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language. Check 8 is wrapped in a cwd-existence guard — if `.claude/agents/` is absent in cwd, emit NOTE and skip the linter invocation ("no consumer-local agents in this project — nothing to lint").
 >
 > **Note:** Check 9 exit code is 0 when `report.ok === true`, 1 otherwise. mekanik reads the JSON output in Phase 2 and suggests the matching remediation (PowerShell for plugin-cache, git checkout for dev-clone paths — see `scripts/lib/install-remediation.ts`). Historical diagnostics live in `~/.kadmon/install-diagnostic.log` (ADR-024).
 >
-> **Note:** Checks 10-14 are implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `scripts/lib/medik-checks/`. Each exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation.
+> **Note:** Checks 10-14 are implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `scripts/lib/medik-checks/`. Each exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation. All 14 checks run in any cwd (ADR-033). Checks #8 and #14 emit a NOTE when their target directories (`.claude/agents/`, `.claude/skills/`) are absent — informational, not a defect. Checks #11 and #12 are already SQLite-filtered by `project_hash` derived from cwd.
 
 ### Phase 2: Deep Analysis (agents — always runs)
 

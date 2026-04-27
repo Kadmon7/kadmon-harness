@@ -30,13 +30,13 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 
 ## Documentation Files (ALL of these must be checked)
 
-### Layer 1 — Public docs (users + Claude)
+### Layer 1 — Public docs (users + Claude) — ALWAYS writable
 | File | Language | What to check |
 |------|----------|---------------|
 | **CLAUDE.md** | English | Component counts, file structure, Memory section, Hook catalog, Status line |
 | **README.md** | English | Complete reference: architecture, agents, skills, commands, hooks, rules, database, tests, plugins |
 
-### Layer 1.5 — Catalogs (non-auto-loaded, read on-demand by hooks/audits — ADR-035)
+### Layer 1.5 — Catalogs (non-auto-loaded, read on-demand by hooks/audits — ADR-035) — Write-eligibility: harness-only
 | File | What to check |
 |------|---------------|
 | **.claude/agents/CATALOG.md** | Full 16-agent table (model, trigger, command, skills) + Auto-Invoke list. Auto-synced by `agent-metadata-sync` hook on agent edits. Verify row count = `ls .claude/agents/*.md \| grep -v _TEMPLATE \| grep -v CATALOG \| wc -l`. |
@@ -51,19 +51,41 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 | **.claude/rules/common/development-workflow.md** | Operational workflow rules: order, /chekpoint tiers decision table, commits, research, enforcement. Full command reference lives in `.claude/commands/CATALOG.md`. |
 | Other rules | Only if the change affects enforcement descriptions |
 
-### Layer 3 — Commands (workflow definitions)
+In consumer profile, this layer is READ-ONLY. Skip with NOTE: rules are harness-shared (general for all projects); update from harness self-/doks; `install.sh` re-run resyncs the consumer copy.
+
+### Layer 3 — Commands (workflow definitions) — Write-eligibility: cwd-only
 | File | What to check |
 |------|---------------|
 | **.claude/commands/doks.md** | This agent's own workflow — keep in sync with agent changes |
 | Other commands | Only if their workflow steps reference changed components |
 
-### Layer 4 — Skills (domain knowledge)
+In consumer profile, scan ONLY cwd-relative `.claude/commands/*.md`. Plugin-provided commands are NOT enumerated.
+
+### Layer 4 — Skills + Agents (domain knowledge + executors) — Write-eligibility: cwd-only
 | File | What to check |
 |------|---------------|
 | Skills referencing hooks or sessions | grep for hook names in `.claude/skills/` — update stale descriptions |
 | Skills referencing changed APIs | If state-store or session-manager API changed, check skills that reference them |
+| Project-local agents | In consumer profile, describe consumer-local agent files only |
+
+In consumer profile, scan ONLY cwd-relative `.claude/{agents,skills}/`. NEVER traverse `~/.claude/plugins/cache/` or any harness install path. Plugin-provided components are NOT enumerated.
 
 ## Workflow
+
+### 0. Detect profile and per-layer write-eligibility (ADR-032)
+
+Before any layer scan, resolve the runtime profile and compute per-layer eligibility.
+
+1. Resolve profile via `detectProjectProfile(cwd, explicitArg)` from `scripts/lib/detect-project-language.ts`. Precedence: explicit `/doks <profile>` arg → `KADMON_DOKS_PROFILE` → `KADMON_PROJECT_PROFILE` → `KADMON_SKANNER_PROFILE` (back-compat) → markers → fallback consumer.
+2. Map detector output to write-mode:
+   - `harness` → harness write-mode (all 4 layers writable)
+   - `web` | `cli` | unknown → consumer write-mode
+3. Per-layer eligibility:
+   - **Layer 1 (CLAUDE.md, README.md)**: ALWAYS writable. Project-root files, never plugin-shared.
+   - **Layer 2 (.claude/rules/)**: writable IF profile=harness; SKIP with NOTE in consumer profile: `"Rules harness-shared (general for all projects). Update from harness self-/doks; install.sh re-run resyncs the consumer copy."`
+   - **Layer 3 (.claude/commands/)**: writable always; in consumer profile, describe ONLY consumer-local commands via cwd-relative `ls .claude/commands/*.md`. Plugin-provided commands NOT enumerated.
+   - **Layer 4 (.claude/agents/, .claude/skills/)**: writable always; in consumer profile, describe ONLY consumer-local components. Plugin-provided components NOT enumerated.
+4. Print a per-layer eligibility summary at the start of the run (see Output Format) so the user sees what will and will not sync before edits begin.
 
 ### 1. Understand What Changed
 This is the MOST IMPORTANT step. Do NOT skip it.
@@ -91,6 +113,8 @@ Gather current state from the filesystem. Never trust memory or cached counts.
 - `npx vitest run 2>&1 | tail -5` — test count
 - Check for NEW root files (vitest.config.ts, etc.) vs what docs say
 
+**In consumer profile (ADR-032), these counts are cwd-only.** Plugin-inherited counts are NOT included; the Output Format NOTE explains the omission. NEVER traverse `~/.claude/plugins/cache/` or any path outside the consumer's cwd. If counts come back as 0 in a consumer project, that is correct (the project hasn't created project-local components yet) — the plugin still provides shared infra.
+
 **CATALOG.md drift check (ADR-035)** — verify catalog row counts match filesystem:
 - agents: `grep -c "^| [a-z]" .claude/agents/CATALOG.md` MUST equal `ls .claude/agents/*.md | grep -vE '_TEMPLATE|CATALOG' | wc -l`
 - hooks: `grep -c "^| [a-z]" .claude/hooks/CATALOG.md` MUST equal `ls .claude/hooks/scripts/*.js | wc -l` (modulo helper-vs-registered split)
@@ -114,6 +138,11 @@ For each behavioral change found in Step 1:
 - Add new files to file structure trees
 - Remove references to deleted files
 - Fix "No existe" or "planned" markers for things that now exist
+
+**ADR-032 per-layer guards (apply in every priority above)**:
+- Layer 1 (CLAUDE.md, README.md): ALWAYS writable.
+- Layer 2 (rules): if eligibility=read-only (consumer profile), do NOT call Edit/Write on files inside `.claude/rules/`; emit the NOTE from Step 0 instead.
+- Layer 3-4 (commands/agents/skills): in consumer profile, scan ONLY cwd-relative `.claude/{commands,agents,skills}/`. NEVER traverse `~/.claude/plugins/cache/` or any harness install path. Describe ONLY consumer-local components; plugin-provided components are NOT enumerated.
 
 ### 4. Self-Verify (NON-NEGOTIABLE)
 After making all edits, run ALL of these checks. Do not skip any.
@@ -176,6 +205,17 @@ npx vitest run 2>&1 | tail -3        # vs documented test count
 ## Output Format
 ```markdown
 ## Documentation Updates [doks]
+
+### Profile (ADR-032)
+- Profile: harness | consumer (source: arg | env | markers)
+- Layer eligibility:
+  - Layer 1 (CLAUDE.md, README.md): writable
+  - Layer 2 (rules/): writable | read-only (harness-shared)
+  - Layer 3 (commands/): writable (cwd-only in consumer)
+  - Layer 4 (agents/, skills/): writable (cwd-only in consumer)
+
+### Plugin-inherited components (consumer profile only)
+NOTE: Plugin kadmon-harness provides shared infra (16 agents, 46 skills, 11 commands, rules/) — not enumerated here. See harness self-docs.
 
 ### Behavioral Changes Found
 - session-start.js: now loads 3 sessions (was 1), shows "Pending Work"
