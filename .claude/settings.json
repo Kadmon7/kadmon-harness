@@ -80,6 +80,17 @@
     ]
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f graphify-out/graph.json ] && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"graphify: knowledge graph exists at graphify-out/. If this turn involves an architecture or codebase question, run graphify query/path/explain (or read graphify-out/GRAPH_REPORT.md) BEFORE grepping or answering from memory.\"}}' || true"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
