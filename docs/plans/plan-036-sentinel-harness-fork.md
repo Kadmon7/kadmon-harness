@@ -89,6 +89,7 @@ Goal: a clean-init `Sentinel-harness` repo that builds, with symlinks intact and
   - Verify: initial commit message = `Imported from Kadmon-Harness infra baseline @ <sha>`; `npm run build` succeeds (lifecycle hooks need `dist/`); `npx vitest run` passes the CARRIED suite (proves the copy is functionally intact before any edits). `git log` shows exactly ONE commit with zero personal-voice content.
   - Depends on: 0.4, 0.5, 0.6, 0.7, 0.8
   - Risk: Medium — a broken carried build here means the copy lost a file or dereferenced a symlink; catch it before Phase 1.
+  - **Execution note (2026-06-24):** criterion REVISED. The "carried suite green" goal is NOT achievable for a remoteless, renamed fork — 24 tests are coupled to Kadmon's git remote (hardcoded hash `9444ca5b82301f2f`) + identity (`kadmon-harness` name). Build is green and 1091/1115 logic tests pass (zero regressions). Baseline committed as a faithful import with the 24 documented in `docs/TEST_STATUS.md`; turning the suite green is moved to new Step 1.8. Initial commit message is conventional (`chore: baseline import…`) so `commit-format-guard` accepts it (the literal `Imported from…` string above is non-conventional and was adjusted).
 
 ---
 
@@ -130,6 +131,11 @@ Goal: neutralize the personal identity layer, output-style-first. Independently 
   - Verify (ADR §Risks "De-personalization leakage"): CI step runs the ADR research grep `K\.O\.A\.S|K\.A\.O\.S|órale|neta|Mexican|español|ToratNetz|KAIRON|Kadmon-Sports|caveman` and FAILS the build on any match outside the allow-list. Re-run after every upstream sync. Running it locally NOW must be green (proves Steps 1.1–1.6 left no residue).
   - Depends on: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
   - Risk: Medium — this is the mechanical proof Phase 1 succeeded. Tune the allow-list so legitimate occurrences (e.g. the `KADMON_` env prefix kept per ADR §1, or "Kadmon ADR-036" back-references in carried ADRs) don't false-fail.
+- [ ] Step 1.8: Adapt identity/remote-coupled carried tests to Sentinel (M) `[config/file]` — ADDED 2026-06-24 from Phase-0 execution finding
+  - File: `tests/plugin/manifest-schema.test.ts` (name assertion → `sentinel-harness`); `tests/hooks/session-start.test.ts`, `session-end-all.test.ts`, `evaluate-patterns-shared.test.ts`, `pre-compact-save.test.ts`, `runtime-root.test.ts`, `tests/eval/phase1b-workflows-e2e.test.ts`, `tests/lib/project-detect.test.ts`
+  - Verify: the 24 baseline failures documented in `docs/TEST_STATUS.md` are identity/remote-coupled, NOT logic regressions (build green, 1091/1115 logic tests pass). Update the manifest name assertion to `sentinel-harness`; make the remote-coupled tests cover the no-remote branch and/or use Sentinel's own project hash instead of the hardcoded Kadmon hash `9444ca5b82301f2f`. Target: `npx vitest run` green. (Original plan de-personalized source files but under-scoped identity-coupled TESTS — this step closes that gap.)
+  - Depends on: 1.1, 1.4 (Sentinel identity settled); the ~22 remote-coupled tests also depend on the deferred Sentinel-remote/IP decision
+  - Risk: Medium — the hardcoded Kadmon hash must go; remote-coupled tests need either a decided Sentinel remote or remote-agnostic rewrites.
 
 ---
 
