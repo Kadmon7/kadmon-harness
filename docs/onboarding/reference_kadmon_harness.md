@@ -80,7 +80,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 
 ---
 
-## 48 skills — domain knowledge loaded by agents
+## 49 skills — domain knowledge loaded by agents
 
 Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inject full content at sub-agent spawn; they are NOT inherited from parent session. Location: `.claude/skills/<name>/SKILL.md` (subdirectory + literal uppercase filename, per ADR-013).
 
@@ -90,7 +90,7 @@ Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inj
 - **Architecture**: architecture-decision-records · api-design · hexagonal-architecture · docker-patterns
 - **Data**: database-migrations · postgres-patterns · content-hash-cache-pattern
 - **Integration**: claude-api · mcp-server-patterns · documentation-lookup
-- **Meta**: skill-stocktake · agent-eval · agent-introspection-debugging · prompt-optimizer · skill-comply · rules-distill · workspace-surface-audit · codebase-onboarding · **agent-authoring** · **hook-authoring**
+- **Meta**: skill-stocktake · agent-eval · agent-introspection-debugging · prompt-optimizer · skill-comply · rules-distill · workspace-surface-audit · codebase-onboarding · **agent-authoring** · **hook-authoring** · **fable-prompt**
 - **Python**: python-patterns · python-testing
 - **Frontend**: frontend-patterns
 - **Research**: deep-research
@@ -102,6 +102,8 @@ Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inj
 - **Other**: systematic-debugging · receiving-code-review
 
 `agent-authoring` + `hook-authoring` (added 2026-04-26 per ADR-035 companion split): on-demand deep-mechanics reference for agent template contract and hook plugin-mode runtime resolution. Loaded only when relevant (creating/editing agent, lifecycle hook edits, KADMON_RUNTIME_ROOT debug). Companion to `_TEMPLATE.md.example` (scaffold) — skill is the encyclopedia, template is the blank form.
+
+`fable-prompt` (added 2026-07-06): operator-facing prompt-authoring skill for big autonomous / long-running / creative Claude Fable 5 runs — interview → synthesize → present, applying Matt Shumer's method (goal-not-steps, house rules, concrete self-checkable done-bar, fresh-context adversarial verification, loop-until-bar, effort selection; ultracode = foundations only). Method knowledge base bundled verbatim as `references/method.md`. Benchmarked at ship: with-skill 14/14 assertions vs 4/14 baseline (2 scenarios). De-dups against the harness: does NOT recommend the method's memory/progress-verification blocks inside harness-managed sessions.
 
 ---
 
