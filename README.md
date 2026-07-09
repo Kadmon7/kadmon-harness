@@ -197,22 +197,6 @@ Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboardi
 
 Claude will fetch the catalog, detect your project's memory directory, write the file with proper frontmatter, and update the index. One turn, done.
 
-### 📊 Status line (optional)
-
-A 3-line terminal status bar for Claude Code sessions: model + context bar + lines changed + duration / caveman badge + 5h-7d rate limits / git branch + dirty flag + ahead-behind + last commit. User-scope (lives in `~/.claude/`, not in the plugin), self-contained (no `jq`), degrades silently outside git repos.
-
-```bash
-cp docs/onboarding/statusline.sh ~/.claude/statusline.sh && chmod +x ~/.claude/statusline.sh
-```
-
-Then add to `~/.claude/settings.json` (top-level key) and restart the session:
-
-```json
-"statusLine": { "type": "command", "command": "~/.claude/statusline.sh" }
-```
-
-Full anatomy and notes in the header of [`docs/onboarding/statusline.sh`](docs/onboarding/statusline.sh).
-
 ---
 
 ## 🏗️ Architecture
