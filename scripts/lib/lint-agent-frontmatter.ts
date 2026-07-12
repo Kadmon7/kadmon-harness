@@ -28,6 +28,37 @@ export interface LintOptions {
   skillsDir: string;
 }
 
+// CLI arg parsing for scripts/lint-agent-frontmatter.ts (AUD-05, audit
+// 2026-07-12). The lib always accepted arbitrary dirs; only the CLI hardcoded
+// `.claude/agents` / `.claude/skills`, which made the linter unreachable from
+// consumer repos. Defaults preserve the original harness-local behavior.
+export function parseLintCliArgs(argv: readonly string[]): LintOptions {
+  let agentsDir = ".claude/agents";
+  let skillsDir = ".claude/skills";
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--agents-dir" || arg === "--skills-dir") {
+      const value = argv[i + 1];
+      if (value === undefined || value.startsWith("--")) {
+        throw new Error(`${arg} requires a value`);
+      }
+      if (arg === "--agents-dir") {
+        agentsDir = value;
+      } else {
+        skillsDir = value;
+      }
+      i++;
+    } else {
+      throw new Error(
+        `unknown argument: ${arg} (usage: [--agents-dir <path>] [--skills-dir <path>])`,
+      );
+    }
+  }
+
+  return { agentsDir, skillsDir };
+}
+
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
 // Strict skill name: lowercase alphanumeric + dash/underscore, must start with
 // alphanumeric. Rejects path separators, parent traversal, quotes, whitespace.

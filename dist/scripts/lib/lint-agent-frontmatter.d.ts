@@ -11,4 +11,5 @@ export interface LintOptions {
     agentsDir: string;
     skillsDir: string;
 }
+export declare function parseLintCliArgs(argv: readonly string[]): LintOptions;
 export declare function lintAgentFrontmatter(options: LintOptions): LintResult;

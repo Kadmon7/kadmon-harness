@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { lintAgentFrontmatter } from "../../scripts/lib/lint-agent-frontmatter.js";
+import {
+  lintAgentFrontmatter,
+  parseLintCliArgs,
+} from "../../scripts/lib/lint-agent-frontmatter.js";
 
 describe("lint-agent-frontmatter", () => {
   let tmp: string;
@@ -219,5 +222,57 @@ describe("lint-agent-frontmatter", () => {
     expect(realResult.violations).toEqual([]);
     expect(realResult.ok).toBe(true);
     expect(realResult.filesChecked).toBeGreaterThanOrEqual(15);
+  });
+});
+
+// TDD — CLI flags for consumer-repo portability (AUD-04/AUD-05, audit 2026-07-12).
+// The lib already accepted arbitrary dirs; only the CLI hardcoded them.
+describe("parseLintCliArgs", () => {
+  it("defaults to the harness-local layout (backwards compatible)", () => {
+    const options = parseLintCliArgs([]);
+    expect(options).toEqual({
+      agentsDir: ".claude/agents",
+      skillsDir: ".claude/skills",
+    });
+  });
+
+  it("--agents-dir overrides only the agents directory", () => {
+    const options = parseLintCliArgs(["--agents-dir", "/consumer/.claude/agents"]);
+    expect(options.agentsDir).toBe("/consumer/.claude/agents");
+    expect(options.skillsDir).toBe(".claude/skills");
+  });
+
+  it("--skills-dir overrides only the skills directory", () => {
+    const options = parseLintCliArgs(["--skills-dir", "/consumer/.claude/skills"]);
+    expect(options.agentsDir).toBe(".claude/agents");
+    expect(options.skillsDir).toBe("/consumer/.claude/skills");
+  });
+
+  it("both flags together override both directories", () => {
+    const options = parseLintCliArgs([
+      "--agents-dir",
+      "/c/repo/.claude/agents",
+      "--skills-dir",
+      "/c/repo/.claude/skills",
+    ]);
+    expect(options).toEqual({
+      agentsDir: "/c/repo/.claude/agents",
+      skillsDir: "/c/repo/.claude/skills",
+    });
+  });
+
+  it("throws on unknown argument", () => {
+    expect(() => parseLintCliArgs(["--bogus"])).toThrow(/unknown argument/i);
+  });
+
+  it("throws when a flag is missing its value", () => {
+    expect(() => parseLintCliArgs(["--agents-dir"])).toThrow(/requires a value/i);
+    expect(() => parseLintCliArgs(["--skills-dir"])).toThrow(/requires a value/i);
+  });
+
+  it("throws when a flag value looks like another flag (swallowed value)", () => {
+    expect(() =>
+      parseLintCliArgs(["--agents-dir", "--skills-dir", "x"]),
+    ).toThrow(/requires a value/i);
   });
 });
