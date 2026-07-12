@@ -1,6 +1,6 @@
 ---
 name: Kadmon Harness — commands, agents, skills, hooks catalog
-description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 48 skills, 22 auto-hooks + 9 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
+description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 49 skills, 22 auto-hooks + 10 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
 type: reference
 ---
 

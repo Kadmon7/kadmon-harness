@@ -1,6 +1,6 @@
 ---
 name: kartograf
-description: Invoked via /skanner command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Profile-aware (harness|web|cli per ADR-031): harness uses Vitest/pytest, web uses Playwright/Stagehand, cli uses subprocess + exit-code contracts.
+description: "Invoked via /skanner command for full workflow tests. Not auto-triggered — E2E tests are expensive and run on demand. Profile-aware (harness|web|cli per ADR-031): harness uses Vitest/pytest, web uses Playwright/Stagehand, cli uses subprocess + exit-code contracts."
 model: sonnet
 tools: Read, Grep, Glob, Bash, Write, Edit
 memory: project

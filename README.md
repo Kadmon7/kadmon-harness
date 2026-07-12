@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-1115%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1158%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -29,7 +29,7 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/nexus` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
-| **Specialize** | Domain agents, curated skill catalog | 16 agents, 48 skills, `/abra-kdabra` |
+| **Specialize** | Domain agents, curated skill catalog | 16 agents, 49 skills, `/abra-kdabra` |
 | **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate EXPERIMENTAL through 2026-04-28) |
 
 ---
@@ -58,7 +58,7 @@ Open a Claude Code session in any project and run each on its own line:
 /reload-plugins
 ```
 
-Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 48 skills · 11 commands · 22 hooks** live in the session.
+Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 49 skills · 11 commands · 22 hooks** live in the session.
 
 ### Steps 4–5 · Bootstrap rules + permissions
 
@@ -189,7 +189,7 @@ Inside your first session in the target project:
 
 ### 🧠 Onboard Claude to the harness (optional but recommended)
 
-Want every Claude session in your project to start knowing the 11 commands, 16 agents, 48 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
+Want every Claude session in your project to start knowing the 11 commands, 16 agents, 49 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
 
 ```
 Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboarding/reference_kadmon_harness.md and save it as a reference memory in this project. Add a one-line pointer under `## References` in MEMORY.md.
@@ -261,9 +261,9 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Agents | **16** (5 opus, 11 sonnet) |
 | Skills | **48** |
 | Commands | **11** |
-| Hooks | **22** registered + 9 shared modules |
+| Hooks | **22** registered + 10 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
-| Tests | **1115 passing** (89 files) |
+| Tests | **1158 passing** (90 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -407,7 +407,7 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>22 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
 
-> Full table with matchers, scripts, and exit codes lives at [`.claude/hooks/CATALOG.md`](.claude/hooks/CATALOG.md) (ADR-035 — non-auto-loaded). The summary below covers the 22 registered hooks; an additional 9 shared modules in `.claude/hooks/scripts/` are imported by lifecycle hooks (parse-stdin, evaluate-patterns-shared, generate-session-summary, daily-log, ensure-dist, hook-logger, backup-rotate, log-hook-event, install-diagnostic).
+> Full table with matchers, scripts, and exit codes lives at [`.claude/hooks/CATALOG.md`](.claude/hooks/CATALOG.md) (ADR-035 — non-auto-loaded). The summary below covers the 22 registered hooks; an additional 10 shared modules in `.claude/hooks/scripts/` are imported by lifecycle hooks (parse-stdin, scrub-secrets, evaluate-patterns-shared, generate-session-summary, daily-log, ensure-dist, hook-logger, backup-rotate, log-hook-event, install-diagnostic).
 
 ### Security — block dangerous operations (exit 2)
 | Hook | Event | What It Does |
@@ -641,7 +641,7 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 ## 📊 Status & Attribution
 
 **v1.3.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
-`1115 tests passing` · `89 files` · `22 hooks` · `16 agents` · `48 skills` · `11 commands` · `19 rules` · `7 DB tables`
+`1158 tests passing` · `90 files` · `22 hooks` · `16 agents` · `49 skills` · `11 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

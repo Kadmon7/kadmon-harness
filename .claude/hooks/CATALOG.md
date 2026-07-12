@@ -1,6 +1,6 @@
 ---
 name: hooks-catalog
-description: Full hook catalog (22 registered hooks + 9 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
+description: Full hook catalog (22 registered hooks + 10 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
 ---
 
 <!-- DO NOT AUTO-LOAD: this file is read on-demand by /doks and human readers. Lives outside .claude/rules/ to avoid eager context injection. See ADR-035. -->
@@ -75,13 +75,14 @@ description: Full hook catalog (22 registered hooks + 9 shared modules) with mat
 |------|--------|---------|------|
 | session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (single hook avoids races on shared SQLite handle) | 0 always |
 
-## Shared Modules (9)
+## Shared Modules (10)
 
 Not registered as hooks — imported by lifecycle hooks as utilities.
 
 | Module | Purpose | Used By |
 |--------|---------|---------|
 | parse-stdin.js | Sanitize Windows backslashes in JSON stdin | All 22 hooks |
+| scrub-secrets.js | Redact credentials (API keys, tokens, key=value pairs) from strings before persistence (AUD-02) | observe-pre, observe-post |
 | evaluate-patterns-shared.js | Pattern evaluation against definitions | session-start, session-end-all, pre-compact-save |
 | generate-session-summary.js | Heuristic session summary from observations | session-start, session-end-all, pre-compact-save |
 | daily-log.js | Append/read daily session logs in memory/logs/ | session-start, session-end-all, pre-compact-save |

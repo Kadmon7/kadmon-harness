@@ -45,9 +45,9 @@ Kadmon-Harness/
 |-- .claude/
 |   |-- agents/                 # 16 specialists + CATALOG.md + _TEMPLATE.md.example (ADR-035)
 |   |-- commands/               # 11 slash commands + CATALOG.md (ADR-035)
-|   |-- skills/                 # 48 skills at <name>/SKILL.md (ADR-013)
+|   |-- skills/                 # 49 skills at <name>/SKILL.md (ADR-013)
 |   |-- rules/                  # 19 rules (common + typescript + python) — operational logic only; catalogs moved (ADR-035)
-|   |-- hooks/scripts/          # 22 hooks + 9 shared modules + CATALOG.md (ADR-035)
+|   |-- hooks/scripts/          # 22 hooks + 10 shared modules + CATALOG.md (ADR-035)
 |   `-- settings.json
 |-- agents | commands | skills  # Canonical root symlinks → .claude/<type>/ (ADR-019, plugin loader discovery)
 |-- scripts/lib/                # TS: state-store, instincts, evolve-generate, install-apply, ...
@@ -104,7 +104,7 @@ Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (2): /forge, /evolve (step 6 Generate promoted to accepted 2026-04-24 after observation window)
 
-## Skills (48)
+## Skills (49)
 
 Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029). Recent additions: `agent-authoring`, `hook-authoring` (extracted from agents.md / hooks.md to keep on-demand reference deep without bloating auto-loaded rules — ADR-035 sibling pattern).
 
@@ -131,7 +131,7 @@ Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: 
 Rules auto-load based on file context. They contain **operational orchestration logic only** (decision trees, severity rules, enforcement mappings) — catalog data moved to dedicated `CATALOG.md` files per ADR-035 to cut ~11k auto-loaded tokens. See `.claude/rules/common/agents.md` for agent orchestration rules.
 
 ## Hooks
-22 registered hooks + 9 shared modules in `.claude/hooks/scripts/`. See `.claude/hooks/CATALOG.md` for the full catalog (ADR-035 — non-auto-loaded).
+22 registered hooks + 10 shared modules in `.claude/hooks/scripts/`. See `.claude/hooks/CATALOG.md` for the full catalog (ADR-035 — non-auto-loaded).
 
 ## Memory
 - **SQLite**: sessions, instincts, cost events, hook events, agent invocations, sync queue, research reports at `~/.kadmon/kadmon.db` (7 tables; research_reports added in ADR-015)
@@ -162,6 +162,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.3.0 — 1115 tests / 89 files / 22 hooks / 16 agents / 48 skills / 11 commands / 19 rules / 7 DB tables / 14 /medik checks.
+v1.3.0 — 1158 tests / 90 files / 22 hooks / 16 agents / 49 skills / 11 commands / 19 rules / 7 DB tables / 14 /medik checks.
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.
