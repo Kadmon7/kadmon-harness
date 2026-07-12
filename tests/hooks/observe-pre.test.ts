@@ -151,6 +151,72 @@ describe("observe-pre", () => {
     }
   });
 
+  // AUD-06 (2026-07-12 audit §2 Cluster B) — capture tool_use_id so
+  // session-end-all can correlate parallel Agent pre/post events by id.
+
+  it("records toolUseId when tool_use_id is present in the payload", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Agent",
+      tool_use_id: "toolu_abc123",
+      tool_input: { subagent_type: "kody", description: "review" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.toolUseId).toBe("toolu_abc123");
+  });
+
+  it("omits toolUseId when tool_use_id is absent", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Read",
+      tool_input: { file_path: "a.ts" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.toolUseId).toBeUndefined();
+  });
+
+  // AUD-02 (security MEDIUM, 2026-07-12 audit §3) — observe-pre must apply the
+  // same scrubSecrets() (redact + truncate) as observe-post before persisting
+  // metadata.command to observations.jsonl.
+
+  it("scrubs Anthropic API key from metadata.command before persisting", () => {
+    const token = "sk-ant-api03-abcdefghij1234567890ABCDEFGHIJ";
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: `curl -H "Authorization: Bearer ${token}"` },
+    });
+    const raw = fs.readFileSync(OBS_FILE, "utf8");
+    expect(raw).not.toContain(token);
+    const event = JSON.parse(raw.trim().split("\n")[0]);
+    expect(event.metadata.command).toContain("[REDACTED]");
+  });
+
+  it("scrubs generic key=value credentials from metadata.command", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "export API_KEY=SuperSecretValue12345 && ./deploy.sh" },
+    });
+    const raw = fs.readFileSync(OBS_FILE, "utf8");
+    expect(raw).not.toContain("SuperSecretValue12345");
+    const event = JSON.parse(raw.trim().split("\n")[0]);
+    expect(event.metadata.command).toContain("[REDACTED]");
+  });
+
+  it("truncates metadata.command to 200 chars (observe-post parity)", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Bash",
+      tool_input: { command: "echo " + "x".repeat(300) },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.command.length).toBeLessThanOrEqual(200);
+  });
+
   it("sets skillName to null when Skill tool is invoked with no skill arg", () => {
     const sid = "sess-phase1-red-c";
     const dir = path.join(os.tmpdir(), "kadmon", sid);

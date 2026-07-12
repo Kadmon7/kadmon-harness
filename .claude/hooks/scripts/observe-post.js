@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseStdin } from "./parse-stdin.js";
+import { scrubSecrets } from "./scrub-secrets.js";
 try {
   const input = parseStdin();
   const sid = input.session_id ?? "";
@@ -19,25 +20,14 @@ try {
     const preTs = parseInt(fs.readFileSync(tsFile, "utf8").trim(), 10);
     if (preTs > 0) durationMs = Date.now() - preTs;
   } catch {}
-  // Secret scrubbing — applied to all fields that may contain credentials
-  function scrubSecrets(str) {
-    return str
-      .replace(/(?:sk|pk)[-_](?:live|test)[-_][A-Za-z0-9]{20,}/g, "[REDACTED]")
-      .replace(/ghp_[A-Za-z0-9]{36,}/g, "[REDACTED]")
-      .replace(/xox[bpas]-[A-Za-z0-9-]{10,}/g, "[REDACTED]")
-      .replace(
-        /(?:api[_-]?key|secret|token|password)\s*[:=]\s*["']?[^\s"',]{8,}/gi,
-        "[REDACTED]",
-      )
-      .replace(/sk-ant-[A-Za-z0-9_-]{20,}/g, "[REDACTED]")
-      .replace(/AKIA[0-9A-Z]{16}/g, "[REDACTED]")
-      .replace(/sbp_[a-f0-9]{40,}/g, "[REDACTED]");
-  }
-  // Bash metadata with secret scrubbing
+  // Secret scrubbing via shared scrub-secrets.js (AUD-02 — same redaction
+  // rules as observe-pre). Bash metadata with secret scrubbing:
   const command = input.tool_input?.command ?? null;
   let resultSnippet = null;
   if (input.tool_name === "Bash" && input.tool_result) {
-    resultSnippet = scrubSecrets(String(input.tool_result).slice(0, 100));
+    // Scrub BEFORE slicing — truncating first can split a token at the
+    // boundary and defeat the anchored redaction regexes (spektr LOW).
+    resultSnippet = scrubSecrets(String(input.tool_result)).slice(0, 100);
   }
   const scrubbedError = toolError
     ? scrubSecrets(String(toolError)).slice(0, 200)
@@ -45,7 +35,10 @@ try {
   const scrubbedCommand = command
     ? scrubSecrets(String(command)).slice(0, 200)
     : null;
-  const hasMeta = scrubbedCommand || resultSnippet;
+  // Agent posts carry agentType so session-end-all can pair parallel agents
+  // by type instead of global LIFO (AUD-06).
+  const isAgent = input.tool_name === "Agent";
+  const hasMeta = scrubbedCommand || resultSnippet || isAgent;
   const event = {
     timestamp: new Date().toISOString(),
     sessionId: sid,
@@ -53,6 +46,7 @@ try {
     toolName: input.tool_name ?? "",
     filePath: input.tool_input?.file_path ?? input.tool_input?.path ?? null,
     success: !toolError,
+    ...(input.tool_use_id ? { toolUseId: input.tool_use_id } : {}),
     ...(scrubbedError ? { error: scrubbedError } : {}),
     ...(durationMs !== null ? { durationMs } : {}),
     ...(hasMeta
@@ -60,6 +54,9 @@ try {
           metadata: {
             ...(scrubbedCommand ? { command: scrubbedCommand } : {}),
             ...(resultSnippet ? { resultSnippet } : {}),
+            ...(isAgent
+              ? { agentType: input.tool_input?.subagent_type ?? null }
+              : {}),
           },
         }
       : {}),

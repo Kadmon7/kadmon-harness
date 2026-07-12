@@ -681,6 +681,184 @@ describe("session-end-all", () => {
     expect(Number(row.success)).toBe(1); // SQLite stores boolean as 1/0
   });
 
+  // --- AUD-06 (2026-07-12 audit §2 Cluster B): parallel-agent pairing ---
+  // Global LIFO pop misattributes duration/success/error when parallel agents
+  // finish out of order. Pairing must correlate by toolUseId when present,
+  // else oldest pending pre of the SAME agentType, with LIFO only as fallback.
+
+  function makeAgentPre(
+    agentType: string,
+    ts: string,
+    toolUseId?: string,
+  ): string {
+    return JSON.stringify({
+      timestamp: ts,
+      sessionId,
+      eventType: "tool_pre",
+      toolName: "Agent",
+      filePath: "",
+      ...(toolUseId ? { toolUseId } : {}),
+      metadata: { agentType, agentDescription: `${agentType} task` },
+    });
+  }
+
+  function makeAgentPost(
+    agentType: string | null,
+    ts: string,
+    durationMs: number,
+    success: boolean,
+    opts?: { toolUseId?: string; error?: string },
+  ): string {
+    return JSON.stringify({
+      timestamp: ts,
+      sessionId,
+      eventType: "tool_post",
+      toolName: "Agent",
+      filePath: "",
+      durationMs,
+      success,
+      ...(opts?.error ? { error: opts.error } : {}),
+      ...(opts?.toolUseId ? { toolUseId: opts.toolUseId } : {}),
+      metadata: agentType ? { agentType } : {},
+    });
+  }
+
+  async function readAgentRows(): Promise<Record<string, unknown>[]> {
+    const db = await readDb();
+    const stmt = db.prepare(
+      "SELECT agent_type, duration_ms, success, error, timestamp FROM agent_invocations WHERE session_id = ? ORDER BY timestamp ASC",
+    );
+    stmt.bind([sessionId]);
+    const rows: Record<string, unknown>[] = [];
+    while (stmt.step()) rows.push(stmt.getAsObject());
+    stmt.free();
+    db.close();
+    return rows;
+  }
+
+  it("pairs parallel agents of distinct types by agentType, not global LIFO", async () => {
+    // feniks starts, then spektr starts; posts arrive in START order
+    // (feniks first). Global LIFO would pop spektr for the feniks post.
+    const t0 = new Date("2026-07-12T10:00:00.000Z").toISOString();
+    const t1 = new Date("2026-07-12T10:00:01.000Z").toISOString();
+    const t2 = new Date("2026-07-12T10:00:05.000Z").toISOString();
+    const t3 = new Date("2026-07-12T10:00:09.000Z").toISOString();
+
+    writeObservations([
+      makeAgentPre("feniks", t0),
+      makeAgentPre("spektr", t1),
+      makeAgentPost("feniks", t2, 5000, false, { error: "feniks boom" }),
+      makeAgentPost("spektr", t3, 8000, true),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const rows = await readAgentRows();
+    expect(rows).toHaveLength(2);
+
+    const feniks = rows.find((row) => row.agent_type === "feniks");
+    const spektr = rows.find((row) => row.agent_type === "spektr");
+    expect(feniks).toBeDefined();
+    expect(spektr).toBeDefined();
+
+    expect(Number(feniks?.duration_ms)).toBe(5000);
+    expect(Number(feniks?.success)).toBe(0);
+    expect(feniks?.error).toBe("feniks boom");
+
+    expect(Number(spektr?.duration_ms)).toBe(8000);
+    expect(Number(spektr?.success)).toBe(1);
+    expect(spektr?.error).toBeNull();
+  });
+
+  it("pairs same-type parallel agents by toolUseId when posts arrive in start order", async () => {
+    // Two kody agents; posts arrive in START order. Global LIFO would pop the
+    // SECOND pre for the FIRST post. toolUseId must disambiguate.
+    const t0 = new Date("2026-07-12T11:00:00.000Z").toISOString();
+    const t1 = new Date("2026-07-12T11:00:01.000Z").toISOString();
+    const t2 = new Date("2026-07-12T11:00:04.000Z").toISOString();
+    const t3 = new Date("2026-07-12T11:00:08.000Z").toISOString();
+
+    writeObservations([
+      makeAgentPre("kody", t0, "toolu_1"),
+      makeAgentPre("kody", t1, "toolu_2"),
+      makeAgentPost("kody", t2, 4000, false, {
+        toolUseId: "toolu_1",
+        error: "kody-1 failed",
+      }),
+      makeAgentPost("kody", t3, 7000, true, { toolUseId: "toolu_2" }),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const rows = await readAgentRows();
+    expect(rows).toHaveLength(2);
+
+    // Row timestamps come from the PRE event: toolu_1 → t0, toolu_2 → t1
+    const first = rows.find((row) => row.timestamp === t0);
+    const second = rows.find((row) => row.timestamp === t1);
+    expect(Number(first?.duration_ms)).toBe(4000);
+    expect(Number(first?.success)).toBe(0);
+    expect(first?.error).toBe("kody-1 failed");
+    expect(Number(second?.duration_ms)).toBe(7000);
+    expect(Number(second?.success)).toBe(1);
+  });
+
+  it("prefers toolUseId over same-type FIFO when posts arrive out of start order", async () => {
+    // Same-type FIFO alone would hand the first post (toolu_2) to the OLDEST
+    // kody pre (toolu_1). The id match must win over type-based matching.
+    const t0 = new Date("2026-07-12T12:00:00.000Z").toISOString();
+    const t1 = new Date("2026-07-12T12:00:01.000Z").toISOString();
+    const t2 = new Date("2026-07-12T12:00:03.000Z").toISOString();
+    const t3 = new Date("2026-07-12T12:00:09.000Z").toISOString();
+
+    writeObservations([
+      makeAgentPre("kody", t0, "toolu_1"),
+      makeAgentPre("kody", t1, "toolu_2"),
+      makeAgentPost("kody", t2, 2000, true, { toolUseId: "toolu_2" }),
+      makeAgentPost("kody", t3, 9000, false, {
+        toolUseId: "toolu_1",
+        error: "slow kody failed",
+      }),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const rows = await readAgentRows();
+    expect(rows).toHaveLength(2);
+
+    const first = rows.find((row) => row.timestamp === t0); // toolu_1
+    const second = rows.find((row) => row.timestamp === t1); // toolu_2
+    expect(Number(first?.duration_ms)).toBe(9000);
+    expect(Number(first?.success)).toBe(0);
+    expect(first?.error).toBe("slow kody failed");
+    expect(Number(second?.duration_ms)).toBe(2000);
+    expect(Number(second?.success)).toBe(1);
+  });
+
+  it("falls back to LIFO for legacy posts without agentType or toolUseId", async () => {
+    // Legacy observations (pre-AUD-06 format): post carries neither
+    // toolUseId nor metadata.agentType — must still pair (old behavior).
+    const t0 = new Date("2026-07-12T13:00:00.000Z").toISOString();
+    const t1 = new Date("2026-07-12T13:00:06.000Z").toISOString();
+
+    writeObservations([
+      makeAgentPre("orakle", t0),
+      makeAgentPost(null, t1, 6000, true),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const rows = await readAgentRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].agent_type).toBe("orakle");
+    expect(Number(rows[0].duration_ms)).toBe(6000);
+    expect(Number(rows[0].success)).toBe(1);
+  });
+
   it("persists unmatched agent pre events with success = null", async () => {
     // Arrange: Agent tool_pre with NO matching tool_post
     const agentPreTs = new Date().toISOString();

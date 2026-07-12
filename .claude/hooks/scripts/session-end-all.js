@@ -76,8 +76,45 @@ async function main() {
     const filesModified = new Set();
     const toolsUsed = new Set();
     let messageCount = 0;
-    const agentPre = new Map(); // track Agent tool_pre events by timestamp for duration pairing
+    // Pending Agent tool_pre events awaiting their tool_post (insertion order
+    // preserved). AUD-06: pairing correlates by toolUseId when present, else
+    // oldest pending pre of the SAME agentType, with global LIFO only as a
+    // fallback for legacy posts that carry neither field — global LIFO alone
+    // misattributes duration/success/error when parallel agents finish out
+    // of order.
+    const pendingAgentPre = [];
     const extractedAgents = [];
+
+    function takeMatchingAgentPre(post) {
+      if (post.toolUseId) {
+        const idIdx = pendingAgentPre.findIndex(
+          (p) => p.toolUseId === post.toolUseId,
+        );
+        if (idIdx !== -1) return pendingAgentPre.splice(idIdx, 1)[0];
+      }
+      const postType = post.metadata?.agentType;
+      if (postType) {
+        const typeIdx = pendingAgentPre.findIndex(
+          (p) => p.agentType === postType,
+        );
+        if (typeIdx !== -1) return pendingAgentPre.splice(typeIdx, 1)[0];
+      }
+      // Legacy fallback: most recent pending pre (pre-AUD-06 behavior).
+      // Expected only when BOTH correlation fields are absent (legacy JSONL).
+      // If either field was present but unresolved, the pairing is anomalous
+      // (consumed pre / truncated log) — log it so silent mis-attribution is
+      // observable (typescript-reviewer 2026-07-12 WARN).
+      if (post.toolUseId || postType) {
+        logHookError(
+          "session-end-all",
+          new Error(
+            `agent pairing fallback: unresolved ${post.toolUseId ? `toolUseId=${post.toolUseId}` : `agentType=${postType}`}`,
+          ),
+          { phase: "agent-pairing" },
+        );
+      }
+      return pendingAgentPre.pop() ?? null;
+    }
 
     // Read observations.jsonl once and reuse — avoids redundant disk I/O in the 3
     // downstream consumers (this loop, generateSummary, Fallback 2 line count).
@@ -92,19 +129,17 @@ async function main() {
           if (e.eventType === "tool_pre") {
             messageCount++;
             if (e.toolName === "Agent" && e.metadata) {
-              agentPre.set(e.timestamp, {
+              pendingAgentPre.push({
                 agentType: e.metadata.agentType ?? "general-purpose",
                 description: e.metadata.agentDescription ?? null,
                 timestamp: e.timestamp,
+                toolUseId: e.toolUseId ?? null,
               });
             }
           }
           if (e.eventType === "tool_post" && e.toolName === "Agent") {
-            // Pair with most recent unmatched agent pre event
-            const lastKey = [...agentPre.keys()].pop();
-            if (lastKey) {
-              const pre = agentPre.get(lastKey);
-              agentPre.delete(lastKey);
+            const pre = takeMatchingAgentPre(e);
+            if (pre) {
               extractedAgents.push({
                 agentType: pre.agentType,
                 description: pre.description,
@@ -122,7 +157,7 @@ async function main() {
       }
     }
     // Any unmatched agent pre events (no post received)
-    for (const [, pre] of agentPre) {
+    for (const pre of pendingAgentPre) {
       extractedAgents.push({
         agentType: pre.agentType,
         description: pre.description,

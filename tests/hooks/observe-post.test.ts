@@ -235,6 +235,34 @@ describe("observe-post", () => {
     );
   });
 
+  // AUD-06 (2026-07-12 audit §2 Cluster B) — Agent tool_post events must carry
+  // agentType + toolUseId so session-end-all can pair parallel agents correctly.
+
+  it("records metadata.agentType and toolUseId for Agent tool_post events", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Agent",
+      tool_use_id: "toolu_xyz789",
+      tool_input: { subagent_type: "spektr", description: "Security scan" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.agentType).toBe("spektr");
+    expect(event.toolUseId).toBe("toolu_xyz789");
+  });
+
+  it("handles Agent tool_post without subagent_type gracefully", () => {
+    runHook({
+      session_id: SESSION_ID,
+      tool_name: "Agent",
+      tool_input: { description: "Some task" },
+    });
+    const lines = fs.readFileSync(OBS_FILE, "utf8").trim().split("\n");
+    const event = JSON.parse(lines[0]);
+    expect(event.metadata.agentType).toBeNull();
+    expect(event.toolUseId).toBeUndefined();
+  });
+
   it("exits 0 and creates no file when session_id contains path traversal chars", () => {
     // Arrange + Act: traversal with ../
     const exitCode1 = runHook({
