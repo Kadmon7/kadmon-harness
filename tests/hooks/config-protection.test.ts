@@ -121,6 +121,116 @@ describe("config-protection", () => {
     expect(r.code).toBe(0);
   });
 
+  it("allows maxWarnings: 0 in eslint.config.js (benign key, not a lint rule)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/eslint.config.js",
+        content: '{ "maxWarnings": 0 }',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("allows retries: 0 in vitest.config.ts (benign key, not a lint rule)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/vitest.config.ts",
+        new_string: '{ "test": { "retry": 0 } }',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("still blocks a real rule disabled via 0 nested under a different rules block key", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/.eslintrc.json",
+        new_string: '{ "rules": { "no-console": 0 } }',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("Disabling lint rules");
+  });
+
+  it("blocks a disabled rule in ESLint v9 flat config (unquoted rules key)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/eslint.config.js",
+        content: 'export default [{ rules: { "no-eval": "off" } }];',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("Disabling lint rules");
+  });
+
+  it("blocks a disabled rule that appears after an object-valued rule in the same block (nested-brace bypass)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/.eslintrc.json",
+        new_string:
+          '{ "rules": { "no-restricted-syntax": ["error", { "selector": "ForInStatement" }], "eqeqeq": "off" } }',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("Disabling lint rules");
+  });
+
+  it("blocks a disabled rule in a SECOND rules block within an eslint.config.js array (multi-block bypass)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/eslint.config.js",
+        content:
+          'export default [{ rules: { "no-console": "error" } }, { rules: { "no-eval": "off" } }];',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("Disabling lint rules");
+  });
+
+  it("blocks a disabled rule in a SECOND rules block nested under .eslintrc.json overrides (multi-block bypass)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/.eslintrc.json",
+        new_string:
+          '{ "rules": { "no-console": "error" }, "overrides": [{ "files": ["*.ts"], "rules": { "no-eval": "off" } }] }',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("Disabling lint rules");
+  });
+
+  it("blocks a disabled rule that appears after a string value containing a literal } (string-literal bypass)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/.eslintrc.json",
+        new_string:
+          '{ "rules": { "desc": "premature } inside string", "no-eval": "off" } }',
+      },
+    });
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("Disabling lint rules");
+  });
+
+  it("allows a rules block where a string value contains a literal } but no rule is actually disabled (no false positive)", () => {
+    const r = runHook({
+      tool_input: {
+        file_path: "/project/.eslintrc.json",
+        new_string:
+          '{ "rules": { "desc": "text with } brace", "no-eval": "error" } }',
+      },
+    });
+    expect(r.code).toBe(0);
+  });
+
+  it("fails closed (exit 2) when stdin is malformed JSON", () => {
+    const r = spawnSync("node", [HOOK], {
+      encoding: "utf8",
+      input: "{not valid json!!",
+    });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain("error");
+  });
+
   it("blocks when stdin is truncated (overflow attack vector)", () => {
     const r = runHook({
       _truncated: true,

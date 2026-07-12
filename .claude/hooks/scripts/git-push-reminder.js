@@ -4,9 +4,13 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
+import { resolveRootDir } from "./ensure-dist.js";
+import { logHookError } from "./hook-logger.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 try {
   if (isDisabled("git-push-reminder")) process.exit(0);
   const start = Date.now();
@@ -16,8 +20,9 @@ try {
 
   const warnings = [];
   const sid = input.session_id ?? "";
-  if (sid) {
-    const obsFile = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
+  const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+  if (sessionDir) {
+    const obsFile = path.join(sessionDir, "observations.jsonl");
     if (fs.existsSync(obsFile)) {
       const lines = fs
         .readFileSync(obsFile, "utf8")
@@ -33,7 +38,9 @@ try {
             hasVerify = true;
           if (
             e.toolName === "Agent" &&
-            ["kody", "typescript-reviewer"].includes(e.metadata?.agentType)
+            ["kody", "typescript-reviewer", "python-reviewer"].includes(
+              e.metadata?.agentType,
+            )
           )
             hasReview = true;
         } catch {
@@ -50,18 +57,45 @@ try {
       if (!hasReview) {
         let hasProductionCode = false;
         let fileCount = 0;
+
+        // getDiffScope() (ADR-034) is the runtime authority for production-code
+        // / diff-scope classification. Import from compiled dist/ (lifecycle-hook
+        // pattern — see ensure-dist.js resolveRootDir) so both TypeScript AND
+        // Python production files trip this check. The old hardcoded
+        // scripts/lib|.claude/hooks/scripts + .ts/.js check silently missed
+        // Python-only diffs (e.g. src/, lib/, app/ files).
+        let getDiffScope;
+        try {
+          const rootDir = resolveRootDir(import.meta.url);
+          ({ getDiffScope } = await import(
+            pathToFileURL(
+              path.join(
+                rootDir,
+                "dist",
+                "scripts",
+                "lib",
+                "detect-project-language.js",
+              ),
+            ).href
+          ));
+        } catch (importErr) {
+          logHookError("git-push-reminder", importErr, {
+            phase: "import-diff-scope",
+          });
+        }
+        const classifyProductionCode = (files) => {
+          if (!getDiffScope) return files.length > 0; // dist unavailable — conservative default
+          const scope = getDiffScope(files);
+          return scope.needsTypescriptReviewer || scope.needsPythonReviewer;
+        };
+
         // Test hook: inject a colon-separated file list to bypass git diff.
         // Production code never sets this env var.
         const testFiles = process.env.KADMON_TEST_PUSH_FILES;
         if (testFiles !== undefined) {
           const files = testFiles.split(":").filter(Boolean);
           fileCount = files.length;
-          hasProductionCode = files.some(
-            (f) =>
-              (f.startsWith("scripts/lib/") ||
-                f.startsWith(".claude/hooks/scripts/")) &&
-              (f.endsWith(".ts") || f.endsWith(".js")),
-          );
+          hasProductionCode = classifyProductionCode(files);
         } else {
           try {
             const diffOutput = execFileSync(
@@ -71,12 +105,7 @@ try {
             );
             const files = diffOutput.split("\n").filter(Boolean);
             fileCount = files.length;
-            hasProductionCode = files.some(
-              (f) =>
-                (f.startsWith("scripts/lib/") ||
-                  f.startsWith(".claude/hooks/scripts/")) &&
-                (f.endsWith(".ts") || f.endsWith(".js")),
-            );
+            hasProductionCode = classifyProductionCode(files);
           } catch {
             // No upstream tracked, or not a git repo, or git unavailable —
             // fall back to warning (safe default: assume review needed).

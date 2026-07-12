@@ -217,6 +217,36 @@ describe("observe-pre", () => {
     expect(event.metadata.command.length).toBeLessThanOrEqual(200);
   });
 
+  // AUD-15 (2026-07-12 audit) — session_id from stdin must be validated
+  // against /^[a-zA-Z0-9_-]+$/ before being used to build a filesystem path.
+  // observe-pre already validated pre-refactor (inline regex); this test
+  // locks in the same contract now that validation routes through the
+  // shared safeSessionDir() helper (parity with observe-post.test.ts).
+  it("exits 0 and creates no file when session_id contains path traversal chars", () => {
+    const exitCode1 = runHook({
+      session_id: "../../../etc",
+      tool_name: "Read",
+    });
+    expect(exitCode1).toBe(0);
+    const traversalFile = path.join(
+      os.tmpdir(),
+      "kadmon",
+      "../../../etc",
+      "observations.jsonl",
+    );
+    expect(fs.existsSync(traversalFile)).toBe(false);
+
+    const exitCode2 = runHook({ session_id: "foo/bar", tool_name: "Read" });
+    expect(exitCode2).toBe(0);
+    const slashFile = path.join(
+      os.tmpdir(),
+      "kadmon",
+      "foo/bar",
+      "observations.jsonl",
+    );
+    expect(fs.existsSync(slashFile)).toBe(false);
+  });
+
   it("sets skillName to null when Skill tool is invoked with no skill arg", () => {
     const sid = "sess-phase1-red-c";
     const dir = path.join(os.tmpdir(), "kadmon", sid);

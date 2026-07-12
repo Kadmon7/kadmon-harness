@@ -14,14 +14,16 @@ import { generateSummary } from "./generate-session-summary.js";
 import { appendDailyLog, resolveMemoryDir } from "./daily-log.js";
 import { ensureDist, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 
 async function main() {
   try {
     const input = parseStdin();
     const sid = input.session_id ?? "";
-    if (!sid) process.exit(0);
+    const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+    if (!sessionDir) process.exit(0);
 
-    const obsPath = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
+    const obsPath = path.join(sessionDir, "observations.jsonl");
     let fileCount = 0;
     let toolCount = 0;
     let messageCount = 0;
@@ -135,7 +137,7 @@ async function main() {
     }
 
     // Reset tool count after compaction
-    const countFile = path.join(os.tmpdir(), "kadmon", sid, "tool_count.txt");
+    const countFile = path.join(sessionDir, "tool_count.txt");
     try {
       fs.writeFileSync(countFile, "0");
     } catch {}

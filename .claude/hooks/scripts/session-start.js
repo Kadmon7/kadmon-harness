@@ -17,13 +17,15 @@ import { ensureDist, isDistStale, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 import { logInstallDiagnostic } from "./install-diagnostic.js";
 import { rotateBackup } from "./backup-rotate.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 
 async function main() {
   try {
     const input = parseStdin();
     const sid = input.session_id ?? "";
     const cwd = input.cwd ?? process.cwd();
-    if (!sid) process.exit(0);
+    const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+    if (!sessionDir) process.exit(0);
 
     // Detect project
     const remoteUrl = gitExec(["remote", "get-url", "origin"], cwd);
@@ -40,8 +42,7 @@ async function main() {
       .slice(0, 16);
     const branch = gitExec(["branch", "--show-current"], cwd) ?? "unknown";
 
-    // Initialize session dir
-    const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
+    // Initialize session dir (sessionDir already validated above)
     fs.mkdirSync(sessionDir, { recursive: true });
 
     // Backup DB with rotation before opening (prevents data loss)
@@ -116,41 +117,54 @@ async function main() {
         ) {
           const orphan = orphans[0];
 
-          const orphanObsPath = path.join(
-            os.tmpdir(),
-            "kadmon",
+          // AUD-15 sweep miss (spektr MEDIUM, chekpoint Wave 2): orphan.id is
+          // DB-sourced (lower trust than the live sid, which is already
+          // routed through safeSessionDir above) and must never reach
+          // path.join() unvalidated. isOrphanStale() treats a malformed id
+          // as stale=true (see orphan-staleness.ts), so a traversal-shaped
+          // id sails past that guard and would otherwise reach this join.
+          const orphanDir = safeSessionDir(
+            path.join(os.tmpdir(), "kadmon"),
             orphan.id,
-            "observations.jsonl",
           );
           let recoveryData = {};
 
-          if (fs.existsSync(orphanObsPath)) {
-            const { summary, tasks } = generateSummary(orphanObsPath);
-            const obsLines = fs
-              .readFileSync(orphanObsPath, "utf8")
-              .split("\n")
-              .filter(Boolean);
-            let msgCount = 0;
-            const filesSet = new Set();
-            const toolsSet = new Set();
-            for (const line of obsLines) {
-              try {
-                const e = JSON.parse(line);
-                if (e.eventType === "tool_pre") msgCount++;
-                if (e.toolName) toolsSet.add(e.toolName);
-                if (e.filePath && ["Edit", "Write"].includes(e.toolName))
-                  filesSet.add(e.filePath);
-              } catch {}
+          if (orphanDir) {
+            const orphanObsPath = path.join(orphanDir, "observations.jsonl");
+
+            if (fs.existsSync(orphanObsPath)) {
+              const { summary, tasks } = generateSummary(orphanObsPath);
+              const obsLines = fs
+                .readFileSync(orphanObsPath, "utf8")
+                .split("\n")
+                .filter(Boolean);
+              let msgCount = 0;
+              const filesSet = new Set();
+              const toolsSet = new Set();
+              for (const line of obsLines) {
+                try {
+                  const e = JSON.parse(line);
+                  if (e.eventType === "tool_pre") msgCount++;
+                  if (e.toolName) toolsSet.add(e.toolName);
+                  if (e.filePath && ["Edit", "Write"].includes(e.toolName))
+                    filesSet.add(e.filePath);
+                } catch {}
+              }
+              recoveryData = {
+                messageCount: Math.max(orphan.messageCount, msgCount),
+                filesModified:
+                  filesSet.size > 0 ? [...filesSet] : orphan.filesModified,
+                toolsUsed:
+                  toolsSet.size > 0 ? [...toolsSet] : orphan.toolsUsed,
+                summary: summary || orphan.summary,
+                tasks: tasks.length > 0 ? tasks : orphan.tasks,
+              };
             }
-            recoveryData = {
-              messageCount: Math.max(orphan.messageCount, msgCount),
-              filesModified:
-                filesSet.size > 0 ? [...filesSet] : orphan.filesModified,
-              toolsUsed: toolsSet.size > 0 ? [...toolsSet] : orphan.toolsUsed,
-              summary: summary || orphan.summary,
-              tasks: tasks.length > 0 ? tasks : orphan.tasks,
-            };
           }
+          // orphanDir === null (malformed orphan.id): recoveryData stays {}
+          // — best-effort recovery still proceeds via endSession below
+          // (matching the existing "never block session-start" contract),
+          // it just closes with no data recovered from disk.
 
           // Pass projectHash to activate endSession's cross-project guard.
           endSession(orphan.id, recoveryData, projectHash);

@@ -108,6 +108,21 @@ async function readOrphanEndedAt(orphanId: string): Promise<string | null> {
   return String(endedAt);
 }
 
+async function readOrphanSummary(orphanId: string): Promise<string | null> {
+  const SQL = await initSqlJs();
+  const data = fs.readFileSync(TEST_DB);
+  const db = new SQL.Database(data);
+  const stmt = db.prepare("SELECT summary FROM sessions WHERE id = ?");
+  stmt.bind([orphanId]);
+  const hasRow = stmt.step();
+  const result = hasRow ? stmt.getAsObject() : {};
+  stmt.free();
+  db.close();
+  const summary = result["summary"];
+  if (summary === null || summary === undefined) return null;
+  return String(summary);
+}
+
 describe("session-start", () => {
   const orphanDirs: string[] = [];
 
@@ -147,6 +162,32 @@ describe("session-start", () => {
   it("creates session observations directory", () => {
     runHook({ session_id: SESSION_ID, cwd: process.cwd() });
     expect(fs.existsSync(OBS_DIR)).toBe(true);
+  });
+
+  // AUD-15 (2026-07-12 audit) — session_id from stdin must be validated
+  // against /^[a-zA-Z0-9_-]+$/ before being used to build a filesystem path.
+  // Regression test: pre-fix, this hook did
+  // `path.join(os.tmpdir(), "kadmon", sid)` with no validation and then
+  // `fs.mkdirSync(sessionDir, { recursive: true })` unconditionally, so a
+  // session_id of "../evil-session-start-X" would ESCAPE the "kadmon"
+  // directory and create os.tmpdir()/evil-session-start-X on disk. Post-fix,
+  // safeSessionDir() rejects the malformed session_id and the hook exits
+  // before any mkdirSync call.
+  it("does not create a directory outside the kadmon sandbox for a traversal session_id", () => {
+    const escapedName = `evil-session-start-${Date.now()}`;
+    const escapedDir = path.join(os.tmpdir(), escapedName);
+    // Ensure clean slate — a pre-existing dir would make the assertion moot.
+    fs.rmSync(escapedDir, { recursive: true, force: true });
+    try {
+      const r = runHook({
+        session_id: `../${escapedName}`,
+        cwd: process.cwd(),
+      });
+      expect(r.exitCode).toBe(0);
+      expect(fs.existsSync(escapedDir)).toBe(false);
+    } finally {
+      fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
   });
 
   it("respects KADMON_TEST_DB env var and does not write to real DB", () => {
@@ -244,6 +285,70 @@ describe("session-start", () => {
     // Assert: hook exits cleanly and reports NO recovery message
     expect(r.exitCode).toBe(0);
     expect(r.stdout).not.toContain("Recovered orphaned session");
+  });
+
+  // spektr MEDIUM (chekpoint Wave 2) — the one AUD-15 call site the
+  // safeSessionDir sweep missed: the orphan-recovery path built
+  // orphanObsPath via a raw path.join(os.tmpdir(), "kadmon", orphan.id,
+  // "observations.jsonl") using the DB-sourced orphan.id, never routed
+  // through safeSessionDir(). isOrphanStale() already rejects a malformed id
+  // (treats it as stale=true, per orphan-staleness.ts SESSION_ID_PATTERN),
+  // so a traversal-shaped orphan.id sails past that guard and reaches the
+  // vulnerable path.join unprotected. Regression test: seed an orphan whose
+  // id resolves — via the unguarded 4-segment path.join, pre-fix — to a
+  // decoy observations.jsonl OUTSIDE the "kadmon" sandbox. The decoy
+  // contains a distinctive commit message. Pre-fix, generateSummary() reads
+  // the decoy and the leaked text lands in the sessions.summary DB column.
+  // Post-fix, safeSessionDir() rejects the id, recoveryData stays {}, and
+  // the DB summary column is untouched (stays NULL) — even though the
+  // orphan is still best-effort closed (ended_at set, matching the existing
+  // "best-effort recovery" semantics for a malformed candidate).
+  it("does not read recovery data from a path outside the kadmon sandbox for a traversal orphan id", async () => {
+    const escapedName = `evil-orphan-${Date.now()}`;
+    const escapedDir = path.join(os.tmpdir(), escapedName);
+    fs.rmSync(escapedDir, { recursive: true, force: true });
+    fs.mkdirSync(escapedDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(escapedDir, "observations.jsonl"),
+      JSON.stringify({
+        eventType: "tool_pre",
+        toolName: "Bash",
+        filePath: "",
+        metadata: { command: 'git commit -m "feat(decoy): DECOY-LEAK-MARKER-12345"' },
+      }) + "\n",
+    );
+
+    // path.join(os.tmpdir(), "kadmon", "../" + escapedName, "observations.jsonl")
+    // normalizes to path.join(os.tmpdir(), escapedName, "observations.jsonl")
+    // — the same collapse-one-level-up trick used by the no-context-guard
+    // and session-start "traversal session_id" regression tests above.
+    const orphanId = `../${escapedName}`;
+
+    try {
+      await seedDbWithOrphan(orphanId);
+
+      const r = runHook({ session_id: SESSION_ID, cwd: process.cwd() });
+
+      // Best-effort recovery still proceeds (does not block session-start).
+      expect(r.exitCode).toBe(0);
+      expect(r.stdout).toContain("Recovered orphaned session");
+
+      // But the decoy's content must never have been read into recoveryData.
+      // (summary stays NULL — it's never set by seedDbWithOrphan, and only
+      // the decoy read would have populated it, so toBeNull() alone already
+      // proves the leak did not happen; guard the toContain() call so it
+      // isn't invoked against a null value.)
+      const summary = await readOrphanSummary(orphanId);
+      expect(summary).toBeNull();
+      if (summary !== null) {
+        expect(summary).not.toContain("DECOY-LEAK-MARKER-12345");
+      }
+
+      const endedAt = await readOrphanEndedAt(orphanId);
+      expect(endedAt).not.toBeNull();
+    } finally {
+      fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
   });
 
   // --- Post-Compact Context Reinjection Tests ---

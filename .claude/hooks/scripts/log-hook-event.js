@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { safeSessionDir } from "./safe-session-dir.js";
 
 /**
  * Log a hook execution event to hook-events.jsonl in the session temp dir.
@@ -19,8 +20,8 @@ import path from "node:path";
  */
 export function logHookEvent(sessionId, event) {
   try {
-    if (!sessionId || !/^[a-zA-Z0-9_-]+$/.test(sessionId)) return;
-    const dir = path.join(os.tmpdir(), "kadmon", sessionId);
+    const dir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sessionId);
+    if (!dir) return;
     fs.mkdirSync(dir, { recursive: true });
     const entry = {
       timestamp: new Date().toISOString(),

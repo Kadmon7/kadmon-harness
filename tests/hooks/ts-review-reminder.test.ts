@@ -224,4 +224,40 @@ describe("ts-review-reminder", () => {
     // Wording should be agnostic — not hardcoded ".ts"
     expect(r.stderr).toMatch(/code edits/i);
   });
+
+  // AUD-15 (2026-07-12 audit) — session_id from stdin must be validated
+  // against /^[a-zA-Z0-9_-]+$/ before being used to build a filesystem path.
+  // Regression test: plant a decoy observations.jsonl OUTSIDE the kadmon
+  // sandbox at the location a "../" session_id resolves to, with 10+ .ts
+  // edits and no reviewer entry. Pre-fix, this hook did
+  // `path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl")` with no
+  // validation, so it would read the decoy and warn (exit 1). Post-fix, the
+  // malformed session_id is rejected by safeSessionDir() before any escaped
+  // path is touched, and the hook fails open (exit 0) — the same contract as
+  // a missing session_id.
+  it("does not read observations from a path outside the kadmon sandbox for a traversal session_id", () => {
+    const escapedName = `evil-tsr-${Date.now()}`;
+    const escapedDir = path.join(os.tmpdir(), escapedName);
+    fs.mkdirSync(escapedDir, { recursive: true });
+    const decoyEvents = Array.from({ length: 10 }, (_, i) => ({
+      toolName: "Edit",
+      filePath: `decoy${i}.ts`,
+      eventType: "tool_pre",
+    }));
+    fs.writeFileSync(
+      path.join(escapedDir, "observations.jsonl"),
+      decoyEvents.map((e) => JSON.stringify(e)).join("\n") + "\n",
+    );
+    try {
+      const r = runHook({
+        session_id: `../${escapedName}`,
+        tool_input: { file_path: "k.ts" },
+      });
+      // Fails open — same contract as a missing session_id — instead of
+      // reading the decoy and warning about the 10+ unreviewed edits.
+      expect(r.code).toBe(0);
+    } finally {
+      fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
+  });
 });

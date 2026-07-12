@@ -245,6 +245,23 @@ describe("commit-quality", () => {
     expect(r.code).toBe(0);
   });
 
+  it("fails closed (exit 2) when stdin is malformed JSON", () => {
+    let threw = false;
+    try {
+      execFileSync("node", [HOOK], {
+        encoding: "utf8",
+        input: "{not valid json!!",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } catch (err: unknown) {
+      threw = true;
+      const e = err as { status: number; stderr: string };
+      expect(e.status).toBe(2);
+      expect(e.stderr).toContain("error");
+    }
+    expect(threw).toBe(true);
+  });
+
   // ─── Python debug markers (plan-020 Phase B) ──────────────────────────────
 
   it("blocks when staged diff contains print() in a .py file", () => {

@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 
 export function gitExec(args, cwd) {
   try {
@@ -30,7 +31,9 @@ export function gitExec(args, cwd) {
  * @returns {Promise<number>} Number of instincts updated
  */
 export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
-  const obsPath = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
+  const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+  if (!sessionDir) return 0;
+  const obsPath = path.join(sessionDir, "observations.jsonl");
   if (!fs.existsSync(obsPath)) return 0;
 
   const rawLines = fs.readFileSync(obsPath, "utf8").split("\n").filter(Boolean);

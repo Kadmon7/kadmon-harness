@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 
 const EDIT_THRESHOLD = 10;
 const CODE_EXTS = new Set([".ts", ".tsx", ".py"]);
@@ -27,9 +28,10 @@ try {
   if (!hasCodeExt(filePath)) process.exit(0);
 
   const sid = input.session_id ?? "";
-  if (!sid) process.exit(0);
+  const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+  if (!sessionDir) process.exit(0);
 
-  const obsFile = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
+  const obsFile = path.join(sessionDir, "observations.jsonl");
   if (!fs.existsSync(obsFile)) process.exit(0);
 
   const lines = fs.readFileSync(obsFile, "utf8").split("\n").filter(Boolean);

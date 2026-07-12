@@ -19,6 +19,19 @@ import initSqlJs from "sql.js";
 const HOOK = path.resolve(".claude/hooks/scripts/session-end-all.js");
 const SCHEMA_PATH = path.resolve("scripts/lib/schema.sql");
 
+// Direct ESM import of the shared function itself — AUD-15 regression test
+// below only needs to exercise the sessionId-validation short-circuit, which
+// runs BEFORE any dist/ import or DB access, so no test DB setup is required.
+const { evaluateAndApplyPatterns } = (await import(
+  path.resolve(".claude/hooks/scripts/evaluate-patterns-shared.js")
+)) as {
+  evaluateAndApplyPatterns: (
+    sid: string,
+    cwd: string,
+    minLines?: number,
+  ) => Promise<number>;
+};
+
 let sessionId: string;
 let obsDir: string;
 let testDb: string;
@@ -164,6 +177,51 @@ function buildAgentDocsLines(count: number): string[] {
   }
   return lines;
 }
+
+// ---------------------------------------------------------------------------
+// AUD-15 (2026-07-12 audit) — session_id must be validated against
+// /^[a-zA-Z0-9_-]+$/ before being used to build a filesystem path. Direct
+// unit test on evaluateAndApplyPatterns() itself: the validation is the
+// FIRST thing the function does, before any dist/ import or DB access, so a
+// malicious sid must short-circuit to 0 without ever reading an escaped
+// observations.jsonl. Pre-fix, this function did
+// `path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl")` with no
+// validation, so a sid of "../evil-eps-X" would resolve outside "kadmon" and
+// read a decoy file planted there.
+// ---------------------------------------------------------------------------
+
+describe("evaluateAndApplyPatterns — AUD-15 path traversal guard", () => {
+  it("returns 0 without reading observations from a path outside the kadmon sandbox", async () => {
+    const escapedName = `evil-eps-${Date.now()}`;
+    const escapedDir = path.join(os.tmpdir(), escapedName);
+    fs.mkdirSync(escapedDir, { recursive: true });
+    // Enough pattern-A-triggering lines that, if read, would return > 0.
+    const decoyLines: string[] = [];
+    for (let i = 0; i < 12; i++) {
+      decoyLines.push(
+        JSON.stringify({ eventType: "tool_pre", toolName: "Edit", filePath: "scripts/lib/types.ts" }),
+        JSON.stringify({ eventType: "tool_post", toolName: "Edit" }),
+        JSON.stringify({ eventType: "tool_pre", toolName: "Bash", metadata: { command: "vitest" } }),
+        JSON.stringify({ eventType: "tool_post", toolName: "Bash" }),
+      );
+    }
+    fs.writeFileSync(
+      path.join(escapedDir, "observations.jsonl"),
+      decoyLines.join("\n") + "\n",
+    );
+    try {
+      const result = await evaluateAndApplyPatterns(`../${escapedName}`, process.cwd());
+      expect(result).toBe(0);
+    } finally {
+      fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
+  });
+
+  it("returns 0 for an empty sessionId (no path built at all)", async () => {
+    const result = await evaluateAndApplyPatterns("", process.cwd());
+    expect(result).toBe(0);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Tests

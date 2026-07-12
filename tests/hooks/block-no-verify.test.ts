@@ -64,6 +64,23 @@ describe("block-no-verify", () => {
     expect(r.exitCode).toBe(0);
   });
 
+  it("fails closed (exit 2) when stdin is malformed JSON", () => {
+    let threw = false;
+    try {
+      execFileSync("node", [HOOK], {
+        encoding: "utf8",
+        input: "{not valid json!!",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } catch (err: unknown) {
+      threw = true;
+      const e = err as { stderr: string; status: number };
+      expect(e.status).toBe(2);
+      expect(e.stderr).toContain("error");
+    }
+    expect(threw).toBe(true);
+  });
+
   it("cannot be disabled via KADMON_DISABLED_HOOKS (security-critical)", () => {
     const r = runHook(
       {

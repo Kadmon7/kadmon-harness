@@ -156,6 +156,32 @@ describe("session-end-all", () => {
     expect(r.stdout).toBe("");
   });
 
+  // AUD-15 (2026-07-12 audit) — session_id from stdin must be validated
+  // against /^[a-zA-Z0-9_-]+$/ before being used to build a filesystem path.
+  // Regression test: plant a decoy observations.jsonl OUTSIDE the kadmon
+  // sandbox at the location a "../" session_id resolves to. Pre-fix, this
+  // hook did `path.join(os.tmpdir(), "kadmon", sid)` with no validation and
+  // proceeded through all persistence phases regardless (producing a
+  // non-empty "not found in DB" message). Post-fix, the malformed session_id
+  // is rejected by safeSessionDir() and the hook exits immediately — same
+  // contract as the "no session_id" case above (empty stdout, exit 0).
+  it("does not read observations from a path outside the kadmon sandbox for a traversal session_id", () => {
+    const escapedName = `evil-sea-${Date.now()}`;
+    const escapedDir = path.join(os.tmpdir(), escapedName);
+    fs.mkdirSync(escapedDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(escapedDir, "observations.jsonl"),
+      JSON.stringify({ eventType: "tool_pre", toolName: "Read", filePath: "decoy.ts" }) + "\n",
+    );
+    try {
+      const r = runHook({ session_id: `../${escapedName}`, cwd: process.cwd() });
+      expect(r.exitCode).toBe(0);
+      expect(r.stdout).toBe("");
+    } finally {
+      fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
+  });
+
   it("persists session with ended_at and observation metadata", async () => {
     writeObservations([
       makeObsLine("tool_pre", "Read", "/test/a.ts"),

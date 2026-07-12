@@ -6,11 +6,12 @@ import os from "node:os";
 import path from "node:path";
 import { parseStdin } from "./parse-stdin.js";
 import { scrubSecrets } from "./scrub-secrets.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 try {
   const input = parseStdin();
   const sid = input.session_id ?? "";
-  if (!sid || !/^[a-zA-Z0-9_-]+$/.test(sid)) process.exit(0);
-  const dir = path.join(os.tmpdir(), "kadmon", sid);
+  const dir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+  if (!dir) process.exit(0);
   fs.mkdirSync(dir, { recursive: true });
   const toolName = input.tool_name ?? "";
   // Secret scrubbing + 200-char truncation — same semantics as observe-post

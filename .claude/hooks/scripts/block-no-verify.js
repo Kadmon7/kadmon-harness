@@ -6,7 +6,17 @@ import { logHookEvent } from "./log-hook-event.js";
 try {
   if (isDisabled("block-no-verify")) process.exit(0);
   const start = Date.now();
-  const input = parseStdin();
+  let input;
+  try {
+    input = parseStdin();
+  } catch (parseErr) {
+    console.error(
+      JSON.stringify({
+        error: `block-no-verify: failed to parse stdin — ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`,
+      }),
+    );
+    process.exit(2);
+  }
   const command = input.tool_input?.command ?? "";
   const blocked = ["--no-verify", "--no-gpg-sign"];
   const found = blocked.find((flag) => command.includes(flag));

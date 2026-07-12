@@ -24,7 +24,17 @@ const PY_TEST_RE = /(^|\/)test_[^/]+\.py$|_test\.py$|(^|\/)tests\//;
 try {
   if (isDisabled("commit-quality")) process.exit(0);
   const start = Date.now();
-  const input = parseStdin();
+  let input;
+  try {
+    input = parseStdin();
+  } catch (parseErr) {
+    console.error(
+      JSON.stringify({
+        error: `commit-quality: failed to parse stdin — ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`,
+      }),
+    );
+    process.exit(2);
+  }
   const cmd = input.tool_input?.command ?? "";
 
   // Only check git commit commands

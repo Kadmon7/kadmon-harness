@@ -15,6 +15,7 @@ import {
 import { appendDailyLog, resolveMemoryDir } from "./daily-log.js";
 import { ensureDist, resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 
 async function estimateTokensFromTranscript(transcriptPath) {
   try {
@@ -68,9 +69,9 @@ async function main() {
     const input = parseStdin();
     const sid = input.session_id ?? "";
     const cwd = input.cwd ?? process.cwd();
-    if (!sid) process.exit(0);
+    const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+    if (!sessionDir) process.exit(0);
 
-    const sessionDir = path.join(os.tmpdir(), "kadmon", sid);
     const obsPath = path.join(sessionDir, "observations.jsonl");
     const hookEventsPath = path.join(sessionDir, "hook-events.jsonl");
     const filesModified = new Set();

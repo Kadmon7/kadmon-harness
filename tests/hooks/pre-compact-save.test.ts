@@ -108,6 +108,36 @@ describe("pre-compact-save", () => {
     expect(r.stdout).toBe("");
   });
 
+  // AUD-15 (2026-07-12 audit) — session_id from stdin must be validated
+  // against /^[a-zA-Z0-9_-]+$/ before being used to build a filesystem path.
+  // Regression test: plant a decoy observations.jsonl OUTSIDE the kadmon
+  // sandbox at the location a "../" session_id resolves to. Pre-fix, this
+  // hook did `path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl")`
+  // with no validation, so it would read the decoy's tool-call count and
+  // print "Session state saved..." to stdout referencing it. Post-fix, the
+  // malformed session_id is rejected by safeSessionDir() and the hook exits
+  // immediately — same contract as the "no session_id" case (empty stdout,
+  // exit 0) — before touching any escaped path.
+  it("does not read observations from a path outside the kadmon sandbox for a traversal session_id", () => {
+    const escapedName = `evil-pcs-${Date.now()}`;
+    const escapedDir = path.join(os.tmpdir(), escapedName);
+    fs.mkdirSync(escapedDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(escapedDir, "observations.jsonl"),
+      JSON.stringify({ eventType: "tool_pre", toolName: "Read", filePath: "decoy.ts" }) + "\n",
+    );
+    try {
+      const r = runHook({ session_id: `../${escapedName}`, cwd: process.cwd() });
+      expect(r.exitCode).toBe(0);
+      // Early-exit contract (matches "exits cleanly with no session_id"
+      // above) — the decoy is never read, so no "Session state saved"
+      // message referencing its content is printed.
+      expect(r.stdout).toBe("");
+    } finally {
+      fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
+  });
+
   it("increments compactionCount in database", async () => {
     writeObservations([
       makeObsLine("tool_pre", "Read", "/test/a.ts"),

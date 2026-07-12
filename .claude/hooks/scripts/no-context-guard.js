@@ -7,12 +7,25 @@ import os from "node:os";
 import path from "node:path";
 import { parseStdin, wasTruncated } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
+import { safeSessionDir } from "./safe-session-dir.js";
 const EXEMPT_EXT = [".test.ts", ".spec.ts", ".md", ".json"];
+// Python parity (mirrors commit-quality.js PY_TEST_RE) — test_*.py, *_test.py,
+// and tests/ paths are exempt, per rules/python/hooks.md conventions.
+const PY_TEST_RE = /(^|\/)test_[^/]+\.py$|_test\.py$|(^|\/)tests\//;
 function isExempt(fp) {
   if (!fp) return true;
-  if (EXEMPT_EXT.some((e) => fp.endsWith(e))) return true;
-  const b = path.basename(fp);
-  if (b === "package.json" || b === "tsconfig.json") return true;
+  // Normalize Windows backslashes to forward slashes before testing — this
+  // hook reads tool_input.file_path straight from stdin (not from
+  // git-diff output, which git already normalizes to "/"), so on win32 it
+  // is a raw absolute path like "C:\...\tests\test_foo.py". PY_TEST_RE only
+  // recognizes "/" separators; without normalizing here, backslash paths
+  // fall through to "not exempt" and get incorrectly blocked.
+  const normalized = fp.replace(/\\/g, "/");
+  if (EXEMPT_EXT.some((e) => normalized.endsWith(e))) return true;
+  if (PY_TEST_RE.test(normalized)) return true;
+  const b = path.basename(normalized);
+  if (b === "package.json" || b === "tsconfig.json" || b === "pyproject.toml")
+    return true;
   return false;
 }
 function getResearched(obsPath) {
@@ -40,7 +53,17 @@ function getResearched(obsPath) {
 try {
   if (process.env.KADMON_NO_CONTEXT_GUARD === "off") process.exit(0);
   const start = Date.now();
-  const input = parseStdin();
+  let input;
+  try {
+    input = parseStdin();
+  } catch (parseErr) {
+    console.error(
+      JSON.stringify({
+        error: `no-context-guard: failed to parse stdin — ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`,
+      }),
+    );
+    process.exit(2);
+  }
   if (wasTruncated(input)) {
     logHookEvent(input.session_id, {
       hookName: "no-context-guard",
@@ -63,8 +86,9 @@ try {
   const target = input.tool_input?.file_path ?? "";
   if (!target || isExempt(target)) process.exit(0);
   const sid = input.session_id ?? "";
-  if (!sid) process.exit(0);
-  const obsPath = path.join(os.tmpdir(), "kadmon", sid, "observations.jsonl");
+  const sessionDir = safeSessionDir(path.join(os.tmpdir(), "kadmon"), sid);
+  if (!sessionDir) process.exit(0);
+  const obsPath = path.join(sessionDir, "observations.jsonl");
   if (!fs.existsSync(obsPath)) process.exit(0);
   const { paths, dirs } = getResearched(obsPath);
   if (paths.has(target) || dirs.has(path.dirname(target))) process.exit(0);
