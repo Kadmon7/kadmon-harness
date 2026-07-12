@@ -6,6 +6,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Added
+- **`fable-prompt` skill** — operator prompt-authoring for Fable 5 runs (skills 48 → 49). Shipped `f912181` 2026-07-06; count sync + contract test restored in the 2026-07-12 audit Wave 1.
+- **`scripts/lib/medik-checks-cli.ts`** — single consumer-safe CLI runner for `/medik` checks #10-14: `--cwd` / `--checks` flags, real `projectHash` from git remote (replaces the `"cli"` sentinel that caused false PASS on DB-filtered checks), per-check error isolation. Paired with a `RUNTIME_ROOT` resolution block in `medik.md` (env → plugin root → walk-up → cwd) so checks resolve from consumer repos instead of dying with `ERR_MODULE_NOT_FOUND` (audit AUD-04/05).
+- **`scrub-secrets.js` shared hook module** (shared modules 9 → 10) — credential redaction extracted from observe-post and now applied by observe-pre to command AND free-text fields (audit AUD-02, closes spektr MEDIUM).
+- **Working-docs standard** — repo-root `BACKLOG.md` (operational queue), `WORK.md` (in-flight state), `CORRECTIONS.md` (append-only behavior log), seeded from the 2026-07-12 full audit.
+- **graphify UserPromptSubmit reminder hook** in `.claude/settings.json` (`4415674`, 2026-06-24) — query-first nudge for architecture questions.
+
+### Fixed
+- **`/medik` skill-creator probe** now reads `installed_plugins.json` registry (`29d24f3`, closes roadmap v1.3.1 item 11).
+- **Parallel-agent telemetry pairing** in `session-end-all.js` — correlate by `tool_use_id`, then same-agentType FIFO; global LIFO only for legacy JSONL. Anomalous fallbacks logged (audit AUD-06).
+- **Instinct writes batched in one transaction** in `evaluate-patterns-shared.js` — N triggered patterns now cause 1 DB file write, not N (audit AUD-07).
+- **`state-store` dirty-flag** — `close()` no longer rewrites the DB file after read-only access, preventing stale-snapshot clobbering of concurrent sessions (orakle WARN).
+- **`lint-agent-frontmatter` CLI** accepts `--agents-dir`/`--skills-dir` for consumer-repo linting (audit AUD-05).
+- **`kartograf.md` frontmatter** — description quoted (embedded colon broke strict YAML parsing, audit AUD-03).
+- Doc counts synced: skills 49, tests 1158 / 90 files, shared modules 10; plan-036 → `in-progress`, ADR-036 → `accepted`.
+
 ## [1.3.0] — 2026-04-24
 
 ### Added
