@@ -2,7 +2,7 @@
 number: 36
 title: Sentinel-harness — de-personalized security-specialized fork of Kadmon-Harness
 date: 2026-06-24
-status: proposed
+status: accepted
 route: A
 plan: plan-036-sentinel-harness-fork.md
 ---
