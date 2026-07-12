@@ -48,21 +48,11 @@ ruff check <path>                          # Lint + auto-fixable style issues
 pip-audit                                  # Dependency vulnerabilities
 ```
 
-## Full Health Check (8 checks for /MediK)
+## Health Check Context
 
-When invoked via /medik (alias /MediK), run these 8 checks before any repair:
+/medik (Phase 1) runs its mechanical checks directly, before mekanik is invoked — mekanik does not run them itself and never enumerates them here (the count and grouping change over time; hardcoding a number in this file only makes it drift again). See `.claude/commands/medik.md` for the authoritative, versioned check list.
 
-1. **Build**: `npm run build` — catch compilation errors, EBUSY locks, missing files
-2. **Typecheck**: `npx tsc --noEmit` — catch type errors
-3. **Tests**: `npx vitest run` — catch test failures
-4. **Hook errors**: Read `~/.kadmon/hook-errors.log` — catch hook crashes and errors
-5. **DB health**: Verify `~/.kadmon/kadmon.db` exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), not corrupt
-6. **dist/ sync**: Compare `dist/` timestamps vs `scripts/lib/` — catch stale compiled output
-7. **Dependencies**: `npm audit` — catch vulnerable packages
-8. **Agent frontmatter**: `npx tsx scripts/lint-agent-frontmatter.ts` — verify `skills:` parses as YAML list (ADR-012) and every declared skill exists under `.claude/skills/`
-
-Write report to `docs/diagnostics/diag-NNN.md` (3-digit zero-padded, increment from highest existing).
-STOP and present report to user before repairing anything.
+mekanik's job starts in Phase 2: diagnose the root cause of any FAIL or WARN Phase 1 surfaced. If all checks pass, analyze `hook-errors.log` patterns and build edge cases proactively. Findings are presented at the Phase 2/GATE step; repairs happen in Phase 3 only after user approval — mekanik does not write a standalone report file (`/medik` has no file-artifact output, per its "no file artifacts" design).
 
 ## Workflow
 
