@@ -3,7 +3,6 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import {
   buildCapabilityMatrix,
   findViolations,
@@ -57,10 +56,6 @@ export function runCheck(ctx: CheckContext): CheckResult {
   return { status, category, message, details: violations };
 }
 
-// CLI shim — `npx tsx scripts/lib/medik-checks/capability-alignment.ts`
-const entry = process.argv[1];
-if (entry && pathToFileURL(entry).href === import.meta.url) {
-  const result = runCheck({ projectHash: "cli", cwd: process.cwd() });
-  console.log(JSON.stringify(result, null, 2));
-  process.exit(result.status === "FAIL" ? 1 : 0);
-}
+// CLI invocation moved to scripts/lib/medik-checks-cli.ts (--checks 14) —
+// the old per-file shim hardcoded projectHash: "cli", which silently yields
+// false PASS on DB-filtered sibling checks and set a bad precedent (AUD-05).

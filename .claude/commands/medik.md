@@ -18,20 +18,42 @@ Always runs the full pipeline. If you're running /medik, you want the complete p
 
 ## Steps
 
-### Phase 0: Detection banner + flag detection
+### Phase 0: Runtime root resolution + detection banner + flag detection
 
-Before running any health checks, emit the diagnostic banner then inspect `$ARGUMENTS`.
+**Runtime root resolution** (run FIRST, once — reuse `$RUNTIME_ROOT` and `$CONSUMER_CWD` in every mechanical snippet below):
+
+All mechanical invocations live in the harness install (repo checkout or plugin cache), NOT in the consumer project. In a consumer repo, cwd-relative paths like `./scripts/lib/...` do not exist — they die with `ERR_MODULE_NOT_FOUND` (AUD-04). Resolve where the harness CODE lives first; the consumer project's cwd is only ever passed as DATA (`--cwd`).
+
+```bash
+CONSUMER_CWD="$(pwd)"
+# Precedence: KADMON_RUNTIME_ROOT (installer/env, ADR-010) → CLAUDE_PLUGIN_ROOT
+# (plugin mode) → walk-up from cwd looking for the harness marker
+# (package.json name "kadmon-harness") → cwd as last resort (harness-repo dev).
+RUNTIME_ROOT="${KADMON_RUNTIME_ROOT:-${CLAUDE_PLUGIN_ROOT:-}}"
+if [ -z "$RUNTIME_ROOT" ]; then
+  _dir="$CONSUMER_CWD"
+  while :; do
+    if [ -f "$_dir/package.json" ] && grep -q '"name": *"kadmon-harness"' "$_dir/package.json" 2>/dev/null; then
+      RUNTIME_ROOT="$_dir"
+      break
+    fi
+    _parent="$(dirname "$_dir")"
+    [ "$_parent" = "$_dir" ] && break
+    _dir="$_parent"
+  done
+fi
+RUNTIME_ROOT="${RUNTIME_ROOT:-$CONSUMER_CWD}"
+echo "RUNTIME_ROOT=$RUNTIME_ROOT (harness code) | CONSUMER_CWD=$CONSUMER_CWD (project under diagnosis)"
+```
+
+> **Portability rule (AUD-04):** every mechanical snippet in this file MUST reference harness code via `$RUNTIME_ROOT` and pass the consumer project only as data (`--cwd "$CONSUMER_CWD"`). Keep `npx tsx -e` scripts on a SINGLE line — multi-line `tsx -e` scripts exit silently with code 0 on Windows Git Bash (tsx 4.x), which reads as a false PASS. With `tsx -e`, trailing args start at `process.argv[1]`.
+
+Then emit the diagnostic banner and inspect `$ARGUMENTS`.
 
 **Profile detection** (ADR-033 — informational only, all 14 checks run regardless):
 
 ```bash
-npx tsx -e "
-import('./scripts/lib/detect-project-language.js').then(m => {
-  const profile = m.detectMedikProfile(process.cwd(), process.argv[2]);
-  const source = process.argv[2] ? 'arg' : (process.env.KADMON_MEDIK_PROFILE ? 'env' : 'markers');
-  console.log('Detected: ' + profile + ' (source: ' + source + ')');
-});
-" "$ARGUMENTS"
+npx tsx -e "const u=require('node:url'),p=require('node:path');import(u.pathToFileURL(p.join(process.argv[1],'scripts/lib/detect-project-language.ts')).href).then(m=>{const profile=m.detectMedikProfile(process.argv[2],process.argv[3]||undefined);const source=process.argv[3]?'arg':(process.env.KADMON_MEDIK_PROFILE?'env':'markers');console.log('Detected: '+profile+' (source: '+source+')');}).catch(e=>{console.error('banner failed: '+e.message);process.exit(1);});" "$RUNTIME_ROOT" "$CONSUMER_CWD" "$ARGUMENTS"
 ```
 
 The banner is INFORMATIONAL ONLY. All 14 checks run regardless of profile (ADR-033). Per-check NOTE responses (e.g. "no consumer-local agents — nothing to lint") come from the checks themselves via cwd-existence guards, not from this banner.
@@ -40,12 +62,7 @@ The banner is INFORMATIONAL ONLY. All 14 checks run regardless of profile (ADR-0
 If `$ARGUMENTS` matches `--ALV`, generate a redacted diagnostic report and exit — skip Phases 1-4 entirely.
 
 ```bash
-npx tsx -e "
-import('./scripts/lib/medik-alv.js').then(m => {
-  const p = m.writeAlvReport(process.cwd());
-  console.log('ALV report written to: ' + p);
-});
-"
+npx tsx -e "const u=require('node:url'),p=require('node:path');import(u.pathToFileURL(p.join(process.argv[1],'scripts/lib/medik-alv.ts')).href).then(m=>{console.log('ALV report written to: '+m.writeAlvReport(process.argv[2]));}).catch(e=>{console.error('ALV failed: '+e.message);process.exit(1);});" "$RUNTIME_ROOT" "$CONSUMER_CWD"
 ```
 
 The report (`diagnostic-YYYY-MM-DDTHHmm.txt`) contains:
@@ -60,7 +77,7 @@ If `$ARGUMENTS` is empty or does not match a known flag, continue to Phase 1.
 
 ### Phase 1: Health Checks (direct — no agent)
 
-Run all 14 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `scripts/lib/detect-project-language.ts`) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
+Run all 14 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `$RUNTIME_ROOT/scripts/lib/detect-project-language.ts`, imported the same way as the Phase 0 banner) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
 
 | # | Check | Language | Command / Method | What to look for |
 |---|-------|----------|-----------------|------------------|
@@ -74,25 +91,33 @@ Run all 14 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020:
 | **Runtime** |
 | 4 | Hook errors | both | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
 | 5 | DB health | both | Read `~/.kadmon/kadmon.db` | File exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), no corruption |
-| 9 | Install health | both | `npx tsx -e "import('./scripts/lib/install-health.ts').then(m => { const r = m.checkInstallHealth(process.cwd()); console.log(JSON.stringify(r, null, 2)); process.exit(r.ok ? 0 : 1); })"` | Canonical root symlinks (ADR-019) intact, `dist/` present and fresh, no anomalies. Report includes tri-state symlink detection (symlink_ok/junction_ok/broken_target/text_file/regular_dir/missing) + inPluginCache flag + runtimeRootEnv capture (ADR-024) |
-| 11 | Hook health 24h | both | `scripts/lib/medik-checks/hook-health-24h.ts` | Blocking hooks in last 24h; avg duration exceeding budget (observe-pre/post: 50ms, no-context-guard: 100ms, others: 500ms) |
-| 13 | Skill-creator probe | both | `scripts/lib/medik-checks/skill-creator-probe.ts` | skill-creator plugin present in plugin cache, project skills, or global skills |
+| 9 | Install health | both | `npx tsx -e "const u=require('node:url'),p=require('node:path');import(u.pathToFileURL(p.join(process.argv[1],'scripts/lib/install-health.ts')).href).then(m=>{const r=m.checkInstallHealth(process.argv[2]);console.log(JSON.stringify(r,null,2));process.exit(r.ok?0:1);}).catch(e=>{console.error('install-health failed: '+e.message);process.exit(1);});" "$RUNTIME_ROOT" "$CONSUMER_CWD"` | Canonical root symlinks (ADR-019) intact, `dist/` present and fresh, no anomalies. Report includes tri-state symlink detection (symlink_ok/junction_ok/broken_target/text_file/regular_dir/missing) + inPluginCache flag + runtimeRootEnv capture (ADR-024) |
+| 11 | Hook health 24h | both | checks runner `--checks 11` (see Checks 10-14 note) | Blocking hooks in last 24h; avg duration exceeding budget (observe-pre/post: 50ms, no-context-guard: 100ms, others: 500ms) |
+| 13 | Skill-creator probe | both | checks runner `--checks 13` (see Checks 10-14 note) | skill-creator plugin present in plugin cache, project skills, or global skills |
 | **Code hygiene** |
 | 6 | dist/ sync | TS | Compare `dist/` timestamps vs `scripts/lib/` (excludes `*.d.ts` — declaration files don't compile) | Stale compiled output, missing files |
 |   |            | Python | (skipped — no dist/ in Python projects) | — |
 | 7 | Dependencies | TS | `npm audit` | Vulnerable packages, outdated deps |
 |   |              | Python | `pip-audit` (warn if not installed) | Vulnerable packages |
-| 8 | Agent frontmatter | both | `node -e "if (!require('fs').existsSync('.claude/agents')) { console.log(JSON.stringify({ status: 'NOTE', category: 'code-hygiene', message: 'no consumer-local agents in this project — nothing to lint' })); process.exit(0); }"` then `npx tsx scripts/lint-agent-frontmatter.ts` if guard passed | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
+| 8 | Agent frontmatter | both | `node -e "if (!require('fs').existsSync(require('path').join(process.argv[1], '.claude/agents'))) { console.log(JSON.stringify({ status: 'NOTE', category: 'code-hygiene', message: 'no consumer-local agents in this project — nothing to lint' })); process.exit(0); }" "$CONSUMER_CWD"` then `npx tsx "$RUNTIME_ROOT/scripts/lint-agent-frontmatter.ts" --agents-dir "$CONSUMER_CWD/.claude/agents" --skills-dir "$CONSUMER_CWD/.claude/skills"` if guard passed | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
 | **Knowledge hygiene** |
-| 10 | Stale plans | both | `scripts/lib/medik-checks/stale-plans.ts` | `status: pending` plans older than 3 days with recent git activity (WARN); accepted/completed plans ignored |
-| 12 | Instinct decay | both | `scripts/lib/medik-checks/instinct-decay-candidates.ts` | Active instincts with confidence < 0.3 and last_observed_at > 30 days ago (or NULL) — advisory NOTE, not blocking |
-| 14 | Capability alignment | both | `scripts/lib/medik-checks/capability-alignment.ts` | Skill/agent/command metadata drift: capability-mismatch (FAIL), path-drift (FAIL), command-skill-drift (FAIL), ownership-drift (WARN), heuristic-tool-mismatch (WARN), orphan-skill (NOTE). Opt-in `requires_tools:` skill frontmatter + heuristic body-scan fallback. See plan-029 + ADR-029. |
+| 10 | Stale plans | both | checks runner `--checks 10` (see Checks 10-14 note) | `status: pending` plans older than 3 days with recent git activity (WARN); accepted/completed plans ignored |
+| 12 | Instinct decay | both | checks runner `--checks 12` (see Checks 10-14 note) | Active instincts with confidence < 0.3 and last_observed_at > 30 days ago (or NULL) — advisory NOTE, not blocking |
+| 14 | Capability alignment | both | checks runner `--checks 14` (see Checks 10-14 note) | Skill/agent/command metadata drift: capability-mismatch (FAIL), path-drift (FAIL), command-skill-drift (FAIL), ownership-drift (WARN), heuristic-tool-mismatch (WARN), orphan-skill (NOTE). Opt-in `requires_tools:` skill frontmatter + heuristic body-scan fallback. See plan-029 + ADR-029. |
 
 > **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language. Check 8 is wrapped in a cwd-existence guard — if `.claude/agents/` is absent in cwd, emit NOTE and skip the linter invocation ("no consumer-local agents in this project — nothing to lint").
 >
 > **Note:** Check 9 exit code is 0 when `report.ok === true`, 1 otherwise. mekanik reads the JSON output in Phase 2 and suggests the matching remediation (PowerShell for plugin-cache, git checkout for dev-clone paths — see `scripts/lib/install-remediation.ts`). Historical diagnostics live in `~/.kadmon/install-diagnostic.log` (ADR-024).
 >
-> **Note:** Checks 10-14 are implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `scripts/lib/medik-checks/`. Each exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation. All 14 checks run in any cwd (ADR-033). Checks #8 and #14 emit a NOTE when their target directories (`.claude/agents/`, `.claude/skills/`) are absent — informational, not a defect. Checks #11 and #12 are already SQLite-filtered by `project_hash` derived from cwd.
+> **Note (Checks 10-14):** implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `$RUNTIME_ROOT/scripts/lib/medik-checks/`, executed via the single CLI runner:
+>
+> ```bash
+> npx tsx "$RUNTIME_ROOT/scripts/lib/medik-checks-cli.ts" --cwd "$CONSUMER_CWD"
+> ```
+>
+> One invocation runs all five (default `--checks 10,11,12,13,14`) and prints ONE JSON array — prefer it over five separate spawns; use `--checks N[,M]` only to re-run individual checks (e.g. Phase 4 verify). The runner computes the real `projectHash` from `--cwd` via `detectProject()` (sha256 of the git remote url — the exact recipe the hooks persist with), so the DB-filtered checks #11/#12 query the correct rows. NEVER hand-build a `CheckContext` with a placeholder hash ("cli") — it matches zero rows and yields silent false PASS (AUD-05). Per-check crashes are captured as NOTE entries inside the array (the runner never dies whole); exit code is 1 only when at least one check reports FAIL, 2 on usage errors.
+>
+> Each module exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation. All 14 checks run in any cwd (ADR-033). Checks #8 and #14 emit a NOTE when their target directories (`.claude/agents/`, `.claude/skills/`) are absent — informational, not a defect. Checks #11 and #12 are already SQLite-filtered by `project_hash` derived from cwd.
 
 ### Phase 2: Deep Analysis (agents — always runs)
 

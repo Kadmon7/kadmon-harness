@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   openDb,
   closeDb,
+  getDb,
   upsertSession,
   getSession,
   getRecentSessions,
@@ -366,5 +370,60 @@ describe("state-store", () => {
       startedAt: "2026-01-02T00:00:00Z",
     });
     expect(getSession("post-rollback")).not.toBeNull();
+  });
+});
+
+// ─── Dirty-flag disk-write semantics (orakle 2026-07-12 WARN) ───
+// close() on a read-only consumer (e.g. medik-checks-cli diagnostics) must not
+// overwrite the DB file with a stale in-memory snapshot — disk writes only
+// happen after actual mutations.
+describe("state-store dirty-flag disk writes", () => {
+  let tmpDb: string;
+
+  beforeEach(() => {
+    tmpDb = path.join(
+      os.tmpdir(),
+      `kadmon-dirty-${Date.now()}-${Math.random().toString(36).slice(2)}.db`,
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    closeDb();
+    fs.rmSync(tmpDb, { force: true });
+  });
+
+  it("close() after read-only queries does not rewrite the DB file", async () => {
+    await openDb(tmpDb); // fresh DB — schema apply legitimately writes once
+    closeDb();
+
+    await openDb(tmpDb); // reopen existing DB (schema apply happens pre-spy)
+    const spy = vi.spyOn(fs, "writeFileSync");
+    getDb().prepare("SELECT COUNT(*) AS c FROM sessions").all();
+    closeDb();
+    const dbWrites = spy.mock.calls.filter((c) => c[0] === tmpDb);
+    expect(dbWrites.length).toBe(0);
+  });
+
+  it("read-only transaction does not rewrite the DB file", async () => {
+    await openDb(tmpDb);
+    closeDb();
+    await openDb(tmpDb);
+    const spy = vi.spyOn(fs, "writeFileSync");
+    getDb().transaction(() => {
+      getDb().prepare("SELECT COUNT(*) AS c FROM instincts").all();
+    })();
+    closeDb();
+    const dbWrites = spy.mock.calls.filter((c) => c[0] === tmpDb);
+    expect(dbWrites.length).toBe(0);
+  });
+
+  it("mutations still persist to disk across close/reopen", async () => {
+    await openDb(tmpDb);
+    upsertSession({ id: "dirty-flag-s1", projectHash: "dirtyhash" });
+    closeDb();
+    await openDb(tmpDb);
+    expect(getSession("dirty-flag-s1")).not.toBeNull();
+    closeDb();
   });
 });

@@ -35,16 +35,23 @@ function wrapSqlJsDb(
   dbPath: string,
 ): WrappedDb {
   let inTransaction = false;
+  // Tracks whether any mutation happened since the last disk write. Without
+  // it, close() on a read-only consumer (e.g. medik-checks-cli diagnostics)
+  // would overwrite the DB file with a stale in-memory snapshot and clobber
+  // concurrent-session writes (orakle 2026-07-12 WARN).
+  let dirty = false;
 
   function saveToDisk(): void {
-    if (dbPath === ":memory:" || inTransaction) return;
+    if (dbPath === ":memory:" || inTransaction || !dirty) return;
     const data = rawDb.export();
     fs.writeFileSync(dbPath, Buffer.from(data));
+    dirty = false;
   }
 
   return {
     exec(sql: string) {
       rawDb.run(sql);
+      dirty = true;
       saveToDisk();
     },
 
@@ -106,6 +113,7 @@ function wrapSqlJsDb(
           }
           stmt.step();
           stmt.free();
+          dirty = true;
           saveToDisk();
         },
       };
