@@ -1,4 +1,6 @@
-# Research 005 — Skill-Comply Pilot: council (post-ownership-move verification)
+# Research 009 — Skill-Comply Pilot: council (post-ownership-move verification)
+
+> **Renumbered 2026-07-12** (doc-drift audit D14, corrected same day): originally filed as `research-005-skill-comply-council-pilot-2026-04-24.md`, colliding with `research-005-skill-comply-kody-complete-2026-04-23.md` (both used number 005 — the `/skavenger` auto-write sequence was not locked at the time). Git history confirms `research-005-skill-comply-kody-complete-2026-04-23.md` was committed first (`04219d6`, 2026-04-23) and this report second (`eedafa5`, 2026-04-24) — this file is the one renumbered to keep `research-NNN` monotonically increasing per `docs/research/README.md`. First renumbered to 006, which turned out to already be taken by `research-006-skill-comply-spektr-pilot-2026-04-23.md` (a second, distinct collision the D14 pass missed) — corrected to 009 once the full on-disk sequence was reconciled against the local `research_reports` DB, which had no rows for any of the 8 pre-existing files (a project-local, git-ignored SQLite DB reset independently of the git-tracked report files — see BACKLOG.md AUD-32). Content below is unchanged from the original 005 version.
 
 ## Metadata
 - **Date:** 2026-04-24

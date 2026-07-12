@@ -250,7 +250,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Audit security | `/chekpoint` → spektr agent (opus) |
 | Dry-run instinct forge | `/forge --dry-run` |
 | Export instincts | `/forge export` |
-| Refactor code | `/medik clean` → kurator agent (sonnet) |
+| Refactor code | `/medik` (Phase 2, always runs) → kurator agent (sonnet) |
 
 ---
 
@@ -261,7 +261,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Agents | **16** (5 opus, 11 sonnet) |
 | Skills | **48** |
 | Commands | **11** |
-| Hooks | **22** registered + 10 shared modules |
+| Hooks | **23** registered + 11 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
 | Tests | **1158 passing** (90 files) |
 | SQLite Tables | **7** + 17 indexes |
@@ -294,7 +294,7 @@ Full component details are below (collapsed by default). For the operational cat
 | **orakle** | DB Specialist | Reviews SQL, schemas, migrations, Supabase, sql.js. | On SQL/schema edits | `/chekpoint` |
 | **feniks** | TDD Enforcer | Red-green-refactor cycle. Writes tests + implementation. | Never | `/abra-kdabra` |
 | **mekanik** | Build Fixer | Diagnoses TS2xxx, module resolution, Vitest, sql.js errors. | On TypeScript/Vitest failures | `/medik` |
-| **kurator** | Refactoring | Identifies dead code, duplication, consolidation. | Never | `/medik clean` |
+| **kurator** | Refactoring | Identifies dead code, duplication, consolidation. | Never | `/medik` (Phase 2, always runs — no subcommand) |
 | **arkonte** | Performance | Analyzes O(n²) loops, slow queries, memory patterns. | On performance patterns | auto-invoke only |
 | **python-reviewer** | Python Specialist | Reviews Python: PEP 8, type hints, ML, security. | On `.py` edits | `/chekpoint` |
 | **almanak** | Docs Lookup | Searches live documentation via Context7 MCP. | On unfamiliar APIs | `/almanak` |
@@ -407,7 +407,7 @@ Full component details are below (collapsed by default). For the operational cat
 <details>
 <summary><strong>22 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
 
-> Full table with matchers, scripts, and exit codes lives at [`.claude/hooks/CATALOG.md`](.claude/hooks/CATALOG.md) (ADR-035 — non-auto-loaded). The summary below covers the 22 registered hooks; an additional 10 shared modules in `.claude/hooks/scripts/` are imported by lifecycle hooks (parse-stdin, scrub-secrets, evaluate-patterns-shared, generate-session-summary, daily-log, ensure-dist, hook-logger, backup-rotate, log-hook-event, install-diagnostic).
+> Full table with matchers, scripts, and exit codes lives at [`.claude/hooks/CATALOG.md`](.claude/hooks/CATALOG.md) (ADR-035 — non-auto-loaded). The summary below covers the 23 registered hooks; an additional 11 shared modules in `.claude/hooks/scripts/` are imported by lifecycle hooks (parse-stdin, scrub-secrets, safe-session-dir, evaluate-patterns-shared, generate-session-summary, daily-log, ensure-dist, hook-logger, backup-rotate, log-hook-event, install-diagnostic).
 
 ### Security — block dangerous operations (exit 2)
 | Hook | Event | What It Does |

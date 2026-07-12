@@ -59,7 +59,7 @@ Group skills into **thematic clusters** based on their descriptions:
 - Security (spektr-owned)
 - Language-specific (python-reviewer, typescript-reviewer)
 
-Analyze each cluster in a subagent, passing full rules text as reference.
+Analyze each cluster in a subagent if the invoking agent has `Task` access; otherwise analyze the clusters sequentially in the current context, passing full rules text as reference either way. doks, this skill's owner, does not have `Task` — sequential analysis is the expected default, not a degraded fallback. The 5 thematic clusters are small enough that sequential analysis is a reasonable default even when `Task` is available.
 
 #### Extraction Criteria
 

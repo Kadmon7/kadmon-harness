@@ -82,7 +82,7 @@ Rules:
 - NEVER invoke arkitect for routine bug fixes or small features
 - NEVER invoke alchemik without explicit /evolve command
 - NEVER invoke kartograf without explicit /skanner command (tests are expensive)
-- NEVER invoke kurator without explicit /medik clean command
+- NEVER invoke kurator manually outside /medik — it runs automatically in every /medik Phase 2 deep analysis; there is no `/medik clean` subcommand (redesign: /medik is always deep, no subcommands)
 - MUST invoke skavenger via /skavenger for multi-source investigation; NEVER fall back to raw WebSearch when /skavenger is the appropriate entry point
 
 ## Parallel Execution
@@ -106,7 +106,7 @@ Three modes: **Parallel-then-Sequential** (`/chekpoint` reviewers → kody conso
 
 ## Command-Level Skills (no agent owner by design)
 
-Some skills are loaded directly by commands because the work is deterministic and indirection through an agent adds no value. These are **not** routing bugs — doks and audit tools treat them as intentional. Current command-level skills: `verification-loop` (loaded by `/chekpoint` Phase 1), `strategic-compact` (loaded by `/kompact`), `skill-creator:skill-creator` plugin (loaded by `/evolve` step 6 Generate for PROMOTE proposals only — keeps the analysis agent pure and centralizes collision handling at command level), `council` (loaded by `/abra-kdabra` Step 1.5 + main orchestrator ad-hoc — anti-anchoring via sibling sub-agents). Full rationale per skill (why no agent owner, history, contract) — see **`agent-authoring` skill**. When adding new command-level skills, document the rationale in that skill's table.
+Some skills are loaded directly by commands because the work is deterministic and indirection through an agent adds no value. These are **not** routing bugs — doks and audit tools treat them as intentional. Current command-level skills: `verification-loop` (loaded by `/chekpoint` Phase 1), `strategic-compact` (loaded by `/kompact`), `skill-creator:skill-creator` plugin (loaded by `/evolve` step 6 Generate for PROMOTE proposals only — keeps the analysis agent pure and centralizes collision handling at command level), `council` (loaded by `/abra-kdabra` Step 1.5 + main orchestrator ad-hoc — anti-anchoring via sibling sub-agents). `fable-prompt` is a related but distinct case: a true operator-invoked orphan with no command or agent owner at all (invoked directly via the Skill tool when authoring a Fable 5 prompt) — see the `agent-authoring` skill's table for why that's by-design, not an accidental gap. Full rationale per skill (why no agent owner, history, contract) — see **`agent-authoring` skill**. When adding new command-level skills, document the rationale in that skill's table.
 
 ### Skill capability declaration — `requires_tools:` frontmatter
 

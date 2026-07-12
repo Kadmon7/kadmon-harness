@@ -12,6 +12,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - **`scrub-secrets.js` shared hook module** (shared modules 9 → 10) — credential redaction extracted from observe-post and now applied by observe-pre to command AND free-text fields (audit AUD-02, closes spektr MEDIUM).
 - **Working-docs standard** — repo-root `BACKLOG.md` (operational queue), `WORK.md` (in-flight state), `CORRECTIONS.md` (append-only behavior log), seeded from the 2026-07-12 full audit.
 - **graphify UserPromptSubmit reminder hook** in `.claude/settings.json` (`4415674`, 2026-06-24) — query-first nudge for architecture questions.
+- **`safe-session-dir.js` shared hook module** (shared modules 10 → 11, audit Wave 2 AUD-15) — single canonical `safeSessionDir(baseDir, sessionId)` validating `session_id` against `/^[a-zA-Z0-9_-]+$/` before any `path.join`, applied across all 10 hooks that build session-scoped paths (7 previously unvalidated). Rejects `../` traversal, absolute paths, embedded separators, null bytes.
+- **`scripts/lib/medik-checks/test-runner-detect.ts`** (audit Wave 2 AUD-09) — auto-detects Jest vs Vitest from `package.json` so `/medik`'s regression gate no longer hardcodes `npx vitest run` on Jest repos.
 
 ### Fixed
 - **`/medik` skill-creator probe** now reads `installed_plugins.json` registry (`29d24f3`, closes roadmap v1.3.1 item 11).
@@ -22,10 +24,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - **`kartograf.md` frontmatter** — description quoted (embedded colon broke strict YAML parsing, audit AUD-03).
 - Doc counts synced: skills 49, tests 1158 / 90 files, shared modules 10; plan-036 → `in-progress`, ADR-036 → `accepted`.
 
+**Audit Wave 2 (P1 hardening):**
+- **Blocking security hooks fail closed** — `config-protection`, `no-context-guard`, `block-no-verify`, `commit-quality` now `exit(2)` (block) instead of `exit(0)` (allow) when `parseStdin()` throws on a malformed payload; narrowly scoped to the parse-failure branch, the outer "never crash" `exit(0)` fallback is preserved for unexpected internal errors (audit AUD-12, spektr LOW).
+- **`config-protection.js` DANGEROUS regex** rewritten to a brace-balanced multi-block scan (`extractAllBraceBlocks` via `matchAll`) — catches disabled rules in ESLint v9 flat-config arrays and `.eslintrc` `overrides[]` (any `rules:` block, not just the first), and nested object-valued rules; simultaneously stops false-positiving on benign `0`/`"off"` keys like `"maxWarnings": 0` (audit AUD-19, spektr HIGH + kody HIGH).
+- **`no-context-guard.js` Python parity + Windows paths** — exempts `test_*.py`, `*_test.py`, `pyproject.toml`, and normalizes Windows backslashes before matching so `C:\...\tests\test_foo.py` is exempted on win32 (audit AUD-11).
+- **`git-push-reminder.js`** adopts `getDiffScope()` (ADR-034 runtime authority) so Python production files trip the unreviewed-push warning, and adds `python-reviewer` to the review allowlist (audit AUD-10).
+- **`mcp-health-failure.js` / `mcp-health-check.js`** migrated from a racy read-modify-write JSON file to append-only JSONL with hysteresis rotation (concurrent failures no longer clobber each other, audit AUD-14).
+- **`session_id` path traversal hardened** across 10 hooks via `safeSessionDir()`, plus a `__proto__`/`constructor`/`prototype` strip and non-object/`null`-payload guard in `parse-stdin.js` (audit AUD-15, spektr MEDIUM/LOW).
+- **`/medik` false-FAIL kills in consumer repos** — Check #9 validates the harness install root (not consumer cwd), Check #6 guards on the `scripts/lib/` layout, `unknown` language skips toolchain checks with a NOTE instead of inheriting the TS fallback, and the Phase 3 regression gate uses the detected test command (audit AUD-09).
+- **`mekanik.md`** stale "8 checks" section removed (pointer to authoritative count); **`kurator.md`** gains a Python dead-code branch (ruff/vulture) gated on toolchain markers, and its description no longer references the removed `/medik clean` subcommand (audit AUD-18).
+- **`/kompact` skill drift** resolved — loads `strategic-compact` (the command-level decision-matrix skill), matching the rules + `agent-authoring` references (audit AUD-16).
+- **`npm audit fix`** — vite / js-yaml / postcss / brace-expansion transitive bumps, 1 high + 3 moderate → 0 vulnerabilities (audit AUD-23).
+- Doc counts re-synced: tests 1224 / 92 files, hooks 23, shared modules 11, `logHookEvent` consumers 11.
+
+### Docs
+- **Audit Wave 2 drift batch** (AUD-13/16/17/20/22) — retroactive `ADR-022` stub (session-lifecycle data integrity, reconstructed from CHANGELOG + code comments); `docs/README.md` counts corrected to 30 ADRs / 29 plans / 6 milestones; fixed `CHANGELOG` plan-029/ADR-029 links; closed stale checkboxes in `v1.3-medik-expansion.md` (16/17, one left open + annotated) and `v1.1-learning-system.md` (plan-003 superseded); hooks `CATALOG.md` → 23 registered + graphify hook row + 11 shared modules; deduped `research-005` collision (renumbered council-pilot → `research-009`, fixed the ADR-029 cross-reference); `evolve.md` declares its skill-creator dependency; `fable-prompt` documented in the command-level-skills rationale; `skill-stocktake` / `rules-distill` reworded so their instructions no longer assume tools the owner agent lacks; documented the toolchain-spawning-hook latency exception in `CLAUDE.md` + `hooks.md` + `performance.md`.
+
 ## [1.3.0] — 2026-04-24
 
 ### Added
-- **`/medik` expansion 9 → 14 checks** — [plan-028](docs/plans/plan-028-v1.3-medik-expansion-release.md), [ADR-028](docs/decisions/ADR-028-v1.3-medik-expansion-release.md), [plan-029](docs/plans/plan-029-medik-check-14-capability-alignment.md), [ADR-029](docs/decisions/ADR-029-medik-check-14-capability-alignment.md). Five new checks regrouped under 4 categories (Core / Runtime / Code-hygiene / Knowledge-hygiene):
+- **`/medik` expansion 9 → 14 checks** — [plan-028](docs/plans/plan-028-v1.3-medik-expansion-release.md), [ADR-028](docs/decisions/ADR-028-v1.3-medik-expansion-release.md), [plan-029](docs/plans/plan-029-capability-alignment-audit.md), [ADR-029](docs/decisions/ADR-029-capability-alignment-audit.md). Five new checks regrouped under 4 categories (Core / Runtime / Code-hygiene / Knowledge-hygiene):
   - **Check #10 stale-plans** (knowledge-hygiene) — flags pending plans in `docs/plans/` older than 3 days with recent git activity.
   - **Check #11 hook-health-24h** (runtime) — surfaces hooks with high block-rate or latency over the last 24h, joining `hook_events` and `sessions` by project hash. Per-hook latency budgets respected (observe-pre/post=50ms, no-context-guard=100ms, default=500ms).
   - **Check #12 instinct-decay-candidates** (knowledge-hygiene) — read-only SELECT of the 10 lowest-confidence instincts by `confidence ASC, last_observed_at ASC`, flagging decay candidates without mutating them.

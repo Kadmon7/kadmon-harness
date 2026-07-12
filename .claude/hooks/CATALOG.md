@@ -1,13 +1,18 @@
 ---
 name: hooks-catalog
-description: Full hook catalog (22 registered hooks + 10 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
+description: Full hook catalog (23 registered hooks + 11 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
 ---
 
 <!-- DO NOT AUTO-LOAD: this file is read on-demand by /doks and human readers. Lives outside .claude/rules/ to avoid eager context injection. See ADR-035. -->
 
 # Hook Catalog
 
-## Hook Catalog (22 registered)
+## Hook Catalog (23 registered)
+
+### UserPromptSubmit — all (1)
+| Hook | Script | Purpose | Exit |
+|------|--------|---------|------|
+| graphify-reminder | inline command in `.claude/settings.json` (no separate script file) | Query-first nudge: when `graphify-out/graph.json` exists, injects `additionalContext` reminding Claude to run `graphify query/path/explain` (or read `GRAPH_REPORT.md`) before grepping or answering an architecture/codebase question from memory. Added `4415674`, 2026-06-24. | 0 always (`\|\| true`; never blocks the prompt) |
 
 ### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
@@ -75,13 +80,14 @@ description: Full hook catalog (22 registered hooks + 10 shared modules) with ma
 |------|--------|---------|------|
 | session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (single hook avoids races on shared SQLite handle) | 0 always |
 
-## Shared Modules (10)
+## Shared Modules (11)
 
 Not registered as hooks — imported by lifecycle hooks as utilities.
 
 | Module | Purpose | Used By |
 |--------|---------|---------|
-| parse-stdin.js | Sanitize Windows backslashes in JSON stdin | All 22 hooks |
+| parse-stdin.js | Sanitize Windows backslashes in JSON stdin; strip `__proto__`/`constructor`/`prototype` own keys before returning (AUD-15) | All 22 hooks |
+| safe-session-dir.js | Validate session_id against `/^[a-zA-Z0-9_-]+$/` and join it onto a base dir; returns null (never throws) on invalid input (AUD-15) | observe-pre, observe-post, log-hook-event, git-push-reminder, no-context-guard, ts-review-reminder, session-start, session-end-all, pre-compact-save, evaluate-patterns-shared |
 | scrub-secrets.js | Redact credentials (API keys, tokens, key=value pairs) from strings before persistence (AUD-02) | observe-pre, observe-post |
 | evaluate-patterns-shared.js | Pattern evaluation against definitions | session-start, session-end-all, pre-compact-save |
 | generate-session-summary.js | Heuristic session summary from observations | session-start, session-end-all, pre-compact-save |

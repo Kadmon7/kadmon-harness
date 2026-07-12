@@ -49,7 +49,7 @@ Process skills in batches (~20 per batch to keep context manageable). For each s
 
 - [ ] **Content overlap** — does another skill cover the same ground?
 - [ ] **Overlap with CLAUDE.md / rules** — is this knowledge already in rules/ or CLAUDE.md?
-- [ ] **Reference currency** — are the tool names, CLI flags, APIs, and library versions still correct? Use WebSearch if any look outdated.
+- [ ] **Reference currency** — are the tool names, CLI flags, APIs, and library versions still correct? If the invoking agent has WebSearch access, use it to verify; otherwise flag the reference as unverified in the report rather than guessing (alchemik and doks, the two owners of this skill, do not have WebSearch — treat verification as opportunistic, not required).
 - [ ] **Usage signal** — has the skill been referenced in recent sessions? (check session logs, instincts, or MEMORY.md)
 
 Assign one verdict:
@@ -58,7 +58,7 @@ Assign one verdict:
 |---|---|
 | **Keep** | Useful, current, unique. No action needed. |
 | **Improve** | Worth keeping, but specific improvements needed (name the section and the change). |
-| **Update** | Referenced technology is outdated. Verify with WebSearch or `/almanak`, then rewrite the affected section. |
+| **Update** | Referenced technology may be outdated. If the invoking agent has WebSearch access, verify directly and rewrite; otherwise mark "Update — needs verification" so a follow-up `/almanak` pass or a WebSearch-capable session can confirm before anyone rewrites the section. |
 | **Retire** | Low quality, stale, or covered entirely elsewhere. Name what replaces it. |
 | **Merge into [X]** | Substantial overlap with another skill. Name the merge target and what content to integrate. |
 

@@ -1,6 +1,7 @@
 ---
 description: Run harness self-optimization analysis — full evolution coverage across hooks, instincts, skills, agents, commands, and rules
 agent: alchemik
+dependencies: "Step 6 Generate invokes the skill-creator:skill-creator plugin for PROMOTE (skill) proposals only — see .claude/rules/common/agents.md 'Command-Level Skills' table for the ownership rationale."
 ---
 
 ## Purpose

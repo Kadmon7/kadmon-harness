@@ -29,3 +29,4 @@ alwaysApply: true
 - observe-pre and observe-post hooks enforce < 50ms latency budget
 - alchemik agent analyzes hook latency and cost trends via /evolve
 - orakle agent validates database query patterns when editing data-access code
+- Toolchain-spawning hooks (`post-edit-typecheck.js`, `quality-gate.js`, `post-edit-format.js`) are a documented exception to the <500ms hook budget — see `.claude/rules/common/hooks.md` §Performance. Not a routing rule; noted here so latency triage doesn't misclassify them as regressions.

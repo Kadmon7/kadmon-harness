@@ -23,7 +23,7 @@ description: Full command reference (11 commands grouped by 7 phases) with purpo
 ### Build Phase (1)
 | Command | Purpose | Agent |
 |---------|---------|-------|
-| /medik | Full harness diagnostic — 8 health checks, approval gate, repair, cleanup. Alias: /MediK. Use `/medik build`, `/medik hooks`, `/medik db`, or `/medik clean` for single phase | mekanik, kurator |
+| /medik | Full harness diagnostic — 14 health checks, approval gate, repair, cleanup. Alias: /MediK. Always runs deep (checks + mekanik + kurator) — no subcommands | mekanik, kurator |
 
 ### Scan Phase (1)
 | Command | Purpose | Agent |
