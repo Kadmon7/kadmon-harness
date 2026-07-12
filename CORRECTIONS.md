@@ -47,3 +47,21 @@ that could falsify the bug still reproducing. When a plan mandates a smoke test,
 scope (one invocation), never existence.
 **Apply:** fresh evidence beats historical assumption; a 2-minute repro attempt precedes
 any fix design.
+
+## C-005 — 2026-07-13 — Heuristic guard hooks: fix realistic cases, document scope, stop the bypass arms race
+
+**Incident:** `config-protection.js` (a defense-in-depth hook that blocks weakening linter/
+compiler configs) needed 3 successive feniks rounds during one /chekpoint — each kody gate
+found a new structural-scanning bypass (first-block-only, then nested-brace, then
+string-literal `}`). Regex/char-scanning fundamentally cannot robustly parse nested configs
+with string literals; a determined search always finds one more edge (comments, template
+literals, ...).
+**Rule:** for a heuristic guard whose threat model is the agent/user editing their OWN
+files (not an adversary crafting evasion payloads), close the REALISTIC bypasses with
+regression tests, document the residual scope in the code + backlog, and stop — do not chase
+adversarial edge cases that no honest edit produces. If a true guarantee is ever needed,
+switch approach entirely (real parser: `JSON.parse` + object-walk / a tokenizer), don't keep
+patching the scanner.
+**Apply:** name the threat model explicitly before the 3rd patch round; if the remaining
+bypasses require hostile intent the model doesn't include, ship with a documented scope note
++ a deferred backlog item (here: AUD-33), not another regex tweak.

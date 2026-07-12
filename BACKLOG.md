@@ -21,23 +21,27 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 
 ## P1 — consistency / quality
 
-- [ ] AUD-09 /medik false-FAIL kills: Check #9 -> harness install root (not consumer cwd); Check #6 layout guard; `unknown` language -> skip-with-NOTE (not TS fallback); TS test-runner detection (Jest vs Vitest); `medik.md:129` -> `toolchain.test`
-- [ ] AUD-10 `git-push-reminder.js` adopt `getDiffScope()` (currently zero consumers of the "runtime authority") + add python-reviewer to allowlist
-- [ ] AUD-11 `no-context-guard.js:10` Python exemptions (`test_*.py`, `pyproject.toml`) — plan-020 Phase B parity gap
-- [ ] AUD-12 Blocking hooks fail-closed: config-protection / no-context-guard / block-no-verify / commit-quality exit 2 (not 0) on parseStdin throw
-- [ ] AUD-13 Latency budget: post-edit-typecheck (15s tsc) + quality-gate (10s eslint) + post-edit-format (prettier) vs documented <500ms — optimize (direct .bin, incremental) or document exception in hooks.md; consider consolidating the 3 spawns
-- [ ] AUD-14 `mcp-health-failure.js` race: JSON read-modify-write -> append-only JSONL
-- [ ] AUD-15 Centralize `session_id` regex validation (7 hooks unvalidated, 3 validated) + `__proto__` filter in parse-stdin.js (defense-in-depth)
-- [ ] AUD-16 /kompact skill drift: 3 files disagree (rules + agent-authoring say `strategic-compact`, frontmatter loads `context-budget`, nothing loads strategic-compact) — pick one, fix the other two
-- [ ] AUD-17 Doc drift batch: ghost ADR-022 (stub or annotate), docs/README.md counts, CHANGELOG [Unreleased] 3 entries + broken 029 links, hooks CATALOG + count for UserPromptSubmit graphify hook, v1.3/v1.1 roadmap checkbox closes, research-005 dedupe, hooks.md logHookEvent count 9 -> 11
-- [ ] AUD-18 `mekanik.md:51-65` delete stale "8 checks" section (14 now; violates no-artifacts contract); `kurator.md` add Python branch (ruff/vulture) + gate knip/ts-prune on package.json + fix "/medik clean" description
-- [ ] AUD-19 `config-protection.js:19` narrow DANGEROUS regex (false-positive on any `key: 0`)
-- [ ] AUD-20 CATALOG.md /medik row: "8 health checks" -> 14, remove advertised subcommands; evolve.md declare skill-creator plugin dependency; document `fable-prompt` in command-level skills rationale table
-- [ ] AUD-21 Triage 4 flaky hook tests (pre-compact-save x2, session-end-all x2 — intermittent across runs)
-- [ ] AUD-22 requires_tools WARNs: skill-stocktake (WebSearch vs alchemik/doks grants), rules-distill (Task vs doks grant)
-- [ ] AUD-23 `npm audit --audit-level=high` routine pass (not run during audit)
+- [x] AUD-09 /medik false-FAIL kills: Check #9 -> harness install root (not consumer cwd); Check #6 layout guard; `unknown` language -> skip-with-NOTE (not TS fallback); TS test-runner detection (Jest vs Vitest); `medik.md:129` -> `toolchain.test`
+- [x] AUD-10 `git-push-reminder.js` adopt `getDiffScope()` (currently zero consumers of the "runtime authority") + add python-reviewer to allowlist
+- [x] AUD-11 `no-context-guard.js:10` Python exemptions (`test_*.py`, `pyproject.toml`) — plan-020 Phase B parity gap
+- [x] AUD-12 Blocking hooks fail-closed: config-protection / no-context-guard / block-no-verify / commit-quality exit 2 (not 0) on parseStdin throw
+- [x] AUD-13 Latency budget: post-edit-typecheck (15s tsc) + quality-gate (10s eslint) + post-edit-format (prettier) vs documented <500ms — extend the existing "logic only" carve-out in hooks.md to toolchain-spawning hooks (doc fix now); real optimization tracked as AUD-31
+- [x] AUD-14 `mcp-health-failure.js` race: JSON read-modify-write -> append-only JSONL
+- [x] AUD-15 Centralize `session_id` regex validation (7 hooks unvalidated, 3 validated) + `__proto__` filter in parse-stdin.js (defense-in-depth) — sequential pass after Wave 2 parallel clusters merge
+- [x] AUD-16 /kompact skill drift: 3 files disagree (rules + agent-authoring say `strategic-compact`, frontmatter loads `context-budget`, nothing loads strategic-compact) — pick one, fix the other two
+- [x] AUD-17 Doc drift batch: ghost ADR-022 (stub or annotate), docs/README.md counts, CHANGELOG [Unreleased] 3 entries + broken 029 links, hooks CATALOG + count for UserPromptSubmit graphify hook, v1.3/v1.1 roadmap checkbox closes, research-005 dedupe, hooks.md logHookEvent count 9 -> 11
+- [x] AUD-18 `mekanik.md:51-65` delete stale "8 checks" section (14 now; violates no-artifacts contract); `kurator.md` add Python branch (ruff/vulture) + gate knip/ts-prune on package.json + fix "/medik clean" description
+- [x] AUD-19 `config-protection.js:19` narrow DANGEROUS regex (false-positive on any `key: 0`)
+- [x] AUD-20 CATALOG.md /medik row: "8 health checks" -> 14, remove advertised subcommands; evolve.md declare skill-creator plugin dependency; document `fable-prompt` in command-level skills rationale table
+- [x] AUD-21 Triaged: the flaky failures are `pre-compact-save.test.ts` under full-suite parallel `execFileSync` + sql.js contention on Windows — confirmed pass in isolation every time across Wave 2 (5+ full runs, 1 intermittent single-test fail, always green alone). Not a regression; not a correctness bug. Root-cause fix (test isolation / serialize the heavy hook tests) tracked as AUD-34.
+- [x] AUD-22 requires_tools WARNs: skill-stocktake (WebSearch vs alchemik/doks grants), rules-distill (Task vs doks grant)
+- [x] AUD-23 `npm audit --audit-level=high` routine pass (not run during audit)
 - [ ] AUD-29 orakle Wave-1 NOTEs: session-end-all Phase 1c lacks empty-commit guard (unconditional disk write every session end); `agent_invocations` natural key lacks `tool_use_id` (parallel same-type same-ms row silently dropped by ON CONFLICT DO NOTHING); `KADMON_TEST_DB || undefined` consistency nit
 - [ ] AUD-30 ts-reviewer Wave-1 NOTEs: scrubSecrets runs over full untruncated string (latency vs <50ms budget on pathological commands); smoke-test harness for medik.md embedded snippets; friendly NaN message on `--checks`; test for anomalous-pairing logHookError branch
+- [ ] AUD-31 Real latency optimization for post-edit-typecheck/quality-gate/post-edit-format: direct `node_modules/.bin` invocation, incremental tsc, consolidate 3 spawns into 1 (AUD-13 shipped the doc carve-out only; this is the follow-up perf rewrite)
+- [ ] AUD-32 `research_reports` DB/disk desync: `createResearchReport()` assigns `report_number` via `MAX(report_number)+1` against the git-ignored local `~/.kadmon/kadmon.db`, which can be empty (fresh machine, DB reset) while `docs/research/research-NNN-*.md` files (git-tracked, the real source of truth) already occupy those numbers — causes filename collisions on next `/skavenger` run. Discovered 2026-07-12 persisting 2 ad-hoc research reports outside the `/skavenger` command flow: hit a real pre-existing collision (two files independently claimed `research-006-*`, fixed by renumbering one to 009 — see that file's provenance note + ADR-029 cross-ref fix) plus a stray orphaned DB row (`report_number=1`, points to a deleted file, harmless but dangling — left in place, git-ignored, will not be committed). Fix: reconcile next-number assignment against a disk scan (`docs/research/research-*.md` glob), not DB state alone.
+- [ ] AUD-33 `config-protection.js` residual heuristic scope: `extractBraceBlockAt` is string-literal-aware (Wave 2) but is NOT a full JS/JSON parser — it does not skip JS comments (`/* } */`) or template literals when brace-counting. A disabled rule hidden behind a comment-embedded brace in an `eslint.config.js` could still slip past. Not realistic for the threat model (the "attacker" is the agent/user editing their own config, not a payload crafter; comments aren't valid in `.eslintrc.json`/`tsconfig.json`) — but if we want a true guarantee, replace the regex/scanner approach with `JSON.parse` + object-walk for the JSON configs and a real (lightweight) JS tokenizer for flat-config. Documented as heuristic in the code. Low priority.
+- [ ] AUD-34 Flaky-test root cause (from AUD-21 triage): `pre-compact-save.test.ts` fails intermittently only under full-suite parallel load (execFileSync + sql.js contention on Windows), always passes in isolation. Fix by serializing the heavy hook tests (vitest `test.sequential` / a dedicated pool) or reducing per-test sql.js churn.
 
 ## P2 — features / trims
 
