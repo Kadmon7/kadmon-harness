@@ -461,8 +461,147 @@ describe("evaluate-patterns-shared (via session-end-all)", () => {
   });
 
   // -------------------------------------------------------------------------
-  // Test 4: malformed JSON lines mixed in → no crash, valid lines processed
+  // AUD-07 (2026-07-12 audit §2 Cluster B): the instinct create/reinforce loop
+  // must run inside ONE db.transaction() so N triggered patterns produce a
+  // single sql.js DB export + file rewrite (saveToDisk), not N full rewrites.
+  //
+  // Observable behavior: a --require preload patches fs.writeFileSync and logs
+  // every write to the .db file; the driver marks the window around
+  // evaluateAndApplyPatterns. node:fs is a per-process singleton, so the patch
+  // intercepts the compiled dist/state-store.js saveToDisk calls too.
   // -------------------------------------------------------------------------
+
+  interface EvalDriverRun {
+    result: number;
+    dbWritesDuringEval: number;
+  }
+
+  /**
+   * Run evaluateAndApplyPatterns in a child Node process with fs.writeFileSync
+   * instrumented (via --require preload) to append "DB_WRITE:<path>" to a log
+   * file for every .db write. The driver appends MARK/END around the eval call
+   * so the test counts only saveToDisk() writes caused by the instinct loop —
+   * openDb schema/dedup writes land before MARK and are excluded.
+   */
+  function runEvalDriver(tag: string): EvalDriverRun {
+    const fixtureDir = path.join(os.tmpdir(), `kadmon-aud07-${tag}`);
+    fs.mkdirSync(fixtureDir, { recursive: true });
+    const preloadPath = path.join(fixtureDir, "count-db-writes.cjs");
+    const driverPath = path.join(fixtureDir, "eval-driver.mjs");
+    const logPath = path.join(fixtureDir, "writes.log");
+
+    fs.writeFileSync(
+      preloadPath,
+      [
+        'const fs = require("node:fs");',
+        "const logPath = process.env.KADMON_TEST_WRITELOG;",
+        "const orig = fs.writeFileSync;",
+        "fs.writeFileSync = function (file, ...rest) {",
+        "  try {",
+        '    if (logPath && String(file).endsWith(".db")) {',
+        '      fs.appendFileSync(logPath, "DB_WRITE:" + String(file) + "\\n");',
+        "    }",
+        "  } catch {}",
+        "  return orig.call(fs, file, ...rest);",
+        "};",
+      ].join("\n"),
+    );
+
+    fs.writeFileSync(
+      driverPath,
+      [
+        'import fs from "node:fs";',
+        'import path from "node:path";',
+        'import { pathToFileURL } from "node:url";',
+        "const [, , dbPath, sid, cwd, repoRoot] = process.argv;",
+        "const logPath = process.env.KADMON_TEST_WRITELOG;",
+        "const stateStore = await import(",
+        '  pathToFileURL(path.join(repoRoot, "dist", "scripts", "lib", "state-store.js")).href,',
+        ");",
+        "await stateStore.openDb(dbPath);",
+        "const { evaluateAndApplyPatterns } = await import(",
+        "  pathToFileURL(",
+        '    path.join(repoRoot, ".claude", "hooks", "scripts", "evaluate-patterns-shared.js"),',
+        "  ).href,",
+        ");",
+        'fs.appendFileSync(logPath, "MARK\\n");',
+        "const n = await evaluateAndApplyPatterns(sid, cwd);",
+        'fs.appendFileSync(logPath, "END\\n");',
+        'console.log("RESULT:" + n);',
+      ].join("\n"),
+    );
+
+    try {
+      const stdout = execFileSync(
+        "node",
+        [
+          "--require",
+          preloadPath,
+          driverPath,
+          testDb,
+          sessionId,
+          process.cwd(),
+          process.cwd(),
+        ],
+        {
+          encoding: "utf8",
+          stdio: ["pipe", "pipe", "pipe"],
+          timeout: 20000,
+          env: { ...process.env, KADMON_TEST_WRITELOG: logPath },
+        },
+      );
+      const match = /RESULT:(\d+)/.exec(stdout);
+      const log = fs.existsSync(logPath)
+        ? fs.readFileSync(logPath, "utf8").split("\n")
+        : [];
+      const markIdx = log.indexOf("MARK");
+      const endIdx = log.indexOf("END");
+      const dbWritesDuringEval =
+        markIdx !== -1 && endIdx !== -1
+          ? log
+              .slice(markIdx + 1, endIdx)
+              .filter((l) => l === `DB_WRITE:${testDb}`).length
+          : -1;
+      return { result: match ? Number(match[1]) : -1, dbWritesDuringEval };
+    } catch (err: unknown) {
+      const e = err as { stdout?: string; stderr?: string; message: string };
+      throw new Error(
+        `eval driver failed: ${e.message}\nstderr: ${e.stderr ?? ""}`,
+      );
+    } finally {
+      fs.rmSync(fixtureDir, { recursive: true, force: true });
+    }
+  }
+
+  it("AUD-07: N triggered patterns produce exactly one DB file write (single transaction)", () => {
+    // 3 distinct patterns × 3 reps = 36 lines → 3 instincts triggered.
+    // Pre-fix behavior: one full sql.js export + rewrite PER instinct (3 writes).
+    writeObservations([
+      ...buildReadEditWriteLines(3),
+      ...buildStateStoreLines(3),
+      ...buildAgentDocsLines(3),
+    ]);
+
+    const run = runEvalDriver(sessionId);
+    expect(run.result).toBeGreaterThanOrEqual(2);
+    expect(run.dbWritesDuringEval).toBe(1);
+  });
+
+  it("AUD-07: zero triggered patterns produce zero DB file writes (no empty transaction)", () => {
+    // 12 Read pre/post lines — above minLines but triggers no pattern.
+    const lines: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      lines.push(
+        makeObsLine("tool_pre", "Read", `/test/file${i}.ts`),
+        makeObsLine("tool_post", "Read"),
+      );
+    }
+    writeObservations(lines);
+
+    const run = runEvalDriver(`${sessionId}-none`);
+    expect(run.result).toBe(0);
+    expect(run.dbWritesDuringEval).toBe(0);
+  });
   it("handles malformed observation lines gracefully and processes valid ones", async () => {
     // Base: pattern A (Edit types.ts + Bash vitest) — triggers "Build + test after editing types.ts"
     const valid = buildReadEditWriteLines(6);

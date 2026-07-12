@@ -73,7 +73,7 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
   let instinctsUpdated = 0;
 
   const rootDir = resolveRootDir(import.meta.url);
-  const { getActiveInstincts } = await import(
+  const { getActiveInstincts, getDb } = await import(
     pathToFileURL(
       path.join(rootDir, "dist", "scripts", "lib", "state-store.js"),
     ).href
@@ -103,15 +103,32 @@ export async function evaluateAndApplyPatterns(sid, cwd, minLines = 10) {
   const existing = getActiveInstincts(projectHash);
   const existingPatterns = new Map(existing.map((i) => [i.pattern, i]));
 
-  for (const r of results) {
-    if (r.triggered) {
-      if (existingPatterns.has(r.name)) {
-        reinforceInstinct(existingPatterns.get(r.name).id, sid);
-      } else {
-        createInstinct(projectHash, r.name, r.action, sid, "project", r.domain);
+  // AUD-07: batch all instinct writes in ONE transaction — the wrapper's
+  // inTransaction flag suppresses per-upsert saveToDisk() so N triggered
+  // patterns cost a single sql.js DB export + file rewrite on COMMIT instead
+  // of N full rewrites (same mechanic as decayInstincts/promoteToGlobal in
+  // scripts/lib/instinct-manager.ts and session-end-all.js Phase 1c). Skip
+  // entirely when nothing triggered so an empty COMMIT does not force a write.
+  const triggered = results.filter((r) => r.triggered);
+  if (triggered.length > 0) {
+    const db = getDb();
+    db.transaction(() => {
+      for (const r of triggered) {
+        if (existingPatterns.has(r.name)) {
+          reinforceInstinct(existingPatterns.get(r.name).id, sid);
+        } else {
+          createInstinct(
+            projectHash,
+            r.name,
+            r.action,
+            sid,
+            "project",
+            r.domain,
+          );
+        }
+        instinctsUpdated++;
       }
-      instinctsUpdated++;
-    }
+    })();
   }
 
   return instinctsUpdated;
