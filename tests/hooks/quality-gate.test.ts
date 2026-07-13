@@ -8,13 +8,14 @@ const HOOK = path.resolve(".claude/hooks/scripts/quality-gate.js");
 
 function runHook(
   input: object,
-  opts?: { cwd?: string; timeout?: number },
+  opts?: { cwd?: string; timeout?: number; env?: Record<string, string> },
 ): { code: number; stdout: string; stderr: string } {
   const r = spawnSync("node", [HOOK], {
     encoding: "utf8",
     input: JSON.stringify(input),
     cwd: opts?.cwd,
     timeout: opts?.timeout,
+    env: opts?.env ? { ...process.env, ...opts.env } : undefined,
   });
   return {
     code: r.status ?? 1,
@@ -114,15 +115,91 @@ describe("quality-gate", () => {
   });
 
   it("still exits 0 when invoked from a cwd with no resolvable local eslint install (npx fallback preserved)", () => {
+    // AUD-38 item 3: the npx fallback previously relied on a REAL network
+    // fetch attempt when eslint wasn't cached (up to ~20s offline before
+    // npm's own resolution gives up). Force npm into offline mode so any
+    // reachable npx invocation fails fast, locally, with no network wait —
+    // this proves the same "still exits 0" contract without the flake/stall
+    // risk. (On Windows this path already fails fast via ENOENT before ever
+    // reaching npm — see resolve-bin.js header comment on the .cmd shim
+    // footgun — so the offline env is a no-op safety net here and the real
+    // payoff is on POSIX CI where npx IS directly executable.)
     const isolated = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-noeslint-"));
     try {
       const r = runHook(
         { tool_input: { file_path: path.join(isolated, "whatever.ts") } },
-        { cwd: isolated, timeout: 20000 },
+        {
+          cwd: isolated,
+          timeout: 8000,
+          env: { npm_config_offline: "true" },
+        },
       );
       expect(r.code).toBe(0);
     } finally {
       fs.rmSync(isolated, { recursive: true, force: true });
+    }
+  });
+
+  // ─── AUD-35: ESLint 9 findings must actually surface ───────────────────────
+
+  it("surfaces a real ESLint warning finding for a file with an unused var (AUD-35)", () => {
+    const dir = fs.mkdtempSync(path.join(process.cwd(), "tests", "aud35-"));
+    try {
+      const violatingFile = path.join(dir, "unused.ts");
+      fs.writeFileSync(
+        violatingFile,
+        "const unusedVar = 42;\nexport function foo(): number {\n  return 1;\n}\n",
+      );
+      const r = runHook({ tool_input: { file_path: violatingFile } });
+      expect(r.code).toBe(0);
+      // Old code (--no-eslintrc, ESLint-8-only flag) made the ESLint CLI
+      // itself fail arg parsing before linting ever started, and only
+      // forwarded stdout (never stderr, where that parse error landed) —
+      // so no finding EVER surfaced. This proves the fix: a real warning
+      // for a real violation now reaches the hook's own stderr.
+      expect(r.stderr).toMatch(/unusedVar/);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("stays silent for a clean file with no lint findings (AUD-35)", () => {
+    const dir = fs.mkdtempSync(path.join(process.cwd(), "tests", "aud35-"));
+    try {
+      const cleanFile = path.join(dir, "clean.ts");
+      fs.writeFileSync(
+        cleanFile,
+        "export function foo(): number {\n  return 1;\n}\n",
+      );
+      const r = runHook({ tool_input: { file_path: cleanFile } });
+      expect(r.code).toBe(0);
+      expect(r.stderr).not.toMatch(/ESLint/);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // ─── AUD-36: path.resolve parity (flag-injection hardening) ────────────────
+
+  it("resolves a dash-prefixed relative path so ESLint doesn't misread it as a CLI flag (AUD-36)", () => {
+    const dir = fs.mkdtempSync(path.join(process.cwd(), "tests", "aud36-"));
+    try {
+      const fileName = "-dangerous.ts";
+      fs.writeFileSync(
+        path.join(dir, fileName),
+        "export function foo(): number {\n  return 1;\n}\n",
+      );
+      // Bare relative path starting with "-" — without path.resolve() this
+      // is exactly the shape ESLint's CLI arg parser misreads as an unknown
+      // flag ("Invalid option '-d'...", exit 2) instead of a filename.
+      const r = runHook(
+        { tool_input: { file_path: fileName } },
+        { cwd: dir },
+      );
+      expect(r.code).toBe(0);
+      expect(r.stderr).not.toMatch(/Invalid option/);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
     }
   });
 });

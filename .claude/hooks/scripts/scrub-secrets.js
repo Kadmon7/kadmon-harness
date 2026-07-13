@@ -24,6 +24,14 @@ export const TRUNCATION_MARKER = "…[truncated]";
  * Inputs longer than MAX_SCRUB_INPUT_LENGTH are scrubbed only up to the cap;
  * the remainder is hard-truncated (never scanned, never emitted) so no
  * unscrubbed secret in the tail can leak past the cap.
+ * CAVEAT (AUD-38 item 1): a secret straddling the 16KB cap boundary can leave
+ * an unscrubbed fragment shorter than the shortest pattern's minimum length
+ * (14 chars, from the "ghp_" pattern) in the returned head — this is
+ * currently harmless only because both existing callers (observe-pre.js,
+ * observe-post.js) slice their final persisted value to <=200 chars, well
+ * short of the 16KB cap. A future 3rd caller that persists more than ~200
+ * chars past the cap must apply its own downstream slice/re-scrub — this
+ * function does not re-check the boundary itself.
  * @param {string} str
  * @returns {string}
  */

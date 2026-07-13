@@ -230,5 +230,61 @@ describe("persist-research-report", () => {
       );
       expect(out.reportNumber).toBe(6);
     });
+
+    // AUD-38 item 2 — scanDiskMaxReportNumber is not exported; exercised
+    // indirectly through runPersistReport's disk-reconciliation path, same
+    // convention as the two tests above. Each malformed filename below must
+    // be skipped by RESEARCH_FILENAME_RE (^research-(\d+)-.+\.md$) without
+    // throwing and without corrupting the numeric max.
+    it("skips malformed research filenames on disk and still computes the correct numeric max", async () => {
+      const researchDir = path.join(tmpDir, "docs", "research");
+      fs.mkdirSync(researchDir, { recursive: true });
+
+      // Crash-safety placeholder left behind by a prior interrupted run
+      // (see the crash-safety note above runPersistReport's INSERT) — "PENDING"
+      // is not \d+, must not match.
+      fs.writeFileSync(
+        path.join(researchDir, "research-PENDING-orphaned-run.md"),
+        "placeholder from an interrupted run\n",
+      );
+      // No number segment at all.
+      fs.writeFileSync(
+        path.join(researchDir, "research-.md"),
+        "malformed, no number\n",
+      );
+      // Doesn't start with "research-" (anchor mismatch) despite containing
+      // a valid-looking suffix.
+      fs.writeFileSync(
+        path.join(researchDir, "notresearch-5.md"),
+        "wrong prefix entirely\n",
+      );
+      // Has digits but no slug segment — "007.md" isn't "-<slug>.md".
+      fs.writeFileSync(
+        path.join(researchDir, "research-007.md"),
+        "missing the slug segment\n",
+      );
+      // One genuinely valid file — the real max these malformed entries
+      // must not be allowed to shadow (007 above LOOKS bigger but must be
+      // ignored since it doesn't match the pattern).
+      fs.writeFileSync(
+        path.join(researchDir, "research-005-valid-entry.md"),
+        "---\nnumber: 5\n---\n\nValid.\n",
+      );
+
+      const out = await runPersistReport(
+        sample({ slug: "next-after-malformed", topic: "Next" }),
+        { repoRoot: tmpDir },
+      );
+
+      // Correct: continues from the valid max (5) -> 6, not from the
+      // malformed "007" filename's digits, and did not throw on any of the
+      // non-matching entries.
+      expect(out.reportNumber).toBe(6);
+      expect(
+        fs.existsSync(
+          path.join(researchDir, "research-006-next-after-malformed.md"),
+        ),
+      ).toBe(true);
+    });
   });
 });

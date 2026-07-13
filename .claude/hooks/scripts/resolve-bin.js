@@ -82,6 +82,17 @@ export function resolveBin(toolName, startDir = process.cwd()) {
  * this entry lives under. Used to anchor cache files (e.g. tsc's
  * --incremental buildinfo) beside the real install rather than whatever
  * directory the hook happened to be invoked from.
+ *
+ * AUD-38 item 4: walks up to the FIRST ancestor directory literally named
+ * `node_modules` and returns its parent. A nested install
+ * (`node_modules/x/node_modules/tool`) would anchor the cache at that
+ * nested root instead of the real top-level project root. This is a
+ * deliberate, accepted assumption — this repo (and the harness's own
+ * toolchain deps: eslint, prettier, typescript) uses a flat top-level
+ * dependency tree, where npm/pnpm hoist these packages to the single
+ * top-level `node_modules`, so the nested case does not occur in practice.
+ * Revisit if a consumer project's package manager ever produces a strictly
+ * nested layout for tsc/eslint/prettier specifically.
  */
 export function binProjectRoot(entryPath) {
   let dir = path.dirname(path.resolve(entryPath));

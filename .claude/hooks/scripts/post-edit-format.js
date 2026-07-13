@@ -14,15 +14,19 @@ import { resolveBin } from "./resolve-bin.js";
 // header comment). Falls back to the original `npx prettier` invocation,
 // unchanged, when no local install resolves.
 function runPrettier(fp) {
+  // AUD-36: harden against flag-injection the same way runRuff/runEslint do —
+  // resolve to an absolute path so a relative filename that starts with a
+  // dash can't be misread by the tool's CLI arg parser as a flag.
+  const safeFp = path.isAbsolute(fp) ? fp : path.resolve(fp);
   const prettierEntry = resolveBin("prettier");
   try {
     if (prettierEntry) {
-      execFileSync(process.execPath, [prettierEntry, "--write", fp], {
+      execFileSync(process.execPath, [prettierEntry, "--write", safeFp], {
         encoding: "utf8",
         stdio: ["pipe", "pipe", "pipe"],
       });
     } else {
-      execFileSync("npx", ["prettier", "--write", fp], {
+      execFileSync("npx", ["prettier", "--write", safeFp], {
         encoding: "utf8",
         stdio: ["pipe", "pipe", "pipe"],
       });
