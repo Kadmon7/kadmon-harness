@@ -57,14 +57,7 @@ Ask: **"Assessment complete. N performance issues, M/T E2E tests passing. Fix pe
 
 ### Phase 2: Agent Evaluation (optional)
 
-Only runs if an agent name is passed as argument.
-
-1. Define test cases for the specified agent
-2. Run agent against each test case
-3. Score: pass/fail per criterion
-4. Report with recommendations
-
-Note: structured agent quality evaluation is the responsibility of `/evolve` (via the `agent-eval` skill loaded by alchemik). `/skanner` only keeps a lightweight ad-hoc mode here for quick single-agent checks.
+Agent-effectiveness evaluation is owned by `/evolve` (via the `agent-eval` skill loaded by alchemik) — see that command. `/skanner` keeps only a lightweight ad-hoc single-agent check when an agent name is passed; use `/evolve` for structured, metric-backed evaluation.
 
 ## Output
 Performance report + E2E results + optional agent eval + system health score.
@@ -90,13 +83,4 @@ Phase 1 — System Assessment (parallel):
     | 5 | Cost tracking         | PASS   | 210ms |
 
 GATE: "1 HIGH, 1 MEDIUM performance issue. 5/5 E2E passing. Fix?"
-
-Phase 2 — Agent Eval (if requested):
-  Eval: kody
-  | Criterion            | Result | Notes |
-  |----------------------|--------|-------|
-  | Detects SQL injection | PASS   | Caught string concat |
-  | Flags missing types   | PASS   | Found 2 untyped exports |
-  | No false positives    | PASS   | All verified |
-  Score: 3/3 (100%) — PASS
 ```
