@@ -69,19 +69,23 @@ describe("release/orchestrate — E2E dry-run smoke (live repo, read-only)", () 
     expect(plan.blocked.length).toBeGreaterThan(0);
     expect(plan.blocked.some((m) => /uncommitted changes/i.test(m))).toBe(true);
 
-    // R3: changelogPreview/backlogPrune/statusFlipProposals are pure read-only
-    // computations and must populate even when blocked — the common --dry-run-on-a-
-    // dirty-tree case. Proven against the LIVE, currently-dirty repo (not a synthetic
-    // clean fixture) so this is real evidence, not an assumption.
+    // R3: the three preview fields are computed even when blocked (they were empty-
+    // short-circuited before R3) — the common --dry-run-on-a-dirty-tree case. The
+    // changelogPreview is the load-bearing R3 evidence: it is non-empty ONLY because
+    // planRelease actually ran previewChangelog against the (non-empty) [Unreleased]
+    // section rather than returning the blocked-branch "" — so it distinguishes
+    // "computed" from "short-circuited". Proven against the LIVE, currently-dirty repo.
     expect(plan.changelogPreview.length).toBeGreaterThan(0);
     expect(plan.changelogPreview).toContain("## [1.4.0]");
 
-    expect(plan.statusFlipProposals.length).toBeGreaterThan(0);
-    expect(
-      plan.statusFlipProposals.some((p) => /037/.test(p.file) || /037/.test(p.reason)),
-    ).toBe(true);
-
-    expect(plan.backlogPrune.length).toBeGreaterThan(0);
-    expect(plan.backlogPrune.every((line) => /^- \[x\] /.test(line))).toBe(true);
+    // statusFlipProposals and backlogPrune are computed too, but their EMPTINESS is
+    // data-dependent on live repo state (a referenced ADR/plan already at its target
+    // status yields no proposal; a fully-pruned BACKLOG yields no done-items), so a
+    // non-empty assertion here is fragile against normal doc churn — it broke once when
+    // plan-037 shipped to `completed` in the same commit that added this test. Assert
+    // the structural invariant only; deterministic content is covered by
+    // status-flips.test.ts and backlog-prune.test.ts with fixtures.
+    expect(Array.isArray(plan.statusFlipProposals)).toBe(true);
+    expect(Array.isArray(plan.backlogPrune)).toBe(true);
   });
 });
