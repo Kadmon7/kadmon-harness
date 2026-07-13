@@ -2,7 +2,7 @@
 number: 36
 title: Sentinel-harness — de-personalized security-specialized fork (implementation)
 date: 2026-06-24
-status: in-progress
+status: in_progress
 needs_tdd: true
 route: A
 adr: ADR-036-sentinel-harness-fork.md

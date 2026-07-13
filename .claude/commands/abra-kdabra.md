@@ -132,7 +132,7 @@ ADRs and plans share a **single sequential counter**. The number identifies the 
 number: 3
 title: Short descriptive title
 date: YYYY-MM-DD
-status: pending | in_progress | completed
+status: pending | in_progress | completed | superseded
 needs_tdd: true | false
 route: A | B
 adr: ADR-003-slug.md | none
