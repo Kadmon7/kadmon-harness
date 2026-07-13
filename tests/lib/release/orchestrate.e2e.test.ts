@@ -62,19 +62,19 @@ describe("release/orchestrate — E2E dry-run smoke (live repo, read-only)", () 
     expect(plan.tagName).toBe("v1.4.0");
     expect(plan.releaseDate).toBe("2026-07-13");
 
-    // The live repo is currently dirty (this test file, plus the rest of the uncommitted
-    // /release build, per `git status --porcelain`) — preflight's DIRTY_TREE gate fires
-    // honestly. Asserted truthfully rather than forcing a clean-tree happy path that
-    // doesn't match the real repo's current state.
-    expect(plan.blocked.length).toBeGreaterThan(0);
-    expect(plan.blocked.some((m) => /uncommitted changes/i.test(m))).toBe(true);
+    // plan.blocked is tree-state-dependent: a dirty working tree yields a DIRTY_TREE
+    // blocker, a clean one yields none. Coupling this live-repo smoke to either state is
+    // fragile — it broke when the tree was committed clean. Assert the structural invariant
+    // only; the DIRTY_TREE blocker content is covered deterministically by preflight.test.ts
+    // (b)/(g) with tmp-repo fixtures.
+    expect(Array.isArray(plan.blocked)).toBe(true);
+    expect(plan.blocked.every((m) => typeof m === "string")).toBe(true);
 
-    // R3: the three preview fields are computed even when blocked (they were empty-
-    // short-circuited before R3) — the common --dry-run-on-a-dirty-tree case. The
-    // changelogPreview is the load-bearing R3 evidence: it is non-empty ONLY because
-    // planRelease actually ran previewChangelog against the (non-empty) [Unreleased]
-    // section rather than returning the blocked-branch "" — so it distinguishes
-    // "computed" from "short-circuited". Proven against the LIVE, currently-dirty repo.
+    // R3: the three preview fields are computed unconditionally — even when the plan is
+    // blocked (they were empty-short-circuited before R3). changelogPreview is the load-
+    // bearing R3 evidence: non-empty ONLY because planRelease actually ran previewChangelog
+    // against the (non-empty) [Unreleased] section rather than returning the blocked-branch
+    // "" — distinguishing "computed" from "short-circuited". Holds regardless of tree state.
     expect(plan.changelogPreview.length).toBeGreaterThan(0);
     expect(plan.changelogPreview).toContain("## [1.4.0]");
 
