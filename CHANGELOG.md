@@ -40,6 +40,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 ### Docs
 - **Audit Wave 2 drift batch** (AUD-13/16/17/20/22) — retroactive `ADR-022` stub (session-lifecycle data integrity, reconstructed from CHANGELOG + code comments); `docs/README.md` counts corrected to 30 ADRs / 29 plans / 6 milestones; fixed `CHANGELOG` plan-029/ADR-029 links; closed stale checkboxes in `v1.3-medik-expansion.md` (16/17, one left open + annotated) and `v1.1-learning-system.md` (plan-003 superseded); hooks `CATALOG.md` → 23 registered + graphify hook row + 11 shared modules; deduped `research-005` collision (renumbered council-pilot → `research-009`, fixed the ADR-029 cross-reference); `evolve.md` declares its skill-creator dependency; `fable-prompt` documented in the command-level-skills rationale; `skill-stocktake` / `rules-distill` reworded so their instructions no longer assume tools the owner agent lacks; documented the toolchain-spawning-hook latency exception in `CLAUDE.md` + `hooks.md` + `performance.md`.
 
+**Audit Wave 3 (P2 cleanup + performance):**
+- **Toolchain hooks resolve bins directly** — `post-edit-typecheck` / `quality-gate` / `post-edit-format` resolve tsc/eslint/prettier's JS entry via a new `resolve-bin.js` shared module (shared modules 11 → 12) and invoke `node <entry>` instead of `npx <tool>`. Fixes eslint/prettier silently no-oping on every edit on Windows (npx ENOENT / the CVE-2024-27980 `.cmd`-spawn restriction) and adds incremental tsc with a `.tsbuildinfo` cache. Exit-code contract, npx fallback, and Python branches preserved (audit AUD-31).
+- **`agent_invocations.tool_use_id`** — natural key gains `tool_use_id` (4-col unique index) so parallel same-type same-timestamp agent invocations are no longer dropped by `ON CONFLICT DO NOTHING`. Ships an idempotent `openDb()` forward-migration (+ `scripts/migrate-v0.6.ts`) for existing `~/.kadmon/kadmon.db` — without it, pre-existing DBs threw `no such column: tool_use_id` and the entire state-store layer silently went dark (caught by full-tier review: orakle + typescript-reviewer BLOCK, both reproduced against the live DB) (audit AUD-29).
+- **Research report numbering** reconciled against a `docs/research/research-*.md` disk scan, not DB state alone, fixing the DB/disk collision on a fresh machine (audit AUD-32).
+- **`scrub-secrets.js` 16KB input cap** — scrubs the head, hard-discards the tail with a marker, keeping the observe hooks under their <50ms budget on pathological commands; spektr verified no secret can leak past the cap (audit AUD-30).
+- **`medik-checks-cli` friendly `--checks` error** on non-numeric input instead of a raw Zod issue array; **`medik.md`** documents (and smoke-tests) its embedded `tsx -e` snippets (audit AUD-30).
+- **Vitest flake fix** — the 5 heavy `execFileSync` + sql.js hook test files run in a serialized `hooks-serial` project so they stop contending under Windows parallel load; the fast unit tests keep full parallelism (audit AUD-34).
+
+### Docs (Wave 3)
+- **Command doc trims** (audit AUD-27) — `skavenger.md` 371 → 266 (drop illustrative examples, keep the contract), `skanner.md` Phase 2 agent-eval → /evolve pointer, `kompact.md` Bug-3 postmortem → project memory.
+- **ADR-037** `/release` command design added (status: proposed — awaiting architect approval; audit AUD-24).
+- Doc counts re-synced: tests 1278 / 97 files, shared modules 12.
+
 ## [1.3.0] — 2026-04-24
 
 ### Added
