@@ -48,6 +48,8 @@ echo "RUNTIME_ROOT=$RUNTIME_ROOT (harness code) | CONSUMER_CWD=$CONSUMER_CWD (pr
 
 > **Portability rule (AUD-04):** every mechanical snippet in this file MUST reference harness code via `$RUNTIME_ROOT` and pass the consumer project only as data (`--cwd "$CONSUMER_CWD"`). Keep `npx tsx -e` scripts on a SINGLE line — multi-line `tsx -e` scripts exit silently with code 0 on Windows Git Bash (tsx 4.x), which reads as a false PASS. With `tsx -e`, trailing args start at `process.argv[1]`.
 
+> **Smoke-test note (AUD-30):** every embedded inline-JS `tsx -e` / `node -e` one-liner in this file is smoke-tested for syntax drift by `tests/commands/medik-snippets.test.ts`, which extracts each snippet body and runs `node --check` against it (parse-only, no execution — the snippets read positional argv wired up by the surrounding Bash and cannot be dry-run standalone). A syntax error introduced while editing this file fails that test instead of only surfacing when someone runs `/medik`. When adding a new inline snippet here, keep it double-quoted with single-quoted JS internals (no escaped double quotes) so the extraction regex keeps matching it.
+
 Then emit the diagnostic banner and inspect `$ARGUMENTS`.
 
 **Profile detection** (ADR-033 — informational only, all 14 checks run regardless):
