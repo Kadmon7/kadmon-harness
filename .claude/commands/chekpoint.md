@@ -112,8 +112,9 @@ Rationale: Fix A (preservation rule in kody.md) prevents downgrades at the promp
 1. `git add -A`
 2. Ask user for commit description
 3. Format as conventional commit: `feat|fix|docs|chore|refactor|test: description`
-4. `git commit -m "type(scope): description"`
-5. `git push`
+4. **Advisory NOTE (non-blocking, tier-agnostic)**: if the commit description or body references an `AUD-\d+` or `R-\d+` id, emit a reminder before committing — "this commit ships `<id>`; flip its `BACKLOG.md` checkbox to `[x]` and add a `WORK.md` entry." Advisory ONLY — it never blocks the commit. Phase 4 runs for every tier (full/lite/skip), so the reminder is tier-agnostic. Backstops, at the source, the drift the `/medik` `docs-status-lint` check (#15) catches post-hoc — see ADR-038.
+5. `git commit -m "type(scope): description"`
+6. `git push`
 
 ## Output
 Verification results + review summary + commit hash + push confirmation.

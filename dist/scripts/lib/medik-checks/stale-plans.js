@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-const STATUS_RE = /^status:\s*(\w+)/m;
+import { parseFrontmatterStatus } from "./frontmatter.js";
 const DATE_RE = /^date:\s*(\d{4}-\d{2}-\d{2})/m;
 const STALE_THRESHOLD_DAYS = 3;
 function hasPlanRecentGitActivity(planPath, cwd) {
@@ -39,15 +39,12 @@ export function runCheck(ctx) {
     for (const filePath of files) {
         let content;
         try {
-            content = fs.readFileSync(filePath, "utf-8");
+            content = fs.readFileSync(filePath, "utf8");
         }
         catch {
             continue;
         }
-        const statusMatch = STATUS_RE.exec(content);
-        if (!statusMatch)
-            continue;
-        const status = statusMatch[1].toLowerCase();
+        const status = parseFrontmatterStatus(content);
         if (status !== "pending")
             continue;
         const dateMatch = DATE_RE.exec(content);

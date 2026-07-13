@@ -28,13 +28,13 @@ describe("medik-checks-cli", () => {
     it("defaults: cwd=process.cwd(), all registry checks sorted ascending", () => {
       const options = parseCliArgs([]);
       expect(options.cwd).toBe(process.cwd());
-      expect(options.checks).toEqual([10, 11, 12, 13, 14]);
+      expect(options.checks).toEqual([10, 11, 12, 13, 14, 15]);
     });
 
     it("--cwd overrides target directory and resolves to absolute", () => {
       const options = parseCliArgs(["--cwd", tmpdir()]);
       expect(options.cwd).toBe(tmpdir());
-      expect(options.checks).toEqual([10, 11, 12, 13, 14]);
+      expect(options.checks).toEqual([10, 11, 12, 13, 14, 15]);
     });
 
     it("--checks selects a subset", () => {
@@ -229,13 +229,15 @@ describe("medik-checks-cli", () => {
       }
     });
 
-    it("DEFAULT_REGISTRY maps the five module-based checks to their on-disk names", () => {
-      expect([...DEFAULT_REGISTRY.keys()].sort((a, b) => a - b)).toEqual([10, 11, 12, 13, 14]);
+    it("DEFAULT_REGISTRY maps the six module-based checks to their on-disk names", () => {
+      expect([...DEFAULT_REGISTRY.keys()].sort((a, b) => a - b)).toEqual([10, 11, 12, 13, 14, 15]);
       expect(DEFAULT_REGISTRY.get(10)?.name).toBe("stale-plans");
       expect(DEFAULT_REGISTRY.get(11)?.needsDb).toBe(true);
       expect(DEFAULT_REGISTRY.get(12)?.needsDb).toBe(true);
       expect(DEFAULT_REGISTRY.get(13)?.needsDb).toBe(false);
       expect(DEFAULT_REGISTRY.get(14)?.needsDb).toBe(false);
+      expect(DEFAULT_REGISTRY.get(15)?.name).toBe("docs-status-lint");
+      expect(DEFAULT_REGISTRY.get(15)?.needsDb).toBe(false);
     });
   });
 

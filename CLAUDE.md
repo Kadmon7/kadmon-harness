@@ -162,6 +162,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.3.0 — 1158 tests / 90 files / 23 hooks / 16 agents / 49 skills / 12 commands / 19 rules / 7 DB tables / 14 /medik checks.
+v1.3.0 — 1158 tests / 90 files / 23 hooks / 16 agents / 49 skills / 12 commands / 19 rules / 7 DB tables / 15 /medik checks.
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.

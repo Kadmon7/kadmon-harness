@@ -6,8 +6,8 @@ Navigation guide for everything the harness documents that is not code. Each sub
 
 | Dir | What's in it | When you need it |
 |---|---|---|
-| [`decisions/`](./decisions/) | **30 ADRs** — immutable architectural decisions with context, options, and consequences | "Why is the code structured this way?" / "Why was X rejected?" |
-| [`plans/`](./plans/) | **30 implementation plans** — one per multi-step feature, referenced by commits and ADRs | "What was the scope and order of changes for feature Y?" |
+| [`decisions/`](./decisions/) | **33 ADRs** — immutable architectural decisions with context, options, and consequences | "Why is the code structured this way?" / "Why was X rejected?" |
+| [`plans/`](./plans/) | **31 implementation plans** — one per multi-step feature, referenced by commits and ADRs | "What was the scope and order of changes for feature Y?" |
 | [`roadmap/`](./roadmap/) | **6 milestone docs** (v1.0, v1.1, v1.3, v1.3.1, v1.3.2, v2.0) with status + sprint breakdown | "What's shipped, shipping next, and deferred?" |
 | [`onboarding/`](./onboarding/) | Entry points for new projects consuming the harness + troubleshooting | "How do I install this?" / "Something's broken, where's the checklist?" |
 | [`research/`](./research/) | `/skavenger` reports with citations (external web, papers, transcripts) | "What have we already investigated about X?" (don't re-research) |
@@ -41,6 +41,22 @@ When you are working on the harness itself:
 - **Plans are work artifacts**. They are written before a sprint, updated during, and preserved after — they document the path taken, not the "current state". The current state lives in code + CHANGELOG + roadmap.
 - **Research reports are append-only**. `/skavenger` writes new `research-NNN-<slug>.md` files; existing reports are not edited retroactively.
 - **Naming**: `ADR-NNN-<slug>.md`, `plan-NNN-<slug>.md`, `research-NNN-<slug>.md` — all 3-digit zero-padded, monotonically increasing.
+
+### Status conventions
+
+Each artifact type tracks lifecycle state on its own surface. The vocabularies are intentionally NOT unified — an ADR's acceptance state and a plan's completion state are different lifecycles, and roadmap/BACKLOG track work with checkboxes, not frontmatter.
+
+| Surface | How state is tracked | Canonical values |
+|---|---|---|
+| ADR frontmatter (`decisions/`) | `status:` field | ADR enum in [`abra-kdabra.md`](../.claude/commands/abra-kdabra.md) "Artifact Format" (`proposed \| accepted \| deprecated \| superseded`) |
+| Plan frontmatter (`plans/`) | `status:` field | Plan enum in [`abra-kdabra.md`](../.claude/commands/abra-kdabra.md) "Artifact Format" (`pending \| in_progress \| completed \| superseded`) |
+| Roadmap (`roadmap/`) | inline `[ ]`/`[x]`/`[d]` + prose | no frontmatter status |
+| `BACKLOG.md` | list-item checkbox markers | `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` deferred |
+| `WORK.md` | timestamped prose | not linted (free-form working notes) |
+
+The plan/ADR enums are **single-sourced in abra-kdabra.md** (pointed to above, not copied here) and mechanically enforced by the `/medik` `docs-status-lint` check (#15, ADR-038): an out-of-enum `status:` FAILs; an illegal `BACKLOG.md` marker WARNs.
+
+**Numbering gaps**: ADRs and plans share one monotonic counter (the number identifies the task, not the artifact type), so a "missing" number is usually a Route-B plan with no ADR, or an ADR with no separate plan — not a lost file. As of ADR-038: **023 is the only fully-skipped number**; Route-B plan-only = 002, 004, 018, 030; ADR-only = 014, 021, 022, 024, 025, 026.
 
 ## Cross-references elsewhere in the repo
 
