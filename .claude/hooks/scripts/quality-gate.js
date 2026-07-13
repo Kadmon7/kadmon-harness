@@ -67,7 +67,13 @@ function runEslint(fp) {
   // dash can't be misread by the linter's CLI arg parser as a flag.
   const safeFp = path.isAbsolute(fp) ? fp : path.resolve(fp);
   const eslintEntry = resolveBin("eslint");
-  const args = [safeFp];
+  // AUD-39: suppress ESLint's "File ignored because of a matching ignore
+  // pattern..." warning. It only fires for files the flat config already
+  // ignores (e.g. a root-level *.js in this repo) and adds noise for an
+  // edit that had nothing to lint. No effect on non-ignored files.
+  // (`--no-warn-ignored` requires ESLint >= 8.51.0; the hook already assumes
+  // an ESLint 9 flat-config baseline per AUD-35, so this adds no new floor.)
+  const args = ["--no-warn-ignored", safeFp];
   try {
     const out = eslintEntry
       ? execFileSync(process.execPath, [eslintEntry, ...args], {

@@ -9,6 +9,10 @@ dist/tests/
 # Vitest / nyc coverage output
 coverage/
 .nyc_output/
+# Test-generated repo-root temp fixture (quality-gate AUD-39 test writes a
+# root-level *.js to reproduce ESLint flat-config's root-only ignore; it is
+# finally-cleaned — this only backstops a SIGKILL-orphaned leftover).
+tmp-aud39-*.js
 
 # ─── Python (plan-020 — harness supports .py consumer projects) ───────────────
 # Bytecode + Python tool caches (generated when hook tests run py_compile,

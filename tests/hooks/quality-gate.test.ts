@@ -202,4 +202,23 @@ describe("quality-gate", () => {
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  // ─── AUD-39: --no-warn-ignored suppresses dormant ignore-pattern noise ─────
+
+  it("does not surface ESLint's ignore-pattern warning for a root-level ignored .js file (AUD-39)", () => {
+    // eslint.config.js's `ignores: ["*.js", "!eslint.config.js"]` matches
+    // ONLY repo-root .js files (not subdirectories). Without
+    // --no-warn-ignored, ESLint 9 prints "File ignored because of a
+    // matching ignore pattern..." to stdout (exit 0) for this file, and the
+    // hook forwards that as noise on an edit that had nothing to lint.
+    const rootFile = path.resolve(`tmp-aud39-${process.pid}.js`);
+    fs.writeFileSync(rootFile, "const x = 1;\n");
+    try {
+      const r = runHook({ tool_input: { file_path: rootFile } });
+      expect(r.code).toBe(0);
+      expect(r.stderr).not.toMatch(/File ignored|ignored because/i);
+    } finally {
+      fs.rmSync(rootFile, { force: true });
+    }
+  });
 });
