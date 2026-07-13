@@ -8,7 +8,7 @@ requires_tools: []
 
 Authoritative reference for the agent contract used in the Kadmon Harness. The orchestrator and `kody` (during `/chekpoint`) consult this skill when creating, editing, or reviewing agent files. Content here was previously inlined in `.claude/rules/common/agents.md` and moved to on-demand loading 2026-04-26 to reduce auto-load footprint (see plan at `~/.claude/plans/se-puede-algo-entre-sunny-crayon.md`).
 
-## Orchestration Patterns (11 commands)
+## Orchestration Patterns (12 commands)
 
 #### Parallel then Sequential (mixed)
 ```

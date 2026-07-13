@@ -1,6 +1,6 @@
 ---
 name: Kadmon Harness — commands, agents, skills, hooks catalog
-description: How to use the Kadmon Harness Claude Code plugin in this project. 11 slash commands, 16 specialist agents, 49 skills, 23 auto-hooks + 11 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
+description: How to use the Kadmon Harness Claude Code plugin in this project. 12 slash commands, 16 specialist agents, 49 skills, 23 auto-hooks + 11 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
 type: reference
 ---
 
@@ -27,7 +27,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 
 ---
 
-## 11 slash commands — organized by phase
+## 12 slash commands — organized by phase
 
 ### Observe (2)
 - `/nexus` — dashboard: instincts, sessions, costs, hook health.
@@ -53,6 +53,9 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 ### Evolve (2)
 - `/forge` — session observations → tempered instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`.
 - `/evolve` — `cwd`-aware self-optimization (writes proposals to `{cwd}/.claude/{type}/{slug}.md`). Step 6 Generate (accepted 2026-04-24, was EXPERIMENTAL) reads forge ClusterReports and proposes new skills / commands / agents / rules through an approval gate.
+
+### Release (1)
+- `/release` — cut a release: version bump + CHANGELOG consolidation + BACKLOG prune + status-flip proposals + annotated tag, composing `/doks` for count sync. Human-invoked, no-push default.
 
 ---
 

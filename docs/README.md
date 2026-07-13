@@ -7,7 +7,7 @@ Navigation guide for everything the harness documents that is not code. Each sub
 | Dir | What's in it | When you need it |
 |---|---|---|
 | [`decisions/`](./decisions/) | **30 ADRs** — immutable architectural decisions with context, options, and consequences | "Why is the code structured this way?" / "Why was X rejected?" |
-| [`plans/`](./plans/) | **29 implementation plans** — one per multi-step feature, referenced by commits and ADRs | "What was the scope and order of changes for feature Y?" |
+| [`plans/`](./plans/) | **30 implementation plans** — one per multi-step feature, referenced by commits and ADRs | "What was the scope and order of changes for feature Y?" |
 | [`roadmap/`](./roadmap/) | **6 milestone docs** (v1.0, v1.1, v1.3, v1.3.1, v1.3.2, v2.0) with status + sprint breakdown | "What's shipped, shipping next, and deferred?" |
 | [`onboarding/`](./onboarding/) | Entry points for new projects consuming the harness + troubleshooting | "How do I install this?" / "Something's broken, where's the checklist?" |
 | [`research/`](./research/) | `/skavenger` reports with citations (external web, papers, transcripts) | "What have we already investigated about X?" (don't re-research) |

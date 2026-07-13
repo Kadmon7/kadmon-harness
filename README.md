@@ -58,7 +58,7 @@ Open a Claude Code session in any project and run each on its own line:
 /reload-plugins
 ```
 
-Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 49 skills · 11 commands · 22 hooks** live in the session.
+Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 49 skills · 12 commands · 22 hooks** live in the session.
 
 ### Steps 4–5 · Bootstrap rules + permissions
 
@@ -189,7 +189,7 @@ Inside your first session in the target project:
 
 ### 🧠 Onboard Claude to the harness (optional but recommended)
 
-Want every Claude session in your project to start knowing the 11 commands, 16 agents, 49 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
+Want every Claude session in your project to start knowing the 12 commands, 16 agents, 49 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
 
 ```
 Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboarding/reference_kadmon_harness.md and save it as a reference memory in this project. Add a one-line pointer under `## References` in MEMORY.md.
@@ -641,7 +641,7 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 ## 📊 Status & Attribution
 
 **v1.3.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
-`1158 tests passing` · `90 files` · `22 hooks` · `16 agents` · `49 skills` · `11 commands` · `19 rules` · `7 DB tables`
+`1158 tests passing` · `90 files` · `22 hooks` · `16 agents` · `49 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

@@ -41,7 +41,7 @@ If a hook changed from "logs tool results" to "logs tool results AND captures er
 |------|---------------|
 | **.claude/agents/CATALOG.md** | Full 16-agent table (model, trigger, command, skills) + Auto-Invoke list. Auto-synced by `agent-metadata-sync` hook on agent edits. Verify row count = `ls .claude/agents/*.md \| grep -v _TEMPLATE \| grep -v CATALOG \| wc -l`. |
 | **.claude/hooks/CATALOG.md** | 22 registered hooks across 9 matcher groups + 8 shared modules. Verify hook script count matches. |
-| **.claude/commands/CATALOG.md** | 11 commands across 7 phases (Observe / Plan / Build / Scan / Research / Remember / Evolve). Verify command count matches. |
+| **.claude/commands/CATALOG.md** | 12 commands across 8 phases (Observe / Plan / Build / Scan / Research / Remember / Evolve / Release). Verify command count matches. |
 
 ### Layer 2 — Commands (workflow definitions) — Write-eligibility: cwd-only
 | File | What to check |

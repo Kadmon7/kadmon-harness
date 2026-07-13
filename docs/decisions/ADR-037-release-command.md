@@ -2,7 +2,7 @@
 number: 037
 title: /release command — idempotent, autonomous-safe release hygiene
 date: 2026-07-13
-status: proposed
+status: accepted
 route: A
 plan: plan-037-release-command.md
 references: [ADR-025, ADR-028, ADR-032, ADR-034, ADR-035]
@@ -10,7 +10,9 @@ references: [ADR-025, ADR-028, ADR-032, ADR-034, ADR-035]
 
 # ADR-037: /release command — idempotent, autonomous-safe release hygiene
 
-**Deciders**: Ych-Kadmon (architect), arkitect (design). Awaiting architect approval — status `proposed`.
+**Deciders**: Ych-Kadmon (architect), arkitect (design). Approved 2026-07-13 by the architect with the conservative autonomy default confirmed — D5 status flips stay propose-only (auto-apply limited to the contract-sanctioned BACKLOG prune) and D3 no-push default stands. Status `accepted`; implementation tracked in plan-037.
+
+> **Amendment 2026-07-13 (scope correction)**: The **4AM autonomous-routine** motivation referenced throughout this ADR is **RETIRED**. That scheduled cloud routine was abandoned — the environment pinned the model and could not run Opus (project memory `reference_remote_trigger_env_pins_model`). `/release` is a **normal, human-invoked command** and must not be designed, built, or documented around unattended execution. The idempotency + refusal gates (D4), the no-push default (D3), and the propose-only status flips (D5) all stand on their own merit as **engineering robustness** — the command refuses to cut a broken, empty, or duplicate release, and keeps publishing + semantic status judgment as explicit human steps. Read every "4AM", "unattended", "autonomous", and "burns through the backlog" passage below as "a human wants a clean one-command release." No `WORK.md` auto-append, no scheduled-prompt reconciliation, no autonomous-execution security surface in the build.
 
 ## Context
 

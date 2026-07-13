@@ -1,13 +1,13 @@
 ---
 name: commands-catalog
-description: Full command reference (11 commands grouped by 7 phases) with purpose and routing agent. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
+description: Full command reference (12 commands grouped by 8 phases) with purpose and routing agent. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
 ---
 
 <!-- DO NOT AUTO-LOAD: this file is read on-demand by /doks and human readers. Lives outside .claude/rules/ to avoid eager context injection. See ADR-035. -->
 
 # Command Catalog
 
-## Command Reference (11)
+## Command Reference (12)
 
 ### Observe Phase (2)
 | Command | Purpose | Agent |
@@ -47,3 +47,8 @@ description: Full command reference (11 commands grouped by 7 phases) with purpo
 |---------|---------|-------|
 | /forge | Forge session observations into instincts via unified preview-gated pipeline. Flags: `--dry-run`, `export`. | — |
 | /evolve | Run harness self-optimization analysis. Step 6 "Generate" reads ClusterReports written by `/forge` and proposes new skills/commands/agents/rules through a preview gate; `/evolve` command invokes `skill-creator:skill-creator` plugin for PROMOTE proposals (target path `.claude/skills/<slug>/SKILL.md`) and a built-in mutator for the rest (commands/agents/rules stay flat). | alchemik |
+
+### Release Phase (1)
+| Command | Purpose | Agent |
+|---------|---------|-------|
+| /release | Cut a release — version bump + CHANGELOG consolidation + BACKLOG prune + status-flip proposals + annotated tag, composing /doks for count sync. Human-invoked, no-push default. | — |

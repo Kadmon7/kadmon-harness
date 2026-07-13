@@ -89,7 +89,7 @@ Rules:
 - SHOULD launch independent agents in parallel (single message, multiple tool calls)
 - NEVER run agents sequentially when their inputs are independent
 
-### Orchestration Patterns (11 commands)
+### Orchestration Patterns (12 commands)
 
 Three modes: **Parallel-then-Sequential** (`/chekpoint` reviewers → kody consolidate → gate; `/skanner` arkonte+kartograf → report), **Sequential** (`/abra-kdabra` arkitect→konstruct→feniks; `/medik` checks→mekanik+kurator→gate→repair→verify; `/doks`; `/evolve`), and **Direct** no-agent (`/nexus`, `/kompact`, `/almanak`, `/skavenger`, `/forge`). Full per-command flow diagrams — see **`agent-authoring` skill**.
 

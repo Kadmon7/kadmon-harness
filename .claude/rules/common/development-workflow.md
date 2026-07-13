@@ -50,7 +50,7 @@ Before any commit, classify the diff scope and choose a tier. Default is **full*
 
 > **Runtime authority**: As of ADR-034, `getDiffScope()` (in `scripts/lib/detect-project-language.ts`) is the runtime authority for Phase 2a reviewer routing within the `full` tier. The table above is **descriptive** (matches typical behavior) but the helper's gates are the source of truth. Drift between the table and the helper resolves via an ADR amendment, not in-line table edits. Override flags (`--force-spektr`, `--force-orakle`, `--force-ts-reviewer`, `--force-python-reviewer`, `--force-all`) restore mandatory invocation when needed.
 
-> Full Command Reference (11 commands across 7 phases: Observe, Plan, Build, Scan, Research, Remember, Evolve) — see [.claude/commands/CATALOG.md](../../commands/CATALOG.md). Single source-of-truth per ADR-035.
+> Full Command Reference (12 commands across 8 phases: Observe, Plan, Build, Scan, Research, Remember, Evolve, Release) — see [.claude/commands/CATALOG.md](../../commands/CATALOG.md). Single source-of-truth per ADR-035.
 
 ## Commits
 - MUST use conventional commits: feat/fix/chore/docs/refactor/test
