@@ -426,4 +426,35 @@ describe("state-store dirty-flag disk writes", () => {
     expect(getSession("dirty-flag-s1")).not.toBeNull();
     closeDb();
   });
+
+  // AUD-29 item 1 (Wave 3 audit) — session-end-all.js Phase 1c batches
+  // hook_events + agent_invocations inserts inside a single
+  // db.transaction(() => {...})() call. When both extractedHookEvents and
+  // extractedAgents are empty arrays that session, the loop bodies never
+  // call insertHookEvent/insertAgentInvocation, so dirty never flips to
+  // true and saveToDisk() at COMMIT no-ops. This test reproduces that exact
+  // pattern (an empty batch transaction, not just an empty callback) to
+  // prove the guard already holds for Phase 1c specifically.
+  it("Phase 1c pattern — an empty hook_events/agent_invocations batch transaction skips the disk write", async () => {
+    await openDb(tmpDb); // fresh DB — schema apply legitimately writes once
+    closeDb();
+    await openDb(tmpDb); // reopen — schema apply happens pre-spy
+    upsertSession({ id: "phase1c-s1", projectHash: "p1" }); // writes, resets dirty
+    const spy = vi.spyOn(fs, "writeFileSync");
+
+    const extractedHookEvents: unknown[] = [];
+    const extractedAgents: unknown[] = [];
+    getDb().transaction(() => {
+      for (const _he of extractedHookEvents) {
+        // would call insertHookEvent(...) here — array is empty this run
+      }
+      for (const _ai of extractedAgents) {
+        // would call insertAgentInvocation(...) here — array is empty this run
+      }
+    })();
+
+    closeDb();
+    const dbWrites = spy.mock.calls.filter((c) => c[0] === tmpDb);
+    expect(dbWrites.length).toBe(0);
+  });
 });

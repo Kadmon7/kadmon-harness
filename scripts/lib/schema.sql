@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS agent_invocations (
   duration_ms INTEGER,
   success INTEGER,
   error TEXT,
+  tool_use_id TEXT,
   timestamp TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -131,8 +132,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_hook_events_natural_key
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_session ON agent_invocations(session_id);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_agent ON agent_invocations(agent_type);
 CREATE INDEX IF NOT EXISTS idx_agent_invocations_timestamp ON agent_invocations(timestamp DESC);
+-- AUD-29: natural key extended with COALESCE(tool_use_id, '') so two parallel
+-- same-type invocations landing in the same millisecond (distinct tool_use_id)
+-- are both retained, while legacy/unmatched rows (tool_use_id IS NULL) keep
+-- deduping against each other exactly as before (NULL coalesces to '' so
+-- retries of the same NULL-tool_use_id row still collide on conflict).
 CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_invocations_natural_key
-  ON agent_invocations(session_id, agent_type, timestamp);
+  ON agent_invocations(session_id, agent_type, timestamp, COALESCE(tool_use_id, ''));
 CREATE INDEX IF NOT EXISTS idx_research_reports_session ON research_reports(session_id);
 CREATE INDEX IF NOT EXISTS idx_research_reports_project ON research_reports(project_hash);
 CREATE INDEX IF NOT EXISTS idx_research_reports_generated ON research_reports(generated_at DESC);

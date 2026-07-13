@@ -124,6 +124,17 @@ export declare function _resetFTS5Cache(): void;
 export declare function createResearchReport(input: Omit<ResearchReport, "id" | "reportNumber" | "generatedAt"> & {
     id?: string;
     reportNumber?: number;
+    /**
+     * AUD-32: advisory floor for the auto-assigned reportNumber, typically
+     * the max NNN found by a disk scan of docs/research/research-NNN-*.md.
+     * The git-ignored local kadmon.db can be empty on a fresh machine while
+     * the git-tracked research files already occupy numbers — without this
+     * floor, MAX(report_number)+1 against an empty DB restarts at 1 and
+     * collides with existing filenames. Ignored when `reportNumber` is set
+     * explicitly. Computed inside the same transaction as the INSERT so the
+     * atomic MAX+1 guarantee against the DB side is unaffected.
+     */
+    floorReportNumber?: number;
     generatedAt?: string;
 }): ResearchReport;
 /** Fetch a specific report by (projectHash, reportNumber). */

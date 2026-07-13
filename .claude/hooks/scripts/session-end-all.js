@@ -148,6 +148,7 @@ async function main() {
                 success: e.success !== false,
                 error: e.error ?? null,
                 timestamp: pre.timestamp,
+                toolUseId: pre.toolUseId ?? null,
               });
             }
           }
@@ -166,6 +167,7 @@ async function main() {
         success: null,
         error: null,
         timestamp: pre.timestamp,
+        toolUseId: pre.toolUseId ?? null,
       });
     }
 
@@ -382,6 +384,7 @@ async function main() {
               durationMs: ai.durationMs ?? null,
               success: ai.success,
               error: ai.error ?? null,
+              toolUseId: ai.toolUseId ?? undefined,
               timestamp: ai.timestamp ?? new Date().toISOString(),
             });
             agentCount++;

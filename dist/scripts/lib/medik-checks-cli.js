@@ -52,6 +52,13 @@ export function parseCliArgs(argv, registry = DEFAULT_REGISTRY) {
             }
             else {
                 const parsed = value.split(",").map((s) => Number(s.trim()));
+                if (parsed.some((n) => Number.isNaN(n))) {
+                    // Fail with a human-readable message here — letting a NaN reach
+                    // cliOptionsSchema.parse() below surfaces a raw Zod issue array
+                    // instead ("Expected number, received nan"), which is useless to
+                    // whoever typed `--checks foo` by mistake.
+                    throw new Error(`--checks expects a comma-separated list of check numbers, got: ${value}`);
+                }
                 checks = [...new Set(parsed)].sort((a, b) => a - b);
             }
             i++;

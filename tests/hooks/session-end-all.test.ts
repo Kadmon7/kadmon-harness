@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -13,29 +13,30 @@ let obsDir: string;
 let testDb: string;
 let transcriptFile: string | null = null;
 
+// AUD-30 note: execFileSync only exposes stderr via the thrown error object
+// on a NON-ZERO exit — on success (this hook's contract is always exit 0,
+// per rules/common/hooks.md "NEVER crash — always exit(0)") stderr is
+// silently discarded. Use spawnSync instead, which captures stdout/stderr
+// into the result object regardless of exit code, so warn-only diagnostics
+// (e.g. logHookError's stderr redirect in test env) are observable.
 function runHook(input: object): {
   stdout: string;
   stderr: string;
   exitCode: number;
 } {
   const env = { ...process.env, KADMON_TEST_DB: testDb };
-  try {
-    const stdout = execFileSync("node", [HOOK], {
-      encoding: "utf8",
-      input: JSON.stringify(input),
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 15000,
-      env,
-    });
-    return { stdout, stderr: "", exitCode: 0 };
-  } catch (err: unknown) {
-    const e = err as { stdout: string; stderr: string; status: number };
-    return {
-      stdout: e.stdout ?? "",
-      stderr: e.stderr ?? "",
-      exitCode: e.status ?? 1,
-    };
-  }
+  const result = spawnSync("node", [HOOK], {
+    encoding: "utf8",
+    input: JSON.stringify(input),
+    stdio: ["pipe", "pipe", "pipe"],
+    timeout: 15000,
+    env,
+  });
+  return {
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    exitCode: result.status ?? 1,
+  };
 }
 
 function makeObsLine(
@@ -926,5 +927,98 @@ describe("session-end-all", () => {
     expect(row.description).toBe("Security scan");
     expect(row.duration_ms).toBeNull();
     expect(row.success).toBeNull();
+  });
+
+  // --- AUD-29 item 1 (Wave 3 audit) — empty-commit guard proxy ---
+  // Phase 1c only emits the "DB: ..." output line when hookCount > 0 ||
+  // agentCount > 0 (see session-end-all.js). Its absence here is a
+  // behavioral proxy for "the batch transaction had nothing to insert" —
+  // the disk-write-skip mechanism itself is proven directly at the
+  // state-store level (tests/lib/state-store.test.ts "Phase 1c pattern").
+  it("does not emit the 'DB: ... persisted' output line when there are zero hook events and zero agent invocations", async () => {
+    writeObservations([
+      makeObsLine("tool_pre", "Read", "/test/a.ts"),
+      makeObsLine("tool_post", "Read"),
+    ]);
+    // No hook-events.jsonl written, no Agent tool_pre/tool_post pairs present.
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+    expect(r.stdout).not.toContain("DB:");
+  });
+
+  // --- AUD-29 item 2 (Wave 3 audit) — agent_invocations natural key ---
+  // Two parallel kody agents that both START in the exact same millisecond.
+  // Pre-fix, the natural key (session_id, agent_type, timestamp) collided
+  // and ON CONFLICT DO NOTHING silently dropped the second row. Fixed by
+  // extending the natural key with COALESCE(tool_use_id, '').
+  it("retains both rows for parallel same-type agents whose pre timestamps collide to the exact same millisecond", async () => {
+    const tSame = new Date("2026-07-13T09:00:00.000Z").toISOString();
+    const tPost1 = new Date("2026-07-13T09:00:04.000Z").toISOString();
+    const tPost2 = new Date("2026-07-13T09:00:05.000Z").toISOString();
+
+    writeObservations([
+      makeAgentPre("kody", tSame, "toolu_p1"),
+      makeAgentPre("kody", tSame, "toolu_p2"),
+      makeAgentPost("kody", tPost1, 4000, true, { toolUseId: "toolu_p1" }),
+      makeAgentPost("kody", tPost2, 5000, true, { toolUseId: "toolu_p2" }),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const rows = await readAgentRows();
+    const sameTimestampRows = rows.filter((row) => row.timestamp === tSame);
+    expect(sameTimestampRows).toHaveLength(2);
+  });
+
+  // --- AUD-30 sub-item (Wave 3 audit) — anomalous-pairing branch coverage ---
+  // When a toolUseId-bearing Agent post cannot be resolved by id AND has no
+  // agentType metadata to fall back on, takeMatchingAgentPre logs via
+  // logHookError before falling back to LIFO pop. In test env (KADMON_TEST_DB
+  // set), logHookError redirects to stderr as JSON — see hook-logger.js.
+  it("logs an anomalous-pairing error via logHookError when a toolUseId-bearing Agent post cannot be resolved to any pending pre", async () => {
+    const t0 = new Date("2026-07-13T08:00:00.000Z").toISOString();
+    const t1 = new Date("2026-07-13T08:00:03.000Z").toISOString();
+
+    writeObservations([
+      makeAgentPre("feniks", t0), // no toolUseId
+      // Ghost toolUseId matches no pending pre; no agentType metadata either
+      // — both lookups in takeMatchingAgentPre fail, triggering the log.
+      makeAgentPost(null, t1, 3000, true, { toolUseId: "toolu_ghost" }),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const errorLines: Array<Record<string, unknown>> = r.stderr
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        try {
+          return JSON.parse(line) as Record<string, unknown>;
+        } catch {
+          return null;
+        }
+      })
+      .filter((entry): entry is Record<string, unknown> => entry !== null);
+
+    const pairingError = errorLines.find(
+      (entry) =>
+        entry.hook === "session-end-all" &&
+        typeof entry.error === "string" &&
+        entry.error.includes("agent pairing fallback"),
+    );
+    expect(pairingError).toBeDefined();
+    expect(pairingError?.error).toContain("toolUseId=toolu_ghost");
+    expect(
+      (pairingError?.context as Record<string, unknown> | undefined)?.phase,
+    ).toBe("agent-pairing");
+
+    // The LIFO fallback still pairs SOMETHING despite the anomaly — one row
+    // persisted (the logic itself is unchanged, only newly covered by test).
+    const rows = await readAgentRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].agent_type).toBe("feniks");
   });
 });

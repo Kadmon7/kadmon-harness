@@ -203,5 +203,82 @@ describe("state-store agent_invocations", () => {
 
       expect(getAgentInvocationsBySession("s1")).toHaveLength(2);
     });
+
+    // AUD-29 (Wave 3 audit) — the natural key lacked tool_use_id, so two
+    // parallel invocations of the SAME agent_type landing in the SAME
+    // millisecond collided and one was silently dropped via
+    // ON CONFLICT DO NOTHING. Fixed by extending the natural key with
+    // COALESCE(tool_use_id, '').
+    it("retains both rows for parallel same-type invocations sharing an identical timestamp but distinct toolUseId", () => {
+      const ts = "2026-07-13T09:00:00.000Z";
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "kody",
+        toolUseId: "toolu_parallel_1",
+        timestamp: ts,
+      });
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "kody",
+        toolUseId: "toolu_parallel_2",
+        timestamp: ts,
+      });
+
+      const invocations = getAgentInvocationsBySession("s1");
+      expect(invocations).toHaveLength(2);
+      const toolUseIds = invocations.map((i) => i.toolUseId).sort();
+      expect(toolUseIds).toEqual(["toolu_parallel_1", "toolu_parallel_2"]);
+    });
+
+    it("still collapses an exact duplicate retry that shares the same toolUseId", () => {
+      const payload = {
+        sessionId: "s1",
+        agentType: "kody",
+        toolUseId: "toolu_retry",
+        timestamp: "2026-07-13T09:00:01.000Z",
+      };
+
+      insertAgentInvocation(payload);
+      insertAgentInvocation(payload);
+      insertAgentInvocation(payload);
+
+      expect(getAgentInvocationsBySession("s1")).toHaveLength(1);
+    });
+
+    it("still collapses legacy duplicates that carry no toolUseId at all (NULL-safe COALESCE)", () => {
+      const payload = {
+        sessionId: "s1",
+        agentType: "orakle",
+        timestamp: "2026-07-13T09:00:02.000Z",
+      };
+
+      insertAgentInvocation(payload);
+      insertAgentInvocation(payload);
+
+      expect(getAgentInvocationsBySession("s1")).toHaveLength(1);
+    });
+  });
+
+  describe("toolUseId round-trip", () => {
+    it("stores and retrieves toolUseId", () => {
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "kody",
+        toolUseId: "toolu_abc",
+        timestamp: "2026-01-01T00:00:00Z",
+      });
+      const invocations = getAgentInvocationsBySession("s1");
+      expect(invocations[0].toolUseId).toBe("toolu_abc");
+    });
+
+    it("toolUseId is undefined when not provided", () => {
+      insertAgentInvocation({
+        sessionId: "s1",
+        agentType: "kody",
+        timestamp: "2026-01-01T00:00:00Z",
+      });
+      const invocations = getAgentInvocationsBySession("s1");
+      expect(invocations[0].toolUseId).toBeUndefined();
+    });
   });
 });

@@ -3,9 +3,9 @@
 // isolation, and DB lifecycle (never close a DB the runner did not open).
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import {
   parseCliArgs,
   resolveProjectHash,
@@ -63,8 +63,16 @@ describe("medik-checks-cli", () => {
       expect(() => parseCliArgs(["--checks", "99"])).toThrow(/99/);
     });
 
-    it("throws on non-numeric check", () => {
-      expect(() => parseCliArgs(["--checks", "ten"])).toThrow();
+    it("throws a friendly message (not a raw Zod error) on non-numeric check", () => {
+      expect(() => parseCliArgs(["--checks", "ten"])).toThrow(
+        "--checks expects a comma-separated list of check numbers, got: ten",
+      );
+    });
+
+    it("throws the friendly message when only one item in a list is non-numeric", () => {
+      expect(() => parseCliArgs(["--checks", "10,foo,12"])).toThrow(
+        "--checks expects a comma-separated list of check numbers, got: 10,foo,12",
+      );
     });
 
     it("throws when --cwd is not an existing directory", () => {
@@ -228,6 +236,49 @@ describe("medik-checks-cli", () => {
       expect(DEFAULT_REGISTRY.get(12)?.needsDb).toBe(true);
       expect(DEFAULT_REGISTRY.get(13)?.needsDb).toBe(false);
       expect(DEFAULT_REGISTRY.get(14)?.needsDb).toBe(false);
+    });
+  });
+
+  describe("CLI entry point (subprocess)", () => {
+    const SCRIPT = resolve("scripts/lib/medik-checks-cli.ts");
+
+    function runCli(args: readonly string[]): {
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+    } {
+      // spawnSync with shell:true is required on Windows — npx is a .cmd
+      // script, not a binary, so execFileSync cannot resolve it without the
+      // shell (see tests/lib/migrate-v0.4.test.ts for the same pattern).
+      const result = spawnSync("npx", ["tsx", SCRIPT, ...args], {
+        encoding: "utf8",
+        shell: true,
+        cwd: resolve("."),
+      });
+      return {
+        stdout: result.stdout ?? "",
+        stderr: result.stderr ?? "",
+        exitCode: result.status ?? 1,
+      };
+    }
+
+    it("prints a friendly message and exits non-zero on a non-numeric --checks value", () => {
+      const { stderr, exitCode } = runCli(["--checks", "foo"]);
+
+      expect(exitCode).not.toBe(0);
+      expect(stderr).toContain(
+        "--checks expects a comma-separated list of check numbers, got: foo",
+      );
+    });
+
+    it("still parses and runs a valid comma-separated --checks list", () => {
+      // Check 13 (skill-creator-probe) needs no DB — safe against production DB.
+      const { stdout, exitCode } = runCli(["--checks", "13"]);
+
+      expect(exitCode).toBe(0);
+      const results = JSON.parse(stdout) as Array<{ check: number; name: string }>;
+      expect(results).toHaveLength(1);
+      expect(results[0]).toMatchObject({ check: 13, name: "skill-creator-probe" });
     });
   });
 });

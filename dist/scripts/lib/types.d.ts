@@ -211,6 +211,10 @@ export interface AgentInvocation {
     durationMs?: number;
     success?: boolean;
     error?: string;
+    /** Task tool's unique invocation id (AUD-29) — disambiguates parallel
+     * same-type invocations that land in the same millisecond so the natural-key
+     * dedup index doesn't collapse them into a single row. */
+    toolUseId?: string;
     timestamp: string;
 }
 export interface ResearchReport {

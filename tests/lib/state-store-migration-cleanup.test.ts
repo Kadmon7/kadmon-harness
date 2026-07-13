@@ -102,5 +102,30 @@ describe("state-store migration cleanup (dedup sentinel)", () => {
       const removed = cleanupDuplicateAgentInvocations();
       expect(removed).toBe(0);
     });
+
+    // AUD-29 (Wave 3 audit) — cleanupDuplicateAgentInvocations must GROUP BY
+    // COALESCE(tool_use_id, '') too, mirroring the natural-key index. Without
+    // it, this repair sentinel would incorrectly collapse two legitimate
+    // parallel same-type invocations that only differ by tool_use_id.
+    it("does NOT collapse rows with the same session/agent/timestamp but distinct tool_use_id", () => {
+      const db = getDb();
+      db.prepare(
+        `INSERT INTO agent_invocations (id, session_id, agent_type, model,
+          description, duration_ms, success, error, tool_use_id, timestamp)
+         VALUES (@id, 's1', 'kody', 'sonnet',
+          'review', 25000, 1, NULL, @toolUseId, '2026-04-22T02:00:00.000Z')`,
+      ).run({ id: "ai-p1", toolUseId: "toolu_1" });
+      db.prepare(
+        `INSERT INTO agent_invocations (id, session_id, agent_type, model,
+          description, duration_ms, success, error, tool_use_id, timestamp)
+         VALUES (@id, 's1', 'kody', 'sonnet',
+          'review', 25000, 1, NULL, @toolUseId, '2026-04-22T02:00:00.000Z')`,
+      ).run({ id: "ai-p2", toolUseId: "toolu_2" });
+
+      expect(getAgentInvocationsBySession("s1")).toHaveLength(2);
+      const removed = cleanupDuplicateAgentInvocations();
+      expect(removed).toBe(0);
+      expect(getAgentInvocationsBySession("s1")).toHaveLength(2);
+    });
   });
 });

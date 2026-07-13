@@ -180,6 +180,43 @@ export async function openDb(customPath?: string): Promise<WrappedDb> {
   localDb.pragma("foreign_keys = ON");
   localDb.pragma("journal_mode = WAL");
 
+  // AUD-29 forward migration: pre-existing on-disk DBs created before the
+  // tool_use_id column + 4-col natural-key index landed (Wave 3 cluster A)
+  // still carry the OLD 3-col agent_invocations schema. The CREATE TABLE /
+  // CREATE UNIQUE INDEX IF NOT EXISTS statements in the schema-apply step
+  // below are gated by NAME only, not definition — on such a DB they would
+  // silently no-op, leaving tool_use_id missing and the index 3-col. That
+  // breaks the ADR-022 dedup sentinel immediately below (its
+  // COALESCE(tool_use_id, '') GROUP BY throws "no such column: tool_use_id")
+  // and later insertAgentInvocation()'s 4-col ON CONFLICT target. Runs
+  // BEFORE the dedup sentinel so its column reference is valid, and OUTSIDE
+  // the schema-apply transaction() below — a migration failure here must
+  // not roll into that transaction's scope (orakle 2026-07-13 sql.js note).
+  // Idempotent across all three DB states:
+  //   - fresh :memory:/on-disk DB: ALTER throws "no such table" (caught);
+  //     DROP INDEX IF EXISTS no-ops; schema-apply creates the 4-col table+index.
+  //   - unmigrated on-disk DB: ALTER adds the column; DROP removes the
+  //     stale 3-col index so CREATE UNIQUE INDEX IF NOT EXISTS below
+  //     recreates it 4-col.
+  //   - already-migrated DB: ALTER throws "duplicate column" (caught);
+  //     DROP+recreate is a no-op replay of the same 4-col definition.
+  try {
+    localDb.exec(`ALTER TABLE agent_invocations ADD COLUMN tool_use_id TEXT;`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!/duplicate column|no such table/i.test(msg)) {
+      throw err;
+    }
+  }
+  try {
+    localDb.exec(`DROP INDEX IF EXISTS idx_agent_invocations_natural_key;`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!/no such table/i.test(msg)) {
+      throw err;
+    }
+  }
+
   // ADR-022 migration sentinel: existing DBs may contain duplicate rows in
   // hook_events / agent_invocations from sessions persisted before the UNIQUE
   // INDEX was added. Dedup BEFORE schema apply so `CREATE UNIQUE INDEX` does
@@ -197,7 +234,7 @@ export async function openDb(customPath?: string): Promise<WrappedDb> {
     localDb.exec(
       `DELETE FROM agent_invocations WHERE rowid NOT IN (
          SELECT MIN(rowid) FROM agent_invocations
-         GROUP BY session_id, agent_type, timestamp
+         GROUP BY session_id, agent_type, timestamp, COALESCE(tool_use_id, '')
        );`,
     );
   } catch (err) {
@@ -835,7 +872,7 @@ export function cleanupDuplicateAgentInvocations(): number {
   db.exec(
     `DELETE FROM agent_invocations WHERE rowid NOT IN (
        SELECT MIN(rowid) FROM agent_invocations
-       GROUP BY session_id, agent_type, timestamp
+       GROUP BY session_id, agent_type, timestamp, COALESCE(tool_use_id, '')
      );`,
   );
   const after = Number(
@@ -870,6 +907,7 @@ function mapAgentInvocationRow(row: Record<string, unknown>): AgentInvocation {
     durationMs: row.duration_ms != null ? Number(row.duration_ms) : undefined,
     success: row.success != null ? Number(row.success) !== 0 : undefined,
     error: row.error ? String(row.error) : undefined,
+    toolUseId: row.tool_use_id ? String(row.tool_use_id) : undefined,
     timestamp: String(row.timestamp),
   };
 }
@@ -880,16 +918,17 @@ export function insertAgentInvocation(
   const id = generateId();
   getDb()
     .prepare(
-      // ON CONFLICT DO NOTHING on the natural-key UNIQUE INDEX (ADR-022).
-      // Preserves FK error visibility; see insertHookEvent for rationale.
-      // Known caveat: natural key excludes agent sub-type / description, so
-      // two parallel sub-agents of the same agent_type firing within the same
-      // millisecond would be collapsed. Acceptable at current scale.
+      // ON CONFLICT DO NOTHING on the natural-key UNIQUE INDEX (ADR-022,
+      // extended AUD-29). tool_use_id (COALESCE'd to '') disambiguates
+      // parallel same-type invocations landing in the same millisecond so
+      // both rows survive, while legacy/unmatched rows (tool_use_id NULL)
+      // still dedup against each other exactly as before. Preserves FK
+      // error visibility; see insertHookEvent for rationale.
       `INSERT INTO agent_invocations (id, session_id, agent_type, model,
-         description, duration_ms, success, error, timestamp)
+         description, duration_ms, success, error, tool_use_id, timestamp)
        VALUES (@id, @session_id, @agent_type, @model,
-         @description, @duration_ms, @success, @error, @timestamp)
-       ON CONFLICT(session_id, agent_type, timestamp) DO NOTHING`,
+         @description, @duration_ms, @success, @error, @tool_use_id, @timestamp)
+       ON CONFLICT(session_id, agent_type, timestamp, COALESCE(tool_use_id, '')) DO NOTHING`,
     )
     .run({
       id,
@@ -900,6 +939,7 @@ export function insertAgentInvocation(
       duration_ms: invocation.durationMs ?? null,
       success: invocation.success != null ? (invocation.success ? 1 : 0) : null,
       error: invocation.error ? invocation.error.slice(0, 500) : null,
+      tool_use_id: invocation.toolUseId ?? null,
       timestamp: invocation.timestamp ?? nowISO(),
     });
 }
@@ -1022,6 +1062,17 @@ export function createResearchReport(
   input: Omit<ResearchReport, "id" | "reportNumber" | "generatedAt"> & {
     id?: string;
     reportNumber?: number;
+    /**
+     * AUD-32: advisory floor for the auto-assigned reportNumber, typically
+     * the max NNN found by a disk scan of docs/research/research-NNN-*.md.
+     * The git-ignored local kadmon.db can be empty on a fresh machine while
+     * the git-tracked research files already occupy numbers — without this
+     * floor, MAX(report_number)+1 against an empty DB restarts at 1 and
+     * collides with existing filenames. Ignored when `reportNumber` is set
+     * explicitly. Computed inside the same transaction as the INSERT so the
+     * atomic MAX+1 guarantee against the DB side is unaffected.
+     */
+    floorReportNumber?: number;
     generatedAt?: string;
   },
 ): ResearchReport {
@@ -1038,8 +1089,9 @@ export function createResearchReport(
           "SELECT MAX(report_number) as n FROM research_reports WHERE project_hash = ?",
         )
         .get(input.projectHash);
-      reportNumber =
-        maxRow && maxRow.n != null ? Number(maxRow.n) + 1 : 1;
+      const dbMax = maxRow && maxRow.n != null ? Number(maxRow.n) : 0;
+      const floor = input.floorReportNumber ?? 0;
+      reportNumber = Math.max(dbMax, floor) + 1;
     }
 
     db.prepare(

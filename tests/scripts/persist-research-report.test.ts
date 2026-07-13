@@ -14,6 +14,7 @@ import {
   upsertSession,
   getResearchReport,
   queryResearchReports,
+  createResearchReport,
 } from "../../scripts/lib/state-store.js";
 import {
   runPersistReport,
@@ -165,5 +166,69 @@ describe("persist-research-report", () => {
         repoRoot: tmpDir,
       }),
     ).rejects.toThrow(/slug/i);
+  });
+
+  // AUD-32 (Wave 3 audit) — createResearchReport() assigned report_number
+  // via MAX(report_number)+1 against the git-ignored local kadmon.db only.
+  // On a fresh machine that DB can be empty while docs/research/ (git-tracked,
+  // the REAL source of truth) already has files occupying those numbers,
+  // producing a filename collision on the next /skavenger run.
+  describe("disk-scan reconciliation (AUD-32)", () => {
+    it("reconciles the next report number against disk when the DB is empty but docs/research/ already has files", async () => {
+      const researchDir = path.join(tmpDir, "docs", "research");
+      fs.mkdirSync(researchDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(researchDir, "research-009-prior-topic.md"),
+        "---\nnumber: 9\n---\n\nOld content, not indexed in this fresh DB.\n",
+      );
+
+      // beforeEach opened a fresh :memory: DB — zero rows for PROJECT.
+      const out = await runPersistReport(
+        sample({ slug: "new-topic", topic: "New topic" }),
+        { repoRoot: tmpDir },
+      );
+
+      expect(out.reportNumber).toBe(10);
+      expect(
+        fs.existsSync(path.join(researchDir, "research-010-new-topic.md")),
+      ).toBe(true);
+      // The stale disk file is untouched — no overwrite, no renumbering.
+      expect(
+        fs.existsSync(path.join(researchDir, "research-009-prior-topic.md")),
+      ).toBe(true);
+    });
+
+    it("prefers the DB max over the disk max when the DB is further ahead", async () => {
+      const researchDir = path.join(tmpDir, "docs", "research");
+      fs.mkdirSync(researchDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(researchDir, "research-002-stale-disk-file.md"),
+        "---\nnumber: 2\n---\n\nStale — disk lags behind DB (e.g. files pruned).\n",
+      );
+
+      // Seed the DB directly (bypassing disk) so its max (5) exceeds the
+      // disk max (2) — e.g. rows persisted before a crash between the
+      // INSERT and the file write (see the crash-safety note above
+      // runPersistReport's placeholder-path INSERT).
+      createResearchReport({
+        sessionId: "s1",
+        projectHash: PROJECT,
+        slug: "db-only-5",
+        topic: "DB-only report 5",
+        path: "docs/research/research-005-db-only-5.md",
+        capsHit: [],
+        subQuestions: [],
+        sourcesCount: 0,
+        openQuestions: [],
+        untrustedSources: true,
+        reportNumber: 5,
+      });
+
+      const out = await runPersistReport(
+        sample({ slug: "sixth", topic: "Sixth" }),
+        { repoRoot: tmpDir },
+      );
+      expect(out.reportNumber).toBe(6);
+    });
   });
 });

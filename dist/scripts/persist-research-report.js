@@ -55,6 +55,26 @@ function validateSlug(slug) {
 function padNumber(n) {
     return String(n).padStart(3, "0");
 }
+// AUD-32: the git-ignored local ~/.kadmon/kadmon.db can be empty on a fresh
+// machine while docs/research/ (git-tracked, the REAL source of truth for
+// filenames) already has research-NNN-*.md files occupying those numbers.
+// Reconciling against a disk scan prevents MAX(report_number)+1 restarting
+// at 1 and colliding with an existing filename on next /skavenger run.
+const RESEARCH_FILENAME_RE = /^research-(\d+)-.+\.md$/;
+function scanDiskMaxReportNumber(researchDir) {
+    if (!fs.existsSync(researchDir))
+        return 0;
+    let max = 0;
+    for (const entry of fs.readdirSync(researchDir)) {
+        const match = RESEARCH_FILENAME_RE.exec(entry);
+        if (!match)
+            continue;
+        const n = Number(match[1]);
+        if (Number.isFinite(n) && n > max)
+            max = n;
+    }
+    return max;
+}
 // YAML double-quoted scalar escape: backslash FIRST (otherwise replacement
 // cascades), then CR/LF, then tab, then double-quote. These four are the
 // escape-sensitive characters in YAML 1.2 double-quoted flow scalars.
@@ -134,6 +154,7 @@ export async function runPersistReport(input, options = {}) {
     // sql.js is single-threaded in-process, so the window is a single synchronous
     // tick — a crash there is a process kill, not a normal error path.
     const placeholderPath = `docs/research/research-PENDING-${input.slug}.md`;
+    const diskMax = scanDiskMaxReportNumber(researchDir);
     const row = createResearchReport({
         sessionId: input.sessionId,
         projectHash: input.projectHash,
@@ -147,6 +168,7 @@ export async function runPersistReport(input, options = {}) {
         sourcesCount: input.sourcesCount,
         openQuestions: input.openQuestions,
         untrustedSources: input.untrustedSources,
+        floorReportNumber: diskMax,
     });
     const filename = `research-${padNumber(row.reportNumber)}-${input.slug}.md`;
     const relPath = path.posix.join("docs", "research", filename);
