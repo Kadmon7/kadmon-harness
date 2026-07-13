@@ -55,7 +55,7 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 - [ ] AUD-25 /medik graphify integration (roadmap R-13 — measurement gate PASSED, deferral condition satisfied)
 - [ ] AUD-26 /evolve cadence nudge: /nexus badge or session-end note "N unconsumed ClusterReports" (2-3 invocations ever; reports expire unused)
 - [x] AUD-27 /skavenger trim 371 -> ~200 lines; /skanner cut Phase 2 agent-eval to /evolve pointer; move kompact.md Bug-3 postmortem to memory
-- [ ] AUD-28 Working-docs standard follow-ups: unify status enum (plans/ADRs/roadmap), document ADR/plan numbering gaps in docs/README.md, wire BACKLOG/WORK upkeep into /chekpoint + /medik Check #10
+- [x] AUD-28 (SHIPPED `214862f`, ADR-038/plan-038) Working-docs standard: canonicalized plan/ADR status enums separately (NOT merged — different lifecycles) + fixed plan-036 `in-progress` drift + legalized plan `superseded`; new `/medik` check **#15 `docs-status-lint`** (FAIL out-of-enum status / WARN illegal BACKLOG marker; the "Check #10" in this item was imprecise — #10 is stale-plans, next id was 15); `/chekpoint` Phase 4 advisory NOTE (AUD-xx/R-xx → flip BACKLOG/WORK); docs/README.md "Status conventions" subsection + numbering gaps + counts 33 ADRs/31 plans. Full-tier /chekpoint (ts-reviewer + spektr + kody all GO), 1385/1385.
 
 ## v1.3.1 roadmap items (open, priority order per roadmap file)
 
