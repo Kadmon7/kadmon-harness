@@ -5,6 +5,33 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { resolveBin } from "./resolve-bin.js";
+
+// AUD-31: prefer a direct `node <entry>` invocation of the locally-installed
+// `prettier` package (resolved via resolve-bin.js) — skips npx's per-call
+// re-resolution AND avoids a Windows-only footgun where the .bin/prettier.cmd
+// shim can't be spawned safely without shell:true (see resolve-bin.js
+// header comment). Falls back to the original `npx prettier` invocation,
+// unchanged, when no local install resolves.
+function runPrettier(fp) {
+  const prettierEntry = resolveBin("prettier");
+  try {
+    if (prettierEntry) {
+      execFileSync(process.execPath, [prettierEntry, "--write", fp], {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } else {
+      execFileSync("npx", ["prettier", "--write", fp], {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    }
+  } catch {
+    /* prettier not installed or failed — non-blocking */
+  }
+}
+
 try {
   if (isDisabled("post-edit-format")) process.exit(0);
   const input = parseStdin();
@@ -14,14 +41,7 @@ try {
   if (![".ts", ".tsx", ".js", ".jsx", ".json"].includes(ext)) process.exit(0);
   if (fp.includes("node_modules") || fp.includes("dist")) process.exit(0);
   if (!fs.existsSync(fp)) process.exit(0);
-  try {
-    execFileSync("npx", ["prettier", "--write", fp], {
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-  } catch {
-    /* prettier not installed or failed — non-blocking */
-  }
+  runPrettier(fp);
 } catch (err) {
   console.error(JSON.stringify({ error: `post-edit-format: ${err instanceof Error ? err.message : String(err)}` }));
 }

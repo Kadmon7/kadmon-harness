@@ -8,6 +8,7 @@
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { resolveBin } from "./resolve-bin.js";
 
 const TS_JS_EXTS = new Set([".ts", ".tsx", ".js", ".jsx"]);
 const PY_EXTS = new Set([".py"]);
@@ -22,17 +23,29 @@ function toolAvailable(cmd) {
   }
 }
 
+// AUD-31: prefer a direct `node <entry>` invocation of the locally-installed
+// `eslint` package (resolved via resolve-bin.js) — skips npx's per-call
+// re-resolution AND avoids a Windows-only footgun where the .bin/eslint.cmd
+// shim can't be spawned safely without shell:true (see resolve-bin.js
+// header comment). Falls back to the original `npx eslint` invocation,
+// unchanged, when no local install resolves.
 function runEslint(fp) {
+  const eslintEntry = resolveBin("eslint");
+  const args = ["--no-eslintrc", "--rule", "no-unused-vars:warn", fp];
   try {
-    execFileSync(
-      "npx",
-      ["eslint", "--no-eslintrc", "--rule", "no-unused-vars:warn", fp],
-      {
+    if (eslintEntry) {
+      execFileSync(process.execPath, [eslintEntry, ...args], {
         encoding: "utf8",
         stdio: ["pipe", "pipe", "pipe"],
         timeout: 10000,
-      },
-    );
+      });
+    } else {
+      execFileSync("npx", ["eslint", ...args], {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+        timeout: 10000,
+      });
+    }
   } catch (lintErr) {
     if (lintErr.stdout) console.error(`\u{1F4CF} ESLint:\n${lintErr.stdout}`);
   }

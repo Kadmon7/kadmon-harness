@@ -5,9 +5,11 @@
 //   .py            → mypy <file> → pyright <file> → python -m py_compile <file> (first available)
 //   other          → exit 0 silently
 // Always exits 0 — typecheck errors are informational only (plan-020 Phase B).
+import fs from "node:fs";
 import path from "node:path";
 import { execSync, execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
+import { resolveBin, binProjectRoot } from "./resolve-bin.js";
 
 const TS_EXTS = new Set([".ts", ".tsx"]);
 const PY_EXTS = new Set([".py"]);
@@ -23,7 +25,41 @@ function toolAvailable(cmd) {
   }
 }
 
-function runTsc() {
+// AUD-31: prefer a direct `node <entry>` invocation of the locally-installed
+// `typescript` package (resolved via resolve-bin.js) with --incremental
+// caching — this skips npx's per-call re-resolution AND avoids a
+// Windows-only footgun where the .bin/tsc.cmd shim can't be spawned safely
+// without shell:true (see resolve-bin.js header comment). Falls back to the
+// original `npx tsc` invocation, unchanged, when no local install resolves
+// (e.g. a consumer project without typescript as a devDependency).
+function runTscDirect(tscEntry) {
+  const cacheDir = path.join(binProjectRoot(tscEntry), "node_modules", ".cache");
+  const buildInfoFile = path.join(cacheDir, "kadmon-post-edit-typecheck.tsbuildinfo");
+  try {
+    fs.mkdirSync(cacheDir, { recursive: true });
+  } catch {
+    /* best-effort — typecheck still runs correctly without a warm cache */
+  }
+  try {
+    execFileSync(
+      process.execPath,
+      [
+        tscEntry,
+        "--noEmit",
+        "--skipLibCheck",
+        "--incremental",
+        "--tsBuildInfoFile",
+        buildInfoFile,
+      ],
+      { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], timeout: 15000 },
+    );
+  } catch (tscErr) {
+    if (tscErr.stdout) console.error(`\u{1F534} TypeScript errors:\n${tscErr.stdout}`);
+    if (tscErr.stderr) console.error(tscErr.stderr);
+  }
+}
+
+function runTscViaNpx() {
   try {
     execSync("npx tsc --noEmit --skipLibCheck", {
       encoding: "utf8",
@@ -34,6 +70,15 @@ function runTsc() {
     if (tscErr.stdout) console.error(`\u{1F534} TypeScript errors:\n${tscErr.stdout}`);
     if (tscErr.stderr) console.error(tscErr.stderr);
   }
+}
+
+function runTsc() {
+  const tscEntry = resolveBin("tsc");
+  if (tscEntry) {
+    runTscDirect(tscEntry);
+    return;
+  }
+  runTscViaNpx();
 }
 
 function runPyTool(label, cmd, args, timeoutMs) {
