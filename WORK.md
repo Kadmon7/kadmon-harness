@@ -3,52 +3,53 @@
 First read for any new session (including parallel sessions — see CORRECTIONS.md C-002:
 note here what you are touching before you touch it).
 
-## Active
+> **2026-07-13 post-compact reset.** All SHIPPED items pruned to git log / CHANGELOG.
+> Only OPEN work below. Full shipped history: `git log` + `docs/decisions/` + `docs/plans/`.
 
-- **2026-07-13 — AUD-39 SHIPPED (`975d5d4`, not yet pushed).** quality-gate per-edit latency. DECISION taken: lightweight non-type-aware — removed `projectService`/`tsconfigRootDir` from `eslint.config.js` (no active rule needs type info; `recommended` not `recommendedTypeChecked`). Measured single-file 2.82s→1.32s (-53%), full lint 4.93s→3.22s (-35%), zero-loss. Secondary FIXED: `--no-warn-ignored` in the hook kills the ignore-noise footgun. feniks TDD (16/16 hook tests) + ts-reviewer GO (0 BLOCK/0 WARN, 3 NOTEs applied) + suite 1355/1355. Config change → tier lite. Blast radius harness-only (eslint.config.js not shipped to consumers).
-- **2026-07-13 — AUD-28 SHIPPED (`214862f`, not yet pushed) via /abra-kdabra (ADR-038 accepted + plan-038 completed).** Working-docs status standard + drift-prevention enforcement. DECISION: canonicalize plan/ADR enums SEPARATELY (not merged — different lifecycles) + fix plan-036 `in-progress` drift + legalize plan `superseded`. New `/medik` check **#15 `docs-status-lint`** (FAIL out-of-enum status / WARN illegal BACKLOG marker; pure fs+regex, no git/DB) + shared `parseFrontmatterStatus` helper + stale-plans refactor (+R-15 utf8 nit). `/chekpoint` Phase 4 advisory NOTE (AUD-xx/R-xx → flip BACKLOG/WORK). docs/README.md "Status conventions" + numbering gaps + counts 33/31. Phase 1 migration `78d7a99`; Phase 2+3 `214862f`. feniks TDD (30 new tests) + full-tier /chekpoint (ts-reviewer GO byte-for-byte refactor + spektr GO ReDoS-safe + kody GO 1385/1385). ("Check #10" in the AUD was imprecise — #10 is stale-plans; #15 is the new one.)
-- **2026-07-13 — NEXT: AUD-37 → AUD-25/26.** **3 open AUD after AUD-28**: **AUD-37** (split `state-store.ts` ~1201 lines >800, task #18 — mechanical, konstruct+feniks); **AUD-25** (/medik graphify integration, gate PASSED); **AUD-26** (/evolve cadence nudge). DEFER: **AUD-33** (config-protection heuristic — won't-fix per threat model), **AUD-40** (/release cross-process recovery — low). Then cut **v1.4.0** via `/release minor` (dogfood) + author the **per-fork upgrade runbook** (Sentinel + KadmonCowork, task #21). NOTE: the 7am cloud routine (`trig_01SDuKbeBpB5JuGmm2bE3KaE`, opus) will open a PR for R-05/R-08 on harness — review it in the morning; it's scoped AWAY from plan-038 files.
-- **2026-07-13 — `/release` command (ADR-037 / plan-037) SHIPPED to main (`f9d533f`, pushed `f737598..f9d533f`).** Command #12. Full subsystem `scripts/lib/release/` (`types` + 7 modules: version-bump, changelog, backlog-prune, status-flips, tag, preflight, orchestrate) + 9 tests (unit + e2e) + `release.md` (Direct no-agent) + count **11→12** across 11 live surfaces + new Release Phase (7→8) + CHANGELOG `[Unreleased]` entry. ADR-037 `accepted` (4AM autonomous framing RETIRED, Amendment 2026-07-13); plan-037 `completed`; AUD-24 flipped `[x]`. **Full-tier /chekpoint**: spektr GO (0C/0H/1M/3L, recovery-filter SAFE) + typescript-reviewer GO (no BLOCK). **6 findings repaired via feniks TDD before commit (R1-R6)**: R1 `git add -A`→scoped pathspec (parallel-session review-bypass fix), R2 `hasReleasedHeading()` in recovery predicate (hollow-release fix), R3 unconditional dry-run previews, R4 typed IO error, R5 `isReleaseWritesComplete()` partial-commit guard, R6 VerifyResult interface. Build+tsc clean, suite **1354/1354**. Decision AMBIGUITY-1 = prune-only + warn. **kody Phase 2b gate CLOSED** (`8fcd129` fixed its sole BLOCK — a fragile e2e assertion coupled to live doc status: statusFlipProposals asserted ADR-037/plan-037 but they shipped to accepted/completed in the same commit → relaxed to structural `Array.isArray`; suite 1354/1354, tsc clean). **AUD-40** logged (cross-process committed-but-untagged recovery is same-session-only today — full detection is a follow-up, low).
-- **2026-07-13 — Bundle AUD-35/36/38 SHIPPED (`d56e2b8`, not yet pushed).** quality-gate.js ESLint 9 revive (dead `--no-eslintrc` probe) + `path.resolve` parity (AUD-36) + test hardening. ts-reviewer + spektr both APPROVE (lite tier). WARN → logged **AUD-39**: every `.ts` edit under tests/**|scripts/** now ~2.2s type-aware lint (within the toolchain-hook exception, but a real per-edit cost).
-- **Distribution finding (2026-07-13) — for the v1.4.0 upgrade runbook.** `Sentinel-harness` + `Kadmon7Cowork-Harness` are DIVERGED git FORKS (own GitHub remotes, own history, full source tree, both still v1.3.0, both PRE-`tool_use_id`-migration), NOT plugin-consumers. `git merge upstream/main` won't apply (unrelated histories — bootstrapped fresh). Propagation = selective port / cherry-pick per fork. **SHARED-DB gotcha**: the migration changed machine-global `~/.kadmon/kadmon.db` schema (3→4 col index); forks running old code may hit `ON CONFLICT` mismatches → their state-store goes dark. Sentinel = 11 commits (small, ADR-036 specialized — may not want everything); KadmonCowork = 58 commits (+2 agents, heavily diverged). Generate a per-fork port plan when v1.4.0 is cut.
+## Task list (open)
 
-- **2026-07-13 — Wave 3 Round 1 LANDED + pushed (`1c8b518..a30f95b`).** 5 parallel file-disjoint agents (4 feniks TDD + 1 general-purpose docs) → full /chekpoint tier: spektr APPROVE (0 CRIT/0 HIGH) + orakle BLOCK + typescript-reviewer BLOCK (both independently reproduced a `tool_use_id` schema-migration regression that silently broke the state-store layer on every existing `~/.kadmon/kadmon.db`) → BLOCK fixed via **feniks TDD** (openDb() idempotent forward-migration + `migrate-v0.6.ts` + on-disk legacy-DB regression test, RED→GREEN) → **kody GO** (re-verified independently: 1278/1278 tests / 97 files, clean tsc + build zero-drift). 6 logical commits: A data/telemetry+migration (AUD-29/32), B latency (AUD-31), C medik/scrub (AUD-30), D trims (AUD-27), E flaky (AUD-34), F ADR-037 (AUD-24, proposed). Pre-commit hook couples `dist/scripts/lib` → committed A before C so dist stays coherent. **Round 2 (features) still HELD** — see below. New review NOTEs logged to BACKLOG (AUD-35..38). **Next: Wave 3 Round 2 needs design (AUD-24 ADR-037 awaiting approval, AUD-25/26/28).**
+### Next up
+- **AUD-37** — split `scripts/lib/state-store.ts` (~1201 lines > 800 hard limit) into modules
+  (extract agent-invocation + research-report concerns). Mechanical → konstruct + feniks.
+  **← pick this next.**
 
-- **(superseded) 2026-07-13 — Wave 3 PLANNED.** Round 1 = mechanical cleanup + trims, ran as 5 parallel FILE-DISJOINT agents (4 feniks for TDD + 1 general-purpose for docs):
-  - A (feniks) — data/telemetry: `scripts/lib/state-store.ts`, `.claude/hooks/scripts/session-end-all.js`, `scripts/persist-research-report.ts` (+ their tests) — AUD-29 (session-end-all Phase 1c empty-commit guard on the unconditional disk write; `agent_invocations` natural key add `tool_use_id` so parallel same-type same-ms rows aren't dropped by ON CONFLICT DO NOTHING; `KADMON_TEST_DB || undefined` nit) + AUD-32 (research numbering: reconcile `MAX(report_number)+1` against a `docs/research/research-*.md` disk scan — fix in persist-research-report.ts) + AUD-30 sub-item (test the anomalous-pairing logHookError branch)
-  - B (feniks) — latency perf: `post-edit-typecheck.js`, `quality-gate.js`, `post-edit-format.js` — AUD-31 (direct `node_modules/.bin` invocation, incremental tsc; CAREFUL — every-edit blast radius, preserve exact exit-code/warning behavior, full suite green)
-  - C (feniks) — medik/scrub NOTEs: `.claude/hooks/scripts/scrub-secrets.js`, `scripts/lib/medik-checks-cli.ts`, `.claude/commands/medik.md` — AUD-30 (cap scrubSecrets input length vs <50ms budget; friendly error on `--checks NaN`; smoke-test note for medik.md tsx -e snippets)
-  - D (general-purpose) — trims: `.claude/commands/skavenger.md` (371→~200, drop examples 4-7 keep flag ref + persist protocol), `.claude/commands/skanner.md` (Phase 2 agent-eval → /evolve pointer), `.claude/commands/kompact.md` (move Bug-3 postmortem out to memory) — AUD-27
-  - E (feniks) — flaky root cause: `vitest.config.ts` — AUD-34 (serialize the heavy sql.js/execFileSync hook tests via poolOptions so `pre-compact-save.test.ts` stops flaking under full-suite parallel load on Windows)
-  - **Round 2 (HELD — needs design, NOT for autonomous blast):** AUD-24 /release command (audit says "needs short plan" → run /abra-kdabra: arkitect ADR + konstruct), AUD-25 /medik graphify integration (roadmap R-13, gate PASSED), AUD-26 /evolve cadence nudge, AUD-28 working-docs wiring (unify status enum + wire BACKLOG/WORK into /chekpoint + /medik Check #10). AUD-33 config-protection real-parser deferred (low-pri).
-  - Discipline: agents implement + test ONLY; main session verifies each diff + commits in logical units (Wave 2 lesson — sub-agents never commit; git mv auto-stages so watch the commit split).
+### Open AUD (post-AUD-37 cleanup)
+- **AUD-25** — /medik graphify integration (roadmap R-13, measurement gate PASSED).
+- **AUD-26** — /evolve cadence nudge (/nexus badge or session-end "N unconsumed ClusterReports").
+- **AUD-40** — /release cross-process committed-but-untagged recovery (LOW; human-invoked + narrated, missed tag visible pre-publish).
+- **AUD-33** — config-protection heuristic → real JS tokenizer / JSON.parse walk (LOW; near won't-fix per threat model).
 
-- **2026-07-13 — Wave 2 (P1, AUD-09..23) LANDED + hardened.** 5 parallel file-disjoint clusters + 1 sequential (session_id centralization) + wrap-up (npm audit → 0 vulns). Full /chekpoint tier: typescript-reviewer (0 BLOCK/4 WARN/5 NOTE) + spektr (1 HIGH/2 MED/4 LOW) + kody gate. ALL reviewer findings fixed via feniks TDD: config-protection.js went through 3 rounds (brace-balanced scan → multi-block matchAll → string-literal awareness) after kody caught two successive structural-scan bypasses; no-context-guard Windows-path normalize; parse-stdin null-guard + proto filter; session-start orphan.id safeSessionDir. config-protection residual scope (comments/template-literals) documented + deferred as AUD-33 (heuristic guard, not adversarial threat model). Suite 1226 tests / 92 files (1 known AUD-21/34 flake, passes isolated). Committed + pushed. Next: Wave 3 (AUD-24..34) pending user go.
+### Release milestone
+- **Cut v1.4.0** via `/release minor` (dogfood the new command) once AUD-37 + AUD-25/26 land.
+  Prunes done AUD-xx from BACKLOG → CHANGELOG.
 
-- **2026-07-12 — Full harness audit (6 parallel agents) + Wave 1 (P0) LANDED.** Report: `docs/insights/2026-07-12-full-harness-audit.md` (local-only, docs/insights/ is gitignored). Findings in `BACKLOG.md` (AUD-01..AUD-30). Wave 1 shipped AUD-01..08 through the full /chekpoint tier: 3 Phase 2a reviewers (spektr APPROVE — original MEDIUM closed; typescript-reviewer APPROVE-with-notes; orakle APPROVE) + all reviewer WARNs applied (dirty-flag disk writes, anomalous-pairing logging, scrub-order + free-text scrub) + kody GO. Suite 1158 tests / 90 files green.
-- **2026-07-12 — Wave 2 (P1) IN PROGRESS.** 5 parallel agents, file-disjoint clusters (no shared-file collisions):
-  - Cluster 1 (code, full-tier): `config-protection.js`, `no-context-guard.js`, `block-no-verify.js`, `commit-quality.js` — AUD-11 (Python exemptions) + AUD-12 (fail-closed) + AUD-19 (regex narrowing)
-  - Cluster 2 (code, full-tier): `git-push-reminder.js` — AUD-10 (getDiffScope adoption + python-reviewer allowlist)
-  - Cluster 3 (code, full-tier): `mcp-health-failure.js` — AUD-14 (JSONL append-only race fix)
-  - Cluster 4 (code+docs): `medik.md`, `scripts/lib/medik-checks/*.ts`, `medik-checks-cli.ts`, `mekanik.md`, `kurator.md` — AUD-09 (/medik false-FAIL kills) + AUD-18 (agent hygiene)
-  - Cluster 5 (docs, skip-tier): `kompact.md` frontmatter, `agents.md`/`agent-authoring` skill, CLAUDE.md/README/docs/README.md/CHANGELOG doc-drift D7-D14, `CATALOG.md` /medik row, `evolve.md`, `fable-prompt` rationale table, requires_tools frontmatter (skill-stocktake, rules-distill), `hooks.md` latency exception paragraph — AUD-16, AUD-17, AUD-20, AUD-22, AUD-13(doc part)
-  - **Sequential AFTER parallel merge** (single writer, touches files across all clusters): AUD-15 session_id centralization (`safeSessionDir()` helper) + parse-stdin `__proto__` filter
-  - **After tree is quiet**: AUD-21 flaky test triage (concurrency during parallel work would muddy the signal), AUD-23 npm audit
-  - AUD-13 real optimization (direct `.bin`, incremental tsc, consolidate 3 spawns) logged as new backlog item, not silently dropped — doc carve-out ships now, perf rewrite deferred
-  - Agents implement + test only. Main session verifies each diff and commits (Wave 1 lesson: agent final-message summaries lose detail; sub-agents must never commit — pre-commit hook rebuild risk).
+### Cross-project / forks (captured 2026-07-13 — were chat/prose only)
+- **AUD-41 — per-fork upgrade runbook** (Sentinel-harness + Kadmon7Cowork-Harness). Both DIVERGED
+  forks (own remotes, full source), both v1.3.0 + PRE-`tool_use_id`-migration. `git merge upstream/main`
+  won't apply (unrelated histories) → selective cherry-pick per fork. SHARED-DB gotcha: migration
+  changed machine-global `~/.kadmon/kadmon.db` schema (3→4 col index); forks on old code hit
+  `ON CONFLICT` mismatch → state-store goes dark. Sentinel = 11 commits (ADR-036 specialized);
+  KadmonCowork = 58 commits (+2 agents). Author when v1.4.0 is cut. (BACKLOG AUD-41.)
+- **AUD-42 — ToratNetz CLAUDE.md stale.** `~/.claude/CLAUDE.md` says "repo not created yet"; the repo
+  EXISTS (pushed 2026-07-10, confirmed via `gh repo list`). Correct the note. (BACKLOG AUD-42.)
+- **Watch 7am cloud routine PR** — `trig_01SDuKbeBpB5JuGmm2bE3KaE` (opus) fires 7am Jerusalem →
+  opens PR for R-05/R-08 on harness, scoped AWAY from plan-038 files. Review + merge in the morning.
+
+### Roadmap batch (v1.3.1+, lower priority — all in BACKLOG)
+- R-15..R-33 NOTE/perf batch · v1.3.2 graphify optimizations · v2.0 epics.
+- Promoted-from-memory: session-start banner silent (Bug 3) · orphan-recovery trigger fails ~20%.
 
 ## In flight elsewhere
+- **plan-036 Sentinel-harness fork** — sibling repo `C:\Command-Center\Sentinel-harness` (11 commits,
+  Phases 0-1+ done). Kadmon-side status flip DONE (ADR-036 `accepted` / plan-036 `in_progress`, fixed
+  in AUD-08 + AUD-28). Sentinel keeps its own decisions dir per ADR-036 §5. Remaining phases pending.
 
-- **plan-036 Sentinel-harness fork** — executing in sibling repo `C:\Command-Center\Sentinel-harness` (11 commits, 2026-06-24 through 2026-07-03; Phases 0-1+ done). Kadmon-side status flip pending (BACKLOG AUD-08). Sentinel keeps its own decisions dir per ADR-036 §5.
+## Landed but unreleased (CHANGELOG [Unreleased] — clears on v1.4.0 cut)
+- Everything on main since v1.3.0: AUD-01..39 (minus deferred), ADR-037 (/release), ADR-038
+  (working-docs standard), fable-prompt, graphify hook. All pushed, none tagged. `/release minor` clears this.
 
-## Landed but unreleased (CHANGELOG [Unreleased] pending — AUD-17)
-
-- `f912181` feat(skills): fable-prompt (also broke the skill-count contract test — AUD-01)
-- `29d24f3` fix(medik): skill-creator probe via installed_plugins.json (closes roadmap R-11)
-- `4415674` graphify UserPromptSubmit reminder hook in `.claude/settings.json` (uncataloged — AUD-17)
-
-## Known-red state on main
-
-- Deterministic failure (`manifest-schema.test.ts:341`) FIXED in Wave 1 (AUD-01). Remaining: 4 flaky hook tests (AUD-21 — pre-compact-save x2, session-end-all x2), pass in isolation.
+## Test state on main
+- Flaky hook tests (AUD-21) root-caused + FIXED via AUD-34 (vitest serialization of heavy
+  sql.js/execFileSync tests). Suite green 1385/1385.
 
 Last updated: 2026-07-13
