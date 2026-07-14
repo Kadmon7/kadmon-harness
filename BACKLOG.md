@@ -62,7 +62,7 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 ## v1.3.1 roadmap items (open, priority order per roadmap file)
 
 - [ ] R-15 `"utf-8"` -> `"utf8"` stale-plans.ts (5min) · R-03 ABS_PATH_RE cosmetic (15min)
-- [ ] R-09 shared DB-error fallback helper · R-05 noisy console.error post-edit-security · R-06 param shadow capability-alignment · R-08 double-cast install-diagnostic-reader · R-07 export parseCommandFrontmatter + tests
+- [ ] R-09 shared DB-error fallback helper · R-06 param shadow capability-alignment · R-08 double-cast install-diagnostic-reader · R-07 export parseCommandFrontmatter + tests
 - [ ] R-01 quadratic backtrack capability-matrix.ts:172 · R-02 batch per-file git log stale-plans.ts
 - [ ] R-10 + R-32 backup-rotate EBUSY pair · R-33 git-push-reminder latency outlier (profile first)
 - [ ] R-16 pyproject uncapped read · R-17 doks traversal guard prose-only
@@ -70,6 +70,7 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 - [ ] R-04 bandit probe cache · R-12 plugin-mode path JSDoc · R-31 post-compact auto-reload · R-14 nexus graph-freshness badge · R-20 doks consumer-.claude guard
 - [ ] R-18, R-19, R-23..R-30 NOTE-tier batch (stale agent docs, env telemetry, Check #8 guard, test refactor, SQL regex, path.resolve, JSDoc, chekpoint helper, spawn keywords, size cap)
 - [x] R-11 skill-creator probe heuristic — fixed `29d24f3` 2026-04-27 (registry mechanism)
+- [x] R-05 noisy console.error post-edit-security — removed the per-run `running bandit on <file>` progress line (stderr reserved for structured errors per rules/common/hooks.md; findings still print). Deterministic clean-path test added (fake bandit on PATH). Fixed `feat/nightly-r-items-2026-07-14` 2026-07-14.
 
 ## v1.3.2 + epics
 

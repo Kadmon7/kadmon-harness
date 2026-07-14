@@ -94,8 +94,45 @@ describe("post-edit-security hook", () => {
         tool_name: "Edit",
       });
       expect(r.code).toBe(0);
-      // stderr must NOT contain issue/severity markers (trace output allowed)
+      // stderr must NOT contain issue/severity markers (clean path is silent — R-05)
       expect(r.stderr).not.toMatch(/Issue:|Severity:/);
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // R-05: no progress noise on the clean / no-findings path.
+  // The hook must stay silent when bandit runs clean — stderr is reserved for
+  // structured error output per rules/common/hooks.md, so the pre-run
+  // "running bandit on <file>" progress line is UI noise on every clean edit.
+  // This stages a fake `bandit` on PATH that exits 0 (clean), which exercises
+  // the tool-available + no-findings branch deterministically WITHOUT requiring
+  // real bandit to be installed (unlike the it.runIf(BANDIT_INSTALLED) tests).
+  // -------------------------------------------------------------------------
+  it.runIf(process.platform !== "win32")(
+    "does not emit a progress trace on the clean / no-findings path",
+    () => {
+      const fakeBinDir = fs.mkdtempSync(path.join(os.tmpdir(), "fake-bandit-"));
+      const fakeBandit = path.join(fakeBinDir, "bandit");
+      fs.writeFileSync(fakeBandit, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+      try {
+        // Synthetic .py path that clears SKIP_PATHS; fake bandit ignores it.
+        const fakeProdPy = path.resolve("scripts/lib/fake-prod-clean.py");
+        const r = runHook(
+          {
+            tool_input: { file_path: fakeProdPy },
+            session_id: "test-r05-clean",
+            tool_name: "Edit",
+          },
+          { PATH: `${fakeBinDir}${path.delimiter}${process.env.PATH ?? ""}` },
+        );
+        expect(r.code).toBe(0);
+        // No findings markers on a clean run
+        expect(r.stderr).not.toMatch(/Issue:|Severity:/);
+        // R-05: the progress line must NOT appear on the clean path
+        expect(r.stderr).not.toMatch(/running bandit on/i);
+      } finally {
+        fs.rmSync(fakeBinDir, { recursive: true, force: true });
+      }
     },
   );
 
