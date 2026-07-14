@@ -8,13 +8,17 @@ note here what you are touching before you touch it).
 
 ## Task list (open)
 
-### Next up
-- **AUD-37** — split `scripts/lib/state-store.ts` (~1201 lines > 800 hard limit) into modules
-  (extract agent-invocation + research-report concerns). Mechanical → konstruct + feniks.
-  **← pick this next.**
+### Shipped this session (2026-07-14, on main)
+- **AUD-37** (`3e3ec3b`) — split `state-store.ts` (1201 lines) → 21-line barrel facade + 8 modules
+  under `scripts/lib/state-store/` (max 286 lines). Byte-for-byte move + 1 edit (schema.sql `../`).
+  Full-tier /chekpoint 4/4 GO (spektr + orakle + ts-reviewer + kody, 0 BLOCK); suite 1385/1385.
+- e2e hardening (`55c7b6d`) — `orchestrate.e2e.test.ts` now asserts a structural invariant, not
+  live tree state (2nd occurrence of the live-repo coupling class; 1st was `8fcd129`).
 
-### Open AUD (post-AUD-37 cleanup)
-- **AUD-25** — /medik graphify integration (roadmap R-13, measurement gate PASSED).
+### Next up
+- **AUD-25** — /medik graphify integration (roadmap R-13, measurement gate PASSED). **← pick this next.**
+
+### Open AUD (post-AUD-25/26 cleanup)
 - **AUD-26** — /evolve cadence nudge (/nexus badge or session-end "N unconsumed ClusterReports").
 - **AUD-40** — /release cross-process committed-but-untagged recovery (LOW; human-invoked + narrated, missed tag visible pre-publish).
 - **AUD-33** — config-protection heuristic → real JS tokenizer / JSON.parse walk (LOW; near won't-fix per threat model).
