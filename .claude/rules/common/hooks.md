@@ -9,7 +9,7 @@ alwaysApply: true
 - exit(1) = warn but allow (non-blocking feedback)
 - exit(2) = block the operation
 
-> Full Hook Catalog (23 registered hooks across 9 matcher groups + 11 shared modules) — see [`.claude/hooks/CATALOG.md`](../../hooks/CATALOG.md). Single source-of-truth per ADR-035.
+> Full Hook Catalog (23 registered hooks across 12 matcher groups + 12 shared modules) — see [`.claude/hooks/CATALOG.md`](../../hooks/CATALOG.md). Single source-of-truth per ADR-035.
 
 ## Safety
 - NEVER crash Claude Code — always exit(0) on unexpected errors

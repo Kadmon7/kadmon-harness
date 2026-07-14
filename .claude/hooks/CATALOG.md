@@ -14,6 +14,8 @@ description: Full hook catalog (23 registered hooks + 12 shared modules) with ma
 |------|--------|---------|------|
 | graphify-reminder | inline command in `.claude/settings.json` (no separate script file) | Query-first nudge: when `graphify-out/graph.json` exists, injects `additionalContext` reminding Claude to run `graphify query/path/explain` (or read `GRAPH_REPORT.md`) before grepping or answering an architecture/codebase question from memory. Added `4415674`, 2026-06-24. | 0 always (`\|\| true`; never blocks the prompt) |
 
+> **Co-installed graphify sibling (documented, not separately counted):** `graphify claude install` also writes a second inline injector to `.claude/settings.json` — a `PreToolUse` `Glob|Grep` hook, `graph.json`-gated like `graphify-reminder`, that nudges reading `GRAPH_REPORT.md` before raw-file searches. It reinforces the same query-first behavior and is external-tool-provided, so the "23 registered" total treats the two graphify nudges as one mechanism (the `UserPromptSubmit` entry above) rather than enumerating the `Glob|Grep` entry separately. The harness plugin itself ships **22 script hooks** (`hooks.json`); the graphify nudges arrive via the graphify install script, not the plugin.
+
 ### PreToolUse — Bash matcher (4)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
