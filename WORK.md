@@ -14,17 +14,20 @@ note here what you are touching before you touch it).
   Full-tier /chekpoint 4/4 GO (spektr + orakle + ts-reviewer + kody, 0 BLOCK); suite 1385/1385.
 - e2e hardening (`55c7b6d`) — `orchestrate.e2e.test.ts` now asserts a structural invariant, not
   live tree state (2nd occurrence of the live-repo coupling class; 1st was `8fcd129`).
+- **AUD-25** (`0adb544`) — /medik Check #16 graphify-health: graphify-out/ presence + freshness vs
+  HEAD (missing→NOTE, no-json→WARN, stale→advisory NOTE, fresh→PASS), discriminated-union input so
+  the false-"fresh" state is unrepresentable, git spawned only when graph.json exists. Full-tier
+  /chekpoint (ts-reviewer + spektr --force + kody, 0 BLOCK; 2 WARN closed via union refactor); suite 1385 → 1398.
 
 ### Next up
-- **AUD-25** — /medik graphify integration (roadmap R-13, measurement gate PASSED). **← pick this next.**
+- **AUD-26** — /evolve cadence nudge (/nexus badge or session-end "N unconsumed ClusterReports"). **← pick this next.**
 
-### Open AUD (post-AUD-25/26 cleanup)
-- **AUD-26** — /evolve cadence nudge (/nexus badge or session-end "N unconsumed ClusterReports").
+### Open AUD (post-AUD-26 cleanup)
 - **AUD-40** — /release cross-process committed-but-untagged recovery (LOW; human-invoked + narrated, missed tag visible pre-publish).
 - **AUD-33** — config-protection heuristic → real JS tokenizer / JSON.parse walk (LOW; near won't-fix per threat model).
 
 ### Release milestone
-- **Cut v1.4.0** via `/release minor` (dogfood the new command) once AUD-37 + AUD-25/26 land.
+- **Cut v1.4.0** via `/release minor` (dogfood the new command) once AUD-26 lands (AUD-37 + AUD-25 shipped).
   Prunes done AUD-xx from BACKLOG → CHANGELOG.
 
 ### Cross-project / forks (captured 2026-07-13 — were chat/prose only)
@@ -54,6 +57,6 @@ note here what you are touching before you touch it).
 
 ## Test state on main
 - Flaky hook tests (AUD-21) root-caused + FIXED via AUD-34 (vitest serialization of heavy
-  sql.js/execFileSync tests). Suite green 1385/1385.
+  sql.js/execFileSync tests). Suite green 1398/1398.
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
