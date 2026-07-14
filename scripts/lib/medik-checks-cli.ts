@@ -1,6 +1,6 @@
 // Kadmon Harness — /medik module-based checks CLI runner (AUD-04/AUD-05).
 //
-// Single entry point for /medik checks #10-#15 so medik.md can invoke them
+// Single entry point for /medik checks #10-#16 so medik.md can invoke them
 // from ANY consumer cwd once RUNTIME_ROOT is resolved:
 //
 //   npx tsx "$RUNTIME_ROOT/scripts/lib/medik-checks-cli.ts" --cwd "$(pwd)" [--checks 10,11]
@@ -28,6 +28,7 @@ import { runCheck as runInstinctDecay } from "./medik-checks/instinct-decay-cand
 import { runCheck as runSkillCreatorProbe } from "./medik-checks/skill-creator-probe.js";
 import { runCheck as runCapabilityAlignment } from "./medik-checks/capability-alignment.js";
 import { runCheck as runDocsStatusLint } from "./medik-checks/docs-status-lint.js";
+import { runCheck as runGraphifyHealth } from "./medik-checks/graphify-health.js";
 import type { CheckContext, CheckResult } from "./medik-checks/types.js";
 
 export interface CheckModule {
@@ -46,6 +47,7 @@ export const DEFAULT_REGISTRY: CheckRegistry = new Map<number, CheckModule>([
   [13, { name: "skill-creator-probe", needsDb: false, run: runSkillCreatorProbe }],
   [14, { name: "capability-alignment", needsDb: false, run: runCapabilityAlignment }],
   [15, { name: "docs-status-lint", needsDb: false, run: runDocsStatusLint }],
+  [16, { name: "graphify-health", needsDb: false, run: runGraphifyHealth }],
 ]);
 
 export interface CliOptions {

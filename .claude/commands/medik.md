@@ -1,5 +1,5 @@
 ---
-description: "Full harness diagnostic — 15 health checks + deep agent analysis + repair. Alias: /MediK"
+description: "Full harness diagnostic — 16 health checks + deep agent analysis + repair. Alias: /MediK"
 agent: mekanik, kurator
 skills: [systematic-debugging, coding-standards]
 ---
@@ -12,7 +12,7 @@ skills: [systematic-debugging, coding-standards]
 - Without args: profile auto-detected from filesystem markers via `detectMedikProfile()`.
 
 ## Purpose
-Full harness health diagnostic. Runs 14 mechanical checks grouped into 4 categories, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
+Full harness health diagnostic. Runs 16 mechanical checks grouped into 4 categories, invokes mekanik and kurator for deep analysis, presents all findings in conversation, and repairs what the user approves. No file artifacts — results are displayed directly.
 
 Always runs the full pipeline. If you're running /medik, you want the complete picture.
 
@@ -52,13 +52,13 @@ echo "RUNTIME_ROOT=$RUNTIME_ROOT (harness code) | CONSUMER_CWD=$CONSUMER_CWD (pr
 
 Then emit the diagnostic banner and inspect `$ARGUMENTS`.
 
-**Profile detection** (ADR-033 — informational only, all 15 checks run regardless):
+**Profile detection** (ADR-033 — informational only, all 16 checks run regardless):
 
 ```bash
 npx tsx -e "const u=require('node:url'),p=require('node:path');import(u.pathToFileURL(p.join(process.argv[1],'scripts/lib/detect-project-language.ts')).href).then(m=>{const profile=m.detectMedikProfile(process.argv[2],process.argv[3]||undefined);const source=process.argv[3]?'arg':(process.env.KADMON_MEDIK_PROFILE?'env':'markers');console.log('Detected: '+profile+' (source: '+source+')');}).catch(e=>{console.error('banner failed: '+e.message);process.exit(1);});" "$RUNTIME_ROOT" "$CONSUMER_CWD" "$ARGUMENTS"
 ```
 
-The banner is INFORMATIONAL ONLY. All 15 checks run regardless of profile (ADR-033). Per-check NOTE responses (e.g. "no consumer-local agents — nothing to lint") come from the checks themselves via cwd-existence guards, not from this banner.
+The banner is INFORMATIONAL ONLY. All 16 checks run regardless of profile (ADR-033). Per-check NOTE responses (e.g. "no consumer-local agents — nothing to lint") come from the checks themselves via cwd-existence guards, not from this banner.
 
 **`--ALV` flag** (Attach-Log-Verify):
 If `$ARGUMENTS` matches `--ALV`, generate a redacted diagnostic report and exit — skip Phases 1-4 entirely.
@@ -79,7 +79,7 @@ If `$ARGUMENTS` is empty or does not match a known flag, continue to Phase 1.
 
 ### Phase 1: Health Checks (direct — no agent)
 
-Run all 15 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `$RUNTIME_ROOT/scripts/lib/detect-project-language.ts`, imported the same way as the Phase 0 banner) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
+Run all 16 checks directly. Checks 1-3, 6, 7 are **language-aware** per ADR-020: resolve the project toolchain via `detectProjectLanguage()` (from `$RUNTIME_ROOT/scripts/lib/detect-project-language.ts`, imported the same way as the Phase 0 banner) and run the detected commands. If the toolchain returns `null` for a step (e.g. `build` for Python), mark it as `(skipped: no X step for <language>)` — not a failure.
 
 **Language + test-command resolution** (compute once, before running checks 1-3, 6, 7):
 
@@ -114,8 +114,8 @@ echo "Detected language: $LANGUAGE | test command: $TEST_CMD"
 | 4 | Hook errors | both | Read `~/.kadmon/hook-errors.log` | Recent errors, crash patterns |
 | 5 | DB health | both | Read `~/.kadmon/kadmon.db` | File exists, 7 tables present (sessions, instincts, cost_events, hook_events, agent_invocations, sync_queue, research_reports), no corruption |
 | 9 | Install health | both | `npx tsx -e "const u=require('node:url'),p=require('node:path');import(u.pathToFileURL(p.join(process.argv[1],'scripts/lib/install-health.ts')).href).then(m=>{const r=m.checkInstallHealth(process.argv[1]);console.log(JSON.stringify(r,null,2));process.exit(r.ok?0:1);}).catch(e=>{console.error('install-health failed: '+e.message);process.exit(1);});" "$RUNTIME_ROOT"` | Canonical root symlinks (ADR-019) intact, `dist/` present and fresh, no anomalies. Report includes tri-state symlink detection (symlink_ok/junction_ok/broken_target/text_file/regular_dir/missing) + inPluginCache flag + runtimeRootEnv capture (ADR-024) |
-| 11 | Hook health 24h | both | checks runner `--checks 11` (see Checks 10-15 note) | Blocking hooks in last 24h; avg duration exceeding budget (observe-pre/post: 50ms, no-context-guard: 100ms, others: 500ms) |
-| 13 | Skill-creator probe | both | checks runner `--checks 13` (see Checks 10-15 note) | skill-creator plugin present in plugin cache, project skills, or global skills |
+| 11 | Hook health 24h | both | checks runner `--checks 11` (see Checks 10-16 note) | Blocking hooks in last 24h; avg duration exceeding budget (observe-pre/post: 50ms, no-context-guard: 100ms, others: 500ms) |
+| 13 | Skill-creator probe | both | checks runner `--checks 13` (see Checks 10-16 note) | skill-creator plugin present in plugin cache, project skills, or global skills |
 | **Code hygiene** |
 | 6 | dist/ sync | TS | Compare `$CONSUMER_CWD/dist/` timestamps vs `$CONSUMER_CWD/scripts/lib/` (excludes `*.d.ts` — declaration files don't compile). **Guarded**: if `$CONSUMER_CWD/scripts/lib/` does not exist, skip with `NOTE: no scripts/lib/ directory — dist/ sync check is harness-specific, skipped` instead of forcing a meaningless comparison (this check assumes the harness's own `scripts/lib/` -> `dist/` layout; a generic TS repo with its own bundler output has nothing comparable) | Stale compiled output, missing files |
 |   |            | Python | (skipped — no dist/ in Python projects) | — |
@@ -125,10 +125,11 @@ echo "Detected language: $LANGUAGE | test command: $TEST_CMD"
 |   |              | unknown | (skipped — language not detected, toolchain checks skipped) | — |
 | 8 | Agent frontmatter | both | `node -e "if (!require('fs').existsSync(require('path').join(process.argv[1], '.claude/agents'))) { console.log(JSON.stringify({ status: 'NOTE', category: 'code-hygiene', message: 'no consumer-local agents in this project — nothing to lint' })); process.exit(0); }" "$CONSUMER_CWD"` then `npx tsx "$RUNTIME_ROOT/scripts/lint-agent-frontmatter.ts" --agents-dir "$CONSUMER_CWD/.claude/agents" --skills-dir "$CONSUMER_CWD/.claude/skills"` if guard passed | `skills:` field parses as YAML list (per ADR-012), every declared skill resolves to `.claude/skills/<name>/SKILL.md` (per ADR-013 — flat `<name>.md` files are invisible to the loader) |
 | **Knowledge hygiene** |
-| 10 | Stale plans | both | checks runner `--checks 10` (see Checks 10-15 note) | `status: pending` plans older than 3 days with recent git activity (WARN); accepted/completed plans ignored |
-| 12 | Instinct decay | both | checks runner `--checks 12` (see Checks 10-15 note) | Active instincts with confidence < 0.3 and last_observed_at > 30 days ago (or NULL) — advisory NOTE, not blocking |
-| 14 | Capability alignment | both | checks runner `--checks 14` (see Checks 10-15 note) | Skill/agent/command metadata drift: capability-mismatch (FAIL), path-drift (FAIL), command-skill-drift (FAIL), ownership-drift (WARN), heuristic-tool-mismatch (WARN), orphan-skill (NOTE). Opt-in `requires_tools:` skill frontmatter + heuristic body-scan fallback. See plan-029 + ADR-029. |
-| 15 | Docs status lint | both | checks runner `--checks 15` (see Checks 10-15 note) | Plan/ADR frontmatter `status:` outside its canonical enum (FAIL: plan `pending\|in_progress\|completed\|superseded`, ADR `proposed\|accepted\|deprecated\|superseded`); illegal `BACKLOG.md` checkbox marker outside `[ ] [~] [x] [-] [d]` (WARN). Pure file reads, no git/DB. See plan-038 + ADR-038. |
+| 10 | Stale plans | both | checks runner `--checks 10` (see Checks 10-16 note) | `status: pending` plans older than 3 days with recent git activity (WARN); accepted/completed plans ignored |
+| 12 | Instinct decay | both | checks runner `--checks 12` (see Checks 10-16 note) | Active instincts with confidence < 0.3 and last_observed_at > 30 days ago (or NULL) — advisory NOTE, not blocking |
+| 14 | Capability alignment | both | checks runner `--checks 14` (see Checks 10-16 note) | Skill/agent/command metadata drift: capability-mismatch (FAIL), path-drift (FAIL), command-skill-drift (FAIL), ownership-drift (WARN), heuristic-tool-mismatch (WARN), orphan-skill (NOTE). Opt-in `requires_tools:` skill frontmatter + heuristic body-scan fallback. See plan-029 + ADR-029. |
+| 15 | Docs status lint | both | checks runner `--checks 15` (see Checks 10-16 note) | Plan/ADR frontmatter `status:` outside its canonical enum (FAIL: plan `pending\|in_progress\|completed\|superseded`, ADR `proposed\|accepted\|deprecated\|superseded`); illegal `BACKLOG.md` checkbox marker outside `[ ] [~] [x] [-] [d]` (WARN). Pure file reads, no git/DB. See plan-038 + ADR-038. |
+| 16 | Graphify health | both | checks runner `--checks 16` (see Checks 10-16 note) | Optional `graphify-out/` knowledge graph: present + `graph.json` fresh vs HEAD. Missing dir → NOTE (graph not adopted here); dir present but `graph.json` missing → WARN (incomplete build); `graph.json` older than HEAD commit → advisory NOTE (`graphify update .`); fresh → PASS. Git unavailable → PASS (freshness skipped). Pure fs + one `git log -1` read, no DB. See AUD-25 / R-13. |
 
 > **Note:** Check 8 stays TS-only by design. The harness's own agents ARE TypeScript, so the frontmatter linter is always run from the harness repo regardless of the consumer project's language. Check 8 is wrapped in a cwd-existence guard — if `.claude/agents/` is absent in cwd, emit NOTE and skip the linter invocation ("no consumer-local agents in this project — nothing to lint").
 >
@@ -136,15 +137,15 @@ echo "Detected language: $LANGUAGE | test command: $TEST_CMD"
 >
 > **Note (Check 3):** the test command is resolved once during the language + test-command resolution step above and reused verbatim in Phase 3's regression gate — never re-hardcode `npx vitest run` at either call site. See `scripts/lib/medik-checks/test-runner-detect.ts` for the jest-vs-vitest detection logic (script content wins over dependency signals; default is vitest).
 >
-> **Note (Checks 10-15):** implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `$RUNTIME_ROOT/scripts/lib/medik-checks/`, executed via the single CLI runner:
+> **Note (Checks 10-16):** implemented as `runCheck(ctx: CheckContext): CheckResult` modules under `$RUNTIME_ROOT/scripts/lib/medik-checks/`, executed via the single CLI runner:
 >
 > ```bash
 > npx tsx "$RUNTIME_ROOT/scripts/lib/medik-checks-cli.ts" --cwd "$CONSUMER_CWD"
 > ```
 >
-> One invocation runs all six (default `--checks 10,11,12,13,14,15`) and prints ONE JSON array — prefer it over six separate spawns; use `--checks N[,M]` only to re-run individual checks (e.g. Phase 4 verify). The runner computes the real `projectHash` from `--cwd` via `detectProject()` (sha256 of the git remote url — the exact recipe the hooks persist with), so the DB-filtered checks #11/#12 query the correct rows. NEVER hand-build a `CheckContext` with a placeholder hash ("cli") — it matches zero rows and yields silent false PASS (AUD-05). Per-check crashes are captured as NOTE entries inside the array (the runner never dies whole); exit code is 1 only when at least one check reports FAIL, 2 on usage errors.
+> One invocation runs all seven (default `--checks 10,11,12,13,14,15,16`) and prints ONE JSON array — prefer it over seven separate spawns; use `--checks N[,M]` only to re-run individual checks (e.g. Phase 4 verify). The runner computes the real `projectHash` from `--cwd` via `detectProject()` (sha256 of the git remote url — the exact recipe the hooks persist with), so the DB-filtered checks #11/#12 query the correct rows. NEVER hand-build a `CheckContext` with a placeholder hash ("cli") — it matches zero rows and yields silent false PASS (AUD-05). Per-check crashes are captured as NOTE entries inside the array (the runner never dies whole); exit code is 1 only when at least one check reports FAIL, 2 on usage errors.
 >
-> Each module exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation. All 15 checks run in any cwd (ADR-033). Checks #8 and #14 emit a NOTE when their target directories (`.claude/agents/`, `.claude/skills/`) are absent — informational, not a defect. Checks #11 and #12 are already SQLite-filtered by `project_hash` derived from cwd.
+> Each module exports a standard interface (`status: PASS|NOTE|WARN|FAIL`, `category`, `message`, `details?`). Checks 11-12 are read-only and never mutate the database. Check 14 reads `.claude/` metadata only — no DB, no mutation. All 16 checks run in any cwd (ADR-033). Checks #8 and #14 emit a NOTE when their target directories (`.claude/agents/`, `.claude/skills/`) are absent — informational, not a defect. Checks #11 and #12 are already SQLite-filtered by `project_hash` derived from cwd.
 
 ### Phase 2: Deep Analysis (agents — always runs)
 
@@ -182,7 +183,7 @@ Workflow:
 
 ### Phase 4: Verify
 
-Re-run all 15 health checks to confirm everything is green. Report final status in conversation grouped by category (Core / Runtime / Code hygiene / Knowledge hygiene).
+Re-run all 16 health checks to confirm everything is green. Report final status in conversation grouped by category (Core / Runtime / Code hygiene / Knowledge hygiene).
 
 ## Output
 Health check table + agent findings + fix results + verification — all in conversation, no file artifacts.
@@ -210,5 +211,5 @@ Phase 3 — Repair:
   kurator: Fixed 11 items — security guards, dedup, dead code, style
 
 Phase 4 — Verify:
-  All 15 checks: PASS
+  All 16 checks: PASS
 ```
