@@ -47,7 +47,7 @@ Kadmon-Harness/
 |   |-- commands/               # 12 slash commands + CATALOG.md (ADR-035)
 |   |-- skills/                 # 49 skills at <name>/SKILL.md (ADR-013)
 |   |-- rules/                  # 19 rules (common + typescript + python) — operational logic only; catalogs moved (ADR-035)
-|   |-- hooks/scripts/          # 23 hooks + 11 shared modules + CATALOG.md (ADR-035)
+|   |-- hooks/scripts/          # 23 hooks + 12 shared modules + CATALOG.md (ADR-035)
 |   `-- settings.json
 |-- agents | commands | skills  # Canonical root symlinks → .claude/<type>/ (ADR-019, plugin loader discovery)
 |-- scripts/lib/                # TS: state-store, instincts, evolve-generate, install-apply, ...
@@ -131,7 +131,7 @@ Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: 
 Rules auto-load based on file context. They contain **operational orchestration logic only** (decision trees, severity rules, enforcement mappings) — catalog data moved to dedicated `CATALOG.md` files per ADR-035 to cut ~11k auto-loaded tokens. See `.claude/rules/common/agents.md` for agent orchestration rules.
 
 ## Hooks
-23 registered hooks + 11 shared modules in `.claude/hooks/scripts/`. See `.claude/hooks/CATALOG.md` for the full catalog (ADR-035 — non-auto-loaded).
+23 registered hooks + 12 shared modules in `.claude/hooks/scripts/`. See `.claude/hooks/CATALOG.md` for the full catalog (ADR-035 — non-auto-loaded).
 
 ## Memory
 - **SQLite**: sessions, instincts, cost events, hook events, agent invocations, sync queue, research reports at `~/.kadmon/kadmon.db` (7 tables; research_reports added in ADR-015)
@@ -162,6 +162,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.3.0 — 1158 tests / 90 files / 23 hooks / 16 agents / 49 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
+v1.3.0 — 1398 tests / 108 files / 23 hooks / 16 agents / 49 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.

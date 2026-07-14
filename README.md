@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-1158%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1398%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -259,11 +259,11 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Metric | Value |
 |--------|-------|
 | Agents | **16** (5 opus, 11 sonnet) |
-| Skills | **48** |
-| Commands | **11** |
-| Hooks | **23** registered + 11 shared modules |
+| Skills | **49** |
+| Commands | **12** |
+| Hooks | **23** registered + 12 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
-| Tests | **1158 passing** (90 files) |
+| Tests | **1398 passing** (108 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -377,7 +377,7 @@ Full component details are below (collapsed by default). For the operational cat
 ### Build (1)
 | Command | Purpose |
 |---------|---------|
-| `/medik` | Full harness diagnostic — 14 health checks, repair, cleanup |
+| `/medik` | Full harness diagnostic — 16 health checks, repair, cleanup |
 
 ### Scan (1)
 | Command | Purpose |
@@ -405,9 +405,9 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>22 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle)</summary>
+<summary><strong>23 Hooks</strong> — by severity (block / warn / observe / verify / lifecycle / prompt-context)</summary>
 
-> Full table with matchers, scripts, and exit codes lives at [`.claude/hooks/CATALOG.md`](.claude/hooks/CATALOG.md) (ADR-035 — non-auto-loaded). The summary below covers the 23 registered hooks; an additional 11 shared modules in `.claude/hooks/scripts/` are imported by lifecycle hooks (parse-stdin, scrub-secrets, safe-session-dir, evaluate-patterns-shared, generate-session-summary, daily-log, ensure-dist, hook-logger, backup-rotate, log-hook-event, install-diagnostic).
+> Full table with matchers, scripts, and exit codes lives at [`.claude/hooks/CATALOG.md`](.claude/hooks/CATALOG.md) (ADR-035 — non-auto-loaded). The summary below covers the 23 registered hooks; an additional 12 shared modules in `.claude/hooks/scripts/` are imported by lifecycle and toolchain-spawning hooks (parse-stdin, scrub-secrets, safe-session-dir, evaluate-patterns-shared, generate-session-summary, daily-log, ensure-dist, hook-logger, backup-rotate, log-hook-event, install-diagnostic, resolve-bin).
 
 ### Security — block dangerous operations (exit 2)
 | Hook | Event | What It Does |
@@ -432,6 +432,11 @@ Full component details are below (collapsed by default). For the operational cat
 |------|-------|-------------|
 | **observe-pre** | PreToolUse all | Logs tool invocation to JSONL with metadata |
 | **observe-post** | PostToolUse all | Logs tool result to JSONL; captures errors |
+
+### Prompt context — inject before answering (exit 0)
+| Hook | Event | What It Does |
+|------|-------|-------------|
+| **graphify-reminder** | UserPromptSubmit | When `graphify-out/graph.json` exists, nudges Claude to run `graphify query/path/explain` (or read `GRAPH_REPORT.md`) before grepping/answering an architecture question. Inline command in `settings.json` (no separate script). |
 
 ### Post-edit verification
 | Hook | Event | What It Does |
@@ -641,7 +646,7 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 ## 📊 Status & Attribution
 
 **v1.3.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
-`1158 tests passing` · `90 files` · `22 hooks` · `16 agents` · `49 skills` · `12 commands` · `19 rules` · `7 DB tables`
+`1398 tests passing` · `108 files` · `23 hooks` · `16 agents` · `49 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

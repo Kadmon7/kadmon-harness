@@ -1,6 +1,6 @@
 ---
 name: hooks-catalog
-description: Full hook catalog (23 registered hooks + 11 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
+description: Full hook catalog (23 registered hooks + 12 shared modules) with matchers, scripts, purposes, and exit codes. Read on-demand by /doks drift detection and human readers. Source-of-truth; rules reference this file via pointer.
 ---
 
 <!-- DO NOT AUTO-LOAD: this file is read on-demand by /doks and human readers. Lives outside .claude/rules/ to avoid eager context injection. See ADR-035. -->
@@ -80,7 +80,7 @@ description: Full hook catalog (23 registered hooks + 11 shared modules) with ma
 |------|--------|---------|------|
 | session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (single hook avoids races on shared SQLite handle) | 0 always |
 
-## Shared Modules (11)
+## Shared Modules (12)
 
 Not registered as hooks — imported by lifecycle hooks as utilities.
 
@@ -97,3 +97,4 @@ Not registered as hooks — imported by lifecycle hooks as utilities.
 | backup-rotate.js | Maintain 3 timestamped backups of the local SQLite database | session-start |
 | log-hook-event.js | Append hook execution events to session-scoped JSONL | 9 blocking/warning hooks (persisted to DB by session-end-all) |
 | install-diagnostic.js | Append InstallHealthReport to `~/.kadmon/install-diagnostic.log` on every session-start (ADR-024). Test-env guard redirects to stderr. | session-start |
+| resolve-bin.js | Resolve a toolchain CLI (tsc/eslint/prettier) to its real JS entry point in `node_modules` so hooks spawn it via `node <entry>` instead of `npx` — avoids per-edit npm resolution cost and the Windows `.cmd`/`shell:true` injection surface (CVE-2024-27980). Returns null when no local install found (callers fall back to npx/warn). AUD-31. | post-edit-format, post-edit-typecheck, quality-gate |

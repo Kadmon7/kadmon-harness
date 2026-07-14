@@ -20,7 +20,7 @@ Intercept the response flow and offer an explicit depth choice **before** answer
 
 ### Step 1 — Estimate input tokens
 
-Use the canonical heuristic shared with [context-budget](context-budget.md):
+Use the canonical heuristic shared with [context-budget](../context-budget/SKILL.md):
 
 - **Prose**: `words × 1.3`
 - **Code or mixed blocks**: `chars / 4`
