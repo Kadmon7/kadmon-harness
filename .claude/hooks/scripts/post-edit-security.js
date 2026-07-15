@@ -70,7 +70,9 @@ function runBandit(fp) {
     return { findings: false };
   }
 
-  console.error(`post-edit-security: running bandit on ${safeFp}`);
+  // No progress line here: stderr is reserved for structured error output
+  // (rules/common/hooks.md). A "running bandit" trace fired on every clean
+  // .py edit — UI noise. Findings still print below via the catch branch.
   try {
     execFileSync("bandit", ["-ll", "--quiet", safeFp], {
       encoding: "utf8",
