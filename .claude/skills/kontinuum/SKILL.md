@@ -1,15 +1,15 @@
 ---
-name: kryo
+name: kontinuum
 description: >-
   Freeze the task list and project state to disk when a session ends, and thaw it back
   when the next one starts — the cryo-mirror of /kompact. /kompact compacts the context
-  window *within* one session (you stay, its summary lives on in-thread); kryo crosses a
+  window *within* one session (you stay, its summary lives on in-thread); kontinuum crosses a
   hard session boundary — a /exit into a brand-new session in a fresh process, where the
   conversation thread breaks and an on-disk note is the only channel that survives. One
   trigger, two modes auto-detected by whether SESSION-HANDOFF.md exists at the repo root:
   FREEZE / SAVE (write the note on the way out) or THAW / RESTORE (re-pin the tasks, print
   the summary, delete the note). Use this skill whenever the user is about to /exit and
-  start a new session, or says "kryo", "freeze the session", "congela la sesion antes de
+  start a new session, or says "kontinuum", "freeze the session", "congela la sesion antes de
   salir", "handoff", "puente de sesion", "guarda la tasklist antes de salir", "re-pin the
   task list", "thaw", "descongela / restaura el handoff", "deja nota pa la proxima sesion",
   or otherwise asks to carry the task list and project state across a session boundary. Do
@@ -26,19 +26,19 @@ requires_tools:
   - Glob
 ---
 
-# kryo
+# kontinuum
 
 Freeze the task list and project state on the way out of a session, thaw it on the way in.
-kryo is the cryo-mirror of `/kompact`: where `/kompact` compacts the context window *within*
-one session — you stay, and its summary lives on in the same thread — kryo crosses a hard
+kontinuum is the cryo-mirror of `/kompact`: where `/kompact` compacts the context window *within*
+one session — you stay, and its summary lives on in the same thread — kontinuum crosses a hard
 boundary. A `/exit` into a fresh session severs the thread entirely; the only state that
-survives is what you froze to disk. kryo writes that frozen note on exit and thaws it on the
+survives is what you froze to disk. kontinuum writes that frozen note on exit and thaws it on the
 next start.
 
 ## Why a file, not the session-start hook
 
 The harness `session-start` hook already carries a *heuristic* summary forward from SQLite.
-kryo is the *explicit, curated* channel: the exact task list in the user's current order,
+kontinuum is the *explicit, curated* channel: the exact task list in the user's current order,
 with status, plus a hand-written project summary. It exists because "what I was in the middle
 of" is worth stating deliberately, not re-deriving from observations.
 
