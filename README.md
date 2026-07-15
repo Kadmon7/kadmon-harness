@@ -3,7 +3,7 @@
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
 [![Tests](https://img.shields.io/badge/tests-1412%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
+[![Version](https://img.shields.io/badge/version-1.4.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
@@ -224,7 +224,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 16 Agents│  │ 48 Skills│  │ 19 Rules │             │
+│  │ 16 Agents│  │ 52 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -259,7 +259,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Metric | Value |
 |--------|-------|
 | Agents | **16** (5 opus, 11 sonnet) |
-| Skills | **49** |
+| Skills | **52** |
 | Commands | **12** |
 | Hooks | **23** registered + 12 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
@@ -361,7 +361,7 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>11 Commands</strong> — organized by lifecycle phase</summary>
+<summary><strong>12 Commands</strong> — organized by lifecycle phase</summary>
 
 ### Observe (2)
 | Command | Purpose |
@@ -401,6 +401,11 @@ Full component details are below (collapsed by default). For the operational cat
 |---------|---------|
 | `/forge` | Unified instinct pipeline (read → extract → cluster → preview gate → apply). Flags: `--dry-run`, `export`. Writes ClusterReport JSON consumed by `/evolve` step 6. |
 | `/evolve` | Harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads `/forge` ClusterReports and proposes new skills/commands/agents/rules through a preview gate. |
+
+### Release (1)
+| Command | Purpose |
+|---------|---------|
+| `/release` | Cut a release — version bump + CHANGELOG consolidation + BACKLOG prune + status-flip proposals + annotated tag. Composes `/doks` for Layer-1 count sync. Human-invoked, no-push default (`--push` to publish). Args: `patch\|minor\|major`, `--dry-run`. See ADR-037. |
 
 </details>
 
@@ -648,7 +653,7 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 
 ## 📊 Status & Attribution
 
-**v1.3.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
+**v1.4.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
 `1412 tests passing` · `108 files` · `23 hooks` · `16 agents` · `52 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.

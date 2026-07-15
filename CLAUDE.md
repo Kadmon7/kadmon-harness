@@ -96,7 +96,7 @@ Kadmon-Harness/
 
 Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (ADR-035). Routing logic at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD)`. Code review = `/chekpoint`'s job, not `/abra-kdabra`'s.
 
-## Commands (11)
+## Commands (12)
 - **Observe** (2): /nexus, /kompact
 - **Plan** (1): /abra-kdabra
 - **Build** (1): /medik (alias /MediK)
@@ -104,6 +104,7 @@ Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (
 - **Research** (1): /skavenger (routes A=Media / B=General — see skavenger agent doc)
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (2): /forge, /evolve (step 6 Generate promoted to accepted 2026-04-24 after observation window)
+- **Release** (1): /release (version bump + CHANGELOG consolidation + BACKLOG prune + status-flip proposals + annotated tag; composes /doks; no-push default — ADR-037)
 
 ## Skills (52)
 
@@ -163,6 +164,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.3.0 — 1412 tests / 108 files / 23 hooks / 16 agents / 52 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
+v1.4.0 — 1412 tests / 108 files / 23 hooks / 16 agents / 52 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.
