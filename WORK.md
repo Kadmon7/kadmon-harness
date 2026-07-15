@@ -9,6 +9,7 @@ note here what you are touching before you touch it).
 ## Task list (open)
 
 ### Shipped recently (2026-07-14 → 07-15, on main)
+- **/release upgrade-advisory phase** (`3123ec5`, ADR-037 D7) — /release now auto-emits the consumer upgrade path (plugin update / install re-run / re-drop catalog) by classifying `git diff v<prev>..HEAD` into ADR-010 territories. New module `upgrade-advisory.ts` (subsystem 7→8), 39 tests, TDD feniks. Full-tier /chekpoint 0 BLOCK (spektr GO + ts-reviewer 2 WARN + kody GO); 3 FIX-NOW applied, 2 deferred to BACKLOG (5-file silent-swallow pass + CLAUDE.md count refresh). Closes the README "update the plugin" gap. Suite 1452.
 - **v1.4.0 CUT** (`aa03c7a` + tag `v1.4.0`, 2026-07-15) — `/release minor` dogfood end-to-end: bump 1.3.0→1.4.0, CHANGELOG `[Unreleased]`→`[1.4.0]` (51 lines), BACKLOG prune 40 items, `/doks` Layer-1 sync (5 count/version fixes) + `Commands 11→12` (+/release row in CLAUDE.md + README), pushed with `--follow-tags`. Phase-7 re-verify caught 2 live-repo-coupled tests (manifest + orchestrate.e2e pinned to version/date) → decoupled to structural invariants (`b3650db`, ts-reviewer APPROVE 0 BLOCK). Suite 1413 green.
 - **AUD-37** (`3e3ec3b`) — split `state-store.ts` (1201 lines) → 21-line barrel facade + 8 modules
   under `scripts/lib/state-store/` (max 286 lines). Byte-for-byte move + 1 edit (schema.sql `../`).
@@ -65,7 +66,7 @@ note here what you are touching before you touch it).
 
 ## Test state on main
 - Flaky hook tests (AUD-21) root-caused + FIXED via AUD-34 (vitest serialization of heavy
-  sql.js/execFileSync tests). Suite green 1413 (1412 passed / 1 skipped).
+  sql.js/execFileSync tests). Suite green 1452 (1451 passed / 1 skipped).
 - Release-subsystem live-repo coupling (manifest Test 2b + orchestrate.e2e pinned to
   version/date) decoupled to structural invariants during the v1.4.0 cut (`b3650db`). 3rd
   occurrence of the live-repo assertion-fragility class — memory `project_release_e2e_live_state_gotcha`.
