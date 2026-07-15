@@ -45,7 +45,7 @@ Kadmon-Harness/
 |-- .claude/
 |   |-- agents/                 # 16 specialists + CATALOG.md + _TEMPLATE.md.example (ADR-035)
 |   |-- commands/               # 12 slash commands + CATALOG.md (ADR-035)
-|   |-- skills/                 # 50 skills at <name>/SKILL.md (ADR-013)
+|   |-- skills/                 # 52 skills at <name>/SKILL.md (ADR-013)
 |   |-- rules/                  # 19 rules (common + typescript + python) — operational logic only; catalogs moved (ADR-035)
 |   |-- hooks/scripts/          # 23 hooks + 12 shared modules + CATALOG.md (ADR-035)
 |   `-- settings.json
@@ -63,6 +63,7 @@ Kadmon-Harness/
 - `KADMON_DISABLED_HOOKS` — Comma-separated hook names to skip
 - `KADMON_NO_CONTEXT_GUARD` — `"off"` to disable no-context enforcement
 - `KADMON_EVOLVE_WINDOW_DAYS` — /evolve Generate ClusterReport read window (default: 7)
+- `KADMON_FORGE_REPORTS_DIR` — Override the forge-reports directory (default `~/.kadmon/forge-reports`) for both `/forge` writes and `/evolve` reads; must resolve under `~/.kadmon` or the OS temp dir (test seam + power-user redirect).
 - `KADMON_RESEARCH_AUTOWRITE` — `"off"` to skip `/skavenger` auto-write to `docs/research/` (ADR-015)
 - `KADMON_RUNTIME_ROOT` — Harness repo root for plugin hooks to find `dist/` (ADR-010 Phase 1). Unset in local dev.
 - `KADMON_USER_SETTINGS_PATH` — Override user-scope `settings.json` for installer tests.
@@ -104,7 +105,7 @@ Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (
 - **Remember** (3): /chekpoint, /almanak, /doks
 - **Evolve** (2): /forge, /evolve (step 6 Generate promoted to accepted 2026-04-24 after observation window)
 
-## Skills (50)
+## Skills (52)
 
 Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029). Recent additions: `agent-authoring`, `hook-authoring` (extracted from agents.md / hooks.md to keep on-demand reference deep without bloating auto-loaded rules — ADR-035 sibling pattern).
 
@@ -162,6 +163,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.3.0 — 1398 tests / 108 files / 23 hooks / 16 agents / 50 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
+v1.3.0 — 1412 tests / 108 files / 23 hooks / 16 agents / 52 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.

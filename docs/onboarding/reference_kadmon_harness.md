@@ -1,6 +1,6 @@
 ---
 name: Kadmon Harness — commands, agents, skills, hooks catalog
-description: How to use the Kadmon Harness Claude Code plugin in this project. 12 slash commands, 16 specialist agents, 50 skills, 23 auto-hooks + 11 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
+description: How to use the Kadmon Harness Claude Code plugin in this project. 12 slash commands, 16 specialist agents, 52 skills, 23 auto-hooks + 11 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
 type: reference
 ---
 
@@ -83,11 +83,11 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 
 ---
 
-## 50 skills — domain knowledge loaded by agents
+## 52 skills — domain knowledge loaded by agents
 
 Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inject full content at sub-agent spawn; they are NOT inherited from parent session. Location: `.claude/skills/<name>/SKILL.md` (subdirectory + literal uppercase filename, per ADR-013).
 
-- **Workflow**: search-first · context-budget · token-budget-advisor · strategic-compact · kryo
+- **Workflow**: search-first · context-budget · token-budget-advisor · strategic-compact · kryo · sprint
 - **Quality**: coding-standards · tdd-workflow · verification-loop · e2e-testing · eval-harness · ai-regression-testing
 - **Learning**: continuous-learning-v2
 - **Architecture**: architecture-decision-records · api-design · hexagonal-architecture · docker-patterns
@@ -97,7 +97,7 @@ Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inj
 - **Python**: python-patterns · python-testing
 - **Frontend**: frontend-patterns
 - **Research**: deep-research
-- **Docs**: docs-sync · code-tour
+- **Docs**: docs-sync · code-tour · copy-deslop
 - **Cost / Perf**: cost-aware-llm-pipeline · benchmark
 - **Security**: safety-guard · security-review · security-scan
 - **Git / GitHub**: git-workflow · github-ops

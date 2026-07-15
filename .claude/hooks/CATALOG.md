@@ -80,7 +80,7 @@ description: Full hook catalog (23 registered hooks + 12 shared modules) with ma
 ### Stop — all (1)
 | Hook | Script | Purpose | Exit |
 |------|--------|---------|------|
-| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup (single hook avoids races on shared SQLite handle) | 0 always |
+| session-end-all | session-end-all.js | Consolidated Stop hook: persist session + daily log + evaluate patterns + track cost + persist hook events & agent invocations + write marker + cleanup + `/evolve` cadence nudge (single hook avoids races on shared SQLite handle) | 0 always |
 
 ## Shared Modules (12)
 

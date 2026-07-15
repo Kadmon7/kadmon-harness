@@ -3,14 +3,14 @@ description: Show the Kadmon Harness dashboard — instincts, sessions, costs, h
 ---
 
 ## Purpose
-Display a visual dashboard of the harness state: active instincts (with promotable markers), recent sessions (filtered, with duration), cost breakdown by model, and hook health status.
+Display a visual dashboard of the harness state: active instincts (with promotable markers), recent sessions (filtered, with duration), cost breakdown by model, and hook health status. The Instincts section also shows a cadence-nudge badge when `/forge` ClusterReports are pending `/evolve` consumption.
 
 ## Steps
 1. Run: `npx tsx scripts/dashboard.ts`
 2. Display the output to the user
 
 ## Output
-ANSI-colored dashboard with 4 sections: Instincts (with inline promotable markers), Sessions (filtered + duration), Cost Summary (by model), Hook Health.
+ANSI-colored dashboard with 4 sections: Instincts (with inline promotable markers + a pending-`/evolve` ClusterReport badge when reports await), Sessions (filtered + duration), Cost Summary (by model), Hook Health.
 
 ## Example
 ```
@@ -19,6 +19,7 @@ ANSI-colored dashboard with 4 sections: Instincts (with inline promotable marker
 ╚══════════════════════════════════════╝
 
 ── INSTINCTS (15 active | 10 promotable) ──
+  📊 3 ClusterReports pending /evolve (oldest 12d)
   [█████████░] 0.9  Check dashboard for system health (12x) → /forge
   [█████████░] 0.9  Build after editing TypeScript (15x) → /forge
   [███░░░░░░░] 0.3  Research before building (1x)

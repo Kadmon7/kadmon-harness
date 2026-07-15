@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-1398%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1412%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -29,7 +29,7 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/nexus` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
-| **Specialize** | Domain agents, curated skill catalog | 16 agents, 50 skills, `/abra-kdabra` |
+| **Specialize** | Domain agents, curated skill catalog | 16 agents, 52 skills, `/abra-kdabra` |
 | **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate EXPERIMENTAL through 2026-04-28) |
 
 ---
@@ -58,7 +58,7 @@ Open a Claude Code session in any project and run each on its own line:
 /reload-plugins
 ```
 
-Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 50 skills · 12 commands · 22 hooks** live in the session.
+Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 52 skills · 12 commands · 22 hooks** live in the session.
 
 ### Steps 4–5 · Bootstrap rules + permissions
 
@@ -189,7 +189,7 @@ Inside your first session in the target project:
 
 ### 🧠 Onboard Claude to the harness (optional but recommended)
 
-Want every Claude session in your project to start knowing the 12 commands, 16 agents, 50 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
+Want every Claude session in your project to start knowing the 12 commands, 16 agents, 52 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
 
 ```
 Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboarding/reference_kadmon_harness.md and save it as a reference memory in this project. Add a one-line pointer under `## References` in MEMORY.md.
@@ -263,7 +263,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Commands | **12** |
 | Hooks | **23** registered + 12 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
-| Tests | **1398 passing** (108 files) |
+| Tests | **1412 passing** (108 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -452,7 +452,7 @@ Full component details are below (collapsed by default). For the operational cat
 |------|-------|-------------|
 | **session-start** | SessionStart | Initializes session, loads 3 recent sessions, recovers orphans |
 | **pre-compact-save** | PreCompact | Saves session state before context compaction |
-| **session-end-all** | Stop | Consolidated: persist + daily log + evaluate patterns + cost |
+| **session-end-all** | Stop | Consolidated: persist + daily log + evaluate patterns + cost + `/evolve` nudge |
 
 ### MCP monitoring
 | Hook | Event | What It Does |
@@ -504,7 +504,8 @@ On clean exit (Stop hook — session-end-all)
   ├── Persist final session summary + tasks
   ├── Evaluate patterns → create/reinforce instincts
   ├── Track cost (tokens, model, USD)
-  └── Write clean-exit marker
+  ├── Write clean-exit marker
+  └── Nudge if /evolve ClusterReports are pending
 
 On crash / terminal close
   └── Next SessionStart recovers the orphaned session
@@ -545,6 +546,8 @@ Example instincts:
 
   ────────────────────────────────────────────────────────────
   🔮 INSTINCTS (9 active, 5 promotable)
+
+  📊 3 ClusterReports pending /evolve (oldest 12d)
 
   [██████████] 0.9  Build after editing types.ts (14x) → promote
   [██████████] 0.9  Re-run tests after failures (12x) → promote
@@ -646,7 +649,7 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 ## 📊 Status & Attribution
 
 **v1.3.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
-`1398 tests passing` · `108 files` · `23 hooks` · `16 agents` · `50 skills` · `12 commands` · `19 rules` · `7 DB tables`
+`1412 tests passing` · `108 files` · `23 hooks` · `16 agents` · `52 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 
