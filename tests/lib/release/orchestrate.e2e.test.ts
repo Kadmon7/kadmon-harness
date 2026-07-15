@@ -56,10 +56,14 @@ describe("release/orchestrate — E2E dry-run smoke (live repo, read-only)", () 
     // zero filesystem/git mutations, dirty tree or not.
     expect(after).toBe(before);
 
-    // Computed before preflight runs (computeNextVersion + tagName in orchestrate.ts) —
-    // these hold regardless of blocked state.
-    expect(plan.nextVersion).toBe("1.4.0");
-    expect(plan.tagName).toBe("v1.4.0");
+    // Computed before preflight runs (computeNextVersion + tagName in orchestrate.ts).
+    // Assert STRUCTURE, never absolute values: nextVersion/tagName derive from the live
+    // plugin.json version, so hardcoding them reddens on every release bump — the SAME
+    // live-repo coupling the blocked/proposals asserts below already avoid (project
+    // memory: project_release_e2e_live_state_gotcha). releaseDate is safe: FIXED_NOW is injected.
+    expect(plan.nextVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(plan.nextVersion).not.toBe(currentVersion); // minor bump moved it off the current version
+    expect(plan.tagName).toBe(`v${plan.nextVersion}`);
     expect(plan.releaseDate).toBe("2026-07-13");
 
     // plan.blocked is tree-state-dependent: a dirty working tree yields a DIRTY_TREE
@@ -76,7 +80,7 @@ describe("release/orchestrate — E2E dry-run smoke (live repo, read-only)", () 
     // against the (non-empty) [Unreleased] section rather than returning the blocked-branch
     // "" — distinguishing "computed" from "short-circuited". Holds regardless of tree state.
     expect(plan.changelogPreview.length).toBeGreaterThan(0);
-    expect(plan.changelogPreview).toContain("## [1.4.0]");
+    expect(plan.changelogPreview).toContain(`## [${plan.nextVersion}]`);
 
     // statusFlipProposals and backlogPrune are computed too, but their EMPTINESS is
     // data-dependent on live repo state (a referenced ADR/plan already at its target

@@ -10,7 +10,7 @@
 // RED/GREEN forecast per test:
 //   Test 1:  PASS  — .claude-plugin/plugin.json exists.                       Unchanged.
 //   Test 2:  RED   — plugin.json still has `commands`/`skills` (A.3 removes). GREEN after Step A.3.
-//   Test 2b: PASS  — name/version canonical values unchanged.                  Unchanged.
+//   Test 2b: PASS  — name canonical; version asserted by semver shape, not pinned. Decoupled 2026-07-15.
 //   Test 3:  PASS  — agents dir exists on disk with >=15 .md files.           Unchanged.
 //   Test 4:  RED   — ./commands symlink does not exist yet.                    GREEN after Step A.2.
 //   Test 5:  RED   — ./skills symlink does not exist yet.                      GREEN after Step A.2.
@@ -179,12 +179,14 @@ describe("plugin.json — required top-level fields", () => {
   );
 
   it(
-    // Test 2b — PASS (unchanged): canonical field values per ADR-010 contract.
-    "plugin.json name is 'kadmon-harness' and version is '1.3.0'",
+    // Test 2b — canonical field values per ADR-010 contract. Version asserts semver
+    // SHAPE, never a hardcoded value: a pinned version reddens on every release bump
+    // (live-repo coupling — project memory: project_release_e2e_live_state_gotcha).
+    "plugin.json name is 'kadmon-harness' and version is valid semver",
     () => {
       const manifest = loadJson(PLUGIN_JSON_PATH) as PluginJson;
       expect(manifest.name).toBe("kadmon-harness");
-      expect(manifest.version).toBe("1.3.0");
+      expect(manifest.version).toMatch(/^\d+\.\d+\.\d+$/);
     },
   );
 });
