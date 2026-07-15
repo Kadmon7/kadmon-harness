@@ -87,7 +87,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 
 Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inject full content at sub-agent spawn; they are NOT inherited from parent session. Location: `.claude/skills/<name>/SKILL.md` (subdirectory + literal uppercase filename, per ADR-013).
 
-- **Workflow**: search-first · context-budget · token-budget-advisor · strategic-compact · session-bridge
+- **Workflow**: search-first · context-budget · token-budget-advisor · strategic-compact · kryo
 - **Quality**: coding-standards · tdd-workflow · verification-loop · e2e-testing · eval-harness · ai-regression-testing
 - **Learning**: continuous-learning-v2
 - **Architecture**: architecture-decision-records · api-design · hexagonal-architecture · docker-patterns
