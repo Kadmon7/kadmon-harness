@@ -1,0 +1,23 @@
+{
+  "skill_name": "copy-deslop",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Here's the hero copy for a SaaS landing page. Make it sound human, not AI-generated: 'Our cutting-edge platform seamlessly empowers teams to unlock their full potential. Not just a tool, but a revolutionary solution designed to streamline your workflow and elevate productivity to new heights.'",
+      "expected_output": "Tightened, concrete rewrite: slop vocab (cutting-edge, seamlessly, empowers, unlock, revolutionary, streamline, elevate) removed, 'not just X but Y' gone, shorter, names the real benefit. Flags/asks for brand voice if unknown.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Clean up this Spanish marketing paragraph so it doesn't read like a machine wrote it: 'En el mundo actual, nuestra potente solucion no solo optimiza tus procesos empresariales, sino que tambien revoluciona por completo la manera en que gestionas tu negocio del dia a dia.'",
+      "expected_output": "Native Spanish de-slop: 'En el mundo actual', 'potente solucion', 'no solo... sino que tambien', 'revoluciona' removed; concrete verbs and nouns; shorter. Not a translation of an English fix.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "This button + subtext feels generic, punch it up but keep it honest: 'Effortlessly begin your journey to success today with our powerful all-in-one solution.'",
+      "expected_output": "Microcopy de-slop: concrete action verb, no 'effortlessly/journey/powerful/solution', short, same CTA intent.",
+      "files": []
+    }
+  ]
+}
