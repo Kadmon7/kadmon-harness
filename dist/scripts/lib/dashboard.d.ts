@@ -1,4 +1,5 @@
 import type { ObservabilityEvent } from "./types.js";
+import type { PendingReportsSummary } from "./evolve-report-reader.js";
 export interface InstinctRow {
     pattern: string;
     confidence: number;
@@ -40,4 +41,4 @@ export declare function getSessionRows(projectHash: string, limit?: number): Ses
 export declare function getHookHealthRows(events: ObservabilityEvent[]): HookHealthRow[];
 /** @internal — exported for tests only; internal helper of renderDashboard */
 export declare function getModelCostRows(projectHash: string): ModelCostRow[];
-export declare function renderDashboard(projectHash: string, events: ObservabilityEvent[]): string;
+export declare function renderDashboard(projectHash: string, events: ObservabilityEvent[], pending?: PendingReportsSummary): string;

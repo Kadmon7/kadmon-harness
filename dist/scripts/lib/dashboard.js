@@ -231,7 +231,11 @@ function computeHealthScore(projectHash, sessions, hookStats, agentStats) {
     return { score, label, color };
 }
 // ─── Full dashboard render ───
-export function renderDashboard(projectHash, events) {
+export function renderDashboard(projectHash, events, pending = {
+    count: 0,
+    oldestAgeDays: null,
+    newestAgeDays: null,
+}) {
     const lines = [];
     // ═══ Header ═══
     lines.push("");
@@ -260,6 +264,11 @@ export function renderDashboard(projectHash, events) {
         : `${counts.active} active`;
     lines.push(sectionHeader("\u{1F52E}", "INSTINCTS", countLabel));
     lines.push("");
+    if (pending.count > 0) {
+        const oldestSuffix = pending.oldestAgeDays !== null ? ` (oldest ${pending.oldestAgeDays}d)` : "";
+        lines.push(`  ${MAGENTA}\u{1F4CA} ${pending.count} ClusterReport${pending.count === 1 ? "" : "s"} pending /evolve${oldestSuffix}${RESET}`);
+        lines.push("");
+    }
     const instincts = getInstinctRows(projectHash);
     if (instincts.length === 0) {
         lines.push(`  ${DIM}No active instincts${RESET}`);

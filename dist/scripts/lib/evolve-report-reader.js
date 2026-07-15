@@ -88,6 +88,28 @@ export function readClusterReportsInWindow(opts) {
     results.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
     return results;
 }
+// ─── Pending reports summary (AUD-26 — /evolve cadence nudge) ───
+const DAY_MS = 24 * 60 * 60 * 1000;
+/**
+ * Summarizes how many ClusterReports are pending (fresh-in-window, unconsumed)
+ * for a project, to drive a cadence nudge toward running /evolve.
+ *
+ * Delegates all filesystem I/O and filtering to readClusterReportsInWindow —
+ * this function only aggregates the already-filtered result.
+ */
+export function summarizePendingClusterReports(opts) {
+    const results = readClusterReportsInWindow(opts);
+    if (results.length === 0) {
+        return { count: 0, oldestAgeDays: null, newestAgeDays: null };
+    }
+    const now = opts.now ?? new Date();
+    // results is sorted newest-first by readClusterReportsInWindow
+    const newest = results[0];
+    const oldest = results[results.length - 1];
+    const newestAgeDays = Math.floor((now.getTime() - new Date(newest.generatedAt).getTime()) / DAY_MS);
+    const oldestAgeDays = Math.floor((now.getTime() - new Date(oldest.generatedAt).getTime()) / DAY_MS);
+    return { count: results.length, oldestAgeDays, newestAgeDays };
+}
 // ─── Merge helper ───
 /**
  * Merges clusters from multiple ClusterReports by `clusterId`:

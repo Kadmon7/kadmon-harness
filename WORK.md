@@ -18,9 +18,16 @@ note here what you are touching before you touch it).
   HEAD (missing→NOTE, no-json→WARN, stale→advisory NOTE, fresh→PASS), discriminated-union input so
   the false-"fresh" state is unrepresentable, git spawned only when graph.json exists. Full-tier
   /chekpoint (ts-reviewer + spektr --force + kody, 0 BLOCK; 2 WARN closed via union refactor); suite 1385 → 1398.
+- **AUD-26** — /evolve cadence nudge: `summarizePendingClusterReports` helper (fresh-in-window count) on
+  TWO surfaces — `/nexus` dashboard badge + `session-end-all` Phase 6 note — sharing a new
+  `KADMON_FORGE_REPORTS_DIR` env seam (single choke point `forgeReportsBaseDir` w/ `assertSafeBaseDir`).
+  Full-tier /chekpoint: ts-reviewer 0 BLOCK/5 NOTE + spektr 0C/0H/1M/3L + kody 0 BLOCK/1 WARN → WARN
+  (read/write validation asymmetry) fixed via choke point, NOTE5 pluralization unified, both TDD via feniks.
+  Suite 1411 passed (lone `orchestrate.e2e` flaky under parallel load, passes isolated). CLAUDE.md env-var
+  + skill count 50→52 drift → following /doks. Also `cf9a13c` reconciled manifest skill count 49→52.
 
 ### Next up
-- **AUD-26** — /evolve cadence nudge (/nexus badge or session-end "N unconsumed ClusterReports"). **← pick this next.**
+- **Cut v1.4.0** via `/release minor` — AUD-26 landed; last blocker cleared (see Release milestone below).
 
 ### Open AUD (post-AUD-26 cleanup)
 - **AUD-40** — /release cross-process committed-but-untagged recovery (LOW; human-invoked + narrated, missed tag visible pre-publish).

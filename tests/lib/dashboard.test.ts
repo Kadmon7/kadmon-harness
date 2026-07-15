@@ -721,6 +721,24 @@ describe("dashboard", () => {
       expect(output).toContain("sync_queue");
       expect(output).toContain("research_reports");
     });
+
+    // ─── /evolve cadence nudge (AUD-26) ───
+
+    it("renders cadence nudge when ClusterReports are pending", () => {
+      const output = renderDashboard("proj1", [], {
+        count: 3,
+        oldestAgeDays: 5,
+        newestAgeDays: 1,
+      });
+      expect(output).toContain("/evolve");
+      expect(output).toContain("ClusterReport");
+      expect(output).toContain("3");
+    });
+
+    it("omits cadence nudge when zero pending", () => {
+      const output = renderDashboard("proj1", []);
+      expect(output).not.toContain("ClusterReports pending");
+    });
   });
 
   // ─── getSessionRows isLive ───

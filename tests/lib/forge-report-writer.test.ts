@@ -22,6 +22,7 @@ import {
   readClusterReport,
   pruneOldReports,
   exportInstinctsToJson,
+  forgeReportsBaseDir,
 } from "../../scripts/lib/forge-report-writer.js";
 
 function makeReport(overrides: Partial<ClusterReport> = {}): ClusterReport {
@@ -318,5 +319,58 @@ describe("forge-report-writer", () => {
     const badPath = path.join(tmpDir, "forge-clusters-sess-bad.json");
     fs.writeFileSync(badPath, "{not valid json}");
     expect(() => readClusterReport(badPath)).toThrowError(/failed to parse/i);
+  });
+
+  // ─── forgeReportsBaseDir env seam (AUD-26) ───
+
+  it("forgeReportsBaseDir returns the default ~/.kadmon/forge-reports path when the env var is unset", () => {
+    const original = process.env["KADMON_FORGE_REPORTS_DIR"];
+    delete process.env["KADMON_FORGE_REPORTS_DIR"];
+    try {
+      const result = forgeReportsBaseDir();
+      expect(result).toBe(path.join(os.homedir(), ".kadmon", "forge-reports"));
+    } finally {
+      if (original !== undefined) {
+        process.env["KADMON_FORGE_REPORTS_DIR"] = original;
+      } else {
+        delete process.env["KADMON_FORGE_REPORTS_DIR"];
+      }
+    }
+  });
+
+  it("forgeReportsBaseDir returns the KADMON_FORGE_REPORTS_DIR override when set", () => {
+    const original = process.env["KADMON_FORGE_REPORTS_DIR"];
+    process.env["KADMON_FORGE_REPORTS_DIR"] = tmpDir;
+    try {
+      const result = forgeReportsBaseDir();
+      expect(result).toBe(tmpDir);
+    } finally {
+      if (original !== undefined) {
+        process.env["KADMON_FORGE_REPORTS_DIR"] = original;
+      } else {
+        delete process.env["KADMON_FORGE_REPORTS_DIR"];
+      }
+    }
+  });
+
+  // ─── AUD-26 review: forgeReportsBaseDir must be a single choke point ───
+  // for BOTH readers and writers — an unvalidated override lets a reader
+  // (session-end-all, dashboard, /evolve) walk outside ~/.kadmon/os.tmpdir().
+
+  it("forgeReportsBaseDir throws when KADMON_FORGE_REPORTS_DIR points outside ~/.kadmon and os.tmpdir()", () => {
+    const original = process.env["KADMON_FORGE_REPORTS_DIR"];
+    process.env["KADMON_FORGE_REPORTS_DIR"] = path.join(
+      os.homedir(),
+      "some-random-outside-dir",
+    );
+    try {
+      expect(() => forgeReportsBaseDir()).toThrowError(/unsafe baseDir/i);
+    } finally {
+      if (original !== undefined) {
+        process.env["KADMON_FORGE_REPORTS_DIR"] = original;
+      } else {
+        delete process.env["KADMON_FORGE_REPORTS_DIR"];
+      }
+    }
   });
 });

@@ -441,6 +441,55 @@ async function main() {
       }
     } catch {}
 
+    // --- Phase 6: /evolve cadence nudge (AUD-26) ---
+    try {
+      const { detectProject } = await import(
+        pathToFileURL(
+          path.join(rootDir, "dist", "scripts", "lib", "project-detect.js"),
+        ).href
+      );
+      const project = detectProject(cwd);
+      if (project?.projectHash) {
+        const { summarizePendingClusterReports } = await import(
+          pathToFileURL(
+            path.join(
+              rootDir,
+              "dist",
+              "scripts",
+              "lib",
+              "evolve-report-reader.js",
+            ),
+          ).href
+        );
+        const { forgeReportsBaseDir } = await import(
+          pathToFileURL(
+            path.join(
+              rootDir,
+              "dist",
+              "scripts",
+              "lib",
+              "forge-report-writer.js",
+            ),
+          ).href
+        );
+        const pending = summarizePendingClusterReports({
+          baseDir: forgeReportsBaseDir(),
+          projectHash: project.projectHash,
+        });
+        if (pending.count > 0) {
+          const age =
+            pending.oldestAgeDays !== null
+              ? ` (oldest ${pending.oldestAgeDays}d)`
+              : "";
+          output.push(
+            `\u{1F4CA} ${pending.count} ClusterReport${pending.count === 1 ? "" : "s"} pending /evolve${age}`,
+          );
+        }
+      }
+    } catch (nudgeErr) {
+      logHookError("session-end-all", nudgeErr, { phase: "cadence-nudge" });
+    }
+
     if (output.length > 0) {
       console.log(output.join(" | "));
     }

@@ -14,6 +14,7 @@ import path from "node:path";
 import {
   readClusterReportsInWindow,
   mergeByInstinctId,
+  summarizePendingClusterReports,
 } from "../../scripts/lib/evolve-report-reader.js";
 import {
   makeClusterReport,
@@ -376,5 +377,208 @@ describe("mergeByInstinctId", () => {
     expect(merged.schemaVersion).toBe(1);
     expect(merged.sessionId).toBe("merged");
     expect(merged.projectHash).toBe("");
+  });
+});
+
+// ─── summarizePendingClusterReports tests (AUD-26 — /evolve cadence nudge) ───
+
+describe("summarizePendingClusterReports", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kadmon-evolve-summary-test-"),
+    );
+    delete process.env["KADMON_EVOLVE_WINDOW_DAYS"];
+  });
+
+  afterEach(() => {
+    delete process.env["KADMON_EVOLVE_WINDOW_DAYS"];
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {
+      // best effort
+    }
+  });
+
+  // ─── Test 1: count===0 — reports dir does not exist ───
+
+  it("returns nulls when reports dir does not exist", () => {
+    const nonExistentDir = path.join(
+      os.tmpdir(),
+      `kadmon-summary-missing-${Date.now()}`,
+    );
+
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: nonExistentDir,
+      projectHash: "aaaa",
+      windowDays: 7,
+      now: new Date(),
+    });
+
+    // Assert
+    expect(summary).toEqual({ count: 0, oldestAgeDays: null, newestAgeDays: null });
+  });
+
+  // ─── Test 1b: count===0 — dir exists but is empty ───
+
+  it("returns nulls when reports dir is empty", () => {
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: tmpDir,
+      projectHash: "aaaa",
+      windowDays: 7,
+      now: new Date(),
+    });
+
+    // Assert
+    expect(summary).toEqual({ count: 0, oldestAgeDays: null, newestAgeDays: null });
+  });
+
+  // ─── Test 2: count reflects N fresh reports for the same projectHash ───
+
+  it("count reflects N fresh reports for the same projectHash", () => {
+    // Arrange
+    const now = new Date();
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "aaaa", sessionId: "s-a1", generatedAt: daysAgo(1) }),
+      tmpDir,
+    );
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "aaaa", sessionId: "s-a2", generatedAt: daysAgo(2) }),
+      tmpDir,
+    );
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "aaaa", sessionId: "s-a3", generatedAt: daysAgo(3) }),
+      tmpDir,
+    );
+
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: tmpDir,
+      projectHash: "aaaa",
+      windowDays: 7,
+      now,
+    });
+
+    // Assert
+    expect(summary.count).toBe(3);
+  });
+
+  // ─── Test 3: reports for another projectHash are not counted ───
+
+  it("excludes reports from a different projectHash", () => {
+    // Arrange
+    const now = new Date();
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "aaaa", sessionId: "s-mine", generatedAt: daysAgo(1) }),
+      tmpDir,
+    );
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "bbbb", sessionId: "s-other", generatedAt: daysAgo(1) }),
+      tmpDir,
+    );
+
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: tmpDir,
+      projectHash: "aaaa",
+      windowDays: 7,
+      now,
+    });
+
+    // Assert
+    expect(summary.count).toBe(1);
+  });
+
+  // ─── Test 4: reports outside the window are not counted ───
+
+  it("excludes reports older than windowDays", () => {
+    // Arrange
+    const now = new Date();
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "aaaa", sessionId: "s-fresh", generatedAt: daysAgo(1) }),
+      tmpDir,
+    );
+    writeClusterReportToFile(
+      makeClusterReport({ projectHash: "aaaa", sessionId: "s-stale", generatedAt: daysAgo(10) }),
+      tmpDir,
+    );
+
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: tmpDir,
+      projectHash: "aaaa",
+      windowDays: 7,
+      now,
+    });
+
+    // Assert
+    expect(summary.count).toBe(1);
+  });
+
+  // ─── Test 5: oldestAgeDays / newestAgeDays computed with injected now + fixed generatedAt ───
+
+  it("computes oldestAgeDays and newestAgeDays from injected now and fixed generatedAt", () => {
+    // Arrange: now is fixed, generatedAt values are fixed — no real Date.now() involved
+    const now = new Date("2026-04-10T00:00:00.000Z");
+    writeClusterReportToFile(
+      makeClusterReport({
+        projectHash: "aaaa",
+        sessionId: "s-oldest",
+        generatedAt: "2026-04-01T00:00:00.000Z", // 9 days before `now`
+      }),
+      tmpDir,
+    );
+    writeClusterReportToFile(
+      makeClusterReport({
+        projectHash: "aaaa",
+        sessionId: "s-newest",
+        generatedAt: "2026-04-08T00:00:00.000Z", // 2 days before `now`
+      }),
+      tmpDir,
+    );
+
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: tmpDir,
+      projectHash: "aaaa",
+      windowDays: 30,
+      now,
+    });
+
+    // Assert
+    expect(summary.count).toBe(2);
+    expect(summary.oldestAgeDays).toBe(9);
+    expect(summary.newestAgeDays).toBe(2);
+  });
+
+  // ─── Test 6: edge — single report — oldest === newest ───
+
+  it("edge: single report — oldestAgeDays equals newestAgeDays", () => {
+    // Arrange
+    const now = new Date("2026-04-10T00:00:00.000Z");
+    writeClusterReportToFile(
+      makeClusterReport({
+        projectHash: "aaaa",
+        sessionId: "s-solo",
+        generatedAt: "2026-04-05T00:00:00.000Z", // 5 days before `now`
+      }),
+      tmpDir,
+    );
+
+    // Act
+    const summary = summarizePendingClusterReports({
+      baseDir: tmpDir,
+      projectHash: "aaaa",
+      windowDays: 30,
+      now,
+    });
+
+    // Assert
+    expect(summary.count).toBe(1);
+    expect(summary.oldestAgeDays).toBe(5);
+    expect(summary.newestAgeDays).toBe(5);
   });
 });

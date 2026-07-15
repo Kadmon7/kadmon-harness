@@ -13,6 +13,7 @@ import {
   getDb,
 } from "./state-store.js";
 import type { ObservabilityEvent } from "./types.js";
+import type { PendingReportsSummary } from "./evolve-report-reader.js";
 
 // ─── Types ───
 
@@ -334,6 +335,11 @@ function computeHealthScore(
 export function renderDashboard(
   projectHash: string,
   events: ObservabilityEvent[],
+  pending: PendingReportsSummary = {
+    count: 0,
+    oldestAgeDays: null,
+    newestAgeDays: null,
+  },
 ): string {
   const lines: string[] = [];
 
@@ -378,6 +384,15 @@ export function renderDashboard(
       : `${counts.active} active`;
   lines.push(sectionHeader("\u{1F52E}", "INSTINCTS", countLabel));
   lines.push("");
+
+  if (pending.count > 0) {
+    const oldestSuffix =
+      pending.oldestAgeDays !== null ? ` (oldest ${pending.oldestAgeDays}d)` : "";
+    lines.push(
+      `  ${MAGENTA}\u{1F4CA} ${pending.count} ClusterReport${pending.count === 1 ? "" : "s"} pending /evolve${oldestSuffix}${RESET}`,
+    );
+    lines.push("");
+  }
 
   const instincts = getInstinctRows(projectHash);
   if (instincts.length === 0) {

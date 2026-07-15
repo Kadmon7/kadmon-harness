@@ -19,6 +19,22 @@ export interface ReadReportsOptions {
  * or don't match the project/window filter.
  */
 export declare function readClusterReportsInWindow(opts: ReadReportsOptions): ClusterReport[];
+export interface PendingReportsSummary {
+    /** How many fresh-in-window ClusterReports exist for this projectHash. */
+    count: number;
+    /** Age in days of the oldest report within the window. null when count === 0. */
+    oldestAgeDays: number | null;
+    /** Age in days of the newest report within the window. null when count === 0. */
+    newestAgeDays: number | null;
+}
+/**
+ * Summarizes how many ClusterReports are pending (fresh-in-window, unconsumed)
+ * for a project, to drive a cadence nudge toward running /evolve.
+ *
+ * Delegates all filesystem I/O and filtering to readClusterReportsInWindow —
+ * this function only aggregates the already-filtered result.
+ */
+export declare function summarizePendingClusterReports(opts: ReadReportsOptions): PendingReportsSummary;
 /**
  * Merges clusters from multiple ClusterReports by `clusterId`:
  * - Union of members per cluster

@@ -5,11 +5,11 @@
 // Reference: ADR-008 section 5, API shape lines 294-356
 // Reference: plan-008-evolve-generate-pipeline.md Phase 2 (steps 2.1-2.5)
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readClusterReportsInWindow, mergeByInstinctId, } from "./evolve-report-reader.js";
 import { getActiveInstincts } from "./state-store.js";
+import { forgeReportsBaseDir } from "./forge-report-writer.js";
 // ─── Slug validation ───
 /** Slug regex per ADR-008:63 */
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{0,63}$/;
@@ -152,7 +152,7 @@ function buildSpec(type, cluster) {
 }
 // ─── Default reports directory ───
 function defaultReportsDir() {
-    return path.join(os.homedir(), ".kadmon", "forge-reports");
+    return forgeReportsBaseDir();
 }
 // ─── Cap constant ───
 const MAX_PROPOSALS = 10;

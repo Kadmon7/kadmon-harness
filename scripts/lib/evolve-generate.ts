@@ -6,7 +6,6 @@
 // Reference: plan-008-evolve-generate-pipeline.md Phase 2 (steps 2.1-2.5)
 
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,6 +30,7 @@ import {
   mergeByInstinctId,
 } from "./evolve-report-reader.js";
 import { getActiveInstincts } from "./state-store.js";
+import { forgeReportsBaseDir } from "./forge-report-writer.js";
 
 // ─── Public interface ───
 
@@ -206,7 +206,7 @@ function buildSpec(
 // ─── Default reports directory ───
 
 function defaultReportsDir(): string {
-  return path.join(os.homedir(), ".kadmon", "forge-reports");
+  return forgeReportsBaseDir();
 }
 
 // ─── Cap constant ───

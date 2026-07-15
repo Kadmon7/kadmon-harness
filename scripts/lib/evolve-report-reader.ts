@@ -128,6 +128,51 @@ export function readClusterReportsInWindow(
   return results;
 }
 
+// ─── Pending reports summary (AUD-26 — /evolve cadence nudge) ───
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export interface PendingReportsSummary {
+  /** How many fresh-in-window ClusterReports exist for this projectHash. */
+  count: number;
+  /** Age in days of the oldest report within the window. null when count === 0. */
+  oldestAgeDays: number | null;
+  /** Age in days of the newest report within the window. null when count === 0. */
+  newestAgeDays: number | null;
+}
+
+/**
+ * Summarizes how many ClusterReports are pending (fresh-in-window, unconsumed)
+ * for a project, to drive a cadence nudge toward running /evolve.
+ *
+ * Delegates all filesystem I/O and filtering to readClusterReportsInWindow —
+ * this function only aggregates the already-filtered result.
+ */
+export function summarizePendingClusterReports(
+  opts: ReadReportsOptions,
+): PendingReportsSummary {
+  const results = readClusterReportsInWindow(opts);
+
+  if (results.length === 0) {
+    return { count: 0, oldestAgeDays: null, newestAgeDays: null };
+  }
+
+  const now = opts.now ?? new Date();
+
+  // results is sorted newest-first by readClusterReportsInWindow
+  const newest = results[0];
+  const oldest = results[results.length - 1];
+
+  const newestAgeDays = Math.floor(
+    (now.getTime() - new Date(newest.generatedAt).getTime()) / DAY_MS,
+  );
+  const oldestAgeDays = Math.floor(
+    (now.getTime() - new Date(oldest.generatedAt).getTime()) / DAY_MS,
+  );
+
+  return { count: results.length, oldestAgeDays, newestAgeDays };
+}
+
 // ─── Merge helper ───
 
 /**

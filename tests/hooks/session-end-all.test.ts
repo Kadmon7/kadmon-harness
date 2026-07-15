@@ -4,6 +4,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import initSqlJs from "sql.js";
+import { detectProject } from "../../scripts/lib/project-detect.js";
+import {
+  makeClusterReport,
+  writeClusterReportToFile,
+} from "../fixtures/make-cluster-report.js";
 
 const HOOK = path.resolve(".claude/hooks/scripts/session-end-all.js");
 const SCHEMA_PATH = path.resolve("scripts/lib/schema.sql");
@@ -12,6 +17,11 @@ let sessionId: string;
 let obsDir: string;
 let testDb: string;
 let transcriptFile: string | null = null;
+// AUD-26: isolated per-test forge-reports dir so the real ~/.kadmon/forge-
+// reports on a dev machine never leaks a "pending /evolve" nudge into
+// unrelated assertions. Always empty by default — tests that want the
+// positive nudge path plant a fixture report inside this exact dir.
+let forgeReportsDir: string;
 
 // AUD-30 note: execFileSync only exposes stderr via the thrown error object
 // on a NON-ZERO exit — on success (this hook's contract is always exit 0,
@@ -24,7 +34,11 @@ function runHook(input: object): {
   stderr: string;
   exitCode: number;
 } {
-  const env = { ...process.env, KADMON_TEST_DB: testDb };
+  const env = {
+    ...process.env,
+    KADMON_TEST_DB: testDb,
+    KADMON_FORGE_REPORTS_DIR: forgeReportsDir,
+  };
   const result = spawnSync("node", [HOOK], {
     encoding: "utf8",
     input: JSON.stringify(input),
@@ -131,11 +145,14 @@ describe("session-end-all", () => {
     sessionId = `test-sea-${ts}`;
     obsDir = path.join(os.tmpdir(), "kadmon", sessionId);
     testDb = path.join(os.tmpdir(), `kadmon-sea-test-${ts}.db`);
+    forgeReportsDir = path.join(os.tmpdir(), `kadmon-forge-reports-test-${ts}`);
+    fs.mkdirSync(forgeReportsDir, { recursive: true });
     await seedDb();
   });
 
   afterEach(() => {
     fs.rmSync(obsDir, { recursive: true, force: true });
+    fs.rmSync(forgeReportsDir, { recursive: true, force: true });
     try {
       fs.unlinkSync(testDb);
     } catch {
@@ -1020,5 +1037,50 @@ describe("session-end-all", () => {
     const rows = await readAgentRows();
     expect(rows).toHaveLength(1);
     expect(rows[0].agent_type).toBe("feniks");
+  });
+
+  // --- AUD-26 (Wave 4 audit) — /evolve cadence nudge (Phase 6) ---
+  // runHook() always points KADMON_FORGE_REPORTS_DIR at the per-test
+  // forgeReportsDir (empty by default) so a dev machine's real
+  // ~/.kadmon/forge-reports can never leak a nudge into these assertions.
+
+  it("emits a '/evolve' + 'ClusterReport' cadence nudge when a fresh-in-window report is pending", () => {
+    // detectProject needs a real git remote — skip (not fail) when the
+    // sandbox running this suite has no origin configured.
+    const project = detectProject(process.cwd());
+    if (!project?.projectHash) {
+      expect(true).toBe(true);
+      return;
+    }
+
+    writeObservations([
+      makeObsLine("tool_pre", "Read", "/test/a.ts"),
+      makeObsLine("tool_post", "Read"),
+    ]);
+
+    // Plant a fresh ClusterReport for this project's hash directly in the
+    // tmpdir that runHook's env points KADMON_FORGE_REPORTS_DIR at.
+    const report = makeClusterReport({
+      projectHash: project.projectHash,
+      generatedAt: new Date().toISOString(),
+    });
+    writeClusterReportToFile(report, forgeReportsDir);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+    expect(r.stdout).toContain("/evolve");
+    expect(r.stdout).toContain("ClusterReport");
+  });
+
+  it("does not emit a cadence nudge when no ClusterReports are pending", () => {
+    writeObservations([
+      makeObsLine("tool_pre", "Read", "/test/a.ts"),
+      makeObsLine("tool_post", "Read"),
+    ]);
+    // forgeReportsDir is empty (beforeEach) — no report planted.
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+    expect(r.stdout).not.toContain("pending /evolve");
   });
 });

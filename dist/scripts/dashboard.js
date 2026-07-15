@@ -7,6 +7,8 @@ import os from "node:os";
 import { openDb, closeDb } from "./lib/state-store.js";
 import { detectProject } from "./lib/project-detect.js";
 import { renderDashboard } from "./lib/dashboard.js";
+import { summarizePendingClusterReports } from "./lib/evolve-report-reader.js";
+import { forgeReportsBaseDir } from "./lib/forge-report-writer.js";
 function loadObservations(sessionId) {
     const obsDir = path.join(os.tmpdir(), "kadmon", sessionId);
     const obsFile = path.join(obsDir, "observations.jsonl");
@@ -54,7 +56,11 @@ async function main() {
     try {
         const sessionId = findActiveSessionDir();
         const events = sessionId ? loadObservations(sessionId) : [];
-        const output = renderDashboard(project.projectHash, events);
+        const pending = summarizePendingClusterReports({
+            baseDir: forgeReportsBaseDir(),
+            projectHash: project.projectHash,
+        });
+        const output = renderDashboard(project.projectHash, events, pending);
         console.log(output);
     }
     finally {
