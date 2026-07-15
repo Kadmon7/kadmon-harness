@@ -8,7 +8,8 @@ note here what you are touching before you touch it).
 
 ## Task list (open)
 
-### Shipped this session (2026-07-14, on main)
+### Shipped recently (2026-07-14 → 07-15, on main)
+- **v1.4.0 CUT** (`aa03c7a` + tag `v1.4.0`, 2026-07-15) — `/release minor` dogfood end-to-end: bump 1.3.0→1.4.0, CHANGELOG `[Unreleased]`→`[1.4.0]` (51 lines), BACKLOG prune 40 items, `/doks` Layer-1 sync (5 count/version fixes) + `Commands 11→12` (+/release row in CLAUDE.md + README), pushed with `--follow-tags`. Phase-7 re-verify caught 2 live-repo-coupled tests (manifest + orchestrate.e2e pinned to version/date) → decoupled to structural invariants (`b3650db`, ts-reviewer APPROVE 0 BLOCK). Suite 1413 green.
 - **AUD-37** (`3e3ec3b`) — split `state-store.ts` (1201 lines) → 21-line barrel facade + 8 modules
   under `scripts/lib/state-store/` (max 286 lines). Byte-for-byte move + 1 edit (schema.sql `../`).
   Full-tier /chekpoint 4/4 GO (spektr + orakle + ts-reviewer + kody, 0 BLOCK); suite 1385/1385.
@@ -27,7 +28,8 @@ note here what you are touching before you touch it).
   + skill count 50→52 drift → following /doks. Also `cf9a13c` reconciled manifest skill count 49→52.
 
 ### Next up
-- **Cut v1.4.0** via `/release minor` — AUD-26 landed; last blocker cleared (see Release milestone below).
+- **Follow-up full `/doks` pass** — close the 2 README gaps doks flagged out of Phase-6 count-sync scope during the cut: `<summary>48 Skills</summary>` enumerates only ~32 of 52 (~20 rows missing); `latest:` narrative (README L651) still describes v1.3.0 ADRs 031-035, not the v1.4.0 headline (/release + /medik consumer-safety + audit Wave 2/3).
+- **Deep research Check Point** via `/skavenger` (pitch the cowork feature, with Eden) — business-sensitive, keep findings private. See memory `project_harness_repos_map`.
 
 ### Open AUD (post-AUD-26 cleanup)
 - **AUD-40** — /release cross-process committed-but-untagged recovery (LOW; human-invoked + narrated, missed tag visible pre-publish).
@@ -58,12 +60,14 @@ note here what you are touching before you touch it).
   Phases 0-1+ done). Kadmon-side status flip DONE (ADR-036 `accepted` / plan-036 `in_progress`, fixed
   in AUD-08 + AUD-28). Sentinel keeps its own decisions dir per ADR-036 §5. Remaining phases pending.
 
-## Landed but unreleased (CHANGELOG [Unreleased] — clears on v1.4.0 cut)
-- Everything on main since v1.3.0: AUD-01..39 (minus deferred), ADR-037 (/release), ADR-038
-  (working-docs standard), fable-prompt, graphify hook. All pushed, none tagged. `/release minor` clears this.
+## Landed but unreleased
+- (empty — v1.4.0 cut 2026-07-15 consolidated CHANGELOG `[Unreleased]` into `[1.4.0]` and tagged `v1.4.0`. The next `[Unreleased]` accrues from here.)
 
 ## Test state on main
 - Flaky hook tests (AUD-21) root-caused + FIXED via AUD-34 (vitest serialization of heavy
-  sql.js/execFileSync tests). Suite green 1398/1398.
+  sql.js/execFileSync tests). Suite green 1413 (1412 passed / 1 skipped).
+- Release-subsystem live-repo coupling (manifest Test 2b + orchestrate.e2e pinned to
+  version/date) decoupled to structural invariants during the v1.4.0 cut (`b3650db`). 3rd
+  occurrence of the live-repo assertion-fragility class — memory `project_release_e2e_live_state_gotcha`.
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
