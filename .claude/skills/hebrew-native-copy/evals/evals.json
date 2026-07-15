@@ -1,0 +1,19 @@
+{
+  "skill_name": "hebrew-native-copy",
+  "evals": [
+    {
+      "id": 0,
+      "name": "fix-draft-landing-he",
+      "prompt": "This Hebrew landing copy (an i18n object from a real WhatsApp-automation landing page) was machine-translated from English. It reads as generic and defaults to masculine second-person, which excludes female business owners (many of our customers run salons and clinics). Rewrite the Hebrew strings so they read as native Israeli marketing copy for a mixed-gender business-owner audience: gender-safe, internally consistent in how it addresses the reader, and free of English calques. Keep every key, every HTML tag/entity, every number and price, and the CTA actions exactly. Return the full rewritten i18n object plus a short note stating the address strategy you chose.",
+      "expected_output": "Rewritten I18N_HE strings with a single consistent gender-safe address strategy (plural or impersonal), no masculine-singular אתה defaults, HTML tags preserved, plus a stated strategy and a flag that a native pass is recommended before shipping.",
+      "files": ["input-draft-he.txt"]
+    },
+    {
+      "id": 1,
+      "name": "translate-fresh-en-to-he",
+      "prompt": "Localize this English landing copy into Hebrew for an Israeli audience of small-business owners (men and women — salons, clinics, restaurants). It must read as native Israeli marketing, not translated: warm and professional, gender-safe, no English sentence structure underneath. Return the Hebrew plus a one-line note on the address strategy you used.",
+      "expected_output": "Native-reading Hebrew that is gender-safe (no masculine-only address for a mixed audience), warm-professional register, idiomatic CTAs, with a stated address strategy.",
+      "files": ["input-en-source.txt"]
+    }
+  ]
+}

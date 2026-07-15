@@ -29,7 +29,7 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 | **Observe** | Watch every tool call, manage context | observe hooks, `/kompact audit`, `/nexus` |
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
-| **Specialize** | Domain agents, curated skill catalog | 16 agents, 52 skills, `/abra-kdabra` |
+| **Specialize** | Domain agents, curated skill catalog | 16 agents, 53 skills, `/abra-kdabra` |
 | **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate EXPERIMENTAL through 2026-04-28) |
 
 ---
@@ -58,7 +58,7 @@ Open a Claude Code session in any project and run each on its own line:
 /reload-plugins
 ```
 
-Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 52 skills · 12 commands · 22 hooks** live in the session.
+Run `/plugin` and you'll see **kadmon-harness Enabled** with **16 agents · 53 skills · 12 commands · 22 hooks** live in the session.
 
 ### Steps 4–5 · Bootstrap rules + permissions
 
@@ -205,7 +205,7 @@ Inside your first session in the target project:
 
 ### 🧠 Onboard Claude to the harness (optional but recommended)
 
-Want every Claude session in your project to start knowing the 12 commands, 16 agents, 52 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
+Want every Claude session in your project to start knowing the 12 commands, 16 agents, 53 skills, 22 hooks, and orchestration chain? Open Claude Code in your project and paste this:
 
 ```
 Read https://raw.githubusercontent.com/Kadmon7/kadmon-harness/main/docs/onboarding/reference_kadmon_harness.md and save it as a reference memory in this project. Add a one-line pointer under `## References` in MEMORY.md.
@@ -240,7 +240,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │ 16 Agents│  │ 52 Skills│  │ 19 Rules │             │
+│  │ 16 Agents│  │ 53 Skills│  │ 19 Rules │             │
 │  └──────────┘  └──────────┘  └──────────┘             │
 │                                                         │
 │  Lifecycle: SessionStart → PreCompact → Stop            │
@@ -275,7 +275,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Metric | Value |
 |--------|-------|
 | Agents | **16** (5 opus, 11 sonnet) |
-| Skills | **52** |
+| Skills | **53** |
 | Commands | **12** |
 | Hooks | **23** registered + 12 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
@@ -670,7 +670,7 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 ## 📊 Status & Attribution
 
 **v1.4.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
-`1412 tests passing` · `108 files` · `23 hooks` · `16 agents` · `52 skills` · `12 commands` · `19 rules` · `7 DB tables`
+`1412 tests passing` · `108 files` · `23 hooks` · `16 agents` · `53 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 
