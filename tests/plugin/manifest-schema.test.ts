@@ -272,7 +272,7 @@ describe("canonical root symlinks — existence and resolution (ADR-019)", () =>
     //   - readlinkSync target matches `.claude/<type>` (normalized, accepting both POSIX and
     //     Windows separators via path.normalize comparison).
     //   - Symlinks resolve to the correct real directory (realpathSync both sides match).
-    //   - File counts through each symlink match the source: agents=16, skills=46, commands=12.
+    //   - File counts through each symlink match the source: agents=16, skills=52, commands=12.
     "canonical root symlinks ./agents, ./skills, ./commands exist and resolve to .claude/<type>/ per ADR-019",
     () => {
       const types = ["agents", "skills", "commands"] as const;
@@ -280,7 +280,7 @@ describe("canonical root symlinks — existence and resolution (ADR-019)", () =>
       // Expected file counts accessible through each symlink
       const expectedCounts: Record<string, number> = {
         agents: 16,
-        skills: 49,
+        skills: 52,
         commands: 12,
       };
 
