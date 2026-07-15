@@ -81,7 +81,15 @@ npm install && npm run build
 
 Dry-run first: `./install.sh --dry-run /path/to/your/project`
 
-**Updating the harness later**:
+**Updating the harness later** — two parts (plugin + bootstrap):
+
+_Part 1 — update the plugin_ (agents/skills/commands/hooks), in a Claude Code session:
+```
+/plugin marketplace update kadmon-harness
+/plugin update kadmon-harness@kadmon-harness
+/reload-plugins
+```
+_Part 2 — refresh the clone + re-apply rules/permissions_:
 ```bash
 cd ~/projects/kadmon-harness && git pull && npm install && npm run build   # refresh clone
 ./install.sh /path/to/your/project                                         # re-apply per project
@@ -118,7 +126,15 @@ npm install; npm run build
 
 Dry-run first: `.\install.ps1 -TargetPath C:\path\to\your\project -DryRun`
 
-**Updating the harness later** (replace paths with your actual clone + project locations):
+**Updating the harness later** — two parts (plugin + bootstrap; replace paths with your actual clone + project locations):
+
+_Part 1 — update the plugin_ (agents/skills/commands/hooks), in a Claude Code session:
+```
+/plugin marketplace update kadmon-harness
+/plugin update kadmon-harness@kadmon-harness
+/reload-plugins
+```
+_Part 2 — refresh the clone + re-apply rules/permissions_:
 ```powershell
 cd C:\projects\kadmon-harness; git pull; npm install; npm run build   # refresh clone
 .\install.ps1 -TargetPath C:\path\to\your\project -ForcePermissionsSync  # re-apply + clear drift

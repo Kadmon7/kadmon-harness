@@ -6,7 +6,7 @@ description: Cut a release — version bump + CHANGELOG consolidation + BACKLOG 
 
 Collapse the 6+ manual release-hygiene steps (version bump, CHANGELOG consolidation, BACKLOG prune, ADR/plan/roadmap status-flip proposals, count sync, annotated tag) into one invocation. `/release` is a **normal, human-invoked** command — there is no scheduled or unattended path. It refuses to cut a broken, empty, or duplicate release, and keeps publishing (`git push`) and the semantic "which ADR actually shipped" judgment as explicit human steps.
 
-Logic lives in `scripts/lib/release/` (`types.ts` + 7 concern modules, module-per-concern per ADR-028). The command **composes** `/doks` for count reconciliation rather than recomputing counts, and re-runs the suite so the hardcoded `expectedCounts` contract test (`tests/plugin/manifest-schema.test.ts`) gates any residual drift. See ADR-037 for the full design (esp. the 2026-07-13 Amendment retiring the earlier autonomous framing).
+Logic lives in `scripts/lib/release/` (`types.ts` + 8 concern modules, module-per-concern per ADR-028). The command **composes** `/doks` for count reconciliation rather than recomputing counts, and re-runs the suite so the hardcoded `expectedCounts` contract test (`tests/plugin/manifest-schema.test.ts`) gates any residual drift. See ADR-037 for the full design (esp. the 2026-07-13 Amendment retiring the earlier autonomous framing).
 
 ## Arguments
 
@@ -36,6 +36,12 @@ No other flags. The bump level is a positional argument. The command scans `[Unr
 8. **Commit** — stage the release allowlist **only** (`git add -- <plugin.json/package.json/CHANGELOG.md/BACKLOG.md + the `/doks`-synced CLAUDE.md/README.md>`, never `-A`) so a concurrent-session or user edit made during the write→`/doks`→re-verify window can't fold into the release commit → `git commit -m "chore(release): vX.Y.Z"` with body footer `Reviewed: skip (release metadata — verified mechanically)` (D3/ADR-025).
 9. **Tag** — annotated `git tag -a vX.Y.Z -m <message>`. Idempotent: tag exists → `skipped`.
 10. **Push (opt-in)** — only if `--push` → `git push --follow-tags`. Off by default.
+11. **Upgrade advisory** (read-only, ADR-037 D7 Amendment) — classify `git diff --name-only v<prev>..HEAD` into ADR-010 distribution territories and print the exact commands consumers run to pull the release:
+    - **plugin update** (`.claude/{agents,skills,commands,hooks}/` + `.claude-plugin/` changed) → `/plugin marketplace update kadmon-harness` → `/plugin update kadmon-harness@kadmon-harness` → `/reload-plugins`
+    - **install re-run** (`.claude/rules/` + `.claude/settings.json` + `install.{sh,ps1}` changed) → `install.ps1 -ForcePermissionsSync` / `./install.sh <proj>`
+    - **re-drop onboarding catalog** (`docs/onboarding/{reference_kadmon_harness.md,CLAUDE.template.md}` changed)
+
+    Pure `git diff` read — zero mutation, informs only. Nothing changed in a distributed territory → a single "no consumer action needed" line. Via `scripts/lib/release/upgrade-advisory.ts` (`computeUpgradeAdvisory` + `renderUpgradeAdvisory`).
 
 ## Idempotent re-run
 
@@ -73,6 +79,11 @@ const writeResults = applyReleaseWrites(ctx, plan, deps);
 const commitResults = commitAndTag(ctx, plan, deps);
 
 // 5. If --push: git push --follow-tags (explicit human publish step, D3).
+
+// 6. SESSION STEP (read-only, D7): print the consumer upgrade path. Never blocks.
+//    import { computeUpgradeAdvisory, renderUpgradeAdvisory } from "./scripts/lib/release/upgrade-advisory.js";
+//    const adv = computeUpgradeAdvisory(repoRoot, `v${currentVersion}`, "HEAD");
+//    console.log(renderUpgradeAdvisory(adv, plan.tagName));
 ```
 
 The three-way split (`planRelease` / `applyReleaseWrites` / `commitAndTag`) is what lets the `/doks` compose call + re-verify slot in at the session layer between the writes and the commit, so the commit captures `/doks`'s edits and the contract test has already gone green.
@@ -110,6 +121,6 @@ Reminder: run `git push --follow-tags` (or re-run with --push) to publish.
 
 - ADR-037: `docs/decisions/ADR-037-release-command.md` (D1–D6 + 2026-07-13 Amendment)
 - Plan: `docs/plans/plan-037-release-command.md`
-- Implementation: `scripts/lib/release/` (`types.ts` + version-bump, changelog, backlog-prune, status-flips, tag, preflight, orchestrate)
+- Implementation: `scripts/lib/release/` (`types.ts` + version-bump, changelog, backlog-prune, status-flips, tag, preflight, orchestrate, upgrade-advisory)
 - Count contract: `tests/plugin/manifest-schema.test.ts` (`expectedCounts`)
 - Composes: `/doks` (Layer-1 count sync)

@@ -14,6 +14,7 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 ## P1 — consistency / quality
 
 - [ ] AUD-33 `config-protection.js` residual heuristic scope: `extractBraceBlockAt` is string-literal-aware (Wave 2) but is NOT a full JS/JSON parser — it does not skip JS comments (`/* } */`) or template literals when brace-counting. A disabled rule hidden behind a comment-embedded brace in an `eslint.config.js` could still slip past. Not realistic for the threat model (the "attacker" is the agent/user editing their own config, not a payload crafter; comments aren't valid in `.eslintrc.json`/`tsconfig.json`) — but if we want a true guarantee, replace the regex/scanner approach with `JSON.parse` + object-walk for the JSON configs and a real (lightweight) JS tokenizer for flat-config. Documented as heuristic in the code. Low priority.
+- [ ] Silent-swallow stderr-logging pass across `scripts/lib/release/` git-catch sites (`tag.ts:28`, `orchestrate.ts:85`, `backlog-prune.ts:24`, `status-flips.ts:43`, `upgrade-advisory.ts` defaultRunDiff): all `catch { return ... }` with zero stderr log (violates `common/patterns.md` "never swallow silently — always log"). Add a uniform stderr JSON diagnostic to all 5 in one pass. Surfaced by ts-reviewer + kody on the upgrade-advisory review 2026-07-15 (FOLLOW-UP, not per-file, to avoid a 1-vs-4 inconsistency). Low priority — read-only best-effort paths, none are security controls.
 
 ## P2 — features / trims
 

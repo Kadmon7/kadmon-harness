@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Added
+- **`/release` upgrade-advisory phase** ([ADR-037](docs/decisions/ADR-037-release-command.md) D7 Amendment) — after the tag, `/release` classifies `git diff --name-only v<prev>..HEAD` into ADR-010 distribution territories and prints the exact commands consumers run to pull the release: **plugin update** (`/plugin marketplace update` → `/plugin update` → `/reload-plugins`) when `.claude/{agents,skills,commands,hooks}/` or `.claude-plugin/` changed; **install re-run** (`install.ps1 -ForcePermissionsSync` / `./install.sh`) when `.claude/rules/`, `.claude/settings.json`, or `install.{sh,ps1}` changed; **re-drop onboarding catalog** when `docs/onboarding/{reference_kadmon_harness.md,CLAUDE.template.md}` changed. Closes the README gap where "Updating the harness later" documented only the clone+install refresh, never the `/plugin update` step (README now carries a Part-1 plugin-update block). New module `scripts/lib/release/upgrade-advisory.ts` (release subsystem 7 → 8 concern modules) — pure `git diff` read, zero mutation, best-effort (a git failure yields a neutral advisory, never blocks a release). TDD via feniks, 38 new tests.
+
 ## [1.4.0] — 2026-07-15
 
 ### Added
