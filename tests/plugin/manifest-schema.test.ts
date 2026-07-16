@@ -282,7 +282,7 @@ describe("canonical root symlinks — existence and resolution (ADR-019)", () =>
       // Expected file counts accessible through each symlink
       const expectedCounts: Record<string, number> = {
         agents: 16,
-        skills: 52,
+        skills: 53,
         commands: 12,
       };
 
