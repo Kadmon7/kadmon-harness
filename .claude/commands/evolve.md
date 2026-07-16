@@ -26,7 +26,7 @@ Invoke alchemik agent to analyze every harness component and propose evolution p
    - MEMORY: stale/orphaned/over-budget memory entries
 11. NEVER auto-apply — arkitect approves all changes
 
-12. **Step 6 "Generate" (EXPERIMENTAL — refining heuristics through 2026-04-28)** — CWD-aware artifact generation from ClusterReports:
+12. **Step 6 "Generate" (accepted 2026-04-24 — observation window closed, EXPERIMENTAL tag resolved)** — CWD-aware artifact generation from ClusterReports:
    - Alchemik emits `GenerateProposal[]` in a `json-generate-proposals` fence (see alchemik.md step 6)
    - Command-level Claude parses the fence and calls `runEvolveGenerate({ projectHash, cwd, reportsDir })` to validate shape and build `EvolveGeneratePreview`
    - Render approval gate (table format matching /forge step 6): one row per proposal with `#`, type, name, target path, complexity, confidence, source clusters

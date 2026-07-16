@@ -108,7 +108,7 @@ Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (
 
 ## Skills (53)
 
-Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029). Recent additions: `agent-authoring`, `hook-authoring` (extracted from agents.md / hooks.md to keep on-demand reference deep without bloating auto-loaded rules — ADR-035 sibling pattern).
+Catalog at `.claude/skills/` — each at `<name>/SKILL.md` (ADR-013). Clusters: workflow, quality, learning, architecture, data, integration, meta, python, frontend, research, docs, copy, cost/perf, security, git, decision-making. Drift audit via `/medik` Check #8 (agent frontmatter) + Check #14 (capability-alignment, ADR-029). Recent additions: `hebrew-native-copy` (native-Israeli Hebrew copy — de-translationese + gendered-address fix, `4dae117`). Recent rename: `kryo` → `kontinuum` (`985eadd`) — cross-session freeze/thaw of task state; the `kryo` name no longer resolves anywhere.
 
 ## External Tools
 
@@ -164,6 +164,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.4.0 — 1412 tests / 108 files / 23 hooks / 16 agents / 53 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
+v1.4.0 — 1457 tests / 109 files / 23 hooks / 16 agents / 53 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks.
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.

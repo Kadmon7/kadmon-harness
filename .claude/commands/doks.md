@@ -1,5 +1,5 @@
 ---
-description: Sync ALL project documentation with recent code changes — docs, rules, commands, skills
+description: Sync ALL project documentation with recent code changes — public docs, commands, skills + agents. Rules are out of scope (Amendment 2026-04-26 to ADR-032).
 agent: doks
 ---
 

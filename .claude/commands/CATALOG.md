@@ -40,7 +40,7 @@ description: Full command reference (12 commands grouped by 8 phases) with purpo
 |---------|---------|-------|
 | /chekpoint | Tiered verification + review + commit and push (full/lite/skip — see Tiers section) | kody + specialists |
 | /almanak | Look up live documentation for any library or framework | almanak |
-| /doks | Sync project documentation with code changes (4-layer sync) | doks |
+| /doks | Sync project documentation with code changes (3-layer sync; rules out of scope per the ADR-032 Amendment 2026-04-26) | doks |
 
 ### Evolve Phase (2)
 | Command | Purpose | Agent |

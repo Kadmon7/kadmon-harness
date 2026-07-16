@@ -19,7 +19,7 @@ Authoritative reference for the agent contract used in the Kadmon Harness. The o
 #### Sequential (agents run in order)
 ```
 /abra-kdabra   arkitect (if arch) → konstruct → feniks (if tdd)
-/medik    direct (8 checks) → [mekanik, kurator] (parallel analysis) → gate → repair → verify
+/medik    direct (16 checks) → [mekanik, kurator] (parallel analysis) → gate → repair → verify
 /doks     doks
 /evolve   alchemik
 ```
@@ -31,6 +31,7 @@ Authoritative reference for the agent contract used in the Kadmon Harness. The o
 /almanak         almanak (single lookup)
 /skavenger       skavenger (single researcher, loads deep-research skill)
 /forge           unified instinct pipeline (preview gate)
+/release         release-hygiene pipeline (ADR-037); composes /doks for Layer-1 count sync
 ```
 
 ## Command-Level Skills (no agent owner by design)

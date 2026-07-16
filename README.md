@@ -2,7 +2,7 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-1412%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1457%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-1.4.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
@@ -30,7 +30,7 @@ Instead of asking Claude "please write a test first", you define it in a rule, a
 | **Remember** | Persist sessions, track learned patterns | SQLite, instinct engine, `/chekpoint` |
 | **Verify** | Tests first, code review, quality gates | `/skanner`, `/chekpoint` |
 | **Specialize** | Domain agents, curated skill catalog | 16 agents, 53 skills, `/abra-kdabra` |
-| **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate EXPERIMENTAL through 2026-04-28) |
+| **Evolve** | Forge observations into instincts, generate artifacts | `/forge`, `/evolve` (step 6 Generate accepted 2026-04-24) |
 
 ---
 
@@ -279,7 +279,7 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Commands | **12** |
 | Hooks | **23** registered + 12 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
-| Tests | **1412 passing** (108 files) |
+| Tests | **1457 passing** (109 files) |
 | SQLite Tables | **7** + 17 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
@@ -320,7 +320,7 @@ Full component details are below (collapsed by default). For the operational cat
 </details>
 
 <details>
-<summary><strong>48 Skills</strong> — domain knowledge loaded on demand</summary>
+<summary><strong>53 Skills</strong> — domain knowledge loaded on demand</summary>
 
 > Each skill lives at `.claude/skills/<name>/SKILL.md` (subdirectory layout with literal uppercase `SKILL.md`). Flat files like `.claude/skills/<name>.md` are invisible to the Claude Code skill loader. Layout enforced by `/medik` Check #8.
 
@@ -328,6 +328,10 @@ Full component details are below (collapsed by default). For the operational cat
 - **coding-standards** — Naming, `node:` prefix imports, .js extensions
 - **api-design** — REST/RPC patterns with Zod schemas, error handling, versioning
 - **claude-api** — Correct Anthropic SDK usage: Messages, Tool Use, streaming
+
+### Architecture
+- **hexagonal-architecture** — Ports and adapters: domain model, use-case orchestration, inbound/outbound ports, composition root, testable boundaries (TypeScript, Java, Kotlin, Go)
+- **architecture-decision-records** — Decision record templates, lifecycle, Decision/Context/Options format
 
 ### Frontend
 - **frontend-patterns** — React/React Native: composition, custom hooks, Context+Reducer, memo/lazy/Suspense, accessibility
@@ -341,24 +345,53 @@ Full component details are below (collapsed by default). For the operational cat
 - **e2e-testing** — Mock vs real matrix, lifecycle rules, cleanup patterns
 - **verification-loop** — 6-step pipeline: build, typecheck, test, lint, format, review
 - **eval-harness** — EDD framework: define pass/fail before implementing, capability + regression evals, pass@k metrics, code/model/human graders
+- **ai-regression-testing** — Sandbox-mode API testing without DB dependencies, bug-check workflows, and tests that catch the blind spots created when the same model writes and reviews the code
 
 ### Python
 - **python-patterns** — Type hints (3.9+, Protocol, TypeVar), error handling, context managers, dataclasses
 - **python-testing** — pytest: fixtures, async testing, autospec mocking, coverage
 
+### Security
+- **security-review** — 10-section runtime code review: secrets, input validation, SQL injection, auth/authz, XSS, CSRF, rate limiting, sensitive data exposure, dependencies
+- **security-scan** — Audits the local `.claude/` tree: permissions allow-lists, hook command injection, MCP server risks, agent tool overreach, CLAUDE.md prompt-injection vectors
+
+### Git / GitHub
+- **git-workflow** — Branching strategies, commit conventions, merge vs rebase, PR workflow, conflict resolution, release tagging, undo recipes. Workflow-level companion to `rules/common/git-workflow.md`
+- **github-ops** — `gh` CLI repo operations: issue triage, PR management, CI failure debugging, release prep, security monitoring
+- **sprint** — Multi-developer parallel track lifecycle via `WORK_COORDINATION.md`: `/sprint` claims a track + branches from main; `/sprint close` runs the verification gate, opens a PR, auto-merges when eligible, then post-merge syncs and flips plan status
+
 ### Research / Documentation
 - **search-first** — Search existing codebase before writing new code
-- **architecture-decision-records** — Decision record templates, lifecycle, Decision/Context/Options format
 - **deep-research** — Multi-source research methodology with citations
-- **docs-sync** — 4-layer documentation synchronization: behavior-over-counts
+- **docs-sync** — 3-layer documentation synchronization: behavior-over-counts (rules out of scope per the 2026-04-26 Amendment)
+- **documentation-lookup** — Live library/framework docs via the Context7 MCP server instead of training-data recall
+- **code-tour** — Persona-targeted CodeTour `.tour` walkthroughs with verified file and line anchors (Microsoft CodeTour JSON format)
+
+### Copywriting
+- **copy-deslop** — Strip the tells that mark prose as AI-generated (em-dash overuse, "not just X but Y", rule-of-three triads, slop vocabulary, hedging, generic openers)
+- **hebrew-native-copy** — Rewrite Hebrew copy to read as native Israeli writing: fixes gendered second-person address (the default-masculine trap) and literal English calques
+
+### Cost / Performance
+- **benchmark** — Performance baselines and regression detection across page (Core Web Vitals), API (latency percentiles), and build (cold/HMR/test/lint) modes
+- **cost-aware-llm-pipeline** — Model routing by task complexity, immutable cost tracking, narrow retry logic, prompt caching
+- **token-budget-advisor** — Offers an explicit response-depth choice (25/50/75/100%) with token estimates before answering
+- **content-hash-cache-pattern** — SHA-256-of-content cache keys for expensive file processing: path-independent, auto-invalidating, service-layer separated
+- **regex-vs-llm-structured-text** — Regex first for repeating patterns (100-1000x cheaper, deterministic), LLM only for low-confidence edge cases via confidence scoring
+
+### Infrastructure
+- **docker-patterns** — Multi-stage Dockerfiles, Compose orchestration, networking, volume strategies, container hardening, secret management, debugging
 
 ### Harness Meta-Skills
 - **safety-guard** — 3 protection layers: block-no-verify, config-protection, no-context-guard
 - **context-budget** — Context window management, when to compact
+- **strategic-compact** — When to run `/kompact` manually at logical task boundaries rather than relying on arbitrary auto-compaction
+- **kontinuum** — Freeze the task list and project state to disk when a session ends, thaw it back when the next one starts; the cross-session mirror of `/kompact` (renamed from `kryo`, `985eadd`)
 - **continuous-learning-v2** — Instinct lifecycle: create, reinforce, contradict, promote, prune
 - **mcp-server-patterns** — MCP configuration, health checks, secrets management
 - **systematic-debugging** — Structured diagnosis: reproduce, isolate, hypothesize, verify
 - **receiving-code-review** — Receiving and applying code review feedback
+- **council** — Four-voice council (Architect, Skeptic, Pragmatist, Critic) via subagent isolation for ambiguous tradeoffs and go/no-go calls; anti-anchoring by construction
+- **fable-prompt** — Author high-leverage prompts for Claude Fable 5 runs: goal-not-steps, house rules, a self-checkable bar for done, adversarial verification, effort selection
 
 ### Harness Self-Improvement (Sprint F — ECC import)
 - **skill-stocktake** — Audit skills for quality/drift with Keep/Improve/Update/Retire/Merge verdicts
@@ -410,13 +443,13 @@ Full component details are below (collapsed by default). For the operational cat
 |---------|---------|
 | `/chekpoint` | Tiered verification + review + commit + push (full/lite/skip) |
 | `/almanak` | Search live documentation (Context7) |
-| `/doks` | Sync project documentation with code changes (4-layer) |
+| `/doks` | Sync project documentation with code changes (3-layer; rules out of scope per the ADR-032 Amendment) |
 
 ### Evolve (2)
 | Command | Purpose |
 |---------|---------|
 | `/forge` | Unified instinct pipeline (read → extract → cluster → preview gate → apply). Flags: `--dry-run`, `export`. Writes ClusterReport JSON consumed by `/evolve` step 6. |
-| `/evolve` | Harness self-optimization analysis. Step 6 "Generate" (EXPERIMENTAL through 2026-04-28) reads `/forge` ClusterReports and proposes new skills/commands/agents/rules through a preview gate. |
+| `/evolve` | Harness self-optimization analysis. Step 6 "Generate" (accepted 2026-04-24, after its observation window closed) reads `/forge` ClusterReports and proposes new skills/commands/agents/rules through a preview gate. |
 
 ### Release (1)
 | Command | Purpose |
@@ -669,8 +702,8 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 
 ## 📊 Status & Attribution
 
-**v1.4.0 — latest: project-agnostic stack across /skanner, /doks, /medik (ADR-031/032/033) + /chekpoint diff-scope-aware (ADR-034) + catalogs split to non-auto-loaded CATALOG.md siblings (ADR-035, 2026-04-26)**
-`1412 tests passing` · `108 files` · `23 hooks` · `16 agents` · `53 skills` · `12 commands` · `19 rules` · `7 DB tables`
+**v1.4.0 — latest: `/release` command collapses the manual release-hygiene steps into one human-invoked run (ADR-037) + `/medik` consumer-safety (checks reachable from consumer repos via `medik-checks-cli`, no more false FAILs) + audit Wave 2/3 hardening (security hooks fail closed, `session_id` traversal hardened across 10 hooks, toolchain hooks resolve bins directly, 2026-07-15)**
+`1457 tests passing` · `109 files` · `23 hooks` · `16 agents` · `53 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

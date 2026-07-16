@@ -1,6 +1,6 @@
 ---
 name: Kadmon Harness — commands, agents, skills, hooks catalog
-description: How to use the Kadmon Harness Claude Code plugin in this project. 12 slash commands, 16 specialist agents, 52 skills, 23 auto-hooks + 11 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
+description: How to use the Kadmon Harness Claude Code plugin in this project. 12 slash commands, 16 specialist agents, 53 skills, 23 auto-hooks + 12 shared modules, 19 convention rules. Invoke via commands or Task tool. Source of truth https://github.com/Kadmon7/kadmon-harness
 type: reference
 ---
 
@@ -66,7 +66,7 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 - **konstruct** — breaks down tasks into ordered implementation steps. Always runs on `/abra-kdabra`.
 - **spektr** — security detection (auth, SQL injection, path traversal, secrets). Auto-invokes on auth / keys / exec / paths / SQL edits.
 - **alchemik** — evolution analysis (hook latency, instinct quality, skill gaps). Only via `/evolve`.
-- **doks** — 4-layer doc sync. Triggered by `/doks`.
+- **doks** — 3-layer doc sync (public docs / commands / skills+agents; rules out of scope). Triggered by `/doks`.
 
 ### Sonnet (11) — execution + review
 - **kody** — lead code reviewer. Runs as `/chekpoint`'s consolidator.
@@ -83,12 +83,12 @@ If no evidence exists in the codebase, conversation, or docs, respond `no_contex
 
 ---
 
-## 52 skills — domain knowledge loaded by agents
+## 53 skills — domain knowledge loaded by agents
 
 Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inject full content at sub-agent spawn; they are NOT inherited from parent session. Location: `.claude/skills/<name>/SKILL.md` (subdirectory + literal uppercase filename, per ADR-013).
 
 - **Workflow**: search-first · context-budget · token-budget-advisor · strategic-compact · kontinuum · sprint
-- **Quality**: coding-standards · tdd-workflow · verification-loop · e2e-testing · eval-harness · ai-regression-testing
+- **Quality**: coding-standards · tdd-workflow · verification-loop · e2e-testing · eval-harness · ai-regression-testing · receiving-code-review · systematic-debugging
 - **Learning**: continuous-learning-v2
 - **Architecture**: architecture-decision-records · api-design · hexagonal-architecture · docker-patterns
 - **Data**: database-migrations · postgres-patterns · content-hash-cache-pattern
@@ -97,12 +97,11 @@ Declared via each agent's `skills:` frontmatter as a YAML block list. Skills inj
 - **Python**: python-patterns · python-testing
 - **Frontend**: frontend-patterns
 - **Research**: deep-research
-- **Docs**: docs-sync · code-tour · copy-deslop
-- **Cost / Perf**: cost-aware-llm-pipeline · benchmark
+- **Docs / Copy**: docs-sync · code-tour · copy-deslop · hebrew-native-copy
+- **Cost / Perf**: cost-aware-llm-pipeline · benchmark · regex-vs-llm-structured-text
 - **Security**: safety-guard · security-review · security-scan
 - **Git / GitHub**: git-workflow · github-ops
-- **Decision**: council · regex-vs-llm-structured-text
-- **Other**: systematic-debugging · receiving-code-review
+- **Decision-making**: council
 
 `agent-authoring` + `hook-authoring` (added 2026-04-26 per ADR-035 companion split): on-demand deep-mechanics reference for agent template contract and hook plugin-mode runtime resolution. Loaded only when relevant (creating/editing agent, lifecycle hook edits, KADMON_RUNTIME_ROOT debug). Companion to `_TEMPLATE.md.example` (scaffold) — skill is the encyclopedia, template is the blank form.
 
