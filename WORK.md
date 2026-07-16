@@ -47,8 +47,12 @@ note here what you are touching before you touch it).
   changed machine-global `~/.kadmon/kadmon.db` schema (3→4 col index); forks on old code hit
   `ON CONFLICT` mismatch → state-store goes dark. Sentinel = 11 commits (ADR-036 specialized);
   KadmonCowork = 58 commits (+2 agents). Author when v1.4.0 is cut. (BACKLOG AUD-41.)
-- **AUD-42 — ToratNetz CLAUDE.md stale.** `~/.claude/CLAUDE.md` says "repo not created yet"; the repo
-  EXISTS (pushed 2026-07-10, confirmed via `gh repo list`). Correct the note. (BACKLOG AUD-42.)
+- **AUD-42 — ToratNetz CLAUDE.md stale — SHIPPED 2026-07-16.** `~/.claude/CLAUDE.md` said "repo not
+  created yet"; the repo has been live since 2025-12-11 (~7 months, daily commits). Fix surfaced a
+  second, unlogged error in the same line: it named Supabase as the persistence layer, but ToratNetz
+  runs self-hosted PostgreSQL + pgvector HNSW via docker compose — Supabase is only an MCP there.
+  Line rewritten with the verified stack. Fix lands outside this repo (user-global config) → no
+  CHANGELOG entry. (BACKLOG AUD-42 flipped `[x]`.)
 - **Watch 7am cloud routine PR** — `trig_01SDuKbeBpB5JuGmm2bE3KaE` (opus) fires 7am Jerusalem →
   opens PR for R-05/R-08 on harness, scoped AWAY from plan-038 files. Review + merge in the morning.
 
