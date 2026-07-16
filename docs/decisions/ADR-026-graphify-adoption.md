@@ -74,3 +74,24 @@ No harness code to unpick. No schema migrations. No deprecated commands. The des
 - [x] 5-query token benchmark pre/post graphify on this repo — **PASSED 2026-04-24**. Expanded to 10 queries for robustness. Method C (total session cost, GRAPH_REPORT amortized once + wiki notes per query): **8.11× avg**. Method B (per-query, GRAPH_REPORT amortized): **20.07× avg**. Method A literal (GRAPH_REPORT counted per query) gave 1.77× but formula has obvious flaw — GRAPH_REPORT.md is navigation index loaded once per session, not per query. Below creator's 71.5× claim but well above 3.0× threshold. Full table at `docs/roadmap/v1.3-medik-expansion.md` item 7. Adoption confirmed.
 - [ ] Promote adoption to first-class `/medik graphify` subcommand (Check #14) if benchmark passes and team commit-cadence for `graphify-out/` is consistent — deferred to v1.4
 - [ ] Nexus badge for graph freshness (age of `graphify-out/graph.json` vs `HEAD` commit date) — deferred to v1.4
+
+## Amendment 2026-07-16 — both v1.4 deferrals resolved
+
+The two open follow-ups above were deferred to v1.4. v1.4.0 shipped 2026-07-15, so both are now
+settled. Recorded here as an amendment rather than by rewriting the entries (append-only).
+
+- **`/medik` graphify check — SHIPPED, renumbered and reshaped.** Landed as **Check #16
+  `graphify-health`** (`0adb544`, BACKLOG AUD-25) — not at slot #14, and not as a `/medik graphify`
+  subcommand. Both deviations from the original follow-up were forced, not incidental: slot #14 was
+  claimed by capability-alignment (ADR-029) before this shipped, and the `/medik` redesign forbids
+  subcommands (`/medik` is always deep), so a check was the only conforming shape. It asserts
+  `graphify-out/` presence + freshness vs `HEAD` (missing→NOTE, no-json→WARN, stale→advisory NOTE,
+  fresh→PASS). The stated precondition ("if benchmark passes") was met at 8.11× — see the benchmark
+  follow-up above.
+- **Nexus freshness badge — STILL OPEN, retracked.** Now **R-14** in [BACKLOG.md](../../BACKLOG.md)
+  ("nexus graph-freshness badge", v1.3.1 roadmap batch). Not dropped — reprioritized out of v1.4
+  because Check #16 now surfaces the same freshness signal on the `/medik` surface, which lowered
+  the badge's urgency.
+
+Surfaced by the 2026-07-16 orphan sweep: both boxes had gone stale against shipped reality and were
+tracked nowhere else.
