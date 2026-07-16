@@ -3,7 +3,7 @@
 //   pruneBacklog removes [x] lines from BACKLOG.md and leaves CHANGELOG.md byte-identical.
 //   As a safety net, it surfaces UnnarratedPruneWarning for any pruned id NOT found in the
 //   (read-only) changelog text, so nothing marked done-but-never-narrated is silently dropped.
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -74,12 +74,15 @@ function makeCtx(cwd: string): ReleaseContext {
 
 describe("backlog-prune", () => {
   let tmpDir: string | undefined;
+  let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 
   afterEach(() => {
     if (tmpDir) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
       tmpDir = undefined;
     }
+    stderrSpy?.mockRestore();
+    stderrSpy = undefined;
   });
 
   describe("collectDoneItems", () => {
@@ -224,6 +227,28 @@ describe("backlog-prune", () => {
       expect(result.step).toBe("backlog-prune");
       expect(result.status).toBe("applied");
       expect(result.filesTouched).toEqual(["BACKLOG.md"]);
+    });
+
+    it("(i) readChangelogText logs a warn when CHANGELOG.md is missing, and still falls back to treating nothing as narrated (silent-swallow fix)", () => {
+      tmpDir = makeTmpDir();
+      writeFixture(tmpDir, "BACKLOG.md", BACKLOG_FIXTURE);
+      const missingChangelogPath = path.join(tmpDir, "DOES-NOT-EXIST.md");
+      stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+      const result = pruneBacklog(makeCtx(tmpDir), missingChangelogPath);
+
+      expect(result.status).toBe("applied");
+      const details = result.details as { warnings: readonly { line: string; id: string }[] };
+      // Every pruned [x] item is now "unnarrated" because the changelog fallback was "".
+      expect(details.warnings.length).toBe(4);
+
+      expect(stderrSpy).toHaveBeenCalled();
+      const entry = JSON.parse(String(stderrSpy.mock.calls[0][0]).trim());
+      expect(entry.level).toBe("warn");
+      expect(entry.operation).toBe("readChangelogText");
+      expect(entry.fallback).toMatch(/empty/i);
+      expect(typeof entry.error).toBe("string");
+      expect(entry.error.length).toBeGreaterThan(0);
     });
   });
 });

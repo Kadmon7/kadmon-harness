@@ -20,6 +20,7 @@ import { collectDoneItems, pruneBacklog } from "./backlog-prune.js";
 import { proposeStatusFlips } from "./status-flips.js";
 import { tagExists, createReleaseTag } from "./tag.js";
 import { runPreflight } from "./preflight.js";
+import { log } from "../utils.js";
 
 const GIT_TIMEOUT_MS = 3000;
 const RELEASE_FILES = [".claude-plugin/plugin.json", "package.json", "CHANGELOG.md", "BACKLOG.md"] as const;
@@ -82,7 +83,12 @@ function isVersionAlreadyBumped(cwd: string, targetVersion: string): boolean {
     const raw = fs.readFileSync(path.join(cwd, ".claude-plugin", "plugin.json"), "utf8");
     const parsed = JSON.parse(raw) as { version?: unknown };
     return parsed.version === targetVersion;
-  } catch {
+  } catch (e: unknown) {
+    log("warn", "isVersionAlreadyBumped failed: falling back to returning false (treated as not bumped)", {
+      operation: "isVersionAlreadyBumped",
+      fallback: "returning false (treated as not bumped)",
+      error: e instanceof Error ? e.message : String(e),
+    });
     return false;
   }
 }

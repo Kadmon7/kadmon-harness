@@ -3,6 +3,7 @@
 // scripts/lib/medik-checks/stale-plans.ts — arg-array only, no shell interpolation
 // (security rule), 3s timeout + stdin ignore.
 import { execFileSync } from "node:child_process";
+import { log } from "../utils.js";
 const GIT_TIMEOUT_MS = 3000;
 function runGit(cwd, args) {
     return execFileSync("git", [...args], {
@@ -21,9 +22,14 @@ export function tagExists(cwd, tagName) {
             .map((line) => line.trim())
             .includes(tagName);
     }
-    catch {
+    catch (e) {
         // git unavailable or cwd is not a repo — treat as "no tag" so a subsequent
         // create attempt surfaces the real error instead of a silent false skip.
+        log("warn", "tagExists failed: falling back to returning false (treated as no tag)", {
+            operation: "tagExists",
+            fallback: "returning false (treated as no tag)",
+            error: e instanceof Error ? e.message : String(e),
+        });
         return false;
     }
 }

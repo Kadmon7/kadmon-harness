@@ -11,6 +11,7 @@ import { collectDoneItems, pruneBacklog } from "./backlog-prune.js";
 import { proposeStatusFlips } from "./status-flips.js";
 import { tagExists, createReleaseTag } from "./tag.js";
 import { runPreflight } from "./preflight.js";
+import { log } from "../utils.js";
 const GIT_TIMEOUT_MS = 3000;
 const RELEASE_FILES = [".claude-plugin/plugin.json", "package.json", "CHANGELOG.md", "BACKLOG.md"];
 // The Layer-1 files /doks reconciles between the TS writes and the commit (AMBIGUITY-3).
@@ -72,7 +73,12 @@ function isVersionAlreadyBumped(cwd, targetVersion) {
         const parsed = JSON.parse(raw);
         return parsed.version === targetVersion;
     }
-    catch {
+    catch (e) {
+        log("warn", "isVersionAlreadyBumped failed: falling back to returning false (treated as not bumped)", {
+            operation: "isVersionAlreadyBumped",
+            fallback: "returning false (treated as not bumped)",
+            error: e instanceof Error ? e.message : String(e),
+        });
         return false;
     }
 }

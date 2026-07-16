@@ -5,6 +5,7 @@
 // Mirrors tag.ts's execFileSync("git", [...], { cwd, timeout, stdio }) pattern —
 // arg-array only, no shell interpolation (security rule).
 import { execFileSync } from "node:child_process";
+import { log } from "../utils.js";
 // 5000ms — wider than the 3000ms in tag.ts/preflight.ts because `git diff --name-only`
 // over a full release range can scan more history than their single tag/rev-parse calls.
 const GIT_TIMEOUT_MS = 5000;
@@ -78,7 +79,12 @@ function defaultRunDiff(cwd, range) {
         });
         return output.split(/\r?\n/).filter((line) => line.trim().length > 0);
     }
-    catch {
+    catch (e) {
+        log("warn", "defaultRunDiff failed: falling back to returning empty path list (no consumer action inferred)", {
+            operation: "defaultRunDiff",
+            fallback: "returning empty path list (no consumer action inferred)",
+            error: e instanceof Error ? e.message : String(e),
+        });
         return [];
     }
 }

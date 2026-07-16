@@ -3,7 +3,7 @@
 // computeUpgradeAdvisory is DI-tested with a fake runDiff (mirrors tag.test.ts /
 // preflight.test.ts's ReleaseDeps injection pattern), PLUS one real tmp-git fixture
 // test (e) exercising the un-injected default execFileSync path — never MOCKS child_process.
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   classifyPath,
   advisoryFromPaths,
@@ -161,6 +161,13 @@ describe("release/upgrade-advisory — advisoryFromPaths (pure)", () => {
 });
 
 describe("release/upgrade-advisory — computeUpgradeAdvisory (DI)", () => {
+  let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
+
+  afterEach(() => {
+    stderrSpy?.mockRestore();
+    stderrSpy = undefined;
+  });
+
   it("(a) injects a fake runDiff and derives flags from the returned paths", () => {
     const calls: Array<{ cwd: string; range: string }> = [];
     const deps: UpgradeAdvisoryDeps = {
@@ -207,6 +214,10 @@ describe("release/upgrade-advisory — computeUpgradeAdvisory (DI)", () => {
     // No deps injected: the real default execFileSync git path runs against a cwd
     // that is not a git repo (or has no such tag), so git exits non-zero. The
     // contract requires this to be swallowed (return []) rather than throw.
+    // Muted: the silent-swallow fix now logs a real warn line to stderr on this
+    // path — this test predates that logging and asserts only the return-value
+    // contract, so keep it silent rather than leaking JSON into test output.
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     let advisory: UpgradeAdvisory | undefined;
 
     expect(() => {
@@ -247,6 +258,36 @@ describe("release/upgrade-advisory — computeUpgradeAdvisory (DI)", () => {
       expect(advisory.needsInstallRerun).toBe(false);
       expect(advisory.needsMemoryRefRedrop).toBe(false);
       expect(advisory.changedPaths.plugin).toContain(".claude/agents/feniks.md");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("(f) defaultRunDiff logs a warn when git diff fails, and computeUpgradeAdvisory still falls back to a no-op advisory (silent-swallow fix)", () => {
+    // Isolated tmp dir with NO git init at all (mirrors test (e)'s mkdtempSync
+    // convention — project memory project_release_e2e_live_state_gotcha bars
+    // coupling this assertion to the live repo tree). A non-repo cwd is enough
+    // to make the real `git diff` call fail without mocking child_process.
+    const dir = mkdtempSync(join(tmpdir(), "kadmon-adv-fail-"));
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    try {
+      let advisory: UpgradeAdvisory | undefined;
+      expect(() => {
+        advisory = computeUpgradeAdvisory(dir, "v999.999.999-does-not-exist");
+      }).not.toThrow();
+
+      expect(advisory?.needsPluginUpdate).toBe(false);
+      expect(advisory?.needsInstallRerun).toBe(false);
+      expect(advisory?.needsMemoryRefRedrop).toBe(false);
+
+      expect(stderrSpy).toHaveBeenCalled();
+      const entry = JSON.parse(String(stderrSpy.mock.calls[0][0]).trim());
+      expect(entry.level).toBe("warn");
+      expect(entry.operation).toBe("defaultRunDiff");
+      expect(entry.fallback).toMatch(/empty/i);
+      expect(typeof entry.error).toBe("string");
+      expect(entry.error.length).toBeGreaterThan(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

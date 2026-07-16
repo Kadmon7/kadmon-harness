@@ -8,6 +8,7 @@
 // never-narrated is silently dropped.
 import fs from "node:fs";
 import path from "node:path";
+import { log } from "../utils.js";
 const DONE_LINE_RE = /^- \[x\] /;
 const ID_RE = /(AUD-\d+|R-\d+)/;
 function backlogPath(cwd) {
@@ -17,9 +18,14 @@ function readChangelogText(changelogPath) {
     try {
         return fs.readFileSync(changelogPath, "utf8");
     }
-    catch {
+    catch (e) {
         // Missing/unreadable changelog is treated as "nothing narrated" — every pruned
         // item surfaces as a warning rather than silently skipping the safety net.
+        log("warn", "readChangelogText failed: falling back to returning empty string (treated as nothing narrated)", {
+            operation: "readChangelogText",
+            fallback: "returning empty string (treated as nothing narrated)",
+            error: e instanceof Error ? e.message : String(e),
+        });
         return "";
     }
 }

@@ -3,7 +3,7 @@
 // section. This module NEVER writes — every test in the (f) family asserts byte-identical
 // files after the call. Fixtures live entirely under a mkdtempSync tmp dir; real repo docs
 // are never touched.
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -60,6 +60,13 @@ function makeContext(cwd: string): ReleaseContext {
 }
 
 describe("proposeStatusFlips", () => {
+  let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
+
+  afterEach(() => {
+    stderrSpy?.mockRestore();
+    stderrSpy = undefined;
+  });
+
   it("(a) proposes accepted for a referenced ADR at status: proposed", () => {
     const tmpDir = makeTmpDir();
     try {
@@ -194,9 +201,36 @@ describe("proposeStatusFlips", () => {
 
   it("(h) returns [] gracefully when CHANGELOG.md does not exist", () => {
     const tmpDir = makeTmpDir();
+    // Muted: the silent-swallow fix now logs a real warn line to stderr on this
+    // path (readFileSafe can't find CHANGELOG.md) — this test predates that
+    // logging and asserts only the return-value contract, so keep it silent
+    // rather than leaking JSON into test output.
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     try {
       expect(() => proposeStatusFlips(makeContext(tmpDir))).not.toThrow();
       expect(proposeStatusFlips(makeContext(tmpDir))).toEqual([]);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("(i) readFileSafe logs a warn when CHANGELOG.md is missing, and proposeStatusFlips still falls back to [] (silent-swallow fix)", () => {
+    const tmpDir = makeTmpDir();
+    try {
+      stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+      const proposals = proposeStatusFlips(makeContext(tmpDir));
+
+      expect(proposals).toEqual([]);
+      expect(stderrSpy).toHaveBeenCalled();
+
+      const entry = JSON.parse(String(stderrSpy.mock.calls[0][0]).trim());
+      expect(entry.level).toBe("warn");
+      expect(entry.operation).toBe("readFileSafe");
+      expect(entry.filePath).toBe(path.join(tmpDir, "CHANGELOG.md"));
+      expect(entry.fallback).toMatch(/null/i);
+      expect(typeof entry.error).toBe("string");
+      expect(entry.error.length).toBeGreaterThan(0);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

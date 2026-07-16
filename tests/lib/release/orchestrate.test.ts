@@ -1,7 +1,7 @@
 // TDD [feniks] — /release Step 2.2: orchestrate.ts — sequence the phases (ADR-037, plan-037)
 // Real tmp-git fixture — NEVER mocks child_process, NEVER touches the real repo.
 // Injected green runVerify + fixed now — these tests never spawn the real toolchain.
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -116,12 +116,15 @@ function makeDeps(runVerifyResult: VerifyResult = { ok: true, failures: [] }): R
 
 describe("release/orchestrate", () => {
   const tmpDirs: string[] = [];
+  let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 
   afterEach(() => {
     while (tmpDirs.length > 0) {
       const dir = tmpDirs.pop();
       if (dir) fs.rmSync(dir, { recursive: true, force: true });
     }
+    stderrSpy?.mockRestore();
+    stderrSpy = undefined;
   });
 
   function withRepo(opts?: { changelogUnreleasedBody?: string }): string {
@@ -404,5 +407,44 @@ describe("release/orchestrate", () => {
     expect(results[0].message.toLowerCase()).toContain("incomplete");
     expect(commitCount(dir)).toBe(commitsBefore); // no commit created
     expect(tagList(dir)).toEqual([]); // no tag created
+  });
+
+  it("(n) recovery check logs a warn when plugin.json is unreadable, and isVersionAlreadyBumped still falls back to false (silent-swallow fix)", () => {
+    const dir = initGitRepo();
+    tmpDirs.push(dir);
+    // CHANGELOG + BACKLOG present, but .claude-plugin/plugin.json intentionally absent --
+    // forces isVersionAlreadyBumped's catch when the DIRTY_TREE-blocked recovery check runs.
+    fs.writeFileSync(
+      path.join(dir, "CHANGELOG.md"),
+      ["# Changelog", "", "## [Unreleased]", "", "### Added", "- pending change", ""].join("\n"),
+      "utf8",
+    );
+    fs.writeFileSync(
+      path.join(dir, "BACKLOG.md"),
+      ["# BACKLOG", "", "## P0", "", "- [ ] AUD-99 open item", ""].join("\n"),
+      "utf8",
+    );
+    // Deliberately left untracked -> DIRTY_TREE blocker -> preflight.ok === false -> recovery runs.
+
+    const ctx = makeCtx(dir);
+    const deps = makeDeps();
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    const plan = planRelease(ctx, deps);
+
+    expect(plan.blocked.some((m) => /uncommitted/i.test(m))).toBe(true);
+    expect(stderrSpy).toHaveBeenCalled();
+
+    const calls = stderrSpy.mock.calls as ReadonlyArray<readonly unknown[]>;
+    const entries: Array<{ level: string; fallback: string; error: string }> = calls
+      .map((c: readonly unknown[]): string => String(c[0]))
+      .filter((line: string): boolean => line.includes('"operation":"isVersionAlreadyBumped"'))
+      .map((line: string) => JSON.parse(line.trim()) as { level: string; fallback: string; error: string });
+
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries[0].level).toBe("warn");
+    expect(entries[0].fallback).toMatch(/false/i);
+    expect(typeof entries[0].error).toBe("string");
+    expect(entries[0].error.length).toBeGreaterThan(0);
   });
 });

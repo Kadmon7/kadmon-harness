@@ -8,7 +8,46 @@ note here what you are touching before you touch it).
 
 ## Task list (open)
 
-### Shipped recently (2026-07-14 → 07-15, on main)
+### Shipped recently (2026-07-14 → 07-16, on main)
+- **Silent-swallow stderr pass** (2026-07-16) — the 5 bare `catch { return ... }` sites in
+  `scripts/lib/release/` (`tag.ts` tagExists, `orchestrate.ts` isVersionAlreadyBumped,
+  `backlog-prune.ts` readChangelogText, `status-flips.ts` readFileSafe, `upgrade-advisory.ts`
+  defaultRunDiff) now emit a uniform stderr JSON warn via the existing `log()` (`scripts/lib/utils.ts`).
+  Behavior byte-identical — the swallow is deliberate design at each site; silence was the only
+  defect. TDD feniks. Full-tier /chekpoint 0 BLOCK: ts-reviewer 3 WARN (all closed in an
+  amendment round — status-flips message lacked `filePath` + consequence phrase; test (f) hardcoded
+  the live repo path; the retrofit made 2 pre-existing tests leak stderr) + spektr FORCE-INVOKED
+  (DiffScope said skip — correct mechanically, but the change opens a new output channel for
+  previously-discarded error content, which keyword gating cannot see) returning LOW / 0C-0H-0M.
+  Suite 1452 -> 1457.
+  - **spektr falsified the credential-leak hypothesis by experiment**: `execFileSync` DOES concat
+    child stderr into `e.message` (Node v24, verified), but `git tag -l` / `git diff --name-only`
+    are local-only AND git anonymizes userinfo out of transport errors (tested with a fake token).
+    The diff logs `e.message`, NOT `e.stdout` — which for `git tag -l` holds the tag list. Do not
+    "improve" this to log the whole error object. One real exception: `orchestrate.ts` wraps
+    `JSON.parse`, and V8 echoes ~14 chars of input into the SyntaxError — harmless only because
+    `plugin.json` is a public committed manifest.
+  - **`log()` had ZERO callers repo-wide before this pass** — these 5 are the first, and unlike
+    `observe-*` it has no `scrubSecrets()` layer. This pass ESTABLISHES the convention rather than
+    following one. The durable risk is the sixth caller: gate future `log()` callers on whether the
+    payload can carry credentials or file content. (GRAPH_REPORT calls `log` a god node — that graph
+    is 2.5 months stale and was wrong; see BACKLOG graphify-rebuild.)
+- **AUD-42** (`0099483`) — global CLAUDE.md ToratNetz note; see the cross-project section below.
+- **3 orphan pendientes closed** (`67f0c9c`) — ADR-026 amendment (both v1.4 deferrals resolved),
+  /medik Check #10 dropped as confirmed-intentional (v1.3 roadmap now at 0 open boxes), ECC
+  validation experiment added to BACKLOG. Found by a sweep of docs/roadmap + docs/plans +
+  docs/insights + CORRECTIONS + the private memory index; those 3 were the only items BACKLOG
+  did not index.
+- **Contract test RED on main, fixed** (`04ff1df`) — `4dae117` (hebrew-native-copy, skills 52->53)
+  synced CLAUDE.md + README but missed `expectedCounts` in `tests/plugin/manifest-schema.test.ts`.
+  main was red from 2026-07-15 until 2026-07-16 and WORK.md's own "suite green 1452 (1451 passed)"
+  claim below was FALSE (real: 1450 passed / 1 failed / 1 skipped). Straight C-001 recurrence — the
+  rule names that exact file as the third grep target. Caught by /doks, not by anyone re-running the
+  suite. typescript-reviewer argued the hardcoded literal must STAY (deriving it from the same
+  filesystem the test reads makes the assertion tautological and destroys the only thing that forces
+  a human to notice a component changed); the RED was correct behavior, not a false positive.
+
+### Shipped earlier (2026-07-14 → 07-15, on main)
 - **/release upgrade-advisory phase** (`3123ec5`, ADR-037 D7) — /release now auto-emits the consumer upgrade path (plugin update / install re-run / re-drop catalog) by classifying `git diff v<prev>..HEAD` into ADR-010 territories. New module `upgrade-advisory.ts` (subsystem 7→8), 39 tests, TDD feniks. Full-tier /chekpoint 0 BLOCK (spektr GO + ts-reviewer 2 WARN + kody GO); 3 FIX-NOW applied, 2 deferred to BACKLOG (5-file silent-swallow pass + CLAUDE.md count refresh). Closes the README "update the plugin" gap. Suite 1452.
 - **v1.4.0 CUT** (`aa03c7a` + tag `v1.4.0`, 2026-07-15) — `/release minor` dogfood end-to-end: bump 1.3.0→1.4.0, CHANGELOG `[Unreleased]`→`[1.4.0]` (51 lines), BACKLOG prune 40 items, `/doks` Layer-1 sync (5 count/version fixes) + `Commands 11→12` (+/release row in CLAUDE.md + README), pushed with `--follow-tags`. Phase-7 re-verify caught 2 live-repo-coupled tests (manifest + orchestrate.e2e pinned to version/date) → decoupled to structural invariants (`b3650db`, ts-reviewer APPROVE 0 BLOCK). Suite 1413 green.
 - **AUD-37** (`3e3ec3b`) — split `state-store.ts` (1201 lines) → 21-line barrel facade + 8 modules

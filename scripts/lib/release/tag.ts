@@ -5,6 +5,7 @@
 
 import { execFileSync } from "node:child_process";
 import type { ReleaseContext, ReleaseError, StepResult } from "./types.js";
+import { log } from "../utils.js";
 
 const GIT_TIMEOUT_MS = 3000;
 
@@ -25,9 +26,14 @@ export function tagExists(cwd: string, tagName: string): boolean {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .includes(tagName);
-  } catch {
+  } catch (e: unknown) {
     // git unavailable or cwd is not a repo — treat as "no tag" so a subsequent
     // create attempt surfaces the real error instead of a silent false skip.
+    log("warn", "tagExists failed: falling back to returning false (treated as no tag)", {
+      operation: "tagExists",
+      fallback: "returning false (treated as no tag)",
+      error: e instanceof Error ? e.message : String(e),
+    });
     return false;
   }
 }

@@ -1,6 +1,6 @@
 // TDD [feniks] — /release Step 1.6: tag.ts (ADR-037, plan-037)
 // Real tmp-git fixture — NEVER mocks child_process, NEVER touches the real repo/tags.
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -27,6 +27,7 @@ function makeReleaseContext(cwd: string): ReleaseContext {
 
 describe("release/tag", () => {
   let tmpRepo: string;
+  let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 
   beforeEach(() => {
     tmpRepo = fs.mkdtempSync(path.join(os.tmpdir(), "release-tag-test-"));
@@ -40,6 +41,8 @@ describe("release/tag", () => {
 
   afterEach(() => {
     fs.rmSync(tmpRepo, { recursive: true, force: true });
+    stderrSpy?.mockRestore();
+    stderrSpy = undefined;
   });
 
   it("(a) createReleaseTag on an absent tag creates it — present in `git tag -l` afterward", () => {
@@ -104,5 +107,26 @@ describe("release/tag", () => {
     expect((result?.details as ReleaseError | undefined)?.code).toBe("GIT");
     // and the invalid ref genuinely never landed as a tag
     expect(tagExists(tmpRepo, "bad tag name")).toBe(false);
+  });
+
+  it("(f) tagExists logs a warn to stderr on git failure, and still returns false (silent-swallow fix)", () => {
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const nonRepoDir = fs.mkdtempSync(path.join(os.tmpdir(), "release-tag-non-repo-"));
+
+    try {
+      const result = tagExists(nonRepoDir, "v1.0.0");
+
+      expect(result).toBe(false);
+      expect(stderrSpy).toHaveBeenCalled();
+
+      const entry = JSON.parse(String(stderrSpy.mock.calls[0][0]).trim());
+      expect(entry.level).toBe("warn");
+      expect(entry.operation).toBe("tagExists");
+      expect(entry.fallback).toMatch(/false/i);
+      expect(typeof entry.error).toBe("string");
+      expect(entry.error.length).toBeGreaterThan(0);
+    } finally {
+      fs.rmSync(nonRepoDir, { recursive: true, force: true });
+    }
   });
 });

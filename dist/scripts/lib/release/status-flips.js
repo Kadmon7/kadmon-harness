@@ -4,6 +4,7 @@
 // human decides which flips actually shipped (D5).
 import fs from "node:fs";
 import path from "node:path";
+import { log } from "../utils.js";
 const UNRELEASED_HEADING_RE = /^## \[Unreleased\]\s*$/m;
 const NEXT_HEADING_RE = /^## \[/m;
 const ADR_REF_RE = /\bADR-(\d{3,})\b/g;
@@ -30,11 +31,22 @@ function findDocByPrefix(dir, prefix) {
     const match = fs.readdirSync(dir).find((f) => f.startsWith(prefix) && f.endsWith(".md"));
     return match ? path.join(dir, match) : null;
 }
+// Shared by proposeAdrFlip / proposePlanFlip / proposeRoadmapFlips / proposeStatusFlips
+// (CHANGELOG.md) — each caller treats a null return as "skip this doc's flip
+// proposal(s)", so filePath is included in the log meta to disambiguate which
+// caller/file failed (a single generic message would otherwise be untraceable
+// across 4+ call sites).
 function readFileSafe(filePath) {
     try {
         return fs.readFileSync(filePath, "utf8");
     }
-    catch {
+    catch (e) {
+        log("warn", "readFileSafe failed: falling back to returning null (treated as unreadable, this doc's flip proposal(s) skipped)", {
+            operation: "readFileSafe",
+            filePath,
+            fallback: "returning null (treated as unreadable, this doc's flip proposal(s) skipped)",
+            error: e instanceof Error ? e.message : String(e),
+        });
         return null;
     }
 }

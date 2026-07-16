@@ -6,6 +6,7 @@
 // arg-array only, no shell interpolation (security rule).
 
 import { execFileSync } from "node:child_process";
+import { log } from "../utils.js";
 
 export type Territory = "plugin" | "install" | "memoryRef" | "neutral";
 
@@ -110,7 +111,12 @@ function defaultRunDiff(cwd: string, range: string): readonly string[] {
       stdio: ["ignore", "pipe", "pipe"],
     });
     return output.split(/\r?\n/).filter((line) => line.trim().length > 0);
-  } catch {
+  } catch (e: unknown) {
+    log("warn", "defaultRunDiff failed: falling back to returning empty path list (no consumer action inferred)", {
+      operation: "defaultRunDiff",
+      fallback: "returning empty path list (no consumer action inferred)",
+      error: e instanceof Error ? e.message : String(e),
+    });
     return [];
   }
 }
