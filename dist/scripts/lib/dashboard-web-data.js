@@ -211,7 +211,10 @@ export function buildTelemetry(projectHash) {
         agents: agentStats.map((a) => ({
             agentType: a.agentType,
             invocations: a.total,
-            successRate: 1 - a.failureRate,
+            // null (not 1.0) when the agent has zero known outcomes — failureRate
+            // alone reads 0 in that case too, so knownOutcomes is the only signal
+            // that distinguishes "never resolved" from "always succeeded".
+            successRate: a.knownOutcomes > 0 ? 1 - a.failureRate : null,
             avgDurationMs: a.avgDurationMs,
         })),
         generatedAt: new Date().toISOString(),

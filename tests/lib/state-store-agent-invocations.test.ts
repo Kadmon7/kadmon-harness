@@ -150,6 +150,23 @@ describe("state-store agent_invocations", () => {
     expect(spektrStats!.failureRate).toBe(1);
   });
 
+  it("exposes knownOutcomes so callers can distinguish zero-known-outcomes from all-succeeded (both read failureRate 0)", () => {
+    upsertSession({ id: "s3", projectHash: "p1" });
+
+    // Unmatched invocation — no success/failure was ever recorded.
+    insertAgentInvocation({
+      sessionId: "s3",
+      agentType: "arkonte",
+      timestamp: "2026-01-01T00:00:00Z",
+    });
+
+    const stats = getAgentInvocationStats("p1");
+    const arkonteStats = stats.find((s) => s.agentType === "arkonte");
+    expect(arkonteStats).toBeDefined();
+    expect(arkonteStats!.failureRate).toBe(0);
+    expect(arkonteStats!.knownOutcomes).toBe(0);
+  });
+
   it("filters stats by since parameter", () => {
     insertAgentInvocation({
       sessionId: "s1",

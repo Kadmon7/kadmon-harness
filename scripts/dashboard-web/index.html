@@ -420,8 +420,8 @@
       renderTelemetry(results[1]);
     }
 
-    refresh();
-    setInterval(refresh, 10000);
+    refresh().catch(function () {});
+    setInterval(function () { refresh().catch(function () {}); }, 10000);
   </script>
 </body>
 </html>

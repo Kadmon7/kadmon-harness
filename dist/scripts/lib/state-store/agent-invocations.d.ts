@@ -13,4 +13,10 @@ export declare function getAgentInvocationStats(projectHash: string, since?: str
     total: number;
     avgDurationMs: number;
     failureRate: number;
+    /** Count of invocations with a recorded success/failure (success IS NOT
+     * NULL). Additive field (AUD-dashboard WARN 3) — `failureRate` alone can't
+     * distinguish "0 known outcomes" from "known outcomes, all succeeded";
+     * both read failureRate === 0. Consumers that need to render "unknown"
+     * (e.g. a null successRate) must check `knownOutcomes > 0` first. */
+    knownOutcomes: number;
 }>;

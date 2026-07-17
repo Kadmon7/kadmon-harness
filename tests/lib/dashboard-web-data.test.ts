@@ -427,6 +427,25 @@ describe("buildTelemetry", () => {
     expect(kody!.successRate).toBe(0);
   });
 
+  it("returns successRate null (not 100%) for an agent with zero known outcomes (WARN 3)", () => {
+    // Seed ONLY an unmatched agent invocation — success is intentionally
+    // omitted, so state-store stores it as SQL NULL ("no known outcome yet").
+    upsertSession({ id: "s-unmatched", projectHash });
+    insertAgentInvocation({
+      sessionId: "s-unmatched",
+      agentType: "arkonte",
+      model: "sonnet",
+      durationMs: 5000,
+      timestamp: "2026-07-15T10:20:00Z",
+    });
+
+    const telemetry = buildTelemetry(projectHash);
+    const arkonte = telemetry.agents.find((a) => a.agentType === "arkonte");
+    expect(arkonte).toBeDefined();
+    expect(arkonte!.invocations).toBe(1);
+    expect(arkonte!.successRate).toBeNull();
+  });
+
   it("includes a valid ISO generatedAt timestamp", () => {
     const before = Date.now();
     const telemetry = buildTelemetry(projectHash);

@@ -95,6 +95,12 @@ export function getAgentInvocationStats(
   total: number;
   avgDurationMs: number;
   failureRate: number;
+  /** Count of invocations with a recorded success/failure (success IS NOT
+   * NULL). Additive field (AUD-dashboard WARN 3) — `failureRate` alone can't
+   * distinguish "0 known outcomes" from "known outcomes, all succeeded";
+   * both read failureRate === 0. Consumers that need to render "unknown"
+   * (e.g. a null successRate) must check `knownOutcomes > 0` first. */
+  knownOutcomes: number;
 }> {
   // sinceClause is a hardcoded literal, not caller-provided — safe from injection
   const sinceClause = since ? "AND ai.timestamp >= ?" : "";
@@ -108,7 +114,8 @@ export function getAgentInvocationStats(
               COUNT(*) as total,
               AVG(ai.duration_ms) as avg_duration_ms,
               CAST(SUM(CASE WHEN ai.success = 0 THEN 1 ELSE 0 END) AS REAL)
-                / NULLIF(COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END), 0) as failure_rate
+                / NULLIF(COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END), 0) as failure_rate,
+              COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END) as known_outcomes
        FROM agent_invocations ai
        JOIN sessions s ON ai.session_id = s.id
        WHERE s.project_hash = ? ${sinceClause}
@@ -121,5 +128,6 @@ export function getAgentInvocationStats(
       total: Number(row.total),
       avgDurationMs: Math.round(Number(row.avg_duration_ms ?? 0)),
       failureRate: Number(row.failure_rate ?? 0),
+      knownOutcomes: Number(row.known_outcomes ?? 0),
     }));
 }

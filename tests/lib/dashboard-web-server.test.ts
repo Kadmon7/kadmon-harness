@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
-import { createServer } from "../../scripts/dashboard-web.js";
+import { createServer, attachErrorHandler } from "../../scripts/dashboard-web.js";
 import { openDb, closeDb } from "../../scripts/lib/state-store.js";
 
 describe("dashboard-web server", () => {
@@ -92,5 +92,72 @@ describe("dashboard-web server", () => {
     const res = await fetch(`${baseUrl}/api/catalog`);
     const text = await res.text();
     expect(text).not.toMatch(/^\s*at\s+\S+\s*\(.*:\d+:\d+\)/m);
+  });
+
+  it("returns a generic 500 body without leaking err.message details (WARN 2)", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const throwingBuilders = {
+      buildCatalog: () => {
+        throw new Error("boom at C:\\Users\\fake\\secret.db");
+      },
+      buildTelemetry: () => {
+        throw new Error("unused");
+      },
+    };
+    const errServer = createServer("unused-root", throwingBuilders);
+    await new Promise<void>((resolve) => {
+      errServer.listen(0, "127.0.0.1", resolve);
+    });
+    const errAddress = errServer.address() as AddressInfo;
+    const errBaseUrl = `http://127.0.0.1:${errAddress.port}`;
+
+    try {
+      const res = await fetch(`${errBaseUrl}/api/catalog`);
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body).toEqual({ error: "internal error" });
+      const raw = JSON.stringify(body);
+      expect(raw).not.toContain("C:\\");
+      expect(raw).not.toContain("secret.db");
+    } finally {
+      await new Promise<void>((resolve) => errServer.close(() => resolve()));
+      errorSpy.mockRestore();
+    }
+  });
+});
+
+describe("dashboard-web server error handler (WARN 1)", () => {
+  it("attaches a clean stderr message + exit(1) on EADDRINUSE instead of an unhandled throw", async () => {
+    // server1 occupies an ephemeral port first.
+    const server1 = createServer();
+    await new Promise<void>((resolve) => {
+      server1.listen(0, "127.0.0.1", resolve);
+    });
+    const port = (server1.address() as AddressInfo).port;
+
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const server2 = createServer();
+    let exitCode: number | undefined;
+    const exitSpy = vi.fn((code: number) => {
+      exitCode = code;
+    });
+
+    // Registered BEFORE listen() — the contract under test.
+    attachErrorHandler(server2, port, exitSpy);
+
+    await new Promise<void>((resolve) => {
+      server2.on("error", () => resolve());
+      server2.listen(port, "127.0.0.1");
+    });
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(exitCode).toBe(1);
+    const messages = errorSpy.mock.calls.map((call) => String(call[0]));
+    expect(messages.some((m) => m.includes("already in use"))).toBe(true);
+    expect(messages.some((m) => m.includes("KADMON_DASHBOARD_PORT"))).toBe(true);
+
+    errorSpy.mockRestore();
+    await new Promise<void>((resolve) => server1.close(() => resolve()));
+    // server2 never bound successfully, nothing to close.
   });
 });

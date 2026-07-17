@@ -79,7 +79,8 @@ export function getAgentInvocationStats(projectHash, since) {
               COUNT(*) as total,
               AVG(ai.duration_ms) as avg_duration_ms,
               CAST(SUM(CASE WHEN ai.success = 0 THEN 1 ELSE 0 END) AS REAL)
-                / NULLIF(COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END), 0) as failure_rate
+                / NULLIF(COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END), 0) as failure_rate,
+              COUNT(CASE WHEN ai.success IS NOT NULL THEN 1 END) as known_outcomes
        FROM agent_invocations ai
        JOIN sessions s ON ai.session_id = s.id
        WHERE s.project_hash = ? ${sinceClause}
@@ -91,5 +92,6 @@ export function getAgentInvocationStats(projectHash, since) {
         total: Number(row.total),
         avgDurationMs: Math.round(Number(row.avg_duration_ms ?? 0)),
         failureRate: Number(row.failure_rate ?? 0),
+        knownOutcomes: Number(row.known_outcomes ?? 0),
     }));
 }

@@ -60,12 +60,24 @@ function sendNotFound(res: http.ServerResponse): void {
   sendJson(res, 404, { error: "not found" });
 }
 
+// ─── Data builder injection seam (additive) ───
+// Lets tests force the catch-path (WARN 2) without a real fault-injection
+// point in buildCatalog/buildTelemetry themselves. Production call sites are
+// unaffected — createServer() defaults to the real builders.
+export interface DashboardDataBuilders {
+  buildCatalog: typeof buildCatalog;
+  buildTelemetry: typeof buildTelemetry;
+}
+
+const DEFAULT_BUILDERS: DashboardDataBuilders = { buildCatalog, buildTelemetry };
+
 // ─── Routing ───
 
 async function handleRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
   rootDir: string,
+  builders: DashboardDataBuilders,
 ): Promise<void> {
   try {
     if (req.method !== "GET") {
@@ -83,33 +95,65 @@ async function handleRequest(
     }
 
     if (url === "/api/catalog") {
-      sendJson(res, 200, buildCatalog(rootDir));
+      sendJson(res, 200, builders.buildCatalog(rootDir));
       return;
     }
 
     if (url === "/api/telemetry") {
       const project = detectProject(rootDir);
       const projectHash = project?.projectHash ?? "unknown";
-      sendJson(res, 200, buildTelemetry(projectHash));
+      sendJson(res, 200, builders.buildTelemetry(projectHash));
       return;
     }
 
     sendNotFound(res);
   } catch (err: unknown) {
     // Log the full detail (including stack) server-side only; the response
-    // never carries more than the message (spektr security requirement).
+    // NEVER carries more than a constant generic message (spektr security
+    // requirement — err.message can embed absolute paths, e.g. a SQLite file
+    // path under the user's home directory).
     const message = err instanceof Error ? err.message : "internal error";
     console.error(
       JSON.stringify({ error: `dashboard-web: ${message}`, stack: err instanceof Error ? err.stack : undefined }),
     );
-    sendJson(res, 500, { error: message });
+    sendJson(res, 500, { error: "internal error" });
   }
 }
 
 /** Exported for tests — never binds or listens itself. */
-export function createServer(rootDir: string = REPO_ROOT): http.Server {
+export function createServer(
+  rootDir: string = REPO_ROOT,
+  builders: DashboardDataBuilders = DEFAULT_BUILDERS,
+): http.Server {
   return http.createServer((req, res) => {
-    void handleRequest(req, res, rootDir);
+    void handleRequest(req, res, rootDir, builders);
+  });
+}
+
+function formatServerErrorMessage(
+  err: NodeJS.ErrnoException,
+  port: number,
+): string {
+  if (err.code === "EADDRINUSE") {
+    return `Port ${port} is already in use. Set KADMON_DASHBOARD_PORT to choose a different port, or stop whatever else is using it.`;
+  }
+  return `dashboard-web: server error: ${err.message}`;
+}
+
+/**
+ * Exported for tests. Registers a clean one-line stderr message + exit(1) on
+ * server 'error' events (e.g. EADDRINUSE from running the dashboard twice on
+ * the same port) instead of letting an unhandled 'error' event crash Node
+ * with a raw stack. MUST be called before server.listen().
+ */
+export function attachErrorHandler(
+  server: http.Server,
+  port: number,
+  exit: (code: number) => void = process.exit,
+): void {
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    console.error(formatServerErrorMessage(err, port));
+    exit(1);
   });
 }
 
@@ -118,6 +162,7 @@ async function main(): Promise<void> {
   await openDb();
 
   const server = createServer();
+  attachErrorHandler(server, port);
   server.listen(port, "127.0.0.1", () => {
     console.log(`Kadmon dashboard: http://127.0.0.1:${port}`);
   });
