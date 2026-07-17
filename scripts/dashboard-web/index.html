@@ -4,162 +4,251 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>KADMON HARNESS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'%3E%3Crect width='1000' height='1000' fill='%230A0E1A'/%3E%3Cg stroke='%23C4A867' stroke-linecap='round'%3E%3Ccircle cx='500' cy='500' r='268' fill='none' stroke-width='76'/%3E%3Ccircle cx='500' cy='500' r='82' fill='%23C4A867' stroke='none'/%3E%3C/g%3E%3C/svg%3E" />
 <style>
+  /* Kadmon Brand Foundation v0.2 tokens (outputs/brand/brand-book.html, Kadmon7Cowork) */
   :root {
-    --bg: #16120f;
-    --panel: #1e1915;
-    --border: #382f27;
-    --accent: #e56b3c;
-    --accent-hover: #ff7d4d;
-    --text: #f2ead9;
-    --muted: #8d8073;
-    --danger: #d4544a;
-    --font: ui-monospace, 'JetBrains Mono', monospace;
+    --space: #0A0E1A;      /* deep space — primary ground */
+    --panel: #10152A;      /* lifted panel */
+    --hair: #232A42;       /* hairline / meter track */
+    --gold: #C4A867;       /* the single accent — structure, not state */
+    --gold-hi: #ECDCAE;    /* metallic highlight */
+    --vellum: #ECE6D6;     /* primary ink */
+    --titanium: #8C93A6;   /* secondary text */
+    --state-ok: #8FBF8F;   /* good / live / passing */
+    --state-warn: #C4A867; /* pending / degraded (shares gold hue by design) */
+    --state-crit: #D08A82; /* blocked / failing */
+    --font-display: "Helvetica Neue", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
+    background: var(--space);
+    color: var(--vellum);
+    font-family: var(--font-mono);
     font-size: 13px;
-    padding: 20px;
+    line-height: 1.5;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
   }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  /* --- header: the Core + wordmark, live state on the semantic scale --- */
   header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
   }
-  header h1 {
-    font-size: 16px;
-    letter-spacing: 2px;
+  .mark { display: flex; align-items: center; gap: 14px; }
+  .mark svg { width: 30px; height: 30px; display: block; }
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--vellum);
     margin: 0;
-    color: var(--accent);
   }
+  .wordmark span { color: var(--titanium); font-weight: 400; margin-left: 2px; }
   .live {
-    color: var(--muted);
+    color: var(--titanium);
     font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
   .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--state-ok);
     display: inline-block;
+    animation: pulse 3s ease-in-out infinite;
   }
-  .grid-3, .grid-4 {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  @media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+
+  /* --- grid on the 8px scale --- */
+  .grid-3, .grid-4 { display: grid; gap: 16px; margin-bottom: 16px; }
   .grid-3 { grid-template-columns: repeat(3, 1fr); }
   .grid-4 { grid-template-columns: repeat(4, 1fr); }
-  @media (max-width: 900px) {
-    .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
   .panel {
     background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    min-height: 60px;
-    max-height: 260px;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    padding: 16px;
+    min-height: 64px;
+    max-height: 264px;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hair) transparent;
   }
+  .panel::-webkit-scrollbar { width: 8px; }
+  .panel::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 4px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
   .panel.wide { max-height: none; }
+
+  /* --- eyebrow: mono caps + gold dot (brand section label) --- */
   .section-label {
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-    margin-bottom: 8px;
+    letter-spacing: 0.18em;
+    color: var(--titanium);
+    margin-bottom: 12px;
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: baseline;
+    gap: 8px;
   }
   .section-label::before {
     content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold);
     display: inline-block;
+    align-self: center;
+    flex-shrink: 0;
   }
   .big-number {
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--text);
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--vellum);
+    line-height: 1;
+    margin-left: auto;
   }
+  .sub-count { color: var(--titanium); font-size: 11px; letter-spacing: 0.04em; margin-left: auto; }
+
+  /* --- rows --- */
   .row {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
     gap: 8px;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--border);
+    padding: 5px 0;
+    border-bottom: 1px solid var(--hair);
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
   }
   .row:last-child { border-bottom: none; }
-  .row .name { color: var(--text); }
-  .row .desc { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 8px; }
-  .badge {
-    background: var(--border);
-    color: var(--accent);
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-size: 10px;
+  .row .name { color: var(--vellum); }
+  .row .desc {
+    color: var(--titanium);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: 8px;
+    text-align: right;
   }
-  .empty { color: var(--muted); font-style: italic; }
+  .badge {
+    background: var(--hair);
+    color: var(--gold);
+    border-radius: 2px;
+    padding: 1px 7px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .badge.crit { color: var(--state-crit); }
+
+  /* Empty state: a mono dash, never an apology (brand v0.2 data-surface rule) */
+  .empty { color: var(--titanium); opacity: 0.6; padding: 4px 0; }
+
+  /* --- instincts: the hero panel --- */
   .instinct-row {
     display: grid;
-    grid-template-columns: 140px 1fr 40px 70px 90px;
+    grid-template-columns: 148px 1fr 44px 70px 90px;
     align-items: center;
-    gap: 10px;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--hair);
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
   }
   .instinct-row:last-child { border-bottom: none; }
+  .instinct-row .pattern { color: var(--vellum); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .instinct-row .occ, .instinct-row .last { color: var(--titanium); }
+  .instinct-row .scope {
+    color: var(--titanium);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    padding: 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .instinct-row.promote-ready .scope { color: var(--gold-hi); border-color: var(--gold); }
+
+  /* Meters are quiet: gold on the hairline track, 2px, no glow */
   .bar-track {
-    background: var(--border);
-    border-radius: 4px;
+    background: var(--hair);
+    border-radius: 2px;
     height: 8px;
     width: 100px;
     overflow: hidden;
     display: inline-block;
+    vertical-align: middle;
   }
-  .bar-fill {
-    background: var(--accent);
-    height: 100%;
-  }
-  .bar-label { color: var(--muted); margin-left: 6px; }
-  .row.over-budget .name { color: var(--danger); }
-  .row.exempt .name { color: var(--muted); }
+  .bar-fill { background: var(--gold); height: 100%; }
+  .promote-ready .bar-fill { background: linear-gradient(90deg, var(--gold), var(--gold-hi)); }
+  .bar-label { color: var(--titanium); margin-left: 8px; font-size: 11px; }
+
+  /* --- semantic state (separate from gold, never decorative) --- */
+  .row.over-budget .name, .row.over-budget .desc { color: var(--state-crit); }
+  .row.exempt .name { color: var(--titanium); }
   .tag {
     font-size: 10px;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0 4px;
+    color: var(--titanium);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    padding: 0 5px;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
   }
+  .orphans-crit { color: var(--state-crit); }
+
   footer {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    color: var(--muted);
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hair);
+    color: var(--titanium);
     font-size: 11px;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
   }
+  footer b { color: var(--vellum); font-weight: 600; }
 </style>
 </head>
 <body>
   <header>
-    <h1>KADMON HARNESS</h1>
-    <span class="live"><span class="dot"></span>LIVE &mdash; polls every 10s</span>
+    <div class="mark">
+      <svg viewBox="0 0 1000 1000" role="img" aria-label="Kadmon">
+        <g stroke="#C4A867" stroke-linecap="round">
+          <circle cx="500" cy="500" r="268" fill="none" stroke-width="76"/>
+          <line x1="500.0" y1="350.0" x2="500.0" y2="294.0" stroke-width="24"/>
+          <line x1="588.168" y1="378.647" x2="621.084" y2="333.342" stroke-width="24"/>
+          <line x1="642.658" y1="453.647" x2="695.918" y2="436.342" stroke-width="24"/>
+          <line x1="642.658" y1="546.353" x2="695.918" y2="563.658" stroke-width="24"/>
+          <line x1="588.168" y1="621.353" x2="621.084" y2="666.658" stroke-width="24"/>
+          <line x1="500.0" y1="650.0" x2="500.0" y2="706.0" stroke-width="24"/>
+          <line x1="411.832" y1="621.353" x2="378.916" y2="666.658" stroke-width="24"/>
+          <line x1="357.342" y1="546.353" x2="304.082" y2="563.658" stroke-width="24"/>
+          <line x1="357.342" y1="453.647" x2="304.082" y2="436.342" stroke-width="24"/>
+          <line x1="411.832" y1="378.647" x2="378.916" y2="333.342" stroke-width="24"/>
+          <circle cx="500" cy="500" r="82" fill="#C4A867" stroke="none"/>
+        </g>
+      </svg>
+      <h1 class="wordmark">KADMON <span>HARNESS</span></h1>
+    </div>
+    <span class="live"><span class="dot"></span>LIVE &middot; 10s</span>
   </header>
 
   <section class="grid-3">
@@ -178,13 +267,13 @@
   </section>
 
   <section class="panel wide" style="margin-bottom:16px;">
-    <div class="section-label">INSTINCTS <span id="instinctsHeader" class="bar-label"></span></div>
+    <div class="section-label">INSTINCTS <span id="instinctsHeader" class="sub-count"></span></div>
     <div id="instinctsList"></div>
   </section>
 
   <section class="grid-4">
     <div class="panel">
-      <div class="section-label">SESSIONS <span class="bar-label">(<span id="orphanCount">0</span> orphan)</span></div>
+      <div class="section-label">SESSIONS <span class="sub-count" id="orphanLabel">(<span id="orphanCount">0</span> orphan)</span></div>
       <div id="sessionsList"></div>
     </div>
     <div class="panel">
@@ -202,8 +291,8 @@
   </section>
 
   <footer>
-    <span id="footerHooks">&mdash;</span> hooks &middot;
-    <span id="footerTests">&mdash;</span> test files &middot;
+    <b id="footerHooks">&mdash;</b> hooks &middot;
+    <b id="footerTests">&mdash;</b> test files &middot;
     ~/.kadmon/kadmon.db &middot;
     <span id="footerGenerated">&mdash;</span>
   </footer>
@@ -218,6 +307,8 @@
     function fmtNum(n) {
       return Number.isFinite(n) ? String(n) : '—';
     }
+
+    var PROMOTE_CONFIDENCE = 0.7;
 
     function confidenceBar(confidence) {
       var pct = Math.round(Math.max(0, Math.min(1, confidence || 0)) * 100);
@@ -235,6 +326,8 @@
       }
     }
 
+    var EMPTY = '<div class="empty">&mdash;</div>';
+
     function renderCatalog(data) {
       if (!data) return;
       document.getElementById('agentsCount').textContent = fmtNum(data.agents.length);
@@ -245,19 +338,19 @@
         ? data.agents.map(function (a) {
             return '<div class="row"><span class="name">' + esc(a.name) + '</span><span class="badge">' + esc(a.model) + '</span></div>';
           }).join('')
-        : '<div class="empty">No agents found</div>';
+        : EMPTY;
 
       document.getElementById('skillsList').innerHTML = data.skills.length
         ? data.skills.map(function (s) {
             return '<div class="row"><span class="name">' + esc(s.name) + '</span><span class="desc">' + esc(s.description) + '</span></div>';
           }).join('')
-        : '<div class="empty">No skills found</div>';
+        : EMPTY;
 
       document.getElementById('commandsList').innerHTML = data.commands.length
         ? data.commands.map(function (c) {
             return '<div class="row"><span class="name">/' + esc(c.name) + '</span><span class="desc">' + esc(c.description) + '</span></div>';
           }).join('')
-        : '<div class="empty">No commands found</div>';
+        : EMPTY;
 
       document.getElementById('footerHooks').textContent = fmtNum(data.hookCount);
       document.getElementById('footerTests').textContent = fmtNum(data.testFileCount);
@@ -273,29 +366,33 @@
 
       document.getElementById('instinctsList').innerHTML = data.instincts.items.length
         ? data.instincts.items.map(function (i) {
-            return '<div class="instinct-row">' + confidenceBar(i.confidence) +
+            var ready = Number.isFinite(i.confidence) && i.confidence >= PROMOTE_CONFIDENCE;
+            return '<div class="instinct-row' + (ready ? ' promote-ready' : '') + '">' + confidenceBar(i.confidence) +
               '<span class="pattern">' + esc(i.pattern) + '</span>' +
               '<span class="occ">x' + fmtNum(i.occurrences) + '</span>' +
               '<span class="scope">' + esc(i.scope) + '</span>' +
               '<span class="last">' + (i.lastReinforced ? esc(String(i.lastReinforced).slice(0, 10)) : '—') + '</span></div>';
           }).join('')
-        : '<div class="empty">No active instincts</div>';
+        : EMPTY;
 
-      document.getElementById('orphanCount').textContent = fmtNum(data.sessions.orphanCount);
+      var orphans = data.sessions.orphanCount;
+      document.getElementById('orphanCount').textContent = fmtNum(orphans);
+      document.getElementById('orphanLabel').className =
+        'sub-count' + (Number.isFinite(orphans) && orphans > 0 ? ' orphans-crit' : '');
       document.getElementById('sessionsList').innerHTML = data.sessions.recent.length
         ? data.sessions.recent.map(function (s) {
             var cost = s.costUsd != null && Number.isFinite(s.costUsd) ? '$' + s.costUsd.toFixed(2) : '—';
             return '<div class="row"><span class="name">' + esc(String(s.startedAt).slice(0, 10)) + '</span>' +
               '<span class="desc">' + fmtNum(s.messageCount) + ' msgs · ' + fmtNum(s.filesModified) + ' files · ' + cost + '</span></div>';
           }).join('')
-        : '<div class="empty">No recent sessions</div>';
+        : EMPTY;
 
       document.getElementById('costList').innerHTML = data.cost.byModel.length
         ? data.cost.byModel.map(function (c) {
             var total = Number.isFinite(c.totalUsd) ? '$' + c.totalUsd.toFixed(2) : '—';
             return '<div class="row"><span class="name">' + esc(c.model) + '</span><span class="badge">' + total + '</span></div>';
           }).join('')
-        : '<div class="empty">No cost data</div>';
+        : EMPTY;
 
       document.getElementById('hookHealthList').innerHTML = data.hookHealth.length
         ? data.hookHealth.map(function (h) {
@@ -306,7 +403,7 @@
             return '<div class="row ' + cls + '"><span class="name">' + esc(h.hookName) + '</span>' +
               '<span class="desc">' + dur + ' avg · ' + fmtNum(h.events) + ' events · ' + fmtNum(h.blocked) + ' blocked</span>' + tag + '</div>';
           }).join('')
-        : '<div class="empty">No hook events recorded yet</div>';
+        : EMPTY;
 
       document.getElementById('agentUsageList').innerHTML = data.agents.length
         ? data.agents.map(function (a) {
@@ -314,7 +411,7 @@
             return '<div class="row"><span class="name">' + esc(a.agentType) + '</span>' +
               '<span class="desc">' + fmtNum(a.invocations) + 'x · ' + success + ' success</span></div>';
           }).join('')
-        : '<div class="empty">No agent invocations recorded yet</div>';
+        : EMPTY;
     }
 
     async function refresh() {
