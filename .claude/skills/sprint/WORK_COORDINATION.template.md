@@ -35,6 +35,24 @@
 
 ---
 
+## Conventions — semaphore + claim
+
+Two axes — do not conflate them:
+
+- **Readiness (semaphore)** — 🔴 blocked · 🟡 waiting-external (key/DNS/third party) · 🟢 ready ·
+  ⚪ deferred. An objective property of the item, identical for everyone. Used in status columns and
+  the Next planned table.
+- **Ownership** — the `Owner` column + the coordination Channel (file / contract / security-review).
+  WHO holds it. This axis is what prevents two people doing the same work; the semaphore never does.
+
+**Claim tie-break:** if two sessions claim the same track (or shared item) at once, the oldest commit
+timestamp wins; the loser rebases and takes the next `UNLOCKED` row. This manual soft-lock is the
+convention until a DB-backed hard-lock exists.
+
+> Ported 2026-07-17 from the ToratNetz team's live coordination doc (credit: FUSE).
+
+---
+
 ## Channel A — File-level (core)
 
 ### Active tracks
