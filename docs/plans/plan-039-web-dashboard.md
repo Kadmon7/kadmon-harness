@@ -2,7 +2,7 @@
 number: 39
 title: Kadmon OS web dashboard (local telemetry + catalog UI)
 date: 2026-07-17
-status: pending
+status: completed
 needs_tdd: true
 route: B
 ---
