@@ -200,15 +200,23 @@ interface ObservationData {
 }
 
 function readObservationsForSession(sessionId: string): ObservationData {
-  const obsPath = path.join(
-    os.tmpdir(),
-    "kadmon",
-    sessionId,
-    "observations.jsonl",
-  );
-  if (!fs.existsSync(obsPath)) return { toolSeq: [], lines: [] };
+  const sessionDir = path.join(os.tmpdir(), "kadmon", sessionId);
+  const obsPath = path.join(sessionDir, "observations.jsonl");
+  const obsArchivePath = path.join(sessionDir, "observations.archive.jsonl");
 
-  const raw = fs.readFileSync(obsPath, "utf8");
+  // session-end-all.js Phase 5 archives observations.jsonl into
+  // observations.archive.jsonl (past message 20) instead of deleting it —
+  // read BOTH and concatenate (archive first, chronological order) so this
+  // pipeline sees the whole session, not just the last turn.
+  const archiveRaw = fs.existsSync(obsArchivePath)
+    ? fs.readFileSync(obsArchivePath, "utf8")
+    : null;
+  const liveRaw = fs.existsSync(obsPath)
+    ? fs.readFileSync(obsPath, "utf8")
+    : null;
+  if (archiveRaw === null && liveRaw === null) return { toolSeq: [], lines: [] };
+
+  const raw = (archiveRaw ?? "") + (liveRaw ?? "");
   const lines = raw.split("\n").filter(Boolean);
   const toolSeq: string[] = [];
   for (const line of lines) {

@@ -594,6 +594,73 @@ describe("forge-pipeline", () => {
     ).rejects.toThrowError(/unsafe sessionId/i);
   });
 
+  // ─── Bug fix (P1): observations archive + live concatenation ───
+  // session-end-all.js Phase 5 now archives observations.jsonl into
+  // observations.archive.jsonl instead of deleting it outright. Cross-turn
+  // readers (like this pipeline's readObservationsForSession) must read BOTH
+  // files and concatenate them (archive first) so toolSeq spans the full
+  // session, not just the last turn.
+  it("T14: readObservationsForSession spans archive + live — a file_sequence pattern split across both files still triggers", async () => {
+    const projectHash = "proj-span";
+    const sessionId = "sess-span";
+    sessionIds.push(sessionId);
+
+    const dir = path.join(os.tmpdir(), "kadmon", sessionId);
+    fs.mkdirSync(dir, { recursive: true });
+
+    // Archive holds the Edit half of "Build + test after editing types.ts";
+    // live holds the Bash half. Only concatenating archive-then-live lets
+    // the file_sequence detector see them as one continuous sequence.
+    fs.writeFileSync(
+      path.join(dir, "observations.archive.jsonl"),
+      JSON.stringify({
+        eventType: "tool_pre",
+        toolName: "Edit",
+        filePath: "scripts/lib/types.ts",
+        metadata: {},
+      }) + "\n",
+    );
+    fs.writeFileSync(
+      path.join(dir, "observations.jsonl"),
+      JSON.stringify({
+        eventType: "tool_pre",
+        toolName: "Bash",
+        filePath: null,
+        metadata: { command: "vitest" },
+      }) + "\n",
+    );
+
+    const preview = await runForgePipeline({ projectHash, sessionId });
+
+    const created = preview.would.create.find(
+      (i) => i.pattern === "Build + test after editing types.ts",
+    );
+    expect(created).toBeDefined();
+  });
+
+  it("T15: readObservationsForSession — archive-only session (live already cleaned up) still produces candidates", async () => {
+    const projectHash = "proj-archive-only";
+    const sessionId = "sess-archive-only";
+    sessionIds.push(sessionId);
+
+    const dir = path.join(os.tmpdir(), "kadmon", sessionId);
+    fs.mkdirSync(dir, { recursive: true });
+
+    // No observations.jsonl at all — only the archive (simulates reading
+    // after Phase 5 has already unlinked the live file).
+    fs.writeFileSync(
+      path.join(dir, "observations.archive.jsonl"),
+      editTypesPattern(3).join("\n") + "\n",
+    );
+
+    const preview = await runForgePipeline({ projectHash, sessionId });
+
+    const created = preview.would.create.find(
+      (i) => i.pattern === "Build + test after editing types.ts",
+    );
+    expect(created).toBeDefined();
+  });
+
   // ─── Determinism of clustering ───
 
   it("T13: computeClusterReport — deterministic output for same input (pure function)", () => {

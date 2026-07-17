@@ -14,9 +14,9 @@ Intelligent context compaction that preserves critical state. Replaces the manua
 
 ### 1. Audit
 Report current context state:
-- Count tool calls this session from observations JSONL — resolve tmpdir via env-var chain for cross-platform support (cross-platform rationale + Bug-3 regression postmortem: see project memory `project_kompact_bug3_postmortem.md`):
-  - ``TMPROOT="${TMPDIR:-${TEMP:-/tmp}}" && ls -td "$TMPROOT/kadmon"/*/ 2>/dev/null | head -1 | xargs -I{} wc -l {}observations.jsonl``
-  - ``TMPROOT="${TMPDIR:-${TEMP:-/tmp}}" && ls -td "$TMPROOT/kadmon"/*/ 2>/dev/null | head -1 | xargs -I{} grep -o '"filePath":"[^"]*"' {}observations.jsonl | sort | uniq -c | sort -rn | head -5``
+- Count tool calls this session from observations JSONL — resolve tmpdir via env-var chain for cross-platform support (cross-platform rationale + Bug-3 regression postmortem: see project memory `project_kompact_bug3_postmortem.md`). session-end-all.js Phase 5 archives `observations.jsonl` into `observations.archive.jsonl` (rather than deleting it) once a session passes message 20, so both files must be counted/scanned to see the whole session, not just the last turn:
+  - ``TMPROOT="${TMPDIR:-${TEMP:-/tmp}}" && ls -td "$TMPROOT/kadmon"/*/ 2>/dev/null | head -1 | xargs -I{} wc -l {}observations.jsonl {}observations.archive.jsonl 2>/dev/null``
+  - ``TMPROOT="${TMPDIR:-${TEMP:-/tmp}}" && ls -td "$TMPROOT/kadmon"/*/ 2>/dev/null | head -1 | xargs -I{} grep -o '"filePath":"[^"]*"' {}observations.jsonl {}observations.archive.jsonl 2>/dev/null | sort | uniq -c | sort -rn | head -5``
 - Run `git diff --stat` to check for uncommitted changes
 
 ### 2. Safety Check

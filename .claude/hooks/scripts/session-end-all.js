@@ -73,6 +73,7 @@ async function main() {
     if (!sessionDir) process.exit(0);
 
     const obsPath = path.join(sessionDir, "observations.jsonl");
+    const obsArchivePath = path.join(sessionDir, "observations.archive.jsonl");
     const hookEventsPath = path.join(sessionDir, "hook-events.jsonl");
     const filesModified = new Set();
     const toolsUsed = new Set();
@@ -117,11 +118,30 @@ async function main() {
       return pendingAgentPre.pop() ?? null;
     }
 
-    // Read observations.jsonl once and reuse — avoids redundant disk I/O in the 3
-    // downstream consumers (this loop, generateSummary, Fallback 2 line count).
-    const obsContent = fs.existsSync(obsPath)
+    // Read observations.jsonl (live, current turn) and observations.archive.jsonl
+    // (prior turns already rotated by Phase 5 below) here, near the top of
+    // main(), for the downstream consumers below (messageCount, filesModified,
+    // toolsUsed, agent-pairing, generateSummary, Fallback 2 cost estimation).
+    // `obsContent` is the COMBINED view (archive first, chronological order) —
+    // used so cross-turn readers see the whole session, not just the last
+    // turn. `liveObsContent` stays separate and LIVE-ONLY for Phase 3
+    // Fallback 2 cost estimation — replaying archived turns there would insert
+    // an inflated cost event on every Stop past message 20.
+    // NOTE: this is NOT the only read of the live file — Phase 5 below does
+    // a SECOND, fresh read of obsPath immediately before archiving it. That
+    // re-read is deliberate: it captures any lines written after THIS read
+    // (e.g. slow disk I/O or a near-concurrent write), so nothing landed
+    // between the two reads is lost when the live file is later unlinked.
+    const liveObsContent = fs.existsSync(obsPath)
       ? fs.readFileSync(obsPath, "utf8")
       : null;
+    const archiveObsContent = fs.existsSync(obsArchivePath)
+      ? fs.readFileSync(obsArchivePath, "utf8")
+      : null;
+    const obsContent =
+      liveObsContent !== null || archiveObsContent !== null
+        ? (archiveObsContent ?? "") + (liveObsContent ?? "")
+        : null;
 
     if (obsContent !== null) {
       for (const line of obsContent.split("\n").filter(Boolean)) {
@@ -294,9 +314,12 @@ async function main() {
           }
         }
 
-        // Fallback 2: estimate from observations (reuse the pre-read content)
-        if (!inputTokens && !outputTokens && obsContent !== null) {
-          const lineCount = obsContent.split("\n").filter(Boolean).length;
+        // Fallback 2: estimate from observations (reuse the pre-read content).
+        // LIVE-ONLY by design — using the combined archive+live content here
+        // would re-count already-archived turns and inflate cost estimates on
+        // every Stop past message 20.
+        if (!inputTokens && !outputTokens && liveObsContent !== null) {
+          const lineCount = liveObsContent.split("\n").filter(Boolean).length;
           const toolCalls = Math.ceil(lineCount / 2);
           if (toolCalls > 0) {
             inputTokens = toolCalls * 1200;
@@ -425,10 +448,30 @@ async function main() {
     } catch {}
 
     // --- Phase 5: Cleanup observations (from session-end-persist) ---
+    // observations.jsonl is ARCHIVED (append to observations.archive.jsonl)
+    // before unlink, not deleted outright — the Stop hook fires on EVERY
+    // turn, not just session exit, so an outright delete past message 20
+    // wiped cross-turn readers (/forge, /kompact) down to the last turn on
+    // every subsequent Stop. Retain-on-failure (ECC f720885c): if the
+    // archive append fails, do NOT unlink — leave the live file for the
+    // next Stop to retry rather than losing the turn's data.
     try {
       if (fs.existsSync(sessionDir) && messageCount >= 20) {
+        try {
+          if (fs.existsSync(obsPath)) {
+            const liveContent = fs.readFileSync(obsPath, "utf8");
+            fs.appendFileSync(obsArchivePath, liveContent);
+            fs.unlinkSync(obsPath);
+          }
+        } catch (err) {
+          // Retain the live file, do not unlink — but never swallow the
+          // failure silently (every sibling catch in this file logs).
+          logHookError("session-end-all", err, {
+            phase: "observations-archive",
+          });
+        }
+
         for (const file of [
-          "observations.jsonl",
           "hook-events.jsonl",
           "tool_count.txt",
           "last_pre_ts.txt",

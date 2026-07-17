@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -89,6 +89,30 @@ function generateObsLines(count: number): string[] {
         isPreEvent ? "tool_pre" : "tool_post",
         tool,
         isPreEvent ? `/test/file${i % 5}.ts` : undefined,
+        isPreEvent && tool === "Bash"
+          ? { command: "npx vitest run" }
+          : undefined,
+      ),
+    );
+  }
+  return lines;
+}
+
+/**
+ * Same shape as generateObsLines but tags file paths with a batch label so
+ * two consecutive batches can be told apart when asserting archive order.
+ */
+function generateTaggedObsLines(count: number, tag: string): string[] {
+  const tools = ["Read", "Edit", "Write", "Bash", "Grep"];
+  const lines: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const isPreEvent = i % 2 === 0;
+    const tool = tools[Math.floor(i / 2) % tools.length];
+    lines.push(
+      makeObsLine(
+        isPreEvent ? "tool_pre" : "tool_post",
+        tool,
+        isPreEvent ? `/test/${tag}-file${i % 5}.ts` : undefined,
         isPreEvent && tool === "Bash"
           ? { command: "npx vitest run" }
           : undefined,
@@ -352,18 +376,291 @@ describe("session-end-all", () => {
     expect(marker.exitedAt).toBeTruthy();
   });
 
-  it("cleans observation files when messageCount >= 20", async () => {
+  // Bug fix (P1, confirmed root cause): Phase 5 used to unlink
+  // observations.jsonl outright whenever messageCount >= 20, which fires on
+  // EVERY Stop event (not just session exit) — so past message 20, every
+  // turn wiped cross-turn readers (/forge, /kompact) down to the last turn.
+  // Fix: archive-then-unlink for observations.jsonl ONLY (ECC f720885c
+  // retain-on-failure semantics); the other 3 files keep outright unlink.
+  it("archives observations.jsonl into observations.archive.jsonl and still unlinks the other 3 files when messageCount >= 20", async () => {
     // 44 lines => 22 tool_pre (messageCount=22) => triggers cleanup at >= 20
-    writeObservations(generateObsLines(44));
+    const lines = generateObsLines(44);
+    writeObservations(lines);
     fs.writeFileSync(path.join(obsDir, "tool_count.txt"), "44");
+    fs.writeFileSync(path.join(obsDir, "last_pre_ts.txt"), String(Date.now()));
+    fs.writeFileSync(path.join(obsDir, "hook-events.jsonl"), "");
 
     runHook({ session_id: sessionId, cwd: process.cwd() });
 
+    // observations.jsonl is archived, not merely deleted — its full content
+    // must survive in observations.archive.jsonl
     expect(fs.existsSync(path.join(obsDir, "observations.jsonl"))).toBe(false);
+    const archivePath = path.join(obsDir, "observations.archive.jsonl");
+    expect(fs.existsSync(archivePath)).toBe(true);
+    const archiveContent = fs.readFileSync(archivePath, "utf8");
+    for (const line of lines) {
+      expect(archiveContent).toContain(line);
+    }
+
+    // The other 3 files keep today's outright-unlink behavior (unchanged)
     expect(fs.existsSync(path.join(obsDir, "tool_count.txt"))).toBe(false);
+    expect(fs.existsSync(path.join(obsDir, "last_pre_ts.txt"))).toBe(false);
+    expect(fs.existsSync(path.join(obsDir, "hook-events.jsonl"))).toBe(false);
+
     // Marker should still exist (written before cleanup)
     expect(fs.existsSync(path.join(obsDir, "clean-exit.marker"))).toBe(true);
   });
+
+  it("archive accumulates across two consecutive hook runs (both batches present, in order)", async () => {
+    // First Stop: batch 1 (44 lines => messageCount=22 >= 20) gets archived.
+    const batch1 = generateTaggedObsLines(44, "batch1");
+    writeObservations(batch1);
+    runHook({ session_id: sessionId, cwd: process.cwd() });
+
+    expect(fs.existsSync(path.join(obsDir, "observations.jsonl"))).toBe(false);
+    const archivePath = path.join(obsDir, "observations.archive.jsonl");
+    const afterFirst = fs.readFileSync(archivePath, "utf8");
+    expect(afterFirst).toContain("batch1-file0.ts");
+
+    // Second Stop: a fresh batch of live observations (simulates the next
+    // turn writing new observations after the live file was cleared).
+    const batch2 = generateTaggedObsLines(44, "batch2");
+    writeObservations(batch2);
+    runHook({ session_id: sessionId, cwd: process.cwd() });
+
+    const afterSecond = fs.readFileSync(archivePath, "utf8");
+    const batch1Idx = afterSecond.indexOf("batch1-file0.ts");
+    const batch2Idx = afterSecond.indexOf("batch2-file0.ts");
+    expect(batch1Idx).toBeGreaterThanOrEqual(0);
+    expect(batch2Idx).toBeGreaterThan(batch1Idx);
+  });
+
+  it("does not create an archive file or touch the live file when messageCount < 20", async () => {
+    // 6 lines => 3 tool_pre (messageCount=3), well below the 20 threshold
+    writeObservations(generateObsLines(6));
+
+    runHook({ session_id: sessionId, cwd: process.cwd() });
+
+    expect(fs.existsSync(path.join(obsDir, "observations.jsonl"))).toBe(true);
+    expect(
+      fs.existsSync(path.join(obsDir, "observations.archive.jsonl")),
+    ).toBe(false);
+  });
+
+  it("uses combined archive + live content for session persistence — messageCount and filesModified reflect totals from BOTH files", async () => {
+    fs.mkdirSync(obsDir, { recursive: true });
+    const archiveLines = [
+      makeObsLine("tool_pre", "Read", "/archive/a.ts"),
+      makeObsLine("tool_post", "Read"),
+      makeObsLine("tool_pre", "Edit", "/archive/b.ts"),
+      makeObsLine("tool_post", "Edit"),
+    ];
+    fs.writeFileSync(
+      path.join(obsDir, "observations.archive.jsonl"),
+      archiveLines.join("\n") + "\n",
+    );
+
+    // Live file has its own tool_pre events (below the 20-message threshold
+    // so Phase 5 does not re-archive mid-assertion).
+    writeObservations([
+      makeObsLine("tool_pre", "Write", "/live/c.ts"),
+      makeObsLine("tool_post", "Write"),
+    ]);
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    const db = await readDb();
+    const stmt = db.prepare(
+      "SELECT files_modified, message_count FROM sessions WHERE id = ?",
+    );
+    stmt.bind([sessionId]);
+    expect(stmt.step()).toBe(true);
+    const row = stmt.getAsObject();
+    stmt.free();
+    db.close();
+
+    const files = JSON.parse(String(row.files_modified));
+    expect(files).toContain("/archive/b.ts");
+    expect(files).toContain("/live/c.ts");
+    // 2 tool_pre in archive (Read, Edit) + 1 tool_pre in live (Write) = 3
+    expect(Number(row.message_count)).toBe(3);
+  });
+
+  it("retains the live observations file when archiving fails (retain-on-failure, ECC f720885c semantics)", async () => {
+    // 44 lines => messageCount=22 >= 20, would normally trigger archiving
+    writeObservations(generateObsLines(44));
+    // Force the archive append to fail: make the archive path a directory
+    fs.mkdirSync(path.join(obsDir, "observations.archive.jsonl"));
+
+    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    expect(r.exitCode).toBe(0);
+
+    // Archiving failed → live file must be RETAINED, not deleted, so the
+    // next Stop can retry archiving instead of losing the turn's data.
+    expect(fs.existsSync(path.join(obsDir, "observations.jsonl"))).toBe(true);
+  });
+
+  // typescript-reviewer WARN (staged forge-blind fix, 2026-07-17): the Phase 5
+  // archive catch was a silent `catch {}` — every sibling catch in this file
+  // calls logHookError. A swallowed archive failure is invisible; the retain-
+  // on-failure semantics are correct, but nobody would ever know archiving is
+  // failing every Stop until /forge or /kompact silently drift.
+  it("logs the archive failure via logHookError instead of swallowing it silently", async () => {
+    // 44 lines => messageCount=22 >= 20, would normally trigger archiving
+    writeObservations(generateObsLines(44));
+
+    // Force ONLY the Phase 5 fs.appendFileSync to fail — a chmod'd
+    // read-only REGULAR file (not the mkdirSync-a-directory trick used by
+    // the sibling "retains the live observations file..." test above)
+    // remains readable but rejects writes. This matters here: the
+    // mkdirSync-directory trick also breaks the earlier combined
+    // archive+live read (near the top of main(), before Phase 1), which
+    // throws before Phase 5's own try/catch is ever reached — hitting the
+    // OUTER catch instead, not the inner one this test targets. Read-only
+    // keeps the early read working (read access is unaffected) so the
+    // failure is isolated to the exact fs.appendFileSync call in Phase 5.
+    const archivePath = path.join(obsDir, "observations.archive.jsonl");
+    fs.writeFileSync(archivePath, "");
+    fs.chmodSync(archivePath, 0o444);
+
+    let r: { stdout: string; stderr: string; exitCode: number };
+    try {
+      r = runHook({ session_id: sessionId, cwd: process.cwd() });
+    } finally {
+      // unlinkSync bypasses the read-only attribute on Windows (libuv
+      // clears it and retries) so afterEach's rmSync would succeed anyway,
+      // but restore write access explicitly for portability/clarity.
+      fs.chmodSync(archivePath, 0o666);
+    }
+    expect(r.exitCode).toBe(0);
+
+    const errorLines: Array<Record<string, unknown>> = r.stderr
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        try {
+          return JSON.parse(line) as Record<string, unknown>;
+        } catch {
+          return null;
+        }
+      })
+      .filter((entry): entry is Record<string, unknown> => entry !== null);
+
+    const archiveError = errorLines.find(
+      (entry) =>
+        entry.hook === "session-end-all" &&
+        (entry.context as Record<string, unknown> | undefined)?.phase ===
+          "observations-archive",
+    );
+    expect(archiveError).toBeDefined();
+    expect(typeof archiveError?.error).toBe("string");
+
+    // Retain-on-failure still holds — the live file survives the failed
+    // append (unlinkSync is never reached).
+    expect(fs.existsSync(path.join(obsDir, "observations.jsonl"))).toBe(true);
+  });
+
+  // Missing-test gap (typescript-reviewer WARN, staged forge-blind fix):
+  // pins the append-succeeds-but-unlink-fails ordering. The archive append
+  // and the live-file unlink are two separate fs calls inside the SAME try
+  // block — if the append succeeds and ONLY the unlink fails, the batch is
+  // already durably archived, but the live file survives too (retain-on-
+  // failure keeps it for the next Stop). That next Stop will read the SAME
+  // batch again and append it a second time into observations.archive.jsonl
+  // — a known, accepted duplication window. This is safe because every DB
+  // write downstream (sessions, hook_events, agent_invocations) is keyed by
+  // its own natural key with ON CONFLICT DO NOTHING/UPDATE, so re-deriving
+  // messageCount/filesModified from a duplicated archive batch does not
+  // duplicate rows in the database — only the archive JSONL grows a re-read
+  // duplicate line, which downstream readers already tolerate.
+  //
+  // Windows-only real-fs mechanism: chmod'ing the live file read-only (or
+  // even setting the Windows DOS read-only ATTRIBUTE via `attrib +R`) does
+  // NOT make fs.unlinkSync fail — verified empirically; libuv's Windows
+  // unlink clears FILE_ATTRIBUTE_READONLY and retries. Holding an open
+  // Node fs handle in the SAME process also does not block it — Node opens
+  // files with FILE_SHARE_DELETE by default. The mechanism that reliably
+  // fails fs.unlinkSync WITHOUT also failing the read (which the archive
+  // append needs to succeed first) is a handle opened by another process
+  // with FileShare.Read: that grants read sharing (so the hook's own
+  // fs.readFileSync + fs.appendFileSync to the DIFFERENT archive path both
+  // succeed) but withholds delete sharing (so fs.unlinkSync fails EBUSY) —
+  // verified empirically. Done here via a short-lived PowerShell process so
+  // the lock is real OS state, not a mocked fs call (the hook itself runs
+  // as its own spawned subprocess, so there is no `fs` module in that
+  // process we could mock from the test).
+  it.runIf(process.platform === "win32")(
+    "retains the live file (with one archived copy of the batch) when the archive append succeeds but the unlink fails — known re-append-on-next-Stop duplication window, deduped downstream via natural keys",
+    async () => {
+      const lines = generateObsLines(44);
+      writeObservations(lines);
+      const obsPath = path.join(obsDir, "observations.jsonl");
+      const archivePath = path.join(obsDir, "observations.archive.jsonl");
+
+      // Open the LIVE file with read-sharing (but not delete-sharing) from
+      // an external process, so the hook's read+append still succeed but
+      // its unlinkSync call cannot bypass the lock.
+      const lockScript = [
+        "try {",
+        `  $fs = [System.IO.File]::Open('${obsPath}', [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::Read)`,
+        "  Write-Output 'LOCKED'",
+        "  Start-Sleep -Seconds 8",
+        "  $fs.Close()",
+        "} catch {",
+        "  Write-Output ('ERR:' + $_.Exception.Message)",
+        "}",
+      ].join("\n");
+      const lockHolder = spawn(
+        "powershell.exe",
+        ["-NoProfile", "-Command", lockScript],
+        { stdio: ["ignore", "pipe", "ignore"] },
+      );
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(
+            () => reject(new Error("lock holder did not report LOCKED in time")),
+            5000,
+          );
+          lockHolder.stdout.on("data", (d: Buffer) => {
+            if (d.toString().includes("LOCKED")) {
+              clearTimeout(timer);
+              resolve();
+            }
+          });
+        });
+
+        const r = runHook({ session_id: sessionId, cwd: process.cwd() });
+        expect(r.exitCode).toBe(0);
+
+        // Release the lock now — it only needed to be held while the hook
+        // subprocess attempted its unlinkSync call. afterEach's rmSync of
+        // obsDir would otherwise itself be blocked by the still-open handle.
+        lockHolder.kill();
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // Unlink failed (EBUSY) → live file survives with its ORIGINAL content.
+        expect(fs.existsSync(obsPath)).toBe(true);
+        expect(fs.readFileSync(obsPath, "utf8")).toBe(lines.join("\n") + "\n");
+
+        // Append happened BEFORE the failed unlink → archive has the batch
+        // exactly once. Assert exact equality rather than per-line
+        // .toContain/occurrence-counting: generateObsLines() cycles through
+        // only 5 (tool, filePath) combos over a tight synchronous loop, so
+        // several lines within ONE batch can be byte-identical (same
+        // millisecond timestamp) — a substring-occurrence count of a single
+        // line conflates "appeared once" with "this exact line happens to
+        // repeat within the batch itself" and is not a reliable duplication
+        // signal here. Exact string equality against the full batch is.
+        const archiveContent = fs.readFileSync(archivePath, "utf8");
+        expect(archiveContent).toBe(lines.join("\n") + "\n");
+      } finally {
+        lockHolder.kill();
+      }
+    },
+    15000,
+  );
 
   it("estimates cost from transcript when no direct tokens provided", async () => {
     // Arrange: write minimal observations so the hook has a valid session
