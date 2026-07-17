@@ -17,7 +17,17 @@ const HEAVY_HOOK_TESTS = [
   "tests/eval/phase1b-workflows-e2e.test.ts",
 ];
 
-const BASE_EXCLUDE = ["**/node_modules/**", "**/.git/**", "dist/**"];
+// Agent worktrees (Claude Code isolation: .claude/worktrees/<agent>/) are full
+// checkouts INSIDE the repo — without this exclude, a run from the main tree
+// sweeps each worktree's tests/ AND its compiled dist/tests/, triplicating the
+// suite and cross-contaminating tmpdir/DB fixtures (observed live 2026-07-17:
+// 331 files / 79 spurious fails with one active worktree).
+const BASE_EXCLUDE = [
+  "**/node_modules/**",
+  "**/.git/**",
+  "dist/**",
+  "**/.claude/worktrees/**",
+];
 
 export default defineConfig({
   test: {

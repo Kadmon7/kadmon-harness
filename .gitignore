@@ -54,6 +54,9 @@ Thumbs.db
 .claude.local.md
 .claude/agent-memory/
 .claude/settings.local.json
+# Agent isolation worktrees (full checkouts; sweeping them into git add -A or
+# the test run poisons both — vitest excludes them too, see vitest.config.ts)
+.claude/worktrees/
 # Session scheduler lock (created by /schedule + /loop skills — per-session pid+sessionId)
 .claude/scheduled_tasks.lock
 # Inter-session bridge note (written by session-bridge skill SAVE mode, consumed +
