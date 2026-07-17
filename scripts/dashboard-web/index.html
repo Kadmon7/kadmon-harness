@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KADMON HARNESS</title>
+<style>
+  :root {
+    --bg: #16120f;
+    --panel: #1e1915;
+    --border: #382f27;
+    --accent: #e56b3c;
+    --accent-hover: #ff7d4d;
+    --text: #f2ead9;
+    --muted: #8d8073;
+    --danger: #d4544a;
+    --font: ui-monospace, 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 20px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin: 0;
+    color: var(--accent);
+  }
+  .live {
+    color: var(--muted);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .grid-3, .grid-4 {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 60px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .panel.wide { max-height: none; }
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .big-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text);
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .name { color: var(--text); }
+  .row .desc { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 8px; }
+  .badge {
+    background: var(--border);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 10px;
+  }
+  .empty { color: var(--muted); font-style: italic; }
+  .instinct-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 40px 70px 90px;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .instinct-row:last-child { border-bottom: none; }
+  .bar-track {
+    background: var(--border);
+    border-radius: 4px;
+    height: 8px;
+    width: 100px;
+    overflow: hidden;
+    display: inline-block;
+  }
+  .bar-fill {
+    background: var(--accent);
+    height: 100%;
+  }
+  .bar-label { color: var(--muted); margin-left: 6px; }
+  .row.over-budget .name { color: var(--danger); }
+  .row.exempt .name { color: var(--muted); }
+  .tag {
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+  footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>KADMON HARNESS</h1>
+    <span class="live"><span class="dot"></span>LIVE &mdash; polls every 10s</span>
+  </header>
+
+  <section class="grid-3">
+    <div class="panel">
+      <div class="section-label">AGENTS <span class="big-number" id="agentsCount">&mdash;</span></div>
+      <div id="agentsList"></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">SKILLS <span class="big-number" id="skillsCount">&mdash;</span></div>
+      <div id="skillsList"></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">COMMANDS <span class="big-number" id="commandsCount">&mdash;</span></div>
+      <div id="commandsList"></div>
+    </div>
+  </section>
+
+  <section class="panel wide" style="margin-bottom:16px;">
+    <div class="section-label">INSTINCTS <span id="instinctsHeader" class="bar-label"></span></div>
+    <div id="instinctsList"></div>
+  </section>
+
+  <section class="grid-4">
+    <div class="panel">
+      <div class="section-label">SESSIONS <span class="bar-label">(<span id="orphanCount">0</span> orphan)</span></div>
+      <div id="sessionsList"></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">COST BY MODEL</div>
+      <div id="costList"></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">HOOK HEALTH</div>
+      <div id="hookHealthList"></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">AGENT USAGE</div>
+      <div id="agentUsageList"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span id="footerHooks">&mdash;</span> hooks &middot;
+    <span id="footerTests">&mdash;</span> test files &middot;
+    ~/.kadmon/kadmon.db &middot;
+    <span id="footerGenerated">&mdash;</span>
+  </footer>
+
+  <script>
+    function esc(str) {
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function fmtNum(n) {
+      return Number.isFinite(n) ? String(n) : '—';
+    }
+
+    function confidenceBar(confidence) {
+      var pct = Math.round(Math.max(0, Math.min(1, confidence || 0)) * 100);
+      return '<span class="bar-track"><span class="bar-fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="bar-label">' + (Number.isFinite(confidence) ? confidence.toFixed(2) : '—') + '</span>';
+    }
+
+    async function fetchJson(url) {
+      try {
+        var res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function renderCatalog(data) {
+      if (!data) return;
+      document.getElementById('agentsCount').textContent = fmtNum(data.agents.length);
+      document.getElementById('skillsCount').textContent = fmtNum(data.skills.length);
+      document.getElementById('commandsCount').textContent = fmtNum(data.commands.length);
+
+      document.getElementById('agentsList').innerHTML = data.agents.length
+        ? data.agents.map(function (a) {
+            return '<div class="row"><span class="name">' + esc(a.name) + '</span><span class="badge">' + esc(a.model) + '</span></div>';
+          }).join('')
+        : '<div class="empty">No agents found</div>';
+
+      document.getElementById('skillsList').innerHTML = data.skills.length
+        ? data.skills.map(function (s) {
+            return '<div class="row"><span class="name">' + esc(s.name) + '</span><span class="desc">' + esc(s.description) + '</span></div>';
+          }).join('')
+        : '<div class="empty">No skills found</div>';
+
+      document.getElementById('commandsList').innerHTML = data.commands.length
+        ? data.commands.map(function (c) {
+            return '<div class="row"><span class="name">/' + esc(c.name) + '</span><span class="desc">' + esc(c.description) + '</span></div>';
+          }).join('')
+        : '<div class="empty">No commands found</div>';
+
+      document.getElementById('footerHooks').textContent = fmtNum(data.hookCount);
+      document.getElementById('footerTests').textContent = fmtNum(data.testFileCount);
+      document.getElementById('footerGenerated').textContent = data.generatedAt || '—';
+    }
+
+    function renderTelemetry(data) {
+      if (!data) return;
+
+      var counts = data.instincts.counts;
+      document.getElementById('instinctsHeader').textContent =
+        counts.active + ' active · ' + counts.global + ' global · ' + counts.project + ' project';
+
+      document.getElementById('instinctsList').innerHTML = data.instincts.items.length
+        ? data.instincts.items.map(function (i) {
+            return '<div class="instinct-row">' + confidenceBar(i.confidence) +
+              '<span class="pattern">' + esc(i.pattern) + '</span>' +
+              '<span class="occ">x' + fmtNum(i.occurrences) + '</span>' +
+              '<span class="scope">' + esc(i.scope) + '</span>' +
+              '<span class="last">' + (i.lastReinforced ? esc(String(i.lastReinforced).slice(0, 10)) : '—') + '</span></div>';
+          }).join('')
+        : '<div class="empty">No active instincts</div>';
+
+      document.getElementById('orphanCount').textContent = fmtNum(data.sessions.orphanCount);
+      document.getElementById('sessionsList').innerHTML = data.sessions.recent.length
+        ? data.sessions.recent.map(function (s) {
+            var cost = s.costUsd != null && Number.isFinite(s.costUsd) ? '$' + s.costUsd.toFixed(2) : '—';
+            return '<div class="row"><span class="name">' + esc(String(s.startedAt).slice(0, 10)) + '</span>' +
+              '<span class="desc">' + fmtNum(s.messageCount) + ' msgs · ' + fmtNum(s.filesModified) + ' files · ' + cost + '</span></div>';
+          }).join('')
+        : '<div class="empty">No recent sessions</div>';
+
+      document.getElementById('costList').innerHTML = data.cost.byModel.length
+        ? data.cost.byModel.map(function (c) {
+            var total = Number.isFinite(c.totalUsd) ? '$' + c.totalUsd.toFixed(2) : '—';
+            return '<div class="row"><span class="name">' + esc(c.model) + '</span><span class="badge">' + total + '</span></div>';
+          }).join('')
+        : '<div class="empty">No cost data</div>';
+
+      document.getElementById('hookHealthList').innerHTML = data.hookHealth.length
+        ? data.hookHealth.map(function (h) {
+            var overBudget = !h.exempt && Number.isFinite(h.avgDurationMs) && h.avgDurationMs > h.budgetMs;
+            var cls = h.exempt ? 'exempt' : (overBudget ? 'over-budget' : '');
+            var tag = h.exempt ? '<span class="tag">exempt</span>' : '';
+            var dur = Number.isFinite(h.avgDurationMs) ? h.avgDurationMs + 'ms' : '—';
+            return '<div class="row ' + cls + '"><span class="name">' + esc(h.hookName) + '</span>' +
+              '<span class="desc">' + dur + ' avg · ' + fmtNum(h.events) + ' events · ' + fmtNum(h.blocked) + ' blocked</span>' + tag + '</div>';
+          }).join('')
+        : '<div class="empty">No hook events recorded yet</div>';
+
+      document.getElementById('agentUsageList').innerHTML = data.agents.length
+        ? data.agents.map(function (a) {
+            var success = a.successRate != null && Number.isFinite(a.successRate) ? Math.round(a.successRate * 100) + '%' : '—';
+            return '<div class="row"><span class="name">' + esc(a.agentType) + '</span>' +
+              '<span class="desc">' + fmtNum(a.invocations) + 'x · ' + success + ' success</span></div>';
+          }).join('')
+        : '<div class="empty">No agent invocations recorded yet</div>';
+    }
+
+    async function refresh() {
+      var results = await Promise.all([fetchJson('/api/catalog'), fetchJson('/api/telemetry')]);
+      renderCatalog(results[0]);
+      renderTelemetry(results[1]);
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>

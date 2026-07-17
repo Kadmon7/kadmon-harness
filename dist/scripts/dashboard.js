@@ -26,6 +26,9 @@ function loadObservations(sessionId) {
     }
     return events;
 }
+function fileMtimeMs(filePath) {
+    return fs.existsSync(filePath) ? fs.statSync(filePath).mtimeMs : 0;
+}
 export function findActiveSessionDir(tmpBase) {
     const kadmonTmp = tmpBase ?? path.join(os.tmpdir(), "kadmon");
     if (!fs.existsSync(kadmonTmp))
@@ -35,11 +38,17 @@ export function findActiveSessionDir(tmpBase) {
         .filter((e) => e.isDirectory())
         .map((e) => {
         const obsFile = path.join(kadmonTmp, e.name, "observations.jsonl");
-        const exists = fs.existsSync(obsFile);
+        const archiveFile = path.join(kadmonTmp, e.name, "observations.archive.jsonl");
+        const obsMtime = fileMtimeMs(obsFile);
+        const archiveMtime = fileMtimeMs(archiveFile);
         return {
             name: e.name,
-            hasObs: exists,
-            mtime: exists ? fs.statSync(obsFile).mtimeMs : 0,
+            // A session is "active" if EITHER file exists — post forge-blind-fix,
+            // a live file may have already been rotated into the archive (ADR
+            // per session-end-all.js Phase 5), so observations.jsonl alone is no
+            // longer a reliable signal.
+            hasObs: obsMtime > 0 || archiveMtime > 0,
+            mtime: Math.max(obsMtime, archiveMtime),
         };
     })
         .filter((e) => e.hasObs)

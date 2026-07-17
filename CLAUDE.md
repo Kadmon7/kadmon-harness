@@ -9,7 +9,8 @@ Kadmon Harness is Claude Code's operative layer — a portable set of agents, co
 ## Quick Start
 ```bash
 npm install && npm run build && npx vitest run
-npx tsx scripts/dashboard.ts       # Show harness dashboard
+npx tsx scripts/dashboard.ts       # Show harness dashboard (CLI)
+npm run dashboard:web              # Web dashboard at http://127.0.0.1:4321
 ```
 
 ## Core Principle
@@ -73,6 +74,7 @@ Kadmon-Harness/
 - `KADMON_DOKS_PROFILE` — `/doks`-specific profile override (`harness`|`consumer`); higher precedence than `KADMON_PROJECT_PROFILE` (ADR-032).
 - `KADMON_MEDIK_PROFILE` — `/medik`-specific profile override (`harness`|`consumer`); informational banner only — does not skip checks (ADR-033).
 - `KADMON_SKANNER_PROFILE` — `/skanner` profile override (`harness`|`web`|`cli`); back-compat env var (ADR-031).
+- `KADMON_DASHBOARD_PORT` — Port for `npm run dashboard:web` (default 4321; Zod-validated 1024-65535, plan-039).
 
 ## Agents (16)
 | Agent | Model |

@@ -844,4 +844,60 @@ describe("findActiveSessionDir", () => {
 
     expect(findActiveSessionDir(tmpBase)).toBe(newer);
   });
+
+  // ─── observations.archive.jsonl awareness (plan-039 Step 5) ───
+  // Since the forge-blind fix, session-end-all archives observations.jsonl
+  // into observations.archive.jsonl on every Stop past message 20. A session
+  // whose live file was just rotated into the archive (and possibly removed)
+  // must still be detected as "active" via the archive's mtime.
+
+  it("selects a directory that has only observations.archive.jsonl (no live file)", () => {
+    const archivedOnly = "33333333-3333-3333-3333-333333333333";
+    fs.mkdirSync(path.join(tmpBase, archivedOnly));
+    fs.writeFileSync(
+      path.join(tmpBase, archivedOnly, "observations.archive.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+
+    expect(findActiveSessionDir(tmpBase)).toBe(archivedOnly);
+  });
+
+  it("uses the newer of live vs archive mtime when both files exist", () => {
+    const staleLive = "44444444-4444-4444-4444-444444444444";
+    const freshArchive = "55555555-5555-5555-5555-555555555555";
+
+    fs.mkdirSync(path.join(tmpBase, staleLive));
+    fs.mkdirSync(path.join(tmpBase, freshArchive));
+
+    // staleLive: only a live file, touched 10s in the past
+    fs.writeFileSync(
+      path.join(tmpBase, staleLive, "observations.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+    const staleMtime = new Date(Date.now() - 10000);
+    fs.utimesSync(
+      path.join(tmpBase, staleLive, "observations.jsonl"),
+      staleMtime,
+      staleMtime,
+    );
+
+    // freshArchive: an OLD live file plus a freshly-rotated archive file —
+    // the archive mtime (now) must win over the live file's stale mtime.
+    fs.writeFileSync(
+      path.join(tmpBase, freshArchive, "observations.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+    const oldLiveMtime = new Date(Date.now() - 20000);
+    fs.utimesSync(
+      path.join(tmpBase, freshArchive, "observations.jsonl"),
+      oldLiveMtime,
+      oldLiveMtime,
+    );
+    fs.writeFileSync(
+      path.join(tmpBase, freshArchive, "observations.archive.jsonl"),
+      '{"eventType":"tool_post"}\n',
+    );
+
+    expect(findActiveSessionDir(tmpBase)).toBe(freshArchive);
+  });
 });

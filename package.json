@@ -9,7 +9,8 @@
     "build": "tsc && node -e \"const fs=require('fs'),t='dist/scripts/lib/schema.sql.tmp',d='dist/scripts/lib/schema.sql';fs.writeFileSync(t,fs.readFileSync('scripts/lib/schema.sql'));fs.renameSync(t,d)\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "dashboard:web": "npx tsx scripts/dashboard-web.ts"
   },
   "dependencies": {
     "sql.js": "^1.14.1",

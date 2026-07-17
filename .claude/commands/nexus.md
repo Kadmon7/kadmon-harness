@@ -5,6 +5,8 @@ description: Show the Kadmon Harness dashboard — instincts, sessions, costs, h
 ## Purpose
 Display a visual dashboard of the harness state: active instincts (with promotable markers), recent sessions (filtered, with duration), cost breakdown by model, and hook health status. The Instincts section also shows a cadence-nudge badge when `/forge` ClusterReports are pending `/evolve` consumption.
 
+This is the terminal (ANSI) dashboard. A read-only web dashboard also exists — `npm run dashboard:web` (see plan-039) — serving the same catalog + telemetry data as a browser UI at `http://127.0.0.1:4321`; use `/nexus` for a quick terminal check, the web dashboard for a persistent live view.
+
 ## Steps
 1. Run: `npx tsx scripts/dashboard.ts`
 2. Display the output to the user
