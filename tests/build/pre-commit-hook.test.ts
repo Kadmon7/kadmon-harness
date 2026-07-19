@@ -108,16 +108,28 @@ describe(".husky/pre-commit hook — existence and structural invariants", () =>
 
   it(
     // Test 5 — RED today: .husky/pre-commit does not exist.
-    // GREEN after Step 6.2: script uses `set -euo pipefail` (bash strict mode)
+    // GREEN after Step 6.2: script uses `set -eu` (POSIX strict mode)
     // so any tsc / npm run build failure propagates a non-zero exit code and
     // aborts the commit. This is the mechanism for "exits non-zero if tsc fails".
-    "uses bash strict mode (set -euo pipefail) so tsc failures abort the commit",
+    //
+    // POSIX note: this originally pinned `set -euo pipefail`, but husky v9
+    // runs the hook via `sh` regardless of the shebang, and on Debian/Ubuntu
+    // sh is dash — `set -o pipefail` is an illegal option there and aborted
+    // EVERY commit with exit 2. `set -eu` preserves the guarantee this test
+    // exists for (build failure -> non-zero -> commit aborted); pipefail
+    // added nothing since the script's only pipeline ends in `|| true`.
+    "uses POSIX strict mode (set -eu) so tsc failures abort the commit",
     () => {
       const content = readHookScript();
 
-      // set -euo pipefail is the conventional strict-mode prefix;
-      // presence guarantees non-zero exit propagation on build failure.
-      expect(content).toContain("set -euo pipefail");
+      // set -eu at line start guarantees non-zero exit propagation on
+      // build failure.
+      expect(content).toMatch(/^set -eu\b/m);
+
+      // Regression pin: pipefail is dash-illegal and must never come back
+      // as an actual `set` command while husky executes this script under
+      // sh (the script's comments may mention it — match commands only).
+      expect(content).not.toMatch(/^\s*set\b.*pipefail/m);
     },
   );
 });

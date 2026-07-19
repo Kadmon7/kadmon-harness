@@ -1,10 +1,17 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # Kadmon Harness pre-commit hook (plan-010 Phase 6, ADR-010 Q1).
 # Detects staged scripts/lib/**/*.ts files and rebuilds dist/ atomically so
 # source + compiled output ship in the same commit. Prevents drift between
 # .ts sources and dist/*.js artifacts that hooks load at runtime.
+#
+# POSIX sh, NOT bash: husky v9 executes this file via `sh` regardless of the
+# shebang (core.hooksPath -> .husky/_ shim). On Debian/Ubuntu sh is dash,
+# where `set -o pipefail` is an illegal option and aborts every commit with
+# exit 2. `set -eu` keeps the strict-mode guarantee that matters here (a
+# failing `npm run build` propagates non-zero and aborts the commit); the
+# only pipeline below ends in `|| true`, which defeats pipefail anyway.
 
-set -euo pipefail
+set -eu
 
 staged_ts=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^scripts/lib/.*\.ts$' || true)
 
