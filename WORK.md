@@ -109,18 +109,20 @@ note here what you are touching before you touch it).
 - **AUD-33** — config-protection heuristic → real JS tokenizer / JSON.parse walk (LOW; near won't-fix per threat model).
 
 ### Release milestone
-- **Cut v1.5.0** via `/release minor` — IN FLIGHT 2026-07-19. 22 commits since the `v1.4.0` tag
-  (`d4af788`, 2026-07-15) with `package.json` still reading 1.4.0.
-  - **MINOR, not PATCH**: three narrative features (web dashboard, `/release` upgrade-advisory,
-    `hebrew-native-copy`) — ADR-025 reserves PATCH for post-release hotfixes.
-  - **MINOR, not MAJOR, despite a breaking change**: the `kryo` → `kontinuum` rename breaks any
-    consumer invoking the old slug (the loader resolves by directory, so it fails silently rather
-    than erroring). Strict SemVer would say MAJOR, but **v2.0.0 is reserved for the ECC-delta
-    roadmap**, so this ships as v1.5.0 with an explicit `### Breaking` CHANGELOG section instead.
-    The `/release` upgrade-advisory phase (`3123ec5`) auto-emits the consumer upgrade path — this
-    is its first real outing.
-  - Order: CHANGELOG `[Unreleased]` + WORK.md first (done 2026-07-19) → `/release minor` →
-    `--push` as an explicit human step.
+- **v1.5.0 SHIPPED + PUSHED 2026-07-19** — `ce4628d` (release commit) + annotated tag `v1.5.0`,
+  pushed with `--follow-tags`. Sequence ran: docs prep `b16e2e6` → `/release minor` writes
+  (bump + CHANGELOG consolidation + BACKLOG prune ×4) → doks Layer-1 sync (found README
+  `+17 indexes` stale, real 19; onboarding catalog 2 versions behind → own commit `05cb075`
+  inside the tag) → re-verify (one flaky RED at 12:50, 2 consecutive greens after; authoritative
+  `VITEST_EXIT:0`, 1492 passed / 1 skipped) → commit + tag → push (no ask, per the 2026-07-16
+  gate-placement rule, clarified same day to cover release pushes).
+  - **MINOR, not PATCH**: three narrative features (ADR-025). **MINOR, not MAJOR, despite the
+    breaking `kryo` → `kontinuum` rename**: v2.0.0 stays reserved for the ECC-delta roadmap;
+    the break ships as an explicit `### Breaking` CHANGELOG section + upgrade advisory.
+  - **Parallel-session commit inside the tag**: `a38671c` (kontinuum sha-anchor + thaw re-sync)
+    landed at 12:42 between this session's commits, pushed first. Narrated into `[1.5.0]`
+    post-tag — the CHANGELOG must describe what the tag actually contains.
+  - **AUD-40 hit live TWICE during this cut** (see BACKLOG entry for details).
 
 ### Cross-project / forks (captured 2026-07-13 — were chat/prose only)
 - **AUD-41 — per-fork upgrade runbook** (Sentinel-harness + Kadmon7Cowork-Harness). Both DIVERGED
