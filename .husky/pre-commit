@@ -1,22 +1,36 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # Kadmon Harness pre-commit hook (plan-010 Phase 6, ADR-010 Q1).
-# Detects staged scripts/lib/**/*.ts files and rebuilds dist/ atomically so
-# source + compiled output ship in the same commit. Prevents drift between
-# .ts sources and dist/*.js artifacts that hooks load at runtime.
+# Detects staged scripts/**/*.ts files and rebuilds dist/ so source + compiled
+# output ship in the same commit. Prevents drift between .ts sources and
+# dist/*.js artifacts that hooks load at runtime.
 #
-# POSIX sh, NOT bash: husky v9 executes this file via `sh` regardless of the
-# shebang (core.hooksPath -> .husky/_ shim). On Debian/Ubuntu sh is dash,
-# where `set -o pipefail` is an illegal option and aborts every commit with
-# exit 2. `set -eu` keeps the strict-mode guarantee that matters here (a
-# failing `npm run build` propagates non-zero and aborts the commit); the
-# only pipeline below ends in `|| true`, which defeats pipefail anyway.
+# POSIX sh compatible ON PURPOSE: husky v9 executes this file via `sh -e`
+# (the shebang is ignored), and on Debian/Ubuntu sh is dash, which rejects
+# `set -o pipefail`. `set -eu` keeps the abort-on-build-failure contract —
+# `npm run build` is not a pipeline, and the only pipeline below is
+# `|| true`-guarded either way.
 
 set -eu
 
-staged_ts=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^scripts/lib/.*\.ts$' || true)
+# Filter widened from the lib-only subtree (BACKLOG "Pre-commit dist-restage
+# gap"): top-level scripts/*.ts (dashboard.ts, dashboard-web.ts) fell outside
+# both the filter and the restage, so their dist output needed a manual
+# build+add.
+staged_ts=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^scripts/.*\.ts$' || true)
 
 if [ -n "$staged_ts" ]; then
-  echo "Kadmon pre-commit: rebuilding dist/ for staged scripts/lib/*.ts"
+  echo "Kadmon pre-commit: rebuilding dist/ for staged scripts/**/*.ts"
   npm run build
-  git add dist/scripts/lib
+  # Selective restage: only the compiled outputs of the staged sources.
+  # A wholesale `git add dist/scripts` would also stage compiled output of
+  # UNSTAGED dirty .ts files — committing artifacts whose source the user
+  # deliberately left out, the same source/dist drift this hook prevents.
+  echo "$staged_ts" | while IFS= read -r src; do
+    base="dist/${src%.ts}"
+    for out in "$base.js" "$base.d.ts"; do
+      if [ -f "$out" ]; then
+        git add "$out"
+      fi
+    done
+  done
 fi

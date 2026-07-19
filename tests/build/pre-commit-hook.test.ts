@@ -75,61 +75,70 @@ describe(".husky/pre-commit hook — existence and structural invariants", () =>
   );
 
   it(
-    // Test 3 — RED today: .husky/pre-commit does not exist.
-    // GREEN after Step 6.2: script content contains `npm run build` and
-    // a grep/test against `scripts/lib/.*\.ts$` (the staged-file detector).
+    // Test 3 — originally RED pre-plan-010; widened 2026-07-19 (BACKLOG
+    // "Pre-commit dist-restage gap"): the detector must cover ALL of
+    // scripts/**/*.ts, not just scripts/lib/ — top-level scripts/*.ts
+    // (dashboard.ts, dashboard-web.ts) fell outside the old filter AND the
+    // old restage, so their dist output required a manual build+add.
     // We assert structural invariants (content inspection) instead of running
     // `git commit` — that would mutate working-tree state.
-    "invokes npm run build when scripts/lib/**/*.ts files are staged",
+    "invokes npm run build when any scripts/**/*.ts file is staged",
     () => {
       const content = readHookScript();
 
       // Must invoke the build command
       expect(content).toContain("npm run build");
 
-      // Must check staged files against the scripts/lib TS pattern
-      // (grep -E or grep -e or a bash conditional on the path pattern)
-      expect(content).toMatch(/scripts\/lib\/.*\\\.ts/);
+      // Must check staged files against the widened scripts TS pattern
+      expect(content).toContain("^scripts/.*\\.ts$");
+
+      // Must NOT still be narrowed to scripts/lib only
+      expect(content).not.toContain("^scripts/lib/");
     },
   );
 
   it(
-    // Test 4 — RED today: .husky/pre-commit does not exist.
-    // GREEN after Step 6.2: script content contains `git add dist/scripts/lib`
-    // so the rebuilt JS is staged alongside the TS source changes.
-    "stages dist/scripts/lib after successful build via git add",
+    // Test 4 — reworked 2026-07-19 with the filter widening: restage is now
+    // SELECTIVE (per staged source -> its dist/*.js + dist/*.d.ts), not a
+    // wholesale `git add dist/scripts`. Wholesale would also stage compiled
+    // output of UNSTAGED dirty .ts files — committing artifacts whose source
+    // the user deliberately left out of the commit, which is the same
+    // source/dist drift this hook exists to prevent.
+    "selectively stages the dist output of each staged scripts/**/*.ts",
     () => {
       const content = readHookScript();
 
-      // Must re-stage the compiled output after build
-      expect(content).toContain("git add dist/scripts/lib");
+      // Must derive the dist path from each staged source path
+      expect(content).toContain('dist/${src%.ts}');
+
+      // Must re-stage the compiled outputs after build
+      expect(content).toContain("git add");
+
+      // Must NOT wholesale-restage a dist directory
+      expect(content).not.toContain("git add dist/scripts/lib");
+      expect(content).not.toMatch(/git add dist\/scripts\s*$/m);
     },
   );
 
   it(
-    // Test 5 — RED today: .husky/pre-commit does not exist.
-    // GREEN after Step 6.2: script uses `set -eu` (POSIX strict mode)
-    // so any tsc / npm run build failure propagates a non-zero exit code and
-    // aborts the commit. This is the mechanism for "exits non-zero if tsc fails".
-    //
-    // POSIX note: this originally pinned `set -euo pipefail`, but husky v9
-    // runs the hook via `sh` regardless of the shebang, and on Debian/Ubuntu
-    // sh is dash — `set -o pipefail` is an illegal option there and aborted
-    // EVERY commit with exit 2. `set -eu` preserves the guarantee this test
-    // exists for (build failure -> non-zero -> commit aborted); pipefail
-    // added nothing since the script's only pipeline ends in `|| true`.
-    "uses POSIX strict mode (set -eu) so tsc failures abort the commit",
+    // Test 5 — reworked 2026-07-19: husky v9 executes this file via `sh -e`
+    // (shebang ignored), and on Debian/Ubuntu sh is dash, which hard-fails on
+    // `set -o pipefail` ("Illegal option -o pipefail") — aborting EVERY
+    // commit. `set -eu` keeps the abort-on-build-failure contract (npm run
+    // build is not a pipeline; the only pipeline is `|| true`-guarded) while
+    // staying POSIX-sh compatible.
+    "uses POSIX strict mode (set -eu, no pipefail) so tsc failures abort the commit without breaking dash",
     () => {
       const content = readHookScript();
 
-      // set -eu at line start guarantees non-zero exit propagation on
-      // build failure.
-      expect(content).toMatch(/^set -eu\b/m);
-
-      // Regression pin: pipefail is dash-illegal and must never come back
-      // as an actual `set` command while husky executes this script under
-      // sh (the script's comments may mention it — match commands only).
-      expect(content).not.toMatch(/^\s*set\b.*pipefail/m);
+      expect(content).toContain("set -eu");
+      // pipefail is a bashism dash rejects — must not reappear in any
+      // EXECUTABLE line (the comment explaining its removal may name it)
+      const code = content
+        .split("\n")
+        .filter((line) => !line.trim().startsWith("#"))
+        .join("\n");
+      expect(code).not.toContain("pipefail");
     },
   );
 });
