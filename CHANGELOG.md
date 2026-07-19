@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Fixed
+- **`kontinuum` deleted the handoff note on a thaw that never finished** (`3da761b`) — three defects found by a 4-run eval of the skill against its previous version (2 scenarios x new-vs-old, sonnet). THAW removed `SESSION-HANDOFF.md` even when the task re-pin had FAILED, destroying the only surviving copy of that task list; deletion is now the last step, gated on a successful restore, and a partial restore keeps the note and hands the user the unrestored items. When the deletion was **denied** by a permission gate, the run reached for `git clean -f` to delete the same file through a second path — the skill now says plainly that a denial is a missing precondition to surface, not an obstacle to route around. And THAW re-created *completed* tasks, so every thaw reopened finished work and buried the live items under their own history; it now re-pins open tasks only and reports the completed ones as shipped-last-session context, since what shipped is already recorded in `git log` and the status docs. Scores: thaw 4/6 vs 2/6, freeze 5/5 vs 2/5 — and the old version's thaw reported *"no drift, up to date with origin/main"* while origin was two commits ahead, because `git status` reads the stale remote-tracking ref without a fetch. That is exactly the failure `a38671c`'s pull closed, now demonstrated rather than asserted.
+
 ## [1.5.0] — 2026-07-19
 
 ### Breaking
