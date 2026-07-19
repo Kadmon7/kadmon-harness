@@ -4,18 +4,20 @@ description: How to use the Kadmon Harness Claude Code plugin in this project. 1
 type: reference
 ---
 
-# Kadmon Harness v1.3.0 — quick reference
+# Kadmon Harness v1.5.0 — quick reference
 
 This project has the Kadmon Harness Claude Code plugin installed (and optionally the `install.sh` bootstrap for rules + permissions). This file tells Claude what's available and when to use each piece.
 
-**Source of truth** — https://github.com/Kadmon7/kadmon-harness · Release v1.3.0 · MIT licensed. Refresh this file when the harness version bumps.
+**Source of truth** — https://github.com/Kadmon7/kadmon-harness · Release v1.5.0 · MIT licensed. Refresh this file when the harness version bumps.
 
 **What's new since v1.1:**
 - **v1.2** — Python support (ADR-020): language-aware hooks branch on file extension (`.py` → ruff / mypy / print() warnings); python-reviewer auto-invokes on `.py` edits; Python rules at `.claude/rules/python/`.
 - **v1.2.2** — CORE permissions bootstrap (ADR-021): 9 essential `permissions.allow` shipped via installer.
 - **v1.2.3** — Install Health Telemetry (ADR-024) + Versioning Policy (ADR-025).
 - **v1.3.0** — `/medik` expansion 9→14 checks (ADR-028, ADR-029): 5 new health checks (stale-plans, hook-health-24h, instinct-decay-candidates, skill-creator-probe, capability-alignment). `/medik --ALV` diagnostic export with cross-platform path redaction. Typed install-diagnostic reader + `_v: 1` schema. Graphify adoption (ADR-026, Sprint E PASS at 8.11× token reduction). Python SAST hook (ADR-027): `post-edit-security` runs `bandit -ll` on `.py` edits. **Cross-project stack 11/11**: `/skanner` profile-aware (ADR-031), `/doks` per-layer eligibility (ADR-032 + Amendment 2026-04-26 — rules out of scope universally; layers collapsed 4→3), `/medik` cwd-target-existence (ADR-033), `/chekpoint` diff-scope-aware via `getDiffScope()` (ADR-034). Catalogs split (ADR-035): `.claude/{agents,hooks,commands}/CATALOG.md` non-auto-loaded, ~11k tokens/turn saved. `agent-authoring` + `hook-authoring` skills extracted from rules as on-demand reference (skills 46→48). `/evolve` step 6 Generate promoted EXPERIMENTAL → accepted 2026-04-24.
-- **Tests:** 637 → 1115 (+75%). Files: 60 → 89. Hooks: 21 → 22 (+9 shared modules). /medik checks: 8 → 14. Skills: 46 → 48.
+- **v1.4.0** — `/release` command (ADR-037, commands 11→12): one human-invoked run for version bump + CHANGELOG consolidation + BACKLOG prune + status-flip proposals + annotated tag, no-push by default. `/medik` consumer-safety via `scripts/lib/medik-checks-cli.ts` — checks #10-14 now reachable from consumer repos with a real `projectHash`, no more false FAILs (checks 14→16 with docs-status-lint + graphify-health). Audit Wave 2/3 hardening: the 4 blocking security hooks fail **closed** on stdin-parse failure, `session_id` path traversal hardened via the shared `safe-session-dir` module, toolchain hooks resolve binaries directly. New `fable-prompt` skill.
+- **v1.5.0** — **Kadmon OS web dashboard** (plan-039): `npm run dashboard:web` serves a local read-only view on `127.0.0.1` (port via `KADMON_DASHBOARD_PORT`) showing a live disk-read catalog plus SQLite telemetry — instincts, sessions and orphans, cost events, hook latency vs budget, agent usage. `/release` **upgrade-advisory** phase (ADR-037 D7) classifies the release diff into ADR-010 distribution territories and prints the exact commands consumers run to pull it (`/plugin update` vs installer re-run vs re-drop this catalog). New `hebrew-native-copy` skill. **BREAKING**: the `kryo` skill is renamed `kontinuum` — the old slug resolves nowhere, so update any consumer reference.
+- **Tests:** 637 → 1493. Files: 60 → 111. Hooks: 21 → 23 (22 plugin-shipped script hooks + 1 inline graphify nudge) + 12 shared modules. /medik checks: 8 → 16. Skills: 46 → 53. Commands: 11 → 12.
 
 ## Mantra
 
