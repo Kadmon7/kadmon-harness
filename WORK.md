@@ -8,6 +8,27 @@ note here what you are touching before you touch it).
 
 ## Task list (open)
 
+### Shipped 2026-07-17 (on main, pushed)
+- **Kadmon OS web dashboard** (`300d0c4` feat + `df32771` Brand v0.2 + `d395936` review fixes) —
+  plan-039 built by feniks (Sonnet) in an isolated worktree, Fable polish pass, full-tier
+  `/chekpoint` at merge (ts-reviewer 3 WARN + spektr 1 MEDIUM all closed in the amendment;
+  kody 0 BLOCK). `npm run dashboard:web` → http://127.0.0.1:4321.
+  - **The server is a foreground local process — it does NOT survive a reboot.** A "run as
+    service" registration was offered and deliberately not taken; if it ever is, that is a new task.
+  - Review follow-ups already in BACKLOG: v2 hardening NOTEs (Host allowlist, rate limit,
+    `index.html` split) + the pre-commit dist-restage filter gap on top-level `scripts/*.ts`.
+- **`/forge` + `/kompact` blind fix** (`09ea842`) — the P1 registered the day before. Phase 5 wiped
+  `observations.jsonl` on every Stop past message 20; now archives to `observations.archive.jsonl`
+  with retain-on-failure, and every reader sees archive+live. ECC `f720885c` pattern = Wave 0 of the
+  v2.0 roadmap, so the roadmap now has one shipped wave as ratification evidence. Suite 1457 → 1462.
+- **Vitest worktree exclude** (`59bdf9a`) — an active agent worktree triplicated the suite
+  (331 files / 79 phantom fails). `.claude/worktrees/**` excluded + gitignored.
+- **FUSE semaphore + claim conventions** (`d4ae94a`) — ported into the `/sprint`
+  `WORK_COORDINATION.template.md`; also landed in Sentinel-harness as `5760de0`.
+- **Docs sync post-merge** (`fdb2dc4` plan approved → `4da37a2` plan-039 flipped completed) —
+  CLAUDE.md Status now 111 files + the dashboard line (its test count said 1490; the real
+  collected total is 1493 — corrected 2026-07-19, see Test state below).
+
 ### Shipped recently (2026-07-14 → 07-16, on main)
 - **Silent-swallow stderr pass** (2026-07-16) — the 5 bare `catch { return ... }` sites in
   `scripts/lib/release/` (`tag.ts` tagExists, `orchestrate.ts` isVersionAlreadyBumped,
@@ -68,16 +89,38 @@ note here what you are touching before you touch it).
   + skill count 50→52 drift → following /doks. Also `cf9a13c` reconciled manifest skill count 49→52.
 
 ### Next up
-- **Follow-up full `/doks` pass** — close the 2 README gaps doks flagged out of Phase-6 count-sync scope during the cut: `<summary>48 Skills</summary>` enumerates only ~32 of 52 (~20 rows missing); `latest:` narrative (README L651) still describes v1.3.0 ADRs 031-035, not the v1.4.0 headline (/release + /medik consumer-safety + audit Wave 2/3).
-- **Deep research Check Point** via `/skavenger` (pitch the cowork feature, with Eden) — business-sensitive, keep findings private. See memory `project_harness_repos_map`.
+- **Cut v1.5.0** — see the Release milestone section below. IN FLIGHT as of 2026-07-19.
+- **Ratify the v2.0 ECC-delta roadmap** via arkitect — reviews `docs/roadmap/v2.0-ecc-delta-ports.md`
+  Waves 1-4, with Wave 0 (`09ea842`) already shipped as evidence. Unblocks the whole v2.0 track.
+- **Rebuild the graphify graph** — ~2.5 months stale AND missing every 07-17 shipment, so it returns
+  wrong answers (it called `log()` a god node when the function had zero callers). Pre-read the
+  memories `reference_graphify_update_gotcha` (the update CLI stomps reports) and
+  `reference_graphify_scope_limit` (code only, no markdown) before running it.
+- **Deep research Check Point** via `/skavenger` (pitch the cowork feature, with Eden) — business-sensitive, keep findings private. Output goes to Sentinel/private, NEVER to this repo's public `docs/research/`. See memory `project_harness_repos_map`.
+- **Evaluate the ECC validation experiment** (OVERDUE, lives in Kadmon-Sports) — 8 YAML seed instincts
+  gate the `/instinct-import` port decision; the observation window closed ~2026-05-15.
+
+> Closed from this section: the follow-up full `/doks` pass shipped as `816d0b1` (README skills
+> collapsible 48→53 with set-equality verification, `latest:` narrative moved to v1.4.0, plus five
+> untracked drifts).
 
 ### Open AUD (post-AUD-26 cleanup)
 - **AUD-40** — /release cross-process committed-but-untagged recovery (LOW; human-invoked + narrated, missed tag visible pre-publish).
 - **AUD-33** — config-protection heuristic → real JS tokenizer / JSON.parse walk (LOW; near won't-fix per threat model).
 
 ### Release milestone
-- **Cut v1.4.0** via `/release minor` (dogfood the new command) once AUD-26 lands (AUD-37 + AUD-25 shipped).
-  Prunes done AUD-xx from BACKLOG → CHANGELOG.
+- **Cut v1.5.0** via `/release minor` — IN FLIGHT 2026-07-19. 22 commits since the `v1.4.0` tag
+  (`d4af788`, 2026-07-15) with `package.json` still reading 1.4.0.
+  - **MINOR, not PATCH**: three narrative features (web dashboard, `/release` upgrade-advisory,
+    `hebrew-native-copy`) — ADR-025 reserves PATCH for post-release hotfixes.
+  - **MINOR, not MAJOR, despite a breaking change**: the `kryo` → `kontinuum` rename breaks any
+    consumer invoking the old slug (the loader resolves by directory, so it fails silently rather
+    than erroring). Strict SemVer would say MAJOR, but **v2.0.0 is reserved for the ECC-delta
+    roadmap**, so this ships as v1.5.0 with an explicit `### Breaking` CHANGELOG section instead.
+    The `/release` upgrade-advisory phase (`3123ec5`) auto-emits the consumer upgrade path — this
+    is its first real outing.
+  - Order: CHANGELOG `[Unreleased]` + WORK.md first (done 2026-07-19) → `/release minor` →
+    `--push` as an explicit human step.
 
 ### Cross-project / forks (captured 2026-07-13 — were chat/prose only)
 - **AUD-41 — per-fork upgrade runbook** (Sentinel-harness + Kadmon7Cowork-Harness). Both DIVERGED
@@ -105,13 +148,32 @@ note here what you are touching before you touch it).
   in AUD-08 + AUD-28). Sentinel keeps its own decisions dir per ADR-036 §5. Remaining phases pending.
 
 ## Landed but unreleased
-- (empty — v1.4.0 cut 2026-07-15 consolidated CHANGELOG `[Unreleased]` into `[1.4.0]` and tagged `v1.4.0`. The next `[Unreleased]` accrues from here.)
+22 commits since the `v1.4.0` tag, all on main and pushed, all written into CHANGELOG
+`[Unreleased]` on 2026-07-19. Consolidates into `[1.5.0]` at the cut.
+- **Breaking**: `kryo` → `kontinuum` (`985eadd`).
+- **Added**: Kadmon OS web dashboard (`300d0c4`/`df32771`/`d395936`), `/release` upgrade-advisory
+  (`3123ec5`), `hebrew-native-copy` skill (`4dae117`), `/sprint` semaphore conventions (`d4ae94a`),
+  v2.0 ECC-delta roadmap (`1aac06f`).
+- **Fixed**: observations archive / forge+kompact blind (`09ea842`), 5 silent-swallow sites
+  (`dd2ad52`), skills-count contract test red on main (`04ff1df`).
+- **Changed**: vitest worktree exclude (`59bdf9a`), docs Layer 1-3 sync (`816d0b1`), working-docs
+  absorption + CORRECTIONS C-006 (`53490c1`, `d657b13`, `67f0c9c`, `0099483`, `fdb2dc4`, `4da37a2`).
 
 ## Test state on main
+- **Suite green: 111 files / 1493 collected (1492 passed / 1 skipped)** — re-run and verified
+  2026-07-19 before the v1.5.0 cut, not copied from any doc. Trail this cycle:
+  1452 → 1457 (silent-swallow) → 1462 (observations archive) → 1493 (dashboard).
+  - `4da37a2` wrote **1490** into CLAUDE.md Status and this file; the real collected total was 1493.
+    Corrected on 2026-07-19. Another C-001 recurrence and a live instance of C-006 — a count in a
+    working doc is a point-in-time claim, so re-derive it from a real run before citing it.
 - Flaky hook tests (AUD-21) root-caused + FIXED via AUD-34 (vitest serialization of heavy
-  sql.js/execFileSync tests). Suite green 1452 (1451 passed / 1 skipped).
+  sql.js/execFileSync tests).
+- A main-tree run with an active agent worktree used to report **331 files / 79 failures** — that
+  was the worktree sweep, not a real regression, and it is fixed in `59bdf9a`. If those numbers
+  ever reappear, check `.claude/worktrees/` before debugging anything else.
 - Release-subsystem live-repo coupling (manifest Test 2b + orchestrate.e2e pinned to
   version/date) decoupled to structural invariants during the v1.4.0 cut (`b3650db`). 3rd
   occurrence of the live-repo assertion-fragility class — memory `project_release_e2e_live_state_gotcha`.
+  Test (d) in `upgrade-advisory.test.ts` is the last living instance, tracked in BACKLOG.
 
-Last updated: 2026-07-15
+Last updated: 2026-07-19
