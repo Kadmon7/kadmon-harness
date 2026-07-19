@@ -102,9 +102,17 @@ describe("binProjectRoot", () => {
     expect(path.resolve(root)).toBe(path.resolve(REPO_ROOT));
   });
 
+  // Build fake ABSOLUTE paths from the platform's real filesystem root.
+  // The previous fixtures used path.join("C:", ...), which is absolute only
+  // on Windows — on POSIX "C:/some/project" is a RELATIVE path, so
+  // binProjectRoot's path.resolve() prepended process.cwd() and the
+  // assertion failed on Linux/macOS. path.parse(cwd).root is "C:\\" on
+  // Windows and "/" on POSIX, keeping the fixture absolute everywhere.
+  const FS_ROOT = path.parse(process.cwd()).root;
+
   it("handles a scoped-package-style nested entry path", () => {
     const fakeEntry = path.join(
-      "C:",
+      FS_ROOT,
       "some",
       "project",
       "node_modules",
@@ -114,12 +122,12 @@ describe("binProjectRoot", () => {
       "cli.js",
     );
     const root = binProjectRoot(fakeEntry);
-    expect(root).toBe(path.join("C:", "some", "project"));
+    expect(root).toBe(path.join(FS_ROOT, "some", "project"));
   });
 
   it("falls back to the entry's own directory when no node_modules ancestor exists", () => {
-    const fakeEntry = path.join("C:", "standalone", "cli.js");
+    const fakeEntry = path.join(FS_ROOT, "standalone", "cli.js");
     const root = binProjectRoot(fakeEntry);
-    expect(root).toBe(path.join("C:", "standalone"));
+    expect(root).toBe(path.join(FS_ROOT, "standalone"));
   });
 });

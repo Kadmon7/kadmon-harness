@@ -108,7 +108,12 @@ describe("logHookEvent", () => {
   });
 
   it("silently skips when sessionId contains path traversal or illegal characters", () => {
+    // Traversal id resolving to a guaranteed-WRITABLE location outside the
+    // kadmon sandbox (os.tmpdir() itself) — a broken guard would create it
+    // regardless of uid/platform, so its absence is a real regression signal.
+    const escapedName = `lhe-escape-${Date.now()}`;
     const illegalIds = [
+      `../${escapedName}`,
       "../../../etc",
       "foo/bar",
       "sid with spaces",
@@ -124,10 +129,29 @@ describe("logHookEvent", () => {
       });
     }
 
-    // None of these dirs should have been created under KADMON_TMP
-    expect(fs.existsSync(path.join(KADMON_TMP, "../../../etc"))).toBe(false);
-    expect(fs.existsSync(path.join(KADMON_TMP, "foo/bar"))).toBe(false);
-    expect(fs.existsSync(path.join(KADMON_TMP, "sid with spaces"))).toBe(false);
-    expect(fs.existsSync(path.join(KADMON_TMP, "sid\x00null"))).toBe(false);
+    try {
+      // The writable-escape dir must not have been created in os.tmpdir()
+      expect(fs.existsSync(path.join(os.tmpdir(), escapedName))).toBe(false);
+
+      // "../../../etc" collapses (via path.join) to the SYSTEM /etc dir on
+      // POSIX, which exists on any Linux/macOS host no matter what the hook
+      // did — the old existsSync(dir) assertion was Windows-only by accident
+      // (%TEMP%\..\..\..\etc happens not to exist there). Assert on the FILE
+      // the hook would have written instead, which is absent on a healthy
+      // system on every platform.
+      expect(
+        fs.existsSync(path.join(KADMON_TMP, "../../../etc", "hook-events.jsonl")),
+      ).toBe(false);
+
+      // None of the remaining ids should have created dirs under KADMON_TMP
+      expect(fs.existsSync(path.join(KADMON_TMP, "foo/bar"))).toBe(false);
+      expect(fs.existsSync(path.join(KADMON_TMP, "sid with spaces"))).toBe(false);
+      expect(fs.existsSync(path.join(KADMON_TMP, "sid\x00null"))).toBe(false);
+    } finally {
+      fs.rmSync(path.join(os.tmpdir(), escapedName), {
+        recursive: true,
+        force: true,
+      });
+    }
   });
 });
