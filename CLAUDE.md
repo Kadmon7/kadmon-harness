@@ -24,11 +24,14 @@ This project has a graphify knowledge graph at graphify-out/. Adoption confirmed
 
 **Primary memory reference**: `~/.claude/projects/C--Command-Center-Kadmon-Harness/memory/reference_graphify.md` — 5 rules, commands cheat-sheet, benchmark results, foot-gun link.
 
+Full rebuild 2026-07-19 (graphifyy v0.9.7): **2541 nodes / 4138 edges / 236 named communities**. Markdown is indexed as of this rebuild — agents, commands, skills, rules, ADRs, plans, roadmaps and research are all queryable, not just TS/JS.
+
 Rules:
 - Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
 - If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
-- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost). **This refreshes the CODE layer only** — it does not re-extract docs, so a doc-heavy session leaves the markdown layer stale while code stays fresh. Refreshing docs needs a full `/graphify` skill run (LLM cost). Historical foot-gun: pre-0.9.5 this command rewrote GRAPH_REPORT.md with an AST-only view, wiping community labels — mitigated upstream but not explicitly named as fixed, so verify labels survived after running it.
+- Graph stats in docs or memory are point-in-time claims. Verify against the artifact before trusting them: the graph silently shrank from 1110 to 585 nodes in April 2026 and no session noticed for three months.
 
 ## Stack
 - Language: TypeScript / JavaScript (primary)

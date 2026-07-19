@@ -77,3 +77,7 @@ graphify-out/cost.json
 graphify-out/obsidian/
 # Ephemeral Q&A memory from graphify save-result (re-accrues on next runs).
 graphify-out/memory/
+# Machine-specific interpreter + scan-root pointers written by the skill's Step 1.
+# Absolute local paths — committing them would break every other clone.
+graphify-out/.graphify_python
+graphify-out/.graphify_root

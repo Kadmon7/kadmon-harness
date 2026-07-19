@@ -1,43 +1,46 @@
 # Forge Report Writer
 
-> 15 nodes · cohesion 0.29
+> 15 nodes
 
 ## Key Concepts
 
-- **forge-report-writer.ts** (13 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **forge-report-writer.ts** (13 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **assertSafeBaseDir()** (7 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **forge-report-writer.test.ts** (5 connections) — `C:\Command-Center\Kadmon-Harness\tests\lib\forge-report-writer.test.ts`
-- **forge-report-writer.test.ts** (5 connections) — `C:\Command-Center\Kadmon-Harness\tests\lib\forge-report-writer.test.ts`
-- **kadmonRoot()** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **writeClusterReport()** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **exportInstinctsToJson()** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **assertSafeSessionId()** (3 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **isUnder()** (3 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **defaultBaseDir()** (3 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **pruneOldReports()** (3 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **readClusterReport()** (2 connections) — `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- **makeReport()** (2 connections) — `C:\Command-Center\Kadmon-Harness\tests\lib\forge-report-writer.test.ts`
-- **makeInstinct()** (2 connections) — `C:\Command-Center\Kadmon-Harness\tests\lib\forge-report-writer.test.ts`
+- **forge-report-writer.ts** (22 connections) — `scripts/lib/forge-report-writer.ts`
+- **forge-report-writer.test.ts** (15 connections) — `tests/lib/forge-report-writer.test.ts`
+- **forgeReportsBaseDir()** (9 connections) — `scripts/lib/forge-report-writer.ts`
+- **assertSafeBaseDir()** (6 connections) — `scripts/lib/forge-report-writer.ts`
+- **writeClusterReport()** (4 connections) — `scripts/lib/forge-report-writer.ts`
+- **exportInstinctsToJson()** (4 connections) — `scripts/lib/forge-report-writer.ts`
+- **kadmonRoot()** (3 connections) — `scripts/lib/forge-report-writer.ts`
+- **pruneOldReports()** (3 connections) — `scripts/lib/forge-report-writer.ts`
+- **assertSafeSessionId()** (2 connections) — `scripts/lib/forge-report-writer.ts`
+- **isUnder()** (2 connections) — `scripts/lib/forge-report-writer.ts`
+- **defaultBaseDir()** (2 connections) — `scripts/lib/forge-report-writer.ts`
+- **readClusterReport()** (2 connections) — `scripts/lib/forge-report-writer.ts`
+- **ADR-0005** (1 connections) — `scripts/lib/forge-report-writer.ts`
+- **makeReport()** (1 connections) — `tests/lib/forge-report-writer.test.ts`
+- **makeInstinct()** (1 connections) — `tests/lib/forge-report-writer.test.ts`
 
 ## Relationships
 
-- [[Database and Session Store]] (6 shared connections)
-- [[Forge Pipeline and Pattern Engine]] (4 shared connections)
-- [[Dashboard and Migrations]] (2 shared connections)
-- [[E2E Workflow Test Harness]] (1 shared connections)
+- [Instinct Lifecycle Manager](Instinct_Lifecycle_Manager.md) (5 shared connections)
+- [SQLite State Store Core](SQLite_State_Store_Core.md) (4 shared connections)
+- [Shared Type Definitions](Shared_Type_Definitions.md) (4 shared connections)
+- [CLI Dashboard & Evolve Reader](CLI_Dashboard_%26_Evolve_Reader.md) (3 shared connections)
+- [Evolve Generate Pipeline](Evolve_Generate_Pipeline.md) (3 shared connections)
+- [Forge Pipeline](Forge_Pipeline.md) (3 shared connections)
+- [Session Lifecycle Manager](Session_Lifecycle_Manager.md) (1 shared connections)
 
 ## Source Files
 
-- `C:\Command-Center\Kadmon-Harness\scripts\lib\forge-report-writer.ts`
-- `C:\Command-Center\Kadmon-Harness\tests\lib\forge-report-writer.test.ts`
+- `scripts/lib/forge-report-writer.ts`
+- `tests/lib/forge-report-writer.test.ts`
 
 ## Audit Trail
 
-- EXTRACTED: 70 (96%)
-- INFERRED: 3 (4%)
+- EXTRACTED: 77 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---
 
-*Part of the graphify knowledge wiki. See [[index]] to navigate.*
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

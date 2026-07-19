@@ -1,30 +1,41 @@
 # Plugin Hooks Generator
 
-> 6 nodes · cohesion 0.73
+> 17 nodes
 
 ## Key Concepts
 
-- **generate-plugin-hooks.ts** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
-- **rewriteCommand()** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
-- **buildPluginManifest()** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
-- **main()** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
-- **generate-plugin-hooks.ts** (4 connections) — `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
-- **extractScriptName()** (3 connections) — `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
+- **generate-plugin-hooks.ts** (16 connections) — `scripts/generate-plugin-hooks.ts`
+- **rewriteCommand()** (3 connections) — `scripts/generate-plugin-hooks.ts`
+- **buildPluginManifest()** (3 connections) — `scripts/generate-plugin-hooks.ts`
+- **extractScriptName()** (2 connections) — `scripts/generate-plugin-hooks.ts`
+- **main()** (2 connections) — `scripts/generate-plugin-hooks.ts`
+- **__filename** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **__dirname** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **REPO_ROOT** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **SETTINGS_PATH** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **OUTPUT_PATH** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **SourceHookCommand** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **SourceMatcherGroup** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **SourceSettings** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **PluginHookCommand** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **PluginMatcherGroup** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **PluginHooksManifest** (1 connections) — `scripts/generate-plugin-hooks.ts`
+- **ADR-0010** (1 connections) — `scripts/generate-plugin-hooks.ts`
 
 ## Relationships
 
-- [[Dashboard and Migrations]] (1 shared connections)
+- No strong cross-community connections detected
 
 ## Source Files
 
-- `C:\Command-Center\Kadmon-Harness\scripts\generate-plugin-hooks.ts`
+- `scripts/generate-plugin-hooks.ts`
 
 ## Audit Trail
 
-- EXTRACTED: 22 (96%)
-- INFERRED: 1 (4%)
+- EXTRACTED: 38 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---
 
-*Part of the graphify knowledge wiki. See [[index]] to navigate.*
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

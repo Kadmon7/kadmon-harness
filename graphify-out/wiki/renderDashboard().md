@@ -1,34 +1,37 @@
 # renderDashboard()
 
-> God node · 19 connections · `C:\Command-Center\Kadmon-Harness\scripts\lib\dashboard.ts`
+> God node · 20 connections · `scripts/lib/dashboard.ts`
 
-**Community:** [[Dashboard Renderer]]
+**Community:** [CLI Dashboard Rendering](CLI_Dashboard_Rendering.md)
 
 ## Connections by Relation
 
 ### calls
-- [[main()]] `INFERRED`
-- [[getInstinctRows()]] `EXTRACTED`
-- [[getInstinctCounts()]] `INFERRED`
-- [[miniBar()]] `EXTRACTED`
-- [[getSessionRows()]] `EXTRACTED`
-- [[getModelCostRows()]] `EXTRACTED`
-- [[getHookStatRows()]] `EXTRACTED`
-- [[getAgentStatRows()]] `EXTRACTED`
-- [[computeHealthScore()]] `EXTRACTED`
-- [[fmtTokens()]] `EXTRACTED`
-- [[fmtDuration()]] `EXTRACTED`
-- [[fmtMs()]] `EXTRACTED`
-- [[statusBadge()]] `EXTRACTED`
-- [[sectionHeader()]] `EXTRACTED`
-- [[separator()]] `EXTRACTED`
-- [[getHookHealthRows()]] `EXTRACTED`
-- [[getDbStatus()]] `EXTRACTED`
+- main() `EXTRACTED`
+- getInstinctCounts() `EXTRACTED`
+- getInstinctRows() `EXTRACTED`
+- getSessionRows() `EXTRACTED`
+- getModelCostRows() `EXTRACTED`
+- getHookHealthRows() `EXTRACTED`
+- getHookStatRows() `EXTRACTED`
+- getAgentStatRows() `EXTRACTED`
+- getDbStatus() `EXTRACTED`
+- computeHealthScore() `EXTRACTED`
+- fmtTokens() `EXTRACTED`
+- fmtDuration() `EXTRACTED`
+- fmtMs() `EXTRACTED`
+- miniBar() `EXTRACTED`
+- statusBadge() `EXTRACTED`
+- sectionHeader() `EXTRACTED`
+- separator() `EXTRACTED`
 
 ### contains
-- [[dashboard.ts]] `EXTRACTED`
-- [[dashboard.ts]] `EXTRACTED`
+- dashboard.ts `EXTRACTED`
+
+### imports
+- dashboard.test.ts `EXTRACTED`
+- dashboard.ts `EXTRACTED`
 
 ---
 
-*Part of the graphify knowledge wiki. See [[index]] to navigate.*
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*
