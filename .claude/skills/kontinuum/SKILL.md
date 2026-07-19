@@ -10,7 +10,8 @@ description: >-
   FREEZE / SAVE (write the note on the way out, anchored to the exact commit sha) or
   THAW / RESTORE (git pull --ff-only FIRST, print a drift report of what landed while the
   session was frozen, reconcile WORK_COORDINATION.md claims when the repo has one, re-pin
-  the tasks, print the summary, delete the note). Use this skill whenever the user is about
+  the OPEN tasks, print the summary, delete the note only once the restore succeeded).
+  Use this skill whenever the user is about
   to /exit and start a new session, or says "kontinuum", "freeze the session", "congela la
   sesion antes de salir", "handoff", "puente de sesion", "guarda la tasklist antes de
   salir", "re-pin the task list", "thaw", "descongela / restaura el handoff", "deja nota pa
@@ -77,8 +78,9 @@ State which mode you detected before acting, so the user can course-correct.
    survive on disk but not in anyone's context, and an unexplained diff at thaw reads as a
    parallel-session artifact.
 4. Write `SESSION-HANDOFF.md` at the repo root with three sections:
-   - **Task list** — every task in current order, with status. Keep completed tasks too; they
-     tell the next session what already shipped.
+   - **Task list** — every task in current order, with status. Keep the completed ones too, but
+     mark the section so the next session knows they are CONTEXT ("shipped last session"), not
+     work to re-pin — THAW re-creates only the open ones.
    - **Project summary** — the `Frozen at:` anchor, working-tree state, test count, component
      counts, next milestone / blocker, unreleased state, forks. Enough that the next session is
      oriented without opening five files. Label every claim about a live process (a dev server,
@@ -125,17 +127,32 @@ thaw. Committing it would leave stale task state in git history.
    Active tracks and Next planned tables AFTER the pull and report anything newer than the
    freeze date — a teammate claiming a track or merging one while the session slept is exactly
    what this catches. Report only; claiming tracks is `/sprint`'s lane, not kontinuum's.
-5. Re-create every task via `TaskCreate` in the same order. For tasks marked completed, create
-   them then set status completed with `TaskUpdate` — completed ones are context, not work to
-   redo.
+5. Re-create the OPEN tasks via `TaskCreate` in the same order — pending and in-progress only.
+   Do **not** re-create the completed ones as tasks; report them in the summary as "shipped last
+   session" instead. Completed rows exist to tell you what already landed, and a task list that
+   reopens sixteen finished items every thaw buries the live work under its own history. The
+   permanent record of what shipped lives in `git log`, the changelog, and the project's status
+   docs — not in the task list, whose job is what is still moving.
 6. Re-establish any blocked-by dependencies noted in the file (e.g. "task #5 blocked by #4")
-   with `TaskUpdate addBlockedBy`.
+   with `TaskUpdate addBlockedBy`. The note's numbering is its own; map it onto the new task IDs
+   rather than assuming they match.
 7. Print the project summary from the note together with the drift report, so the new session
    opens with the last session's orientation AND what changed underneath it. Claims the note
    labeled volatile are UNVERIFIED at thaw — re-check them (run the project's status tooling if
    the note names one) before repeating any of them as current fact.
-8. Delete `SESSION-HANDOFF.md` (`Bash rm`, or `git rm` if somehow tracked). It has thawed;
-   leaving it would make the next FREEZE believe frozen state already exists.
+8. Delete `SESSION-HANDOFF.md` — but only once the restore actually succeeded. The note is the
+   sole surviving copy of that task list, so deleting it is the last step, not a cleanup you
+   perform in parallel:
+
+   - Tasks re-pinned and the summary printed → `rm SESSION-HANDOFF.md` (or `git rm` if somehow
+     tracked). Leaving it would make the next FREEZE believe frozen state already exists.
+   - Restore was PARTIAL or failed (Task tools unavailable, an error mid-way, anything you could
+     not finish) → **keep the note**, say plainly that it was kept and why, and hand the user the
+     unrestored items. Deleting an unrestored handoff destroys the only record of the work.
+   - The deletion is DENIED (a permission gate, a classifier, a hook) → stop and tell the user the
+     note is still on disk and needs their go. A denial is a missing precondition, not an obstacle
+     to route around: reaching for `git clean`, a different shell, or any second path to the same
+     deletion turns a safety gate into a speed bump. Ask; the note is harmless where it sits.
 
 ## Guardrails
 
@@ -150,3 +167,5 @@ thaw. Committing it would leave stale task state in git history.
 - The frozen sha is load-bearing. An old note without a `Frozen at:` anchor means drift is
   unknowable — say so, and treat every summary claim as unverified rather than pretending the
   drift report ran.
+- The note outranks convenience at every step. Keep it when the restore is partial, keep it when
+  a deletion is denied, and never reach for a second tool to delete what the first one refused.
