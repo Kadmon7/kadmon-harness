@@ -166,6 +166,6 @@ Hybrid model (ADR-010 + ADR-019):
 
 <!-- Status: max 4 líneas. Narrativa de bugs/releases vive en git log + docs/decisions/ -->
 ## Status
-v1.4.0 — 1493 tests / 111 files / 23 hooks / 16 agents / 53 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks. Web dashboard at `npm run dashboard:web` (plan-039, Kadmon Brand v0.2).
+v1.5.0 — 1493 tests / 111 files / 23 hooks / 16 agents / 53 skills / 12 commands / 19 rules / 7 DB tables / 16 /medik checks. Web dashboard at `npm run dashboard:web` (plan-039, Kadmon Brand v0.2).
 Project-agnostic across TypeScript + Python (ADR-020/031/032/033/034). Plugin distribution + install.sh/install.ps1 (ADR-010). Catalogs non-auto-loaded (ADR-035).
 Full ADR + plan history: `docs/decisions/`, `docs/plans/`, `git log`.

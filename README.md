@@ -2,8 +2,8 @@
 
 **Operative layer for Claude Code** — hooks, agents, skills, and commands that transform Claude from a reactive assistant into a system that observes, learns, and evolves.
 
-[![Tests](https://img.shields.io/badge/tests-1457%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-1.4.0-blue)]()
+[![Tests](https://img.shields.io/badge/tests-1493%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-1.5.0-blue)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)]()
 [![Node](https://img.shields.io/badge/Node-20%2B-339933)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
@@ -279,8 +279,8 @@ Claude will fetch the catalog, detect your project's memory directory, write the
 | Commands | **12** |
 | Hooks | **23** registered + 12 shared modules |
 | Rules | **19** (9 common + 5 TypeScript + 5 Python) — operational only; catalogs at `.claude/{agents,hooks,commands}/CATALOG.md` per ADR-035 |
-| Tests | **1457 passing** (109 files) |
-| SQLite Tables | **7** + 17 indexes |
+| Tests | **1493 passing** (111 files) |
+| SQLite Tables | **7** + 19 indexes |
 | MCPs | **1 active** (Context7) |
 | Plugins | **4 active** |
 
@@ -702,8 +702,8 @@ graphify --update                  # manual re-run when docs / ADRs / plans chan
 
 ## 📊 Status & Attribution
 
-**v1.4.0 — latest: `/release` command collapses the manual release-hygiene steps into one human-invoked run (ADR-037) + `/medik` consumer-safety (checks reachable from consumer repos via `medik-checks-cli`, no more false FAILs) + audit Wave 2/3 hardening (security hooks fail closed, `session_id` traversal hardened across 10 hooks, toolchain hooks resolve bins directly, 2026-07-15)**
-`1457 tests passing` · `109 files` · `23 hooks` · `16 agents` · `53 skills` · `12 commands` · `19 rules` · `7 DB tables`
+**v1.5.0 — latest: Kadmon OS web dashboard (plan-039) — `npm run dashboard:web` serves a local read-only view of the live catalog and SQLite telemetry on `127.0.0.1`, styled to Kadmon Brand Foundation v0.2 + `/release` upgrade-advisory phase (ADR-037 D7) prints the exact plugin-update / install-rerun commands consumers need per changed distribution territory + new `hebrew-native-copy` skill (native-Israeli Hebrew copy: de-translationese + gendered-address fix). **BREAKING**: the `kryo` skill is renamed `kontinuum` — the old slug no longer resolves anywhere, so consumers referencing it must update (2026-07-19)**
+`1493 tests passing` · `111 files` · `23 hooks` · `16 agents` · `53 skills` · `12 commands` · `19 rules` · `7 DB tables`
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full release history.
 

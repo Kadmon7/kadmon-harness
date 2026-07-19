@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-07-19
+
 ### Breaking
 - **`kryo` skill renamed to `kontinuum`** (`985eadd`) — the cross-session freeze/thaw skill moved to `.claude/skills/kontinuum/SKILL.md` (directory, frontmatter `name`, body, and the onboarding catalog reference all updated). Skill count unchanged at 53. **The `kryo` name no longer resolves anywhere**: the plugin loader resolves skills by directory, so any consumer invoking `kryo` — or any prompt, doc, or memory grepping for it — silently finds nothing rather than erroring. Consumers that referenced the old slug must update it. No code referenced the slug, so nothing in the harness itself broke.
 
