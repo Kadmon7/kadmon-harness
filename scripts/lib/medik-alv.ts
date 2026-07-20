@@ -40,7 +40,11 @@ const rootDirSchema = z.object({ rootDir: z.string().min(1) }).passthrough();
 
 // Matches Windows (C:\...) and POSIX (/...) absolute paths embedded in free-form strings.
 // Used by harvestPathsFromString to catch paths in error/stack fields (spektr HIGH-1).
-const ABS_PATH_RE = /(?:[A-Za-z]:(?:\\{1,4}|\/)|\/)[\w.\- ]+(?:(?:\\{1,4}|\/)[\w.\- ]+){1,}/g;
+// The literal space in the character class is DELIBERATE (R-03): Windows paths with spaces
+// ("C:\Program Files\...") must still be harvested for redaction — dropping it would hide
+// those paths from the ALV report. Segments stay bounded by the required separator group,
+// so the backtrack surface is limited.
+const ABS_PATH_RE = /(?:[A-Za-z]:(?:\\{1,4}|\/)|\/)[\w.\- ]+(?:(?:\\{1,4}|\/)[\w.\- ]+)+/g;
 
 function harvestPathsFromString(s: unknown, out: Set<string>): void {
   if (typeof s !== "string" || s.length === 0) return;
