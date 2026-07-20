@@ -1,8 +1,42 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import http from "node:http";
 import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
-import { createServer, attachErrorHandler } from "../../scripts/dashboard-web.js";
+import {
+  createServer,
+  attachErrorHandler,
+  isAllowedHost,
+} from "../../scripts/dashboard-web.js";
 import { openDb, closeDb } from "../../scripts/lib/state-store.js";
+
+// fetch() (undici) treats Host as a forbidden header and silently ignores any
+// override, so the host-allowlist tests drive node:http directly. `omitHost`
+// uses Node's `setHost: false` to suppress the automatic Host header entirely.
+function rawGet(
+  port: number,
+  requestPath: string,
+  options: { host?: string; omitHost?: boolean } = {},
+): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const req = http.request(
+      {
+        host: "127.0.0.1",
+        port,
+        path: requestPath,
+        method: "GET",
+        setHost: options.omitHost ? false : undefined,
+        headers: options.host !== undefined ? { Host: options.host } : {},
+      },
+      (res) => {
+        let body = "";
+        res.on("data", (chunk: Buffer) => (body += chunk.toString()));
+        res.on("end", () => resolve({ status: res.statusCode ?? 0, body }));
+      },
+    );
+    req.on("error", reject);
+    req.end();
+  });
+}
 
 describe("dashboard-web server", () => {
   let server: Server;
@@ -123,6 +157,88 @@ describe("dashboard-web server", () => {
       await new Promise<void>((resolve) => errServer.close(() => resolve()));
       errorSpy.mockRestore();
     }
+  });
+});
+
+describe("dashboard-web host-header allowlist (DNS-rebinding guard)", () => {
+  let server: Server;
+  let port: number;
+
+  beforeEach(async () => {
+    await openDb(":memory:");
+    server = createServer();
+    await new Promise<void>((resolve) => {
+      server.listen(0, "127.0.0.1", resolve);
+    });
+    port = (server.address() as AddressInfo).port;
+  });
+
+  afterEach(async () => {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    closeDb();
+  });
+
+  it.each([
+    "127.0.0.1",
+    "localhost",
+    "[::1]",
+  ])("allows Host %s without a port", async (host) => {
+    const res = await rawGet(port, "/", { host });
+    expect(res.status).toBe(200);
+  });
+
+  it.each([
+    "127.0.0.1:4321",
+    "localhost:4321",
+    "[::1]:4321",
+  ])("allows Host %s with a port", async (host) => {
+    const res = await rawGet(port, "/", { host });
+    expect(res.status).toBe(200);
+  });
+
+  it.each([
+    "evil.com",
+    "evil.com:4321",
+  ])("rejects hostile Host %s with 403 before routing", async (host) => {
+    // /api/catalog (a real route) — the guard must fire before routing, so a
+    // hostile Host never reaches a data builder.
+    const res = await rawGet(port, "/api/catalog", { host });
+    expect(res.status).toBe(403);
+    expect(JSON.parse(res.body)).toEqual({ error: "forbidden" });
+  });
+
+  it("rejects a request with no Host header at all", async () => {
+    // Node's http server itself rejects Host-less HTTP/1.1 requests with a
+    // built-in 400 (requireHostHeader, RFC 7230 §5.4) before handleRequest
+    // ever runs, so the observable status is 400 — still a rejection. The
+    // isAllowedHost(undefined) === false unit case below keeps the guard
+    // fail-closed as defense in depth if that server default ever changes.
+    const res = await rawGet(port, "/", { omitHost: true });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("isAllowedHost — parsing edge cases", () => {
+  it.each([
+    ["127.0.0.1", true],
+    ["127.0.0.1:65535", true],
+    ["localhost", true],
+    ["LOCALHOST", true], // Host header hostnames are case-insensitive
+    ["localhost:4321", true],
+    ["[::1]", true],
+    ["[::1]:4321", true], // IPv6 + port — a naive split(":") mangles this
+    ["evil.com", false],
+    ["evil.com:4321", false],
+    ["127.0.0.1.evil.com", false], // prefix-spoof
+    ["localhost.evil.com", false],
+    ["localhost.", false], // trailing dot — fail closed
+    ["user@evil.com", false], // userinfo trick must not mask the real host
+    ["localhost:notaport", false], // malformed — fail closed
+    ["::1", false], // unbracketed IPv6 is not a valid Host header — fail closed
+    ["", false],
+    [undefined, false],
+  ])("isAllowedHost(%j) === %s", (host, expected) => {
+    expect(isAllowedHost(host as string | undefined)).toBe(expected);
   });
 });
 

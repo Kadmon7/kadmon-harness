@@ -30,6 +30,29 @@ function resolvePort() {
     }
     return result.data;
 }
+// ─── Host-header allowlist (DNS-rebinding guard) ───
+// A malicious page can point an attacker-controlled DNS name at 127.0.0.1 and
+// have the victim's browser reach this server with Host: evil.com. Rejecting
+// any Host whose hostname is not a loopback name closes that hole. The port is
+// deliberately NOT pinned: rebinding requires an attacker hostname, browsers
+// always send the real port, and tests bind ephemeral ports. Parsing goes
+// through WHATWG URL rather than a naive split(":") — "[::1]:4321" contains a
+// colon inside the bracketed IPv6 literal, and URL also normalizes case and
+// strips userinfo tricks ("localhost@evil.com" resolves to evil.com).
+const ALLOWED_HOSTNAMES = new Set(["127.0.0.1", "localhost", "[::1]"]);
+/** Exported for tests. Fail-closed: missing or unparseable Host → false. */
+export function isAllowedHost(hostHeader) {
+    if (!hostHeader)
+        return false;
+    let hostname;
+    try {
+        hostname = new URL(`http://${hostHeader}/`).hostname;
+    }
+    catch {
+        return false; // malformed Host (e.g. bad port, bare "::1") — fail closed
+    }
+    return ALLOWED_HOSTNAMES.has(hostname.toLowerCase());
+}
 // ─── Response helpers ───
 function sendJson(res, status, body) {
     const payload = JSON.stringify(body);
@@ -46,6 +69,11 @@ const DEFAULT_BUILDERS = { buildCatalog, buildTelemetry };
 // ─── Routing ───
 async function handleRequest(req, res, rootDir, builders) {
     try {
+        // Before ANY routing: reject non-loopback Host headers (DNS rebinding).
+        if (!isAllowedHost(req.headers.host)) {
+            sendJson(res, 403, { error: "forbidden" });
+            return;
+        }
         if (req.method !== "GET") {
             sendNotFound(res);
             return;

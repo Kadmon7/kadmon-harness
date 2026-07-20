@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import http from "node:http";
 import { buildCatalog, buildTelemetry } from "./lib/dashboard-web-data.js";
+/** Exported for tests. Fail-closed: missing or unparseable Host → false. */
+export declare function isAllowedHost(hostHeader: string | undefined): boolean;
 export interface DashboardDataBuilders {
     buildCatalog: typeof buildCatalog;
     buildTelemetry: typeof buildTelemetry;
