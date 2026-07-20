@@ -44,33 +44,84 @@ function isNetworkAvailable(): boolean {
 // tmpDir is created once in beforeAll and removed in afterAll.
 let tmpDir: string;
 
+// Builds the set of git-tracked paths (files + their ancestor directories)
+// once per fixture creation. A real `git clone` only ever receives tracked
+// content — anything gitignored (build caches, generated graphify-out
+// artifacts, husky's runtime shim under .husky/_) never lands on a fresh
+// checkout. Deriving the copy set from `git ls-files` instead of a
+// hand-maintained directory blocklist means any FUTURE gitignored directory
+// (the next generated-output tool) is excluded automatically — no exclusion
+// list to remember to update. This is what actually broke here: the
+// 2026-07-19 graphify full rebuild (7be1108) added graphify-out/cache/ and
+// graphify-out/obsidian/ (3567 gitignored files) and the old blocklist had
+// no way to know about them.
+function getTrackedPathSets(): { files: Set<string>; dirs: Set<string> } {
+  // -z: NUL-terminated output. This is not a micro-optimization — without it git
+  // applies core.quotePath (on by default) and emits non-ASCII paths C-escaped and
+  // quoted (`café.md` -> `"caf\303\251.md"`). That string can never match the real
+  // path.relative() value the cpSync filter sees, so a tracked file with an accented
+  // or Hebrew name would be SILENTLY dropped from the fixture — the exact
+  // tracked-vs-copied divergence this helper exists to prevent. -z disables quoting
+  // outright. No such filename exists in this repo today; this is preemptive.
+  //
+  // shell is deliberately NOT set: git is a real .exe on Windows (unlike npm/npx,
+  // which are .cmd shims and genuinely need shell resolution — see isNetworkAvailable
+  // above). Passing shell:true here would also trigger Node's DEP0190 warning, which
+  // fires for spawnSync + shell + args just as it does for execFileSync.
+  const result = spawnSync("git", ["ls-files", "-z"], {
+    cwd: REPO_ROOT,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    // result.error carries the useful text when git is missing entirely (ENOENT),
+    // where status is null and stderr is undefined.
+    const detail = result.error?.message ?? result.stderr ?? "(no stderr)";
+    throw new Error(`git ls-files failed (exit ${result.status ?? "null"}): ${detail}`);
+  }
+
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  for (const entry of result.stdout.split("\0")) {
+    if (!entry) continue;
+    const rel = entry.split("/").join(path.sep); // git always uses "/", normalize for path.relative comparisons
+    files.add(rel);
+
+    // Walk ancestor directories so cpSync's per-entry filter (which visits
+    // every directory before its contents) can allow a directory that
+    // contains tracked descendants, without listing every intermediate
+    // directory explicitly.
+    let dirPart = path.dirname(rel);
+    while (dirPart !== ".") {
+      dirs.add(dirPart);
+      dirPart = path.dirname(dirPart);
+    }
+  }
+
+  return { files, dirs };
+}
+
 function createColdCloneDir(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-cold-clone-"));
+  const { files: trackedFiles, dirs: trackedDirs } = getTrackedPathSets();
 
-  // Copy the repo minus heavy/irrelevant directories.
-  // Exclusions:
-  //   node_modules/  — simulate fresh clone (npm install must fetch them)
-  //   .husky/_/      — husky installs this; we want to verify it creates it
-  //   .git/          — not needed for install test, makes cpSync 10x slower
-  //   dist/          — forcing npm install to regenerate (postinstall runs build)
-  //   tests/build/   — not needed; avoids circular reference risks
   fs.cpSync(REPO_ROOT, dir, {
     recursive: true,
     force: true,
     filter: (src: string): boolean => {
       const rel = path.relative(REPO_ROOT, src);
       if (rel === "") return true; // always include root itself
-      // Exclude by leading segment
+
+      // dist/ is deliberately excluded even though dist/scripts/ is
+      // git-tracked (ADR-010 plugin distribution, enforced by
+      // .husky/pre-commit) — this fixture exists specifically to verify
+      // that `postinstall` regenerates it via `npm run build` on a fresh
+      // install. This is the one intentional divergence from "copy exactly
+      // what git tracks"; everything else (node_modules, .git, .husky/_)
+      // is already excluded for free because it is gitignored/untracked.
       const firstSegment = rel.split(path.sep)[0]!;
-      if (firstSegment === "node_modules") return false;
       if (firstSegment === "dist") return false;
-      if (firstSegment === ".git") return false;
-      // Exclude .husky/_ specifically (husky runtime — we want install to recreate it)
-      // but keep .husky/ itself (it may have our pre-commit script already for Step 6.2+)
-      if (rel === path.join(".husky", "_") || rel.startsWith(path.join(".husky", "_") + path.sep)) {
-        return false;
-      }
-      return true;
+
+      return trackedFiles.has(rel) || trackedDirs.has(rel);
     },
   });
 
@@ -123,6 +174,48 @@ describe("package.json — husky exact-version pin", () => {
       expect(huskyVersion).toMatch(/^\d+\.\d+\.\d+$/);
     },
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Fixture fidelity: cold-clone dir must mirror a real `git clone`, i.e. only
+// git-tracked content — no gitignored generated artifacts.
+//
+// RED today: createColdCloneDir() excludes only node_modules/dist/.git/.husky/_
+// by name. It does NOT exclude graphify-out/cache/ or graphify-out/obsidian/,
+// which are gitignored generated output (3567 extra files after the 2026-07-19
+// graphify full rebuild, 7be1108) that a real fresh clone never receives.
+// Copying them makes the fixture LESS faithful and inflates beforeAll's cpSync
+// past the default 10s vitest hookTimeout in a full-suite run.
+// GREEN after the fix: the copy set is derived from `git ls-files` (plus the
+// deliberate dist/ exclusion).
+//
+// Honest RED accounting (measured 2026-07-20 by extracting the pre-fix
+// implementation via `git show HEAD:tests/build/cold-clone.test.ts` and running
+// these assertions against it): only the FIRST test below is genuine RED->GREEN
+// evidence. The other two already passed under the old blocklist and are
+// regression guards, not proof of this fix. Kept deliberately — they pin
+// behavior the git-ls-files rewrite could plausibly have broken.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("cold-clone fixture — mirrors a real fresh clone (git-tracked files only)", () => {
+  it("excludes gitignored generated graphify-out subpaths (cache, obsidian)", () => {
+    expect(fs.existsSync(path.join(tmpDir, "graphify-out", "cache"))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, "graphify-out", "obsidian"))).toBe(false);
+  });
+
+  it("keeps git-tracked graphify-out content (wiki/, graph.json, GRAPH_REPORT.md)", () => {
+    // A real fresh clone DOES have these — they are git-tracked, unlike
+    // cache/ and obsidian/ above.
+    expect(fs.existsSync(path.join(tmpDir, "graphify-out", "wiki"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, "graphify-out", "graph.json"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, "graphify-out", "GRAPH_REPORT.md"))).toBe(true);
+  });
+
+  it("still excludes node_modules, dist, and .git (pre-existing behavior)", () => {
+    expect(fs.existsSync(path.join(tmpDir, "node_modules"))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, "dist"))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, ".git"))).toBe(false);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
