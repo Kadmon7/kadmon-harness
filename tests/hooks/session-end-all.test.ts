@@ -510,28 +510,53 @@ describe("session-end-all", () => {
     // 44 lines => messageCount=22 >= 20, would normally trigger archiving
     writeObservations(generateObsLines(44));
 
-    // Force ONLY the Phase 5 fs.appendFileSync to fail — a chmod'd
-    // read-only REGULAR file (not the mkdirSync-a-directory trick used by
-    // the sibling "retains the live observations file..." test above)
-    // remains readable but rejects writes. This matters here: the
+    // Force ONLY the Phase 5 fs.appendFileSync to fail — NOT the
+    // mkdirSync-a-directory trick used by the sibling "retains the live
+    // observations file..." test above. That matters here: the
     // mkdirSync-directory trick also breaks the earlier combined
     // archive+live read (near the top of main(), before Phase 1), which
     // throws before Phase 5's own try/catch is ever reached — hitting the
-    // OUTER catch instead, not the inner one this test targets. Read-only
-    // keeps the early read working (read access is unaffected) so the
+    // OUTER catch instead, not the inner one this test targets. The
+    // platform-specific fixtures below (read-only file on Windows,
+    // dangling symlink on POSIX) both keep the early read working so the
     // failure is isolated to the exact fs.appendFileSync call in Phase 5.
     const archivePath = path.join(obsDir, "observations.archive.jsonl");
-    fs.writeFileSync(archivePath, "");
-    fs.chmodSync(archivePath, 0o444);
+    if (process.platform === "win32") {
+      // Windows: a chmod'd read-only regular file maps to the DOS
+      // read-only attribute — appendFileSync fails with EPERM while the
+      // early combined read stays unaffected.
+      fs.writeFileSync(archivePath, "");
+      fs.chmodSync(archivePath, 0o444);
+    } else {
+      // POSIX: chmod 0o444 is NOT reliable here — permission bits are
+      // ignored for uid 0, so on a root-running CI runner the append
+      // silently succeeds and no error is ever logged. A dangling symlink
+      // into a nonexistent directory fails the open(O_APPEND|O_CREAT) with
+      // ENOENT for EVERY uid, root included. The early combined read still
+      // works: fs.existsSync follows the link, sees the dangling target,
+      // returns false, and the hook treats it as "no archive yet" — so the
+      // failure stays isolated to Phase 5's fs.appendFileSync, exactly as
+      // the chmod trick achieves on Windows.
+      fs.symlinkSync(
+        path.join(obsDir, "no-such-dir", "archive-target.jsonl"),
+        archivePath,
+      );
+    }
 
     let r: { stdout: string; stderr: string; exitCode: number };
     try {
       r = runHook({ session_id: sessionId, cwd: process.cwd() });
     } finally {
-      // unlinkSync bypasses the read-only attribute on Windows (libuv
-      // clears it and retries) so afterEach's rmSync would succeed anyway,
-      // but restore write access explicitly for portability/clarity.
-      fs.chmodSync(archivePath, 0o666);
+      if (process.platform === "win32") {
+        // unlinkSync bypasses the read-only attribute on Windows (libuv
+        // clears it and retries) so afterEach's rmSync would succeed anyway,
+        // but restore write access explicitly for portability/clarity.
+        fs.chmodSync(archivePath, 0o666);
+      } else {
+        // Remove the dangling symlink (rmSync force in afterEach also
+        // handles it, but keep the fixture teardown symmetric).
+        fs.rmSync(archivePath, { force: true });
+      }
     }
     expect(r.exitCode).toBe(0);
 

@@ -12,12 +12,15 @@ let sessionId: string;
 let obsDir: string;
 let testDb: string;
 
-function runHook(input: object): {
+function runHook(
+  input: object,
+  extraEnv?: Record<string, string>,
+): {
   stdout: string;
   stderr: string;
   exitCode: number;
 } {
-  const env = { ...process.env, KADMON_TEST_DB: testDb };
+  const env = { ...process.env, KADMON_TEST_DB: testDb, ...extraEnv };
   try {
     const stdout = execFileSync("node", [HOOK], {
       encoding: "utf8",
@@ -248,25 +251,44 @@ describe("pre-compact-save", () => {
       makeObsLine("tool_post", "Write"),
     ]);
 
-    // Act: run the hook
-    const r = runHook({ session_id: sessionId, cwd: process.cwd() });
-    expect(r.exitCode).toBe(0);
+    // Sandbox the hook's home directory so the daily log lands in a temp
+    // dir instead of the developer's REAL ~/.claude/projects memory (the
+    // old version of this test appended a fake entry to the real daily
+    // log on every run). os.homedir() honors $HOME on POSIX and
+    // %USERPROFILE% on Windows — set both.
+    const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-pcs-home-"));
 
-    // Resolve the daily log path — same formula as daily-log.js
-    const today = new Date().toISOString().slice(0, 10);
-    const memoryDir = path.join(
-      os.homedir(),
-      ".claude",
-      "projects",
-      "C--Command-Center-Kadmon-Harness",
-      "memory",
-    );
-    const logFile = path.join(memoryDir, "logs", `${today}.md`);
+    try {
+      // Act: run the hook
+      const r = runHook(
+        { session_id: sessionId, cwd: process.cwd() },
+        { HOME: fakeHome, USERPROFILE: fakeHome },
+      );
+      expect(r.exitCode).toBe(0);
 
-    // Assert: log file exists and contains our unique session ID prefix
-    expect(fs.existsSync(logFile)).toBe(true);
-    const content = fs.readFileSync(logFile, "utf8");
-    const sid8 = sessionId.slice(0, 8);
-    expect(content).toContain(sid8);
+      // Resolve the daily log path — same formula as daily-log.js
+      // resolveMemoryDir(): slug = cwd with [:\\/] replaced by "-". The old
+      // hardcoded "C--Command-Center-Kadmon-Harness" slug only matched the
+      // dev machines' checkout path (C:\Command Center\Kadmon Harness) and
+      // failed on any other clone location.
+      const today = new Date().toISOString().slice(0, 10);
+      const projectDirName = process.cwd().replace(/[:\\/]/g, "-");
+      const memoryDir = path.join(
+        fakeHome,
+        ".claude",
+        "projects",
+        projectDirName,
+        "memory",
+      );
+      const logFile = path.join(memoryDir, "logs", `${today}.md`);
+
+      // Assert: log file exists and contains our unique session ID prefix
+      expect(fs.existsSync(logFile)).toBe(true);
+      const content = fs.readFileSync(logFile, "utf8");
+      const sid8 = sessionId.slice(0, 8);
+      expect(content).toContain(sid8);
+    } finally {
+      fs.rmSync(fakeHome, { recursive: true, force: true });
+    }
   });
 });

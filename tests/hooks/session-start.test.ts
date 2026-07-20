@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -13,7 +14,26 @@ const TEST_DB = path.join(
   `kadmon-session-start-test-${Date.now()}.db`,
 );
 const SCHEMA_PATH = path.resolve("scripts/lib/schema.sql");
-const PROJECT_HASH = "9444ca5b82301f2f";
+
+// Independent derivation of the project hash the hook computes for THIS
+// checkout: sha256(trimmed `git remote get-url origin`).slice(0, 16) — the
+// exact formula in session-start.js. The old hardcoded "9444ca5b82301f2f"
+// was the hash of the canonical GitHub remote URL, which silently coupled
+// every hash-keyed test (including all orphan-recovery seeds) to the dev
+// machines' remote config; any clone with a different origin URL (CI
+// runners, forks, proxied remotes) computed a different hash, so the seeded
+// orphans were never found. Deriving it here keeps the assertion just as
+// strong — the hook's output must still match a value computed OUTSIDE the
+// hook by a second implementation of the same contract.
+const PROJECT_HASH = crypto
+  .createHash("sha256")
+  .update(
+    execFileSync("git", ["remote", "get-url", "origin"], {
+      encoding: "utf8",
+    }).trim(),
+  )
+  .digest("hex")
+  .slice(0, 16);
 
 function runHook(
   input: object,
@@ -143,7 +163,7 @@ describe("session-start", () => {
   it("detects project hash from git remote", () => {
     const r = runHook({ session_id: SESSION_ID, cwd: process.cwd() });
     expect(r.exitCode).toBe(0);
-    expect(r.stdout).toContain("9444ca5b82301f2f");
+    expect(r.stdout).toContain(PROJECT_HASH);
   });
 
   it("outputs session started banner with branch", () => {
