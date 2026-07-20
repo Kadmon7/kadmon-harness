@@ -105,3 +105,51 @@ of compounding wrong.
   the Phase 3 dual gate exists because consolidation can silently drop things.
 - Corollary for authors: when you write a claim into `WORK.md` / `BACKLOG.md` / an ADR, write how
   it was derived, so the next reader can cheaply re-check instead of inheriting it as fact.
+
+## C-001 Amendment — 2026-07-20 — the count-propagation target list, derived empirically
+
+**Why:** C-001's **Apply** clause names three grep targets (CLAUDE.md, README, the contract tests).
+That list is incomplete, which is the mechanical reason the count drift keeps recurring despite the
+rule existing — a compliant sweep still left four surfaces stale. The 2026-07-16 `/doks` pass found
+`docs/onboarding/reference_kadmon_harness.md` at 52 skills / 11 shared modules; the 2026-07-20 sweep
+found the same file plus three memory surfaces still carrying `1493` after the real total moved to
+1519. Both were C-001-compliant commits.
+
+**Full target list** (walked by hand 2026-07-20 — this is the measured set, not a guess):
+
+| # | Surface | What it carries |
+|---|---|---|
+| 1 | `CLAUDE.md` § Status | every component count + test total |
+| 2 | `README.md` | **three** places: the shields.io badge, the stats table, the footer stat line |
+| 3 | `tests/plugin/manifest-schema.test.ts` | `expectedCounts` — the only MECHANICAL guard; it covers symlinked component dirs, NOT the test total |
+| 4 | `docs/onboarding/reference_kadmon_harness.md` | CONSUMER-FACING — re-dropped into other repos |
+| 5 | `.claude/{agents,hooks,commands}/CATALOG.md` | per-type counts live in the **frontmatter `description:`**, not the body — verified 2026-07-20: agents "16-row Agent table", hooks "23 registered hooks + 12 shared modules", commands "12 commands grouped by 8 phases" (ADR-035) |
+| 6 | `WORK.md` § Test state | current-state line only — the trail lines above it are HISTORY, never rewrite them |
+| 7 | memory `project_v1_production.md` | frontmatter `description:` AND the body counts — two spots, one file |
+| 8 | memory `reference_kadmon_harness.md` | CONSUMER-FACING catalog |
+| 9 | memory `MEMORY.md` index | the one-line hook repeats the counts |
+
+**Rule:** a commit that changes a component count or the test total sweeps all nine, not the three
+C-001 originally named. Surfaces 4 and 8 are consumer-facing — a wrong count there propagates to
+Kadmon-Sports and ToratNetz on the next re-drop, so they are the expensive ones to miss.
+
+**Apply:**
+- Cite the **collected** total, never a passed-count. The passed/skipped split is environment-
+  dependent — `tests/build/cold-clone.test.ts` skips its 2 tests when the npm registry is
+  unreachable, which alone moved the skip count 1 → 3 with no test added or removed. A doc reading
+  "1521 passing" becomes false on the first offline run; "1522 collected" stays true.
+- A failing suite **undercounts**: tests in a suite that dies in `beforeAll` drop out of the total
+  entirely. Never derive a count from a run with a red suite — fix it first, then measure.
+- Reconcile before propagating. `1493 + 26 = 1519` matched the independent figure already recorded
+  in `BACKLOG.md`, and `1519 + 3 = 1522` matched the test count added by the cold-clone fix. Two
+  agreeing derivations per number is the bar for writing one into nine files.
+- **Sweep LAST in a batch, never mid-session.** Learned live on 2026-07-20: the nine surfaces were
+  propagated at 1519, then a cold-clone fixture fix landed in the SAME session, added 3 tests, and
+  invalidated all nine — a full second pass for one avoidable ordering mistake. If any test change
+  is still in flight (a running sub-agent, an unmerged branch, a known-red suite), the count is not
+  yet a fact. Finish the code, get the suite green, THEN sweep.
+- **A sub-agent's count is evidence, not a verdict** (C-006). feniks reported 1521 passed / 1 skip;
+  that was re-derived here with an independent `npx vitest run` before any doc was touched. It
+  matched — but the matching is the point, not the trusting.
+- This list is the specification for the `memory-audit` skill (BACKLOG P1). Mechanizing it is the
+  real fix — nine hand-walked surfaces is a checklist that will be skipped again.

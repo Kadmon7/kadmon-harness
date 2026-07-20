@@ -162,9 +162,30 @@ note here what you are touching before you touch it).
   absorption + CORRECTIONS C-006 (`53490c1`, `d657b13`, `67f0c9c`, `0099483`, `fdb2dc4`, `4da37a2`).
 
 ## Test state on main
-- **Suite green: 111 files / 1493 collected (1492 passed / 1 skipped)** — re-run and verified
-  2026-07-19 before the v1.5.0 cut, not copied from any doc. Trail this cycle:
-  1452 → 1457 (silent-swallow) → 1462 (observations archive) → 1493 (dashboard).
+- **Suite green: 111 files / 1522 collected (1521 passed / 1 skipped)** — re-derived from a real
+  run 2026-07-20, not copied from any doc and not taken from the sub-agent that reported it.
+  Trail this cycle: 1452 → 1457 (silent-swallow) → 1462 (observations archive) → 1493 →
+  1519 (dashboard +26) → 1522 (cold-clone fixture-fidelity tests +3).
+  - `1493 + 26 = 1519` reconciles exactly against the independent figure recorded in BACKLOG P2
+    (`ee35c72`); `1519 + 3 = 1522` reconciles against the feniks cold-clone fix below. Two
+    agreeing derivations per number is the bar before writing one into nine surfaces.
+  - Cite the COLLECTED total, never a passed-count — the passed/skipped split is
+    environment-dependent (`cold-clone.test.ts` skips its 2 tests when the npm registry is
+    unreachable). A red suite also UNDERCOUNTS: tests in a suite that dies in `beforeAll` drop
+    out of the total entirely, which is how the pre-fix run read 1519 with cold-clone failing.
+  - **Sequencing lesson, learned the hard way this session**: the count sweep ran mid-session at
+    1519, then the cold-clone fix in the SAME session moved it to 1522 and invalidated all nine
+    surfaces that had just been updated. The sweep is the LAST step of a batch, after every test
+    change has landed. Written into the C-001 Amendment.
+  - Propagated 2026-07-20 to all nine surfaces per the C-001 Amendment in CORRECTIONS.md.
+- **`cold-clone.test.ts` fixture rebuilt on `git ls-files`** (feniks, 2026-07-20). It was timing out
+  in full-suite runs: `beforeAll`'s `cpSync` used a hand-maintained exclusion blocklist that could
+  not know about `graphify-out/{cache,obsidian}` — 3567 gitignored files added by the 2026-07-19
+  graphify rebuild (`7be1108`) — pushing setup past vitest's default 10s hookTimeout. The copy set
+  is now derived from `git ls-files`, which is both the faithful definition of a fresh clone and
+  self-maintaining against the NEXT generated-output directory. `dist/` stays excluded on purpose
+  (ADR-010: the fixture exists to prove `postinstall` regenerates it). Setup 4818ms/4418 files →
+  959ms/710 files. No hookTimeout override was added — that would have hidden the cause.
   - `4da37a2` wrote **1490** into CLAUDE.md Status and this file; the real collected total was 1493.
     Corrected on 2026-07-19. Another C-001 recurrence and a live instance of C-006 — a count in a
     working doc is a point-in-time claim, so re-derive it from a real run before citing it.
