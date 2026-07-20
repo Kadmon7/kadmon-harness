@@ -65,7 +65,7 @@ Rules:
 ## Routing
 - MUST use opus model for: arkitect, konstruct, spektr, alchemik
 - MUST use sonnet model for: kody, typescript-reviewer, feniks, mekanik, kurator, arkonte, python-reviewer, almanak, kartograf, orakle, skavenger
-- MUST use opus model for doks (documentation requires critical analysis across 4 layers)
+- MUST use opus model for doks (documentation requires critical analysis across 3 layers)
 - NEVER use haiku for code review, security analysis, or documentation updates
 
 > Full Agent Catalog (16 agents with triggers, commands, and skills) and Auto-Invoke list — see [`.claude/agents/CATALOG.md`](../../agents/CATALOG.md). Single source-of-truth per ADR-035; auto-synced by `agent-metadata-sync` hook.
@@ -91,7 +91,7 @@ Rules:
 
 ### Orchestration Patterns (12 commands)
 
-Three modes: **Parallel-then-Sequential** (`/chekpoint` reviewers → kody consolidate → gate; `/skanner` arkonte+kartograf → report), **Sequential** (`/abra-kdabra` arkitect→konstruct→feniks; `/medik` checks→mekanik+kurator→gate→repair→verify; `/doks`; `/evolve`), and **Direct** no-agent (`/nexus`, `/kompact`, `/almanak`, `/skavenger`, `/forge`). Full per-command flow diagrams — see **`agent-authoring` skill**.
+Three modes: **Parallel-then-Sequential** (`/chekpoint` reviewers → kody consolidate → gate; `/skanner` arkonte+kartograf → report), **Sequential** (`/abra-kdabra` arkitect→konstruct→feniks; `/medik` checks→mekanik+kurator→gate→repair→verify; `/doks`; `/evolve`), and **Direct** no-agent (`/nexus`, `/kompact`, `/almanak`, `/skavenger`, `/forge`, `/release` — /release composes `/doks` for count sync but invokes no agent itself, ADR-037). Full per-command flow diagrams — see **`agent-authoring` skill**.
 
 ## Approval Criteria
 - CRITICAL → BLOCK merge, fix immediately
