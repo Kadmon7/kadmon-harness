@@ -94,26 +94,43 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
   same treatment; the same pattern answers it, and the filename argument is even stronger here.
   For `WORK_COORDINATION.md` the filename is descriptive; for this one it is a **mechanism** —
   `kontinuum` Globs that exact path to choose FREEZE vs THAW, and the literal appears 10 times in
-  `.claude/skills/kontinuum/SKILL.md`. So: branded H1 `# Kadmon Kontinuum — Session Handoff`,
+  `.claude/skills/kontinuum/SKILL.md`. So: branded H1 `# KadmonCowork — Session Handoff`,
   filename unchanged. The command side of the pattern needs no work — `/kontinuum` is already
   K-first branded, unlike the generic `/sprint`. **The remaining work is one edit to
   `kontinuum/SKILL.md` step 4** so every future FREEZE emits that header; the currently-frozen
   note was branded by hand, which does NOT propagate. Must go through the skill-creator plugin
   (never hand-author skill files), so it belongs in the same branding pass as (a) and (b).
   **Standard established, now with two instances:** every harness state artifact carries a branded
-  H1 of the form `# Kadmon<Product|Skill> — <what it is>` while keeping a descriptive, unbranded
-  filename. Confirmed by the architect 2026-07-21.
-- [ ] **Rename `SESSION-HANDOFF.md` → `PAUSED-SESSION.md`.** Separate from the branding item above
-  and NOT a branding change — the new name is deliberately unbranded. Two real defects in the
-  current name: (1) "handoff" implies delivery to ANOTHER person, so in a team repo a collaborator
-  reasonably reads it as something left for them, when it is the same person resuming; (2) it does
-  not signal that the file is ephemeral, so it reads as permanent as `README.md` — which is how it
-  ends up committed. `PAUSED-SESSION.md` names the CONTENT (a paused session) rather than the
-  operation that produced it, and "paused" carries both missing signals. Runner-up considered:
-  `SESSION-FREEZE.md`, which matches the skill's own FREEZE/THAW vocabulary but collides with the
-  established software sense of a feature/version freeze. Rejected: `SESSION-STATE.md` (reads
-  permanent) and any dotfile variant (hiding it defeats the purpose — the file existing IS the
-  signal that frozen state is pending).
+  H1 of the form `# KadmonCowork — <what it is>` while keeping a descriptive, unbranded filename.
+  The brand segment is the constant `KadmonCowork` across ALL such artifacts — not the owning
+  skill's name. Corrected by the architect 2026-07-21 after a first pass wrote
+  `# Kadmon Kontinuum — Session Handoff`: the point is one recognizable product mark, and varying
+  it per skill would defeat that. Current instances: `# KadmonCowork — Work Coordination` and
+  `# KadmonCowork — Session Handoff`.
+  **Note for the port pass:** `kontinuum` ships to every consumer repo (ToratNetz, Kadmon-Sports,
+  BioRaMBaM), so this header will appear in projects that are not the Cowork product. That is the
+  intent of a product mark on a Tier-2 surface, but it is worth being deliberate about, since a
+  frozen note in ToratNetz will carry it too.
+- [ ] **Rename `SESSION-HANDOFF.md` → `NEXT-SESSION.md`.** Chosen by the architect 2026-07-21 from
+  three candidates. Separate from the branding item above and NOT a branding change — the new name
+  is deliberately UNBRANDED, which is the whole point of the standard: the mark goes in the H1
+  where it is read, the description goes in the filename where it is searched.
+  Two real defects in the current name: (1) "handoff" implies delivery to ANOTHER person, so in a
+  team repo a collaborator reasonably reads it as something left for them, when in fact it is the
+  same person resuming; (2) nothing in it signals the file is ephemeral, so it reads as permanent
+  as `README.md` — which is how it ends up committed.
+  `NEXT-SESSION.md` names the RECIPIENT. "Session" (not "person") closes defect 1 outright, and
+  "next" closes defect 2 by implying the file is consumed on arrival. It is also the shortest of
+  the three and needs no knowledge of the skill to parse. Known weakness accepted: it can be
+  misread as an agenda FOR the next session rather than state FROM the last one — the branded H1
+  and the `Frozen <date>` line directly under it resolve that on open.
+  Runners-up: `SESSION-FREEZE.md` (matches the skill's own FREEZE/THAW vocabulary, but collides
+  with the established software sense of a feature/version freeze, and requires knowing the skill);
+  `RESUME-SESSION.md` (imperative, says what to do, but describes the action rather than the
+  content and is the longest). Rejected earlier: `PAUSED-SESSION.md` (architect declined),
+  `SESSION-STATE.md` (reads permanent), `SESSION-RESUME.md` (noun-first invites "resume = CV"), and
+  any dotfile variant — hiding it defeats the purpose, since the file EXISTING is the signal that
+  frozen state is pending.
   **Migration window is the load-bearing part.** The literal appears 10 times in
   `.claude/skills/kontinuum/SKILL.md` and is the mode-detection mechanism, and live notes under the
   OLD name may exist right now in Sentinel, Cowork, and consumer repos (BioRaMBaM). A skill that
