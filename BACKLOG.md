@@ -26,6 +26,97 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 
 ## P2 — features / trims
 
+- [ ] 🔴 **`commit-quality.js` reads the WRONG REPO — it blocks commits in repo B using repo A's
+  staged files.** Hit live 2026-07-21. A `git commit` inside `C:\Command-Center\Kadmon-Sports`
+  (compound `cd X && git add ... && git commit`) was blocked with
+  `console.log() found in docs/vision/render-deck.ts` — a file that **does not exist in
+  Kadmon-Sports**. It lives in BioRaMBaM, which was the Claude Code process cwd. Verified at the
+  moment of the block: `git diff --staged --name-only` in Kadmon-Sports returned **empty**, in
+  BioRaMBaM returned 9 files including that one. **Root cause:** the hook runs `git diff --staged`
+  against the *process* cwd instead of the repo the Bash command targets, so any session working
+  in repo A cannot commit in repo B while A has anything staged. Since it is a PreToolUse hook the
+  whole tool call is blocked, so even the `git add` never runs. Cross-repo work is normal in this
+  Command-Center layout (this session touched five repos), so this is not exotic. **Fix:** derive
+  the repo root from the command's target — parse a leading `cd <path>` or resolve
+  `git rev-parse --show-toplevel` in the same shell context — instead of assuming process cwd.
+  Applies to any staged-file-reading hook, not just this one: audit `block-no-verify.js` and the
+  other Bash-matcher hooks for the same assumption. **Second, smaller finding from the same
+  block:** the console.log rule does not exempt CLI tooling. `docs/vision/render-deck.ts:43`
+  prints its own completion line, which is what a CLI is *for*, and BioRaMBaM's `cli.ts` does the
+  same throughout — it simply was not staged. Either exempt CLI entrypoints or give the hook a
+  visible per-line opt-out; the message says "remove them if intentional" while offering no way to
+  mark intent.
+
+- [ ] **Step-0 project scaffolding in `install.ps1` / `install.sh`.** The installer creates
+  `.claude/` and nothing else, so every new project starts with zero `docs/decisions/`,
+  `docs/plans/`, `docs/research/`, `docs/state/`, `BACKLOG.md`, `WORK_COORDINATION.md`.
+  Decided by the architect 2026-07-21 (BioRambam session): the mechanism must be the
+  installer, NOT a rule in CLAUDE.md — a rule is a reminder and depends on being followed,
+  and the motivating incident is precisely a session where the loaded rules were skipped for
+  100+ edits. Template ships complete with optional sections explicitly marked (a file that
+  does not exist is never missed). Canonical `BACKLOG.md` location: repo root (majority 3-2
+  across the audited repos, and what this file's own `/chekpoint` reminder text assumes).
+  Source of truth for the templates is THIS repo; port to Sentinel + Cowork after.
+  **Evidence for why:** BioRambam ran 100+ edits, 4 commits and 3 adversarial audit rounds
+  with no decision record, and escalated 1 CRITICAL → 2 CRITICAL + 5 HIGH, one of the HIGH
+  introduced by a patch. Needs its own ADR — it touches both installers and sets a standard
+  for 6 repos. **Gotcha found while scaffolding BioRambam by hand 2026-07-21:** git does not
+  track empty directories, so `docs/plans/` and `docs/research/` were invisible to `git
+  status` and would have vanished on clone — the scaffold would have existed on one disk
+  only. The installer MUST drop a `.gitkeep` in every directory it creates empty.
+- [ ] **Backfill `Kadmon-Sports` with the Step-0 scaffold.** Audit 2026-07-21: it is the only
+  mature repo with `BACKLOG.md` + `WORK_COORDINATION.md` but **no `docs/` at all** — zero
+  ADRs, zero plans, on a Python monorepo in production. Do it AFTER the template above so it
+  consumes the template rather than a hand copy. It also carries a `FINISHED_INITIATIVES.md`
+  no other repo has — evaluate promoting that into the template.
+- [ ] **ADR: converge `WORK.md` ↔ `WORK_COORDINATION.md`.** They began as the same artifact
+  (this repo's `WORK.md` predates the team; Cowork's `WORK_COORDINATION.md` added the
+  multi-person layer) and have since diverged: `WORK.md` carries release-engineering state
+  (`test state on main`, `landed but unreleased`) the other lacks, and `WORK_COORDINATION.md`
+  carries roster / channels / conflict zones / open-questions the other lacks. ADR-038 §1
+  treats `WORK.md` as an accepted artifact and it is wired into `/release`'s compiled
+  orchestrator + tests, `/chekpoint` and `/kontinuum` — so this is a migration, not a rename,
+  and an accepted ADR is immutable: it needs a NEW ADR that supersedes that clause. New
+  projects scaffold `WORK_COORDINATION.md` (covers solo and team) in the meantime.
+- [ ] **Brand the coordination protocol: header, not filename — and rename `/sprint` →
+  `/kowork`.** Decided by the architect 2026-07-21 (BioRambam session). The goal is to put the
+  KadmonCowork brand on the Tier-2 product surface; the mechanism was corrected mid-decision.
+  Renaming `WORK_COORDINATION.md` → `KadmonCowork.md` was rejected: a filename states what a
+  file *does*, a brand states who *made* it, and a vendor-branded file whose contents are
+  unguessable is the file a client engineer deletes. It also has real blast radius — `/sprint`
+  reads and mutates it, ADRs reference it, and Cowork's `NUCLEO` §2 names it as the product
+  ("protocolo de coordinación (WORK_COORDINATION.md + skill /sprint)"), so the rename would
+  reach the sales document. **Adopted instead:** (a) branded H1 header
+  `# KadmonCowork — Work Coordination` in every repo's copy, filename unchanged; (b) rename the
+  command `/sprint` → `/kowork`, because the brand belongs on what a developer types twenty
+  times a day, and `/sprint` is generic and not ours. (b) touches `Kadmon7Cowork-Harness`
+  (skill file, ADR-038 references, NUCLEO §2) and needs its OWN ADR in that repo — an accepted
+  ADR is immutable, so this is a superseding decision, not an edit.
+- [ ] **Port `rules/common/language.md` from BioRambam, then run the C-001 count pass.** Written
+  2026-07-21 in `BioRambam/.claude/rules/common/language.md` and deliberately NOT written here
+  first, because adding a rule to this repo moves the component count that C-001 governs and
+  the nine-surface pass has to run in the same breath. **The defect it fixes:** the language
+  rule existed only as one ambiguous line in the global `CLAUDE.md` — *"Write all code,
+  comments, and files in English"* — with **zero** presence in `.claude/rules/`, and the real
+  distinction buried as a passing note inside `plan-030` and `abra-kdabra.md` (*"artifacts stay
+  English; prose to user follows user's es-MX register"*). Measured consequence: ToratNetz has
+  14+ ADRs, all in Spanish — so either the rule was violated for months unenforced, or it never
+  covered ADRs, and **the fact that neither is knowable by reading it is the defect**. Adopted
+  axis is the ARTIFACT, not the repo: code / comments / tests / commits / agent-skill-command-
+  rules files / ADRs / README → English; `BACKLOG.md`, `WORK_COORDINATION.md`, `docs/state/`,
+  and all prose to the user → es-MX. Forward-only; a repo being sold translates what the buyer
+  reads. Same pass: reword the global `CLAUDE.md` line to point at the rule file instead of
+  competing with it. Port to Sentinel + Cowork after.
+- [ ] **Make this repo private on GitHub.** Decided by the architect 2026-07-21. The plugin does
+  NOT break: verified in `~/.claude/plugins/known_marketplaces.json`, `kadmon-harness` is
+  registered as `"source": {"source": "directory", "path": "C:\\Command-Center\\Kadmon-Harness"}`
+  — it loads off the local disk, so GitHub visibility is irrelevant to plugin loading in
+  BioRambam or anywhere else. What DOES change, and must be handled in the same pass:
+  (a) Joe / Abraham / Eden need collaborator access to clone; (b) if `install.ps1` / `install.sh`
+  clone from the public URL, switch to SSH or a token — an installer that 404s for the team is
+  the actual failure mode here; (c) public discovery is lost, which is the intent now that the
+  harness has evolved into a product.
+
 - [x] Dashboard v2 hardening (a) Host-header allowlist on the local server (plan-039 spektr NOTE, LOW) — done 2026-07-19 (`fix/dashboard-v2-hardening`): `isAllowedHost()` in `scripts/dashboard-web.ts` rejects any non-loopback Host with 403 BEFORE routing, allowlist `127.0.0.1`/`localhost`/`[::1]` with or without port, parsed via WHATWG URL (no naive `split(":")` — bracketed IPv6 survives; userinfo tricks resolve to the real host); Host-less requests already die at Node's built-in 400 (requireHostHeader, RFC 7230 §5.4). 26 new tests in `tests/lib/dashboard-web-server.test.ts` (9 end-to-end + 17 `isAllowedHost` parsing cases) — commit ee35c72's body says 21, that number is wrong, this one is measured (suite 1493 → 1519).
 - [ ] Dashboard v2 hardening (b)+(c) remain CONDITIONAL — conditions not met as of 2026-07-19, deliberately NOT implemented: (b) rate limit on the 2 JSON endpoints only if ever exposed beyond 127.0.0.1 (spektr); (c) `index.html` at ~430 lines — split inline style/script only if it grows (kody).
 - [x] Pre-commit dist-restage gap — done 2026-07-19 (`fix/dashboard-v2-hardening`): filter widened to `^scripts/.*\.ts$`; restage made SELECTIVE (each staged source → its own `dist/**.js` + `.d.ts`) instead of the proposed wholesale `git add dist/scripts`, which would also stage compiled output of UNSTAGED dirty .ts files — the same source/dist drift the hook exists to prevent. Two bonus fixes found on a Linux run: (1) the hook shipped mode 100644, so the X_OK structural test was red on every POSIX clone; now 100755. (2) `set -euo pipefail` hard-failed under dash ("Illegal option -o pipefail") because husky v9 runs hooks via `sh -e` ignoring the shebang — every commit on a Debian-family box aborted; now POSIX `set -eu` (the only pipeline was already `|| true`-guarded). Verified live (widened filter fired on top-level `scripts/dashboard-web.ts` in the previous commit) + by simulation (staged smoke .ts restaged its dist pair; unstaged-dirty sibling's dist stayed unstaged). Originally found by feniks during the plan-039 amendment, confirmed by kody.
