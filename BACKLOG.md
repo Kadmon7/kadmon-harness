@@ -100,6 +100,27 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
   `kontinuum/SKILL.md` step 4** so every future FREEZE emits that header; the currently-frozen
   note was branded by hand, which does NOT propagate. Must go through the skill-creator plugin
   (never hand-author skill files), so it belongs in the same branding pass as (a) and (b).
+  **Standard established, now with two instances:** every harness state artifact carries a branded
+  H1 of the form `# Kadmon<Product|Skill> — <what it is>` while keeping a descriptive, unbranded
+  filename. Confirmed by the architect 2026-07-21.
+- [ ] **Rename `SESSION-HANDOFF.md` → `PAUSED-SESSION.md`.** Separate from the branding item above
+  and NOT a branding change — the new name is deliberately unbranded. Two real defects in the
+  current name: (1) "handoff" implies delivery to ANOTHER person, so in a team repo a collaborator
+  reasonably reads it as something left for them, when it is the same person resuming; (2) it does
+  not signal that the file is ephemeral, so it reads as permanent as `README.md` — which is how it
+  ends up committed. `PAUSED-SESSION.md` names the CONTENT (a paused session) rather than the
+  operation that produced it, and "paused" carries both missing signals. Runner-up considered:
+  `SESSION-FREEZE.md`, which matches the skill's own FREEZE/THAW vocabulary but collides with the
+  established software sense of a feature/version freeze. Rejected: `SESSION-STATE.md` (reads
+  permanent) and any dotfile variant (hiding it defeats the purpose — the file existing IS the
+  signal that frozen state is pending).
+  **Migration window is the load-bearing part.** The literal appears 10 times in
+  `.claude/skills/kontinuum/SKILL.md` and is the mode-detection mechanism, and live notes under the
+  OLD name may exist right now in Sentinel, Cowork, and consumer repos (BioRaMBaM). A skill that
+  Globs only the new name will not see them, will fall through to FREEZE, and will overwrite —
+  destroying that task list. So: for one version the skill MUST Glob BOTH names, thaw either, and
+  always rewrite under the new one; drop the legacy branch a version later. Also update
+  `.gitignore` (currently line 64) to cover both during the window. Same skill-creator pass.
 - [ ] **Port `rules/common/language.md` from BioRambam, then run the C-001 count pass.** Written
   2026-07-21 in `BioRambam/.claude/rules/common/language.md` and deliberately NOT written here
   first, because adding a rule to this repo moves the component count that C-001 governs and
