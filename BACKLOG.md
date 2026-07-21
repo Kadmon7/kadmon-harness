@@ -90,6 +90,16 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
   times a day, and `/sprint` is generic and not ours. (b) touches `Kadmon7Cowork-Harness`
   (skill file, ADR-038 references, NUCLEO §2) and needs its OWN ADR in that repo — an accepted
   ADR is immutable, so this is a superseding decision, not an edit.
+  **Extended 2026-07-21 to a second artifact — `SESSION-HANDOFF.md`.** The architect asked for the
+  same treatment; the same pattern answers it, and the filename argument is even stronger here.
+  For `WORK_COORDINATION.md` the filename is descriptive; for this one it is a **mechanism** —
+  `kontinuum` Globs that exact path to choose FREEZE vs THAW, and the literal appears 10 times in
+  `.claude/skills/kontinuum/SKILL.md`. So: branded H1 `# Kadmon Kontinuum — Session Handoff`,
+  filename unchanged. The command side of the pattern needs no work — `/kontinuum` is already
+  K-first branded, unlike the generic `/sprint`. **The remaining work is one edit to
+  `kontinuum/SKILL.md` step 4** so every future FREEZE emits that header; the currently-frozen
+  note was branded by hand, which does NOT propagate. Must go through the skill-creator plugin
+  (never hand-author skill files), so it belongs in the same branding pass as (a) and (b).
 - [ ] **Port `rules/common/language.md` from BioRambam, then run the C-001 count pass.** Written
   2026-07-21 in `BioRambam/.claude/rules/common/language.md` and deliberately NOT written here
   first, because adding a rule to this repo moves the component count that C-001 governs and
