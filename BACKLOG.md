@@ -24,8 +24,6 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 - [ ] Contract test can only see half the drift it exists to catch: `tests/plugin/manifest-schema.test.ts` proves `hardcoded literal == disk`, never `CLAUDE.md/README text == disk`. C-001 makes a human close that loop by grepping. A stronger version could regex-extract the count from CLAUDE.md's Status line and assert it against disk too. typescript-reviewer's NOTE from the 2026-07-16 red-main fix — the same review argued the hardcoded literal itself must STAY (deriving it from the filesystem the test reads makes the assertion tautological and destroys the only thing that forces a human to notice a component changed).
 - [x] **C-001's checklist is incomplete — this is why the count drift recurs.** DONE 2026-07-20 via the append-only **C-001 Amendment** in `CORRECTIONS.md`: the full nine-surface target list, walked by hand and verified (adds `docs/onboarding/`, the three `CATALOG.md` frontmatter descriptions, `WORK.md` current-state line, and the three memory surfaces the original three-item list omitted). Amendment also fixes the unit — cite the COLLECTED total, never a passed-count — and records that a red suite undercounts. Mechanization stays open as the `memory-audit` skill (P1 above); the amendment is its specification. It names CLAUDE.md, README, and the contract tests as the three grep targets. But `docs/onboarding/reference_kadmon_harness.md` and the per-type `CATALOG.md` files carry the same component counts and are not listed; the 2026-07-16 /doks pass found the onboarding catalog stale at 52 skills / 11 shared modules, exactly the drift C-001 exists to prevent. Either amend C-001 (append-only) with the full target list, or better, make it mechanical. Surfaced independently by typescript-reviewer on the red-main fix.
 
-## P2 — features / trims
-
 - [ ] 🔴 **`commit-quality.js` reads the WRONG REPO — it blocks commits in repo B using repo A's
   staged files.** Hit live 2026-07-21. A `git commit` inside `C:\Command-Center\Kadmon-Sports`
   (compound `cd X && git add ... && git commit`) was blocked with
@@ -116,6 +114,8 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
   clone from the public URL, switch to SSH or a token — an installer that 404s for the team is
   the actual failure mode here; (c) public discovery is lost, which is the intent now that the
   harness has evolved into a product.
+
+## P2 — features / trims
 
 - [x] Dashboard v2 hardening (a) Host-header allowlist on the local server (plan-039 spektr NOTE, LOW) — done 2026-07-19 (`fix/dashboard-v2-hardening`): `isAllowedHost()` in `scripts/dashboard-web.ts` rejects any non-loopback Host with 403 BEFORE routing, allowlist `127.0.0.1`/`localhost`/`[::1]` with or without port, parsed via WHATWG URL (no naive `split(":")` — bracketed IPv6 survives; userinfo tricks resolve to the real host); Host-less requests already die at Node's built-in 400 (requireHostHeader, RFC 7230 §5.4). 26 new tests in `tests/lib/dashboard-web-server.test.ts` (9 end-to-end + 17 `isAllowedHost` parsing cases) — commit ee35c72's body says 21, that number is wrong, this one is measured (suite 1493 → 1519).
 - [ ] Dashboard v2 hardening (b)+(c) remain CONDITIONAL — conditions not met as of 2026-07-19, deliberately NOT implemented: (b) rate limit on the 2 JSON endpoints only if ever exposed beyond 127.0.0.1 (spektr); (c) `index.html` at ~430 lines — split inline style/script only if it grows (kody).
