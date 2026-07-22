@@ -98,7 +98,7 @@ Claude auto-loads that file every session. Source of truth: `Kadmon-Harness/docs
 - **SQLite**: <project-specific tables if any> at `~/.kadmon/kadmon.db`
 - **Observations**: ephemeral JSONL per session, summarized at session end
 - **Auto Memory**: `~/.claude/projects/<project-slug>/memory/` (types: user, feedback, project, reference)
-- **AutoDream**: consolidates every 24h/5+ sessions
+- **Memory upkeep**: manual — no automatic consolidation exists; periodically audit memory claims against live artifacts (counts vs real test runs, versions vs tags, statuses vs git log)
 - **MEMORY.md**: index file, max 200 lines
 
 ## Distribution [project-specific]

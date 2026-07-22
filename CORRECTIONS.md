@@ -153,3 +153,26 @@ Kadmon-Sports and ToratNetz on the next re-drop, so they are the expensive ones 
   matched — but the matching is the point, not the trusting.
 - This list is the specification for the `memory-audit` skill (BACKLOG P1). Mechanizing it is the
   real fix — nine hand-walked surfaces is a checklist that will be skipped again.
+
+## C-007 — 2026-07-22 — AutoDream: the claim was false, and so was part of the refutation
+
+**Incident:** `CLAUDE.md` and `docs/onboarding/CLAUDE.template.md` claimed "AutoDream:
+consolidates memory every 24h/5+ sessions". The 2026-07-19 audit ruled it "does not exist —
+zero implementation" (root cause of ~3 months of unaudited memory rot: sessions assumed a
+mechanism was maintaining typed memories). Verification 2026-07-22 refined BOTH sides: the
+live settings schema DOES define `autoDreamEnabled` ("Enable background memory consolidation
+(auto-dream). When set, overrides the server-side default") — so a prior cleanup that removed
+that key from global settings as "invented" was itself wrong — but official docs
+(code.claude.com/docs/en/memory.md, checked via claude-code-guide) document NO auto-dream
+feature, NO background consolidation, and NO cadence. The "24h/5+ sessions" trigger has no
+source anywhere.
+**Rule:** a claim about an external mechanism has two failure modes — the mechanism may not
+exist, and the refutation may overreach. Verify at the product layer (settings schema + official
+docs), not only by grepping this repo: "no implementation here" cannot distinguish
+native-feature from fiction, and surfaces OUTSIDE the repo (global settings) carry the same
+claim.
+**Apply:** memory upkeep is MANUAL until a documented mechanism exists — the claim is deleted
+from both files and replaced with a manual-upkeep line. `autoDreamEnabled` stays UNSET in
+global settings (falls back to the server-side default): undocumented and never observed to
+run, so re-enable it deliberately, never by default. The honest replacement is the
+`memory-audit` skill (BACKLOG P1).

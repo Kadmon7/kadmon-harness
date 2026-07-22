@@ -126,7 +126,7 @@ Rules auto-load based on file context. They contain **operational orchestration 
 - **SQLite**: sessions, instincts, cost events, hook events, agent invocations, sync queue, research reports at `~/.kadmon/kadmon.db` (7 tables; research_reports added in ADR-015)
 - **Observations**: ephemeral JSONL per session, summarized at session end
 - **Auto Memory**: `~/.claude/projects/<project>/memory/` with 4 types: user, feedback, project, reference
-- **AutoDream**: consolidates memory every 24h/5+ sessions
+- **Memory upkeep**: manual — no automatic consolidation. The old "AutoDream: consolidates every 24h/5+ sessions" claim was falsified 2026-07-22 (invented cadence, no documented product feature — CORRECTIONS C-007). Periodic audit = `memory-audit` skill (BACKLOG P1), composed from /release.
 - **MEMORY.md**: index file (max 200 lines)
 
 ## Distribution
