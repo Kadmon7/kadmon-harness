@@ -1,6 +1,17 @@
 #!/usr/bin/env node
 // Hook: agent-metadata-sync | Trigger: PostToolUse (Edit|Write)
 // Purpose: Auto-sync agent frontmatter changes to CLAUDE.md + .claude/agents/CATALOG.md (ADR-035)
+// CLAUDE.md contract (ADR-035 pointer layout, hardened 2026-07-22): CLAUDE.md
+// may legitimately carry NO per-agent model table at all — CATALOG.md is the
+// single source of truth and CLAUDE.md often carries only a pointer sentence
+// to it. Distinguish:
+//   - CLAUDE.md HAS an agents table header (`| Agent | Model |`) but this
+//     agent's row is missing -> real drift -> warning + exit 1 (unchanged).
+//   - CLAUDE.md has NO agents table header at all -> silent skip of the
+//     CLAUDE.md half: no warning, file is never written. CATALOG.md sync
+//     still runs independently.
+// CATALOG.md keeps the old contract unconditionally: it is always the
+// source of truth, so a missing row there is always drift (warning + exit 1).
 import fs from "node:fs";
 import path from "node:path";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
@@ -107,19 +118,29 @@ try {
   }
 
   // Sync CLAUDE.md agents table: | agentName | model |
+  // ADR-035 pointer layout: CLAUDE.md may legitimately carry NO agents table
+  // at all (CATALOG.md is the single source of truth). Only treat a missing
+  // row as drift when a table header is actually present — otherwise this is
+  // the expected pointer-only shape and must be silently skipped (no
+  // warning, no write).
+  const CLAUDE_MD_TABLE_HEADER_RE = /\|\s*Agent\s*\|\s*Model\s*\|/i;
   const claudeMd = fs.readFileSync(claudeMdPath, "utf8");
-  const claudeRowPattern = new RegExp(
-    `(\\|\\s*${escapeRegex(agentName)}\\s*\\|\\s*)[a-zA-Z0-9]+( \\|)`,
-  );
-  if (claudeRowPattern.test(claudeMd)) {
-    const updated = claudeMd.replace(claudeRowPattern, `$1${newModel}$2`);
-    if (updated !== claudeMd) {
-      fs.writeFileSync(claudeMdPath, updated, "utf8");
-      changed = true;
+  if (CLAUDE_MD_TABLE_HEADER_RE.test(claudeMd)) {
+    const claudeRowPattern = new RegExp(
+      `(\\|\\s*${escapeRegex(agentName)}\\s*\\|\\s*)[a-zA-Z0-9]+( \\|)`,
+    );
+    if (claudeRowPattern.test(claudeMd)) {
+      const updated = claudeMd.replace(claudeRowPattern, `$1${newModel}$2`);
+      if (updated !== claudeMd) {
+        fs.writeFileSync(claudeMdPath, updated, "utf8");
+        changed = true;
+      }
+    } else {
+      warnings.push(`agent "${agentName}" not found in catalog: CLAUDE.md`);
     }
-  } else {
-    warnings.push(`agent "${agentName}" not found in catalog: CLAUDE.md`);
   }
+  // else: no agents table header in CLAUDE.md at all — nothing to sync here,
+  // this is the ADR-035 pointer layout, not drift.
 
   // Sync .claude/agents/CATALOG.md: | agentName | model | ... |
   const agentsMd = fs.readFileSync(agentsMdPath, "utf8");

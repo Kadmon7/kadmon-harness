@@ -44,7 +44,7 @@ describe("commit-quality", () => {
   });
 
   afterEach(() => {
-    fs.rmSync(tmpRepo, { recursive: true, force: true });
+    fs.rmSync(tmpRepo, { recursive: true, force: true, maxRetries: 5 });
   });
 
   it("exits 0 when command is not git commit", () => {
@@ -336,5 +336,266 @@ describe("commit-quality", () => {
       tmpRepo,
     );
     expect(r.code).toBe(0);
+  });
+
+  // ─── Cross-repo cwd (B1, 2026-07-21) ──────────────────────────────────────
+  // The hook's own `git diff --cached` call must target the repo the Bash
+  // COMMAND points at (via a leading `cd <repo> &&`), not the session's
+  // process.cwd() repo. Without resolveCommandCwd(), these two tests prove
+  // the bug: repo B's dirty diff leaks into repo A's commit (false block),
+  // and repo A's dirty diff leaks into repo B's commit (false pass).
+  describe("cross-repo cwd resolution", () => {
+    let repoA: string;
+    let repoB: string;
+
+    function initRepo(dir: string): void {
+      fs.mkdirSync(dir, { recursive: true });
+      gitExec("git init", dir);
+      gitExec('git config user.email "test@test.com"', dir);
+      gitExec('git config user.name "Test"', dir);
+      fs.writeFileSync(path.join(dir, "README.md"), "init");
+      gitExec("git add .", dir);
+      gitExec('git commit -m "init"', dir);
+    }
+
+    beforeEach(() => {
+      repoA = path.join(os.tmpdir(), `kadmon-cq-repoA-${Date.now()}`);
+      repoB = path.join(os.tmpdir(), `kadmon-cq-repoB-${Date.now()}`);
+      initRepo(repoA);
+      initRepo(repoB);
+    });
+
+    afterEach(() => {
+      fs.rmSync(repoA, { recursive: true, force: true, maxRetries: 5 });
+      fs.rmSync(repoB, { recursive: true, force: true, maxRetries: 5 });
+    });
+
+    it("blocks a commit in repo B when repo B has a console.log staged, even though process.cwd() is repo A", () => {
+      fs.writeFileSync(
+        path.join(repoB, "app.ts"),
+        'console.log("debug");\n',
+      );
+      gitExec("git add app.ts", repoB);
+
+      const r = runHook(
+        {
+          tool_input: {
+            command: `cd ${repoB} && git commit -m "feat: repoB"`,
+          },
+        },
+        repoA,
+      );
+      expect(r.code).toBe(2);
+      expect(r.stderr).toContain("console.log");
+    });
+
+    it("does NOT block a commit targeting a CLEAN repo B, even though the process.cwd() repo A has a dirty console.log staged", () => {
+      fs.writeFileSync(
+        path.join(repoA, "app.ts"),
+        'console.log("debug");\n',
+      );
+      gitExec("git add app.ts", repoA);
+
+      const r = runHook(
+        {
+          tool_input: {
+            command: `cd ${repoB} && git commit -m "feat: repoB clean"`,
+          },
+        },
+        repoA,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    // Reviewer-verified bypass (2026-07-22): resolving only the FIRST cd sent
+    // the scan to a non-repo scratch dir, git diff threw, and the fail-open
+    // catch allowed the commit — with a real staged secret — unscanned.
+    it("blocks a staged secret when a scratch dir is cd'd through before the real repo", () => {
+      const scratch = path.join(os.tmpdir(), `kadmon-cq-scratch-${Date.now()}`);
+      fs.mkdirSync(scratch, { recursive: true });
+      try {
+        fs.writeFileSync(
+          path.join(repoB, "config.ts"),
+          'const api_key = "AAAAAABBBBBBCCCCCCDDDDDD";\n',
+        );
+        gitExec("git add config.ts", repoB);
+
+        const r = runHook(
+          {
+            tool_input: {
+              command: `cd ${scratch} && cd ${repoB} && git commit -m "feat: cfg"`,
+            },
+          },
+          repoA,
+        );
+        expect(r.code).toBe(2);
+        expect(r.stderr).toContain("secret");
+      } finally {
+        fs.rmSync(scratch, { recursive: true, force: true, maxRetries: 5 });
+      }
+    });
+  });
+
+  // ─── Debug-marker per-line opt-out (B1) ───────────────────────────────────
+  describe("debug-marker opt-out", () => {
+    it("allows console.log with a commit-quality: allow marker on the same line", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/app.ts"),
+        'console.log("x"); // commit-quality: allow\n',
+      );
+      gitExec("git add src/app.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "feat: app"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("allows console.log with an eslint-disable-line no-console marker", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/app.ts"),
+        'console.log("x"); // eslint-disable-line no-console\n',
+      );
+      gitExec("git add src/app.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "feat: app"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("allows print() with a noqa marker in a .py file", () => {
+      fs.writeFileSync(
+        path.join(tmpRepo, "app.py"),
+        'print("x")  # noqa\n',
+      );
+      gitExec("git add app.py", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "feat: app"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("still blocks when a console.log opt-out line coexists with a secret on another line (secrets never skippable)", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/app.ts"),
+        'console.log("x"); // commit-quality: allow\nconst api_key = "AAAAAABBBBBBCCCCCCDDDDDD";\n',
+      );
+      gitExec("git add src/app.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "feat: app"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(2);
+      expect(r.stderr).toContain("secret");
+    });
+
+    it("does not treat a marker word inside a string literal as an opt-out", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/app.ts"),
+        'console.log("say noqa to the user");\n',
+      );
+      gitExec("git add src/app.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "feat: app"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(2);
+      expect(r.stderr).toContain("console.log");
+    });
+  });
+
+  // ─── CLI-entrypoint exemption (B1) ─────────────────────────────────────────
+  describe("CLI entrypoint exemption", () => {
+    // Lock-in for the invariant the exemptions must never reach: a CLI
+    // entrypoint is exempt from DEBUG markers only. If a future refactor
+    // moved the secret scan inside the exemption gate, this is the test
+    // that catches it.
+    it("still blocks a secret inside an exempt CLI entrypoint (secrets never skippable)", () => {
+      fs.mkdirSync(path.join(tmpRepo, "bin"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "bin/tool.js"),
+        'console.log("cli output");\nconst token = "AAAAAABBBBBBCCCCCCDDDDDD";\n',
+      );
+      gitExec("git add bin/tool.js", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "chore: cli"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(2);
+      expect(r.stderr).toContain("secret");
+    });
+
+    it("allows console.log in bin/tool.js", () => {
+      fs.mkdirSync(path.join(tmpRepo, "bin"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "bin/tool.js"),
+        'console.log("cli output");\n',
+      );
+      gitExec("git add bin/tool.js", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "chore: cli"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("allows console.log in src/cli.ts (cli.<ext> filename)", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/cli.ts"),
+        'console.log("cli output");\n',
+      );
+      gitExec("git add src/cli.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "chore: cli"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("allows console.log inside a cli/ directory segment", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src/cli"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/cli/index.ts"),
+        'console.log("cli output");\n',
+      );
+      gitExec("git add src/cli/index.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "chore: cli"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("still blocks console.log in a regular src file (not exempt)", () => {
+      fs.mkdirSync(path.join(tmpRepo, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmpRepo, "src/foo.ts"),
+        'console.log("not exempt");\n',
+      );
+      gitExec("git add src/foo.ts", tmpRepo);
+
+      const r = runHook(
+        { tool_input: { command: 'git commit -m "feat: foo"' } },
+        tmpRepo,
+      );
+      expect(r.code).toBe(2);
+      expect(r.stderr).toContain("console.log");
+    });
   });
 });

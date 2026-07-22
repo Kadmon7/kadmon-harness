@@ -12,6 +12,7 @@ const OBS_FILE = path.join(OBS_DIR, "observations.jsonl");
 function runHook(
   input: object,
   env: Record<string, string> = {},
+  cwd?: string,
 ): {
   code: number;
   stdout: string;
@@ -23,6 +24,7 @@ function runHook(
       input: JSON.stringify(input),
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, ...env },
+      cwd,
     });
     return { code: 0, stdout, stderr: "" };
   } catch (err: unknown) {
@@ -33,6 +35,14 @@ function runHook(
       stderr: e.stderr ?? "",
     };
   }
+}
+
+function gitExec(args: string[], cwd: string): void {
+  execFileSync("git", args, {
+    cwd,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
 }
 
 function writeObservations(entries: object[]): void {
@@ -266,6 +276,72 @@ describe("git-push-reminder", () => {
       expect(r.code).toBe(0);
     } finally {
       fs.rmSync(escapedDir, { recursive: true, force: true });
+    }
+  });
+
+  // ─── Cross-repo cwd (B1, 2026-07-21) ──────────────────────────────────────
+  // The hook's own `git diff @{u}..HEAD` must resolve against the repo the
+  // Bash COMMAND targets, not the session's process.cwd().
+  //
+  // The assertion is deliberately DIFFERENTIAL — an earlier version accepted
+  // `[0, 1]`, which passes identically whether or not the cwd fix is wired
+  // up, so it proved only that the hook does not crash. Here the two repos
+  // are constructed to disagree: the TARGET is synced with its upstream (an
+  // empty unpushed diff, so nothing to warn about), while process.cwd() is a
+  // repo with no upstream at all (its diff call throws, and the hook's
+  // warn-safe fallback assumes production code). Reading the wrong one is
+  // therefore visible as exit 1 instead of exit 0. Both repos are temp dirs,
+  // so the live repo's state cannot influence the result.
+  it("reads the cd target's repo, not process.cwd(): synced target exits 0 while the cwd repo would warn", () => {
+    const bare = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-gpr-bare-"));
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-gpr-target-"));
+    const cwdRepo = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-gpr-cwd-"));
+    try {
+      gitExec(["init", "--bare", "."], bare);
+
+      // Target repo: cloned from the bare remote and fully pushed, so
+      // `git diff @{u}..HEAD` is empty — no unreviewed files, no warning.
+      gitExec(["clone", bare, "."], target);
+      gitExec(["config", "user.email", "test@test.com"], target);
+      gitExec(["config", "user.name", "Test"], target);
+      fs.writeFileSync(path.join(target, "README.md"), "init\n");
+      gitExec(["add", "."], target);
+      gitExec(["commit", "-m", "init"], target);
+      gitExec(["push", "-u", "origin", "HEAD"], target);
+
+      // process.cwd() repo: no upstream, so the hook's diff call throws and
+      // its warn-safe fallback reports production code — the wrong answer.
+      gitExec(["init", "."], cwdRepo);
+      gitExec(["config", "user.email", "test@test.com"], cwdRepo);
+      gitExec(["config", "user.name", "Test"], cwdRepo);
+      fs.writeFileSync(path.join(cwdRepo, "README.md"), "init\n");
+      gitExec(["add", "."], cwdRepo);
+      gitExec(["commit", "-m", "init"], cwdRepo);
+
+      // Seed a verify observation so the only warning left in play is the
+      // production-code one this test is about.
+      writeObservations([
+        {
+          eventType: "tool_pre",
+          toolName: "Bash",
+          metadata: { command: "npx vitest run" },
+        },
+      ]);
+
+      const r = runHook(
+        {
+          session_id: SESSION_ID,
+          tool_input: { command: `cd ${target} && git push origin HEAD` },
+        },
+        {},
+        cwdRepo,
+      );
+      expect(r.code).toBe(0);
+      expect(r.stderr).not.toContain("production code unreviewed");
+    } finally {
+      for (const dir of [bare, target, cwdRepo]) {
+        fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5 });
+      }
     }
   });
 

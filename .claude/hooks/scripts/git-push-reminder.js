@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 // Hook: git-push-reminder | Trigger: PreToolUse (Bash)
 // Purpose: Warn before git push if /verify wasn't run, or if production code will push without review. Exit 1 as warning.
+// Cross-repo cwd (B1, 2026-07-21): the `git diff @{u}..HEAD` call below runs
+// against the directory the Bash COMMAND targets (resolveCommandCwd), not
+// process.cwd() — a command like `cd C:\other-repo && git push` must diff
+// other-repo's unpushed commits, not the session repo's.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +15,7 @@ import { logHookEvent } from "./log-hook-event.js";
 import { resolveRootDir } from "./ensure-dist.js";
 import { logHookError } from "./hook-logger.js";
 import { safeSessionDir } from "./safe-session-dir.js";
+import { resolveCommandCwd } from "./resolve-command-cwd.js";
 try {
   if (isDisabled("git-push-reminder")) process.exit(0);
   const start = Date.now();
@@ -101,7 +106,12 @@ try {
             const diffOutput = execFileSync(
               "git",
               ["diff", "@{u}..HEAD", "--name-only"],
-              { encoding: "utf8", timeout: 3000, stdio: ["ignore", "pipe", "ignore"] },
+              {
+                encoding: "utf8",
+                timeout: 3000,
+                stdio: ["ignore", "pipe", "ignore"],
+                cwd: resolveCommandCwd(cmd) ?? process.cwd(),
+              },
             );
             const files = diffOutput.split("\n").filter(Boolean);
             fileCount = files.length;

@@ -6,11 +6,53 @@ import path from "node:path";
 
 const HOOK = path.resolve(".claude/hooks/scripts/agent-metadata-sync.js");
 
-// Absolute paths to real catalog files (never mutated — tests use tmp copies)
-const REAL_CLAUDE_MD = path.resolve("CLAUDE.md");
-const REAL_AGENTS_MD = path.resolve(".claude/agents/CATALOG.md");
+// Synthetic catalog fixtures — inlined, never read from the live repo at test
+// time (fixing the 5th instance of the documented live-repo-coupling
+// fragility class: tests must not couple to mutable repo content, e.g.
+// CLAUDE.md's ADR-035 pointer rewrite in dbdc41b silently broke this file's
+// fixtures by removing the per-agent model table it was copying).
 
-// Minimal alchemik agent file with opus model (matches real frontmatter)
+// Legacy-shape CLAUDE.md: still carries a per-agent model table. Some repos
+// (or a future revert) may keep this shape — the hook must still sync it.
+const SYNTHETIC_CLAUDE_MD_WITH_TABLE = `# CLAUDE.md — Test Fixture
+
+## Agents (2)
+
+| Agent | Model |
+|-------|-------|
+| alchemik | opus |
+| arkitect | opus |
+`;
+
+// Current real-repo shape (ADR-035): CLAUDE.md carries NO per-agent table at
+// all — just a pointer sentence to CATALOG.md, the single source of truth.
+const SYNTHETIC_CLAUDE_MD_POINTER = `# CLAUDE.md — Test Fixture
+
+## Agents (2)
+
+Full agent catalog (2 agents with models, triggers, commands, skills) at \`.claude/agents/CATALOG.md\` (ADR-035) — single source of truth; the per-agent model table lives there and in each agent's frontmatter.
+`;
+
+// Mirrors the real .claude/agents/CATALOG.md table shape (5 columns) so the
+// row regex under test is realistic, without reading the live file.
+const SYNTHETIC_CATALOG_MD = `# Agent Catalog — Test Fixture
+
+| Agent | Model | Trigger | Command | Skills |
+|-------|-------|---------|---------|--------|
+| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records |
+| alchemik | opus | /evolve only | /evolve | search-first, continuous-learning-v2 |
+`;
+
+// Same shape as SYNTHETIC_CATALOG_MD but with the alchemik row removed —
+// used to test the "row missing from the source of truth" drift case.
+const SYNTHETIC_CATALOG_MD_MISSING_ALCHEMIK = `# Agent Catalog — Test Fixture
+
+| Agent | Model | Trigger | Command | Skills |
+|-------|-------|---------|---------|--------|
+| arkitect | opus | /abra-kdabra with architecture signals | /abra-kdabra | architecture-decision-records |
+`;
+
+// Minimal alchemik agent file with opus model (matches fixture frontmatter)
 const ALCHEMIK_OPUS_CONTENT = `---
 name: alchemik
 description: Invoked exclusively via /evolve command.
@@ -90,10 +132,15 @@ function runHook(
   }
 }
 
-// Creates a fresh tmp dir with copies of real catalog files + a tmp agent file.
+// Creates a fresh tmp dir with SYNTHETIC catalog fixtures + a tmp agent file.
 // The agent file is placed under <tmpDir>/.claude/agents/ so the hook's path
-// guard (regex: /.claude/agents/*.md) fires correctly.
-function setupTmpFixtures(agentContent: string): {
+// guard (regex: /.claude/agents/*.md) fires correctly. Never reads the live
+// repo's CLAUDE.md / CATALOG.md — see fixture comments above.
+function setupTmpFixtures(
+  agentContent: string,
+  claudeMdContent: string = SYNTHETIC_CLAUDE_MD_WITH_TABLE,
+  catalogMdContent: string = SYNTHETIC_CATALOG_MD,
+): {
   tmpDir: string;
   tmpClaudeMd: string;
   tmpAgentsMd: string;
@@ -107,8 +154,8 @@ function setupTmpFixtures(agentContent: string): {
   const tmpAgentsMd = path.join(tmpDir, "agents.md");
   const tmpAgentFile = path.join(agentsDir, "alchemik.md");
 
-  fs.copyFileSync(REAL_CLAUDE_MD, tmpClaudeMd);
-  fs.copyFileSync(REAL_AGENTS_MD, tmpAgentsMd);
+  fs.writeFileSync(tmpClaudeMd, claudeMdContent, "utf8");
+  fs.writeFileSync(tmpAgentsMd, catalogMdContent, "utf8");
   fs.writeFileSync(tmpAgentFile, agentContent, "utf8");
 
   return { tmpDir, tmpClaudeMd, tmpAgentsMd, tmpAgentFile };
@@ -304,7 +351,9 @@ describe("agent-metadata-sync", () => {
 
   // Production path: ensure the hook defaults to .claude/agents/CATALOG.md
   // (NOT the legacy .claude/rules/common/agents.md) when no env override is set.
-  // This guards ADR-035 against regression.
+  // This guards ADR-035 against regression. Uses the pointer-layout CLAUDE.md
+  // fixture (the real repo's current shape) — proves production-path
+  // resolution AND the ADR-035 contract at once, without reading live files.
   it("production path: defaults to .claude/agents/CATALOG.md, not rules/common/agents.md", () => {
     // Build a synthetic project layout under tmpDir that mirrors a real Kadmon project
     const projectRoot = fs.mkdtempSync(
@@ -320,9 +369,10 @@ describe("agent-metadata-sync", () => {
     const projLegacy = path.join(projLegacyRulesDir, "agents.md");
     const projAgentFile = path.join(projAgentsDir, "alchemik.md");
 
-    // Seed: real CLAUDE.md + real CATALOG.md + an OLD-shape agents.md (must NOT be touched)
-    fs.copyFileSync(REAL_CLAUDE_MD, projClaudeMd);
-    fs.copyFileSync(REAL_AGENTS_MD, projCatalog);
+    // Seed: synthetic pointer-layout CLAUDE.md (matches ADR-035 real shape)
+    // + synthetic CATALOG.md + an OLD-shape agents.md (must NOT be touched)
+    fs.writeFileSync(projClaudeMd, SYNTHETIC_CLAUDE_MD_POINTER, "utf8");
+    fs.writeFileSync(projCatalog, SYNTHETIC_CATALOG_MD, "utf8");
     fs.writeFileSync(
       projLegacy,
       `# Legacy agents.md should not be written by hook\n| alchemik | opus |\n`,
@@ -360,5 +410,81 @@ describe("agent-metadata-sync", () => {
 
     // Cleanup
     fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+
+  // ─── ADR-035 pointer-layout contract (2026-07-22 regression fix) ──────────
+  // CLAUDE.md may legitimately carry NO per-agent model table at all — see
+  // header comment in agent-metadata-sync.js. These tests use the pointer
+  // fixture directly (not the beforeEach WITH_TABLE default).
+  describe("CLAUDE.md pointer-layout contract (no agents table)", () => {
+    it("syncs CATALOG.md and silently skips CLAUDE.md when CLAUDE.md has no agents table", () => {
+      const fixtures = setupTmpFixtures(
+        ALCHEMIK_OPUS_CONTENT,
+        SYNTHETIC_CLAUDE_MD_POINTER,
+        SYNTHETIC_CATALOG_MD,
+      );
+      try {
+        fs.writeFileSync(fixtures.tmpAgentFile, ALCHEMIK_SONNET_CONTENT, "utf8");
+        const claudeMdBefore = fs.readFileSync(fixtures.tmpClaudeMd, "utf8");
+
+        const r = runHook(
+          {
+            tool_name: "Edit",
+            tool_input: { file_path: fixtures.tmpAgentFile },
+          },
+          {
+            KADMON_SYNC_CLAUDE_MD_PATH: fixtures.tmpClaudeMd,
+            KADMON_SYNC_AGENTS_MD_PATH: fixtures.tmpAgentsMd,
+          },
+        );
+
+        expect(r.code).toBe(0);
+        expect(r.stderr).toBe("");
+
+        // CLAUDE.md untouched — byte-identical to before the hook ran
+        const claudeMdAfter = fs.readFileSync(fixtures.tmpClaudeMd, "utf8");
+        expect(claudeMdAfter).toBe(claudeMdBefore);
+
+        // CATALOG.md IS updated — it remains the source of truth
+        const agentsMdAfter = fs.readFileSync(fixtures.tmpAgentsMd, "utf8");
+        expect(agentsMdAfter).toMatch(/\|\s*alchemik\s*\|\s*sonnet\s*\|/);
+      } finally {
+        cleanupTmpDir(fixtures.tmpDir);
+      }
+    });
+
+    it("still exits 1 with the CATALOG.md warning only when the agent row is missing from CATALOG.md, even with a pointer-layout CLAUDE.md", () => {
+      const fixtures = setupTmpFixtures(
+        ALCHEMIK_OPUS_CONTENT,
+        SYNTHETIC_CLAUDE_MD_POINTER,
+        SYNTHETIC_CATALOG_MD_MISSING_ALCHEMIK,
+      );
+      try {
+        fs.writeFileSync(fixtures.tmpAgentFile, ALCHEMIK_SONNET_CONTENT, "utf8");
+        const claudeMdBefore = fs.readFileSync(fixtures.tmpClaudeMd, "utf8");
+
+        const r = runHook(
+          {
+            tool_name: "Edit",
+            tool_input: { file_path: fixtures.tmpAgentFile },
+          },
+          {
+            KADMON_SYNC_CLAUDE_MD_PATH: fixtures.tmpClaudeMd,
+            KADMON_SYNC_AGENTS_MD_PATH: fixtures.tmpAgentsMd,
+          },
+        );
+
+        expect(r.code).toBe(1);
+        // CATALOG.md warning present, no CLAUDE.md warning (no table -> skip)
+        expect(r.stderr).toMatch(/not found in catalog: .*CATALOG/i);
+        expect(r.stderr).not.toMatch(/not found in catalog: CLAUDE\.md/i);
+
+        // CLAUDE.md untouched
+        const claudeMdAfter = fs.readFileSync(fixtures.tmpClaudeMd, "utf8");
+        expect(claudeMdAfter).toBe(claudeMdBefore);
+      } finally {
+        cleanupTmpDir(fixtures.tmpDir);
+      }
+    });
   });
 });

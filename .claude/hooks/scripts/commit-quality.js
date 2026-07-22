@@ -3,10 +3,23 @@
 // Purpose: Scan staged changes for debug markers and secrets before commit.
 //   TS/JS files: console.log + debugger
 //   Python files: print() + breakpoint()  (plan-020 Phase B)
+// Debug-marker opt-out (B1): a per-line COMMENT marker (`commit-quality:
+//   allow`, `eslint-disable-line no-console`, or `noqa`) skips the
+//   debug-marker checks for that line only — secret detection is NEVER
+//   skippable. The marker must sit in a comment, so the same word inside a
+//   string literal does not suppress anything.
+// CLI-entrypoint exemption (B1): files under bin/, inside a cli/ directory
+//   segment, or named cli.<ext> are exempt from debug-marker checks (same
+//   tier as scripts/hooks) — secrets are still scanned there too.
+// Cross-repo cwd (B1): the diff scan runs against the directory the Bash
+//   COMMAND targets (resolveCommandCwd), not process.cwd() — a command like
+//   `cd C:\other-repo && git commit ...` must scan other-repo's staged
+//   diff, not the session repo's.
 // Exit 2 on problems found, exit 0 otherwise.
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { parseStdin, isDisabled } from "./parse-stdin.js";
 import { logHookEvent } from "./log-hook-event.js";
+import { resolveCommandCwd } from "./resolve-command-cwd.js";
 
 const SECRET_PATTERNS = [
   /(?:api[_-]?key|secret[_-]?key|token|password|credentials)\s*[:=]\s*["'][A-Za-z0-9+/=]{16,}["']/i,
@@ -42,15 +55,29 @@ try {
   // Skip amend-only (no new code)
   if (cmd.includes("--amend") && !cmd.includes("-m")) process.exit(0);
 
-  let diff = "";
-  try {
-    diff = execSync("git diff --cached --diff-filter=ACMR", {
+  const runDiff = (cwd) =>
+    execFileSync("git", ["diff", "--cached", "--diff-filter=ACMR"], {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
       timeout: 5000,
+      cwd,
     });
+
+  const resolvedCwd = resolveCommandCwd(cmd);
+  let diff = "";
+  try {
+    diff = runDiff(resolvedCwd ?? process.cwd());
   } catch {
-    process.exit(0); // Can't get diff, allow
+    // A resolved target that turns out not to be a git repo must not WIDEN
+    // the pre-existing fail-open: `cd <scratch> && cd <repo> && git commit`
+    // would otherwise scan nothing and allow the commit unscanned. Fall back
+    // to the session repo (the pre-B1 floor) before giving up.
+    try {
+      diff = resolvedCwd ? runDiff(process.cwd()) : "";
+      if (!resolvedCwd) process.exit(0); // Can't get diff, allow
+    } catch {
+      process.exit(0); // Can't get diff anywhere, allow
+    }
   }
 
   if (!diff) process.exit(0);
@@ -68,6 +95,17 @@ try {
   // dist/ is generated tsc output of scripts/ — apply the same script-tier
   // exemption (CLI tools and harness scripts use console.log intentionally).
   const isCompiledDist = (fp) => fp.startsWith("dist/");
+  // CLI entrypoints intentionally print to stdout: bin/ scripts, files
+  // inside a cli/ directory segment, or a cli.<ext> filename (e.g.
+  // src/cli.ts). Debug-only exemption — secrets are still scanned.
+  const isCliEntrypoint = (fp) =>
+    fp.startsWith("bin/") || /(^|\/)cli\//.test(fp) || /(^|\/)cli\.\w+$/.test(fp);
+  // Per-line opt-out for debug-marker checks only — secret detection is
+  // NEVER skippable via this marker. Anchored to a comment context so that
+  // a marker word appearing inside a string literal (`console.log("noqa")`)
+  // does not silently suppress the check.
+  const DEBUG_OPT_OUT_RE =
+    /(?:\/\/|\/\*|#)[^\n]*(?:commit-quality:\s*allow|eslint-disable-line\s+no-console|noqa)/;
 
   let currentFile = "";
   for (const line of diff.split("\n")) {
@@ -82,7 +120,9 @@ try {
     const exemptDebug =
       isScriptOrHook(currentFile) ||
       isDocFile(currentFile) ||
-      isCompiledDist(currentFile);
+      isCompiledDist(currentFile) ||
+      isCliEntrypoint(currentFile) ||
+      DEBUG_OPT_OUT_RE.test(content);
 
     if (!exemptDebug) {
       if (isTsJsFile(currentFile)) {
