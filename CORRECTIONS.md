@@ -176,3 +176,45 @@ from both files and replaced with a manual-upkeep line. `autoDreamEnabled` stays
 global settings (falls back to the server-side default): undocumented and never observed to
 run, so re-enable it deliberately, never by default. The honest replacement is the
 `memory-audit` skill (BACKLOG P1).
+
+## C-008 — 2026-07-22 — Hand-orchestrating a command's agents shipped a live security BLOCK, and the commit footer claimed a tier that never ran
+
+**Incident:** the B1 hook fix (`e701820`) was reviewed by hand-spawned `typescript-reviewer` and
+`spektr` instead of by invoking `/chekpoint`. The session believed it knew the pipeline from
+memory. Reading `.claude/commands/chekpoint.md` afterward showed four things were skipped:
+Phase 1.5 `getDiffScope()` — the runtime routing authority per ADR-034, so reviewer selection
+was decided by eye and happened to come out a superset by luck; Phase 2b **kody**, the one agent
+the spec marks `ALWAYS runs, never gated by DiffScope`; the Phase 3 dual gate
+(`rawBlocks` ∪ `kodyBlocks` plus the consolidation-drop delta check); and Phase 4's
+"ask the user for the commit description". The commit footer nonetheless read `Reviewed: full`.
+
+**What it cost:** kody, run retroactively, found a live BLOCK the two specialists could not have
+seen. `resolve-command-cwd.js` holds two sibling regexes matched against the same untrusted
+command string; the review WARN caused `LEADING_CD_SEGMENT_RE` to be `^`-anchored while
+`GIT_DASH_C_RE` — given *precedence* by the same remediation — was left unanchored. So
+`git commit -m "docs: run git -C <some-other-repo> status"`, with no `cd` and no real `-C` flag,
+retargets the scan by commit-message prose alone. Verified end to end: a staged secret in the
+real repo went unscanned while a clean decoy was scanned, hook exit 0. Both specialists reviewed
+the FIRST cut; the session applied the BLOCK remediation, self-verified, and committed without
+re-review — so only the consolidator ever read the code as shipped. The finding is an
+*interaction* between two pieces each specialist had already cleared in isolation, which is
+precisely what Phase 2b exists for.
+
+**Rule:** invoke the command; never hand-orchestrate the agents a command owns. If you believe
+you know the pipeline by heart, READ THE COMMAND FILE FIRST — memory keeps the shape, the file
+keeps the phases, the gates, and the runtime authorities memory compresses away. The
+`Reviewed:` footer declares the tier the command ACTUALLY ran; writing `full` for a hand-rolled
+approximation falsifies the audit trail (`git-workflow.md`: the footer IS the audit trail).
+
+**Apply:**
+- The tell that you have left the chain: you are writing Agent prompts by hand for agents a
+  command already orchestrates. Stop there.
+- This failure mode is uniquely dangerous because **its output looks identical to doing it
+  right** — the expected reviewers run, they find real issues, everything gets remediated, and
+  nothing signals the gap. Correct-looking output is not evidence the process ran.
+- Remediating a BLOCK is a new diff. It goes back through review; self-verification is not
+  review. Every finding in this incident that reached `main` entered during remediation, after
+  the specialists had signed off.
+- A pushed commit's false footer is NOT fixed by force-push (forbidden on `main`, and a worse
+  remedy than the fault). It is fixed by this entry plus the fix-forward commit.
+- Generalized cross-project 2026-07-22 into `~/.claude/CLAUDE.md` § Work Principles.

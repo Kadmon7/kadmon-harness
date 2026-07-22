@@ -54,6 +54,10 @@ Thumbs.db
 .claude.local.md
 .claude/agent-memory/
 .claude/settings.local.json
+# Backups of the above (e.g. *.bak-doctor-<date>) carry the same local grants,
+# usernames and machine paths. The bare filename pattern does not cover them —
+# a `git add -A` staged two into this PUBLIC repo 2026-07-22 (spektr HIGH).
+.claude/settings.local.json.bak*
 # Agent isolation worktrees (full checkouts; sweeping them into git add -A or
 # the test run poisons both — vitest excludes them too, see vitest.config.ts)
 .claude/worktrees/

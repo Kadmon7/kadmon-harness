@@ -109,8 +109,20 @@ If a specialist was skipped per `DiffScope`, it contributes 0 BLOCKs to `rawBloc
 Rationale: Fix A (preservation rule in kody.md) prevents downgrades at the prompt level; this dual gate is the mechanical safety net if the prompt is ignored or edited out. See `.claude/agents/kody.md` → "Upstream BLOCK Preservation" for the authoritative rule.
 
 ### Phase 4: Commit and Push
-1. `git add -A`
-2. Ask user for commit description
+
+> **Gate placement (ratified 2026-07-16, supersedes the old "ask for a commit description" step).**
+> The gate is on the **MERGE**, not on the revertible commit — the axis is COWORK cost, not
+> reversibility. A merge changes the `main` teammates branch from and no eligibility check knows
+> what they are mid-flight on, so a merge asks and WAITS. A commit and a push change nothing
+> anyone stands on and are trivially revertible, so **commit + push are ONE action that never
+> asks** — write the message yourself from the diff and ship it. This repo is direct-to-main with
+> no merge gate, so nothing in Phase 4 prompts. The tell that this is inverted: asking permission
+> three times for docs commits, then merging to main unprompted. Full rationale in
+> `~/.claude/CLAUDE.md` § "Gate the merge, not the revertible commit".
+
+1. `git add -A` (or scope the staging explicitly when the tree holds unrelated work units — never
+   sweep another session's or another agent's in-flight changes into your commit)
+2. Write the commit description yourself from the diff. Do NOT ask.
 3. Format as conventional commit: `feat|fix|docs|chore|refactor|test: description`
 4. **Advisory NOTE (non-blocking, tier-agnostic)**: if the commit description or body references an `AUD-\d+` or `R-\d+` id, emit a reminder before committing — "this commit ships `<id>`; flip its `BACKLOG.md` checkbox to `[x]` and add a `WORK.md` entry." Advisory ONLY — it never blocks the commit. Phase 4 runs for every tier (full/lite/skip), so the reminder is tier-agnostic. Backstops, at the source, the drift the `/medik` `docs-status-lint` check (#15) catches post-hoc — see ADR-038.
 5. `git commit -m "type(scope): description"`

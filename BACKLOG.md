@@ -13,6 +13,34 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
 
 ## P1 — consistency / quality
 
+- [ ] 🔴 **`getDiffScope()` never routes the four blocking security hooks to spektr.** Diagnosed
+  by spektr 2026-07-22 after `needsSpektr: false` came back TWICE in one session on diffs that
+  were themselves security work (the B1 hook fix, and the remediation of spektr's own HIGH
+  findings). Two independent mechanical causes:
+  (a) **The content scan is dormant.** `getDiffScope(files, fileContents?)` only evaluates
+  `SPEKTR_CONTENT_KEYWORDS` (`scripts/lib/detect-project-language.ts:459-467`) when the caller
+  passes `fileContents` — and the only caller, `.claude/commands/chekpoint.md:44`, passes file
+  names only. A diff containing `execFileSync`, `realpathSync`, `symlink`, `lstatSync` was never
+  looked at.
+  (b) **`SPEKTR_PATH_PATTERNS` (`:451-456`) has no entry for `.claude/hooks/scripts/`** — so
+  `commit-quality`, `config-protection`, `no-context-guard` and `block-no-verify`, the four
+  fail-closed blocking hooks, can be rewritten without ever routing to spektr. Highest-value gap.
+  Separately the settings pattern is `$`-anchored to `.json`, so `settings.local.json.bak-*`
+  evaded the one pattern written for it — which is exactly how two backups holding `rm -rf`
+  grants and machine paths got staged into this PUBLIC repo in the same session (caught by the
+  forced spektr run; `.gitignore` now covers `.claude/settings.local.json.bak*`).
+  **Fix, in priority order:** add `/^\.claude\/hooks\/scripts\//` to the path patterns; loosen the
+  settings pattern to `/\.claude\/settings[^/]*\.json/i`; wire `fileContents` at the
+  `chekpoint.md:44` call site with a per-file `slice(0, 64*1024)` cap; add the missing
+  `spawnSync`/`spawn(`/`execFile(`/`fork(` keywords. ADR-034 makes this helper the runtime
+  routing authority, so a gap here silently downgrades every future review.
+- [ ] **`commit-format-guard.js` parses the raw command string with no quote or heredoc
+  awareness** — the identical defect just fixed in `resolve-command-cwd.js` (spektr NOTE
+  2026-07-22, hit live: it rejected a heredoc body's first line as a bad conventional-commit
+  subject because it matched `git commit -m` *inside* the heredoc). It fails CLOSED, so this is
+  friction rather than a hole. Adopt `splitCommandSegments()` from `resolve-command-cwd.js` once
+  that helper is hardened (its own `&`-boundary and commit-segment-scoping fixes are in flight).
+
 - [ ] Orphan-recovery read path parity (`session-start.js:133`): still reads `observations.jsonl` live-only — a recovered long-session orphan summarizes last-turn-only. Should read archive+live like the 3 readers updated in the 2026-07-17 forge-blind fix. Flagged by spektr + kody.
 - [ ] O(n^2) per-Stop archive re-parse: past message 20 every Stop re-reads the full accumulated `observations.archive.jsonl` for Phase 1 aggregates. Fine at current session lengths; revisit if sessions grow materially (perf, not correctness). Flagged by ts-reviewer + spektr independently.
 - [ ] Optional TOCTOU hardening on Phase 5 read→append→unlink (`session-end-all.js`): concurrent observe-post append can lose or duplicate ONE observation line (benign, deduped downstream via natural keys; no corruption/leak — spektr LOW). Reader-side dedup or temp-file+rename if ever needed.
