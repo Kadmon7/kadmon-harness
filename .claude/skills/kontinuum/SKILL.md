@@ -6,7 +6,8 @@ description: >-
   window *within* one session (you stay, its summary lives on in-thread); kontinuum crosses a
   hard session boundary — a /exit into a brand-new session in a fresh process, where the
   conversation thread breaks and an on-disk note is the only channel that survives. One
-  trigger, two modes auto-detected by whether SESSION-HANDOFF.md exists at the repo root:
+  trigger, two modes auto-detected by whether NEXT-SESSION.md (or the legacy
+  SESSION-HANDOFF.md, supported for one migration version) exists at the repo root:
   FREEZE / SAVE (write the note on the way out, anchored to the exact commit sha) or
   THAW / RESTORE (git pull --ff-only FIRST, print a drift report of what landed while the
   session was frozen, reconcile WORK_COORDINATION.md claims when the repo has one, re-pin
@@ -50,13 +51,35 @@ kontinuum is the *explicit, curated* channel: the exact task list in the user's 
 with status, plus a hand-written project summary. It exists because "what I was in the middle
 of" is worth stating deliberately, not re-deriving from observations.
 
+## The note's name and header
+
+The note is `NEXT-SESSION.md` at the repo root. The name states the RECIPIENT: "session" (not
+"person") says the same person resumes — a teammate finding it should not read it as something
+left *for them* — and "next" says the file is consumed on arrival, i.e. ephemeral, not
+permanent the way `README.md` is. (The previous name, `SESSION-HANDOFF.md`, failed on both
+counts, which is how frozen notes ended up committed.)
+
+The filename is deliberately UNBRANDED; the brand goes in the H1 instead. This is the harness
+standard for state artifacts: a branded H1 of the form `# KadmonCowork — <what it is>` over a
+descriptive, searchable filename. The brand segment is the constant `KadmonCowork` on every
+such artifact — never the owning skill's name (a `# Kadmon Kontinuum — ...` header was written
+once and corrected: one recognizable product mark, not one per skill). Current instances:
+`# KadmonCowork — Work Coordination` and `# KadmonCowork — Session Handoff`.
+
 ## One trigger, two modes
 
-Detect the mode by whether `SESSION-HANDOFF.md` exists at the repo root (Glob for it, or a
-Bash `test -f`). Presence of the frozen note means a previous session left state to thaw.
+Detect the mode by Globbing the repo root for **both** `NEXT-SESSION.md` and the legacy
+`SESSION-HANDOFF.md` (or a Bash `test -f` on each). Presence of either frozen note means a
+previous session left state to thaw.
 
-- **No `SESSION-HANDOFF.md`** → FREEZE / SAVE (you are on the way out).
-- **`SESSION-HANDOFF.md` exists** → THAW / RESTORE (you are on the way in).
+- **Neither file exists** → FREEZE / SAVE (you are on the way out).
+- **Either file exists** → THAW / RESTORE (you are on the way in).
+
+> **Migration window (added 2026-07-22, post-v1.5.0):** live notes under the OLD name may still
+> exist in consumer and fork repos. A skill that Globs only the new name would not see them,
+> fall through to FREEZE, and OVERWRITE them — destroying that task list. So for one version:
+> Glob BOTH names, thaw either, and always converge on the new name (THAW step 1). Drop the
+> legacy-name branch one release after the one that ships this change.
 
 State which mode you detected before acting, so the user can course-correct.
 
@@ -77,7 +100,18 @@ State which mode you detected before acting, so the user can course-correct.
    frozen. If the working tree is dirty, list every dirty file in the note: uncommitted changes
    survive on disk but not in anyone's context, and an unexplained diff at thaw reads as a
    parallel-session artifact.
-4. Write `SESSION-HANDOFF.md` at the repo root with three sections:
+4. Write `NEXT-SESSION.md` at the repo root. Its first two lines are always:
+
+   ```markdown
+   # KadmonCowork — Session Handoff
+
+   Frozen <date>. Single-use frozen state. THAW deletes this file. Do NOT commit it.
+   ```
+
+   The branded H1 follows the header-not-filename standard above and must be emitted by every
+   FREEZE — a hand-branded note does not propagate; the skill emitting it does. The `Frozen`
+   line under it is what tells a reader (or a future thaw) that this is state FROM the last
+   session, not an agenda for the next one. Then three sections:
    - **Task list** — every task in current order, with status. Keep the completed ones too, but
      mark the section so the next session knows they are CONTEXT ("shipped last session"), not
      work to re-pin — THAW re-creates only the open ones.
@@ -91,10 +125,11 @@ State which mode you detected before acting, so the user can course-correct.
 5. Ensure the note stays out of git without touching the shared `.gitignore`:
 
    ```bash
-   git check-ignore -q SESSION-HANDOFF.md || echo "SESSION-HANDOFF.md" >> .git/info/exclude
+   git check-ignore -q NEXT-SESSION.md || echo "NEXT-SESSION.md" >> .git/info/exclude
    ```
 
    `.git/info/exclude` is repo-local and never committed, so the guardrail costs nothing.
+   (During the migration window the repo `.gitignore` covers both names as a second net.)
 6. Tell the user the state is frozen and they can `/exit` now.
 
 Do not commit the note. It is a single-use frozen block — untracked, ignored, deleted on
@@ -102,7 +137,11 @@ thaw. Committing it would leave stale task state in git history.
 
 ## THAW mode (read-on-start)
 
-1. Read `SESSION-HANDOFF.md`.
+1. Read the note — `NEXT-SESSION.md`, or the legacy `SESSION-HANDOFF.md` if that is what
+   exists. **If it was found under the legacy name, migrate it now**: move the file to
+   `NEXT-SESSION.md` (`git mv` is wrong here — it is untracked; a plain `mv` does it) and add
+   the new name to `.git/info/exclude` if missing. Every surviving note converges on the new
+   name no matter how this thaw ends, so the legacy branch can be dropped on schedule.
 2. Re-sync with origin BEFORE trusting anything in the note:
 
    ```bash
@@ -140,15 +179,15 @@ thaw. Committing it would leave stale task state in git history.
    opens with the last session's orientation AND what changed underneath it. Claims the note
    labeled volatile are UNVERIFIED at thaw — re-check them (run the project's status tooling if
    the note names one) before repeating any of them as current fact.
-8. Delete `SESSION-HANDOFF.md` — but only once the restore actually succeeded. The note is the
-   sole surviving copy of that task list, so deleting it is the last step, not a cleanup you
-   perform in parallel:
+8. Delete the note (`NEXT-SESSION.md` after step 1's migration) — but only once the restore
+   actually succeeded. The note is the sole surviving copy of that task list, so deleting it is
+   the last step, not a cleanup you perform in parallel:
 
-   - Tasks re-pinned and the summary printed → `rm SESSION-HANDOFF.md` (or `git rm` if somehow
+   - Tasks re-pinned and the summary printed → `rm NEXT-SESSION.md` (or `git rm` if somehow
      tracked). Leaving it would make the next FREEZE believe frozen state already exists.
    - Restore was PARTIAL or failed (Task tools unavailable, an error mid-way, anything you could
      not finish) → **keep the note**, say plainly that it was kept and why, and hand the user the
-     unrestored items. Deleting an unrestored handoff destroys the only record of the work.
+     unrestored items. Deleting an unrestored note destroys the only record of the work.
    - The deletion is DENIED (a permission gate, a classifier, a hook) → stop and tell the user the
      note is still on disk and needs their go. A denial is a missing precondition, not an obstacle
      to route around: reaching for `git clean`, a different shell, or any second path to the same
@@ -156,8 +195,9 @@ thaw. Committing it would leave stale task state in git history.
 
 ## Guardrails
 
-- The note filename is exactly `SESSION-HANDOFF.md` at the repo root. Do not scatter variants
-  — mode detection depends on that one path.
+- The note filename is exactly `NEXT-SESSION.md` at the repo root (legacy `SESSION-HANDOFF.md`
+  is read — and migrated — during the one-version window only). Do not scatter variants
+  — mode detection depends on those exact paths.
 - If the user is compacting *within* the session (staying in the same thread), this is the
   wrong tool — point them at `/kompact`. The tell: they are not exiting the process.
 - If THAW finds the task list already populated (a session that never fully cleared), reconcile

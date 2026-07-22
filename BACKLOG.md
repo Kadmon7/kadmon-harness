@@ -111,7 +111,11 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
   BioRaMBaM), so this header will appear in projects that are not the Cowork product. That is the
   intent of a product mark on a Tier-2 surface, but it is worth being deliberate about, since a
   frozen note in ToratNetz will carry it too.
-- [ ] **Rename `SESSION-HANDOFF.md` → `NEXT-SESSION.md`.** Chosen by the architect 2026-07-21 from
+  **Harness-side DONE 2026-07-22** (skill-creator pass, same commit as the NEXT-SESSION.md
+  rename): kontinuum FREEZE step 4 now emits the branded H1 + `Frozen <date>` line itself, and a
+  new "The note's name and header" section documents the standard in the skill. Remaining: (b)
+  `/sprint` → `/kowork` superseding ADR in `Kadmon7Cowork-Harness` — that repo's session.
+- [x] **Rename `SESSION-HANDOFF.md` → `NEXT-SESSION.md`.** Chosen by the architect 2026-07-21 from
   three candidates. Separate from the branding item above and NOT a branding change — the new name
   is deliberately UNBRANDED, which is the whole point of the standard: the mark goes in the H1
   where it is read, the description goes in the filename where it is searched.
@@ -138,6 +142,11 @@ States: `[ ]` open · `[~]` in progress · `[x]` done · `[-]` dropped · `[d]` 
   destroying that task list. So: for one version the skill MUST Glob BOTH names, thaw either, and
   always rewrite under the new one; drop the legacy branch a version later. Also update
   `.gitignore` (currently line 64) to cover both during the window. Same skill-creator pass.
+  **DONE (this repo) 2026-07-22**: SKILL.md mode detection Globs BOTH names, THAW step 1 migrates
+  a legacy-named note to `NEXT-SESSION.md` on read so every surviving note converges, FREEZE
+  writes the new name, `.gitignore` covers both for the window, and the live frozen note at the
+  repo root was migrated in place. Drop the legacy branch one release after this ships. Forks and
+  consumers inherit via the skill port (AUD-41 runbook).
 - [ ] **Port `rules/common/language.md` from BioRambam, then run the C-001 count pass.** Written
   2026-07-21 in `BioRambam/.claude/rules/common/language.md` and deliberately NOT written here
   first, because adding a rule to this repo moves the component count that C-001 governs and

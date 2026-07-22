@@ -59,8 +59,11 @@ Thumbs.db
 .claude/worktrees/
 # Session scheduler lock (created by /schedule + /loop skills — per-session pid+sessionId)
 .claude/scheduled_tasks.lock
-# Inter-session bridge note (written by session-bridge skill SAVE mode, consumed +
-# deleted on RESTORE). Single-use; committing it would leave stale task state in history.
+# Inter-session frozen note (written by kontinuum FREEZE, consumed + deleted on THAW).
+# Single-use; committing it would leave stale task state in history. Both names covered
+# during the one-version rename migration window (2026-07-22); drop the legacy line when
+# the skill drops its legacy-name branch.
+NEXT-SESSION.md
 SESSION-HANDOFF.md
 
 # ─── Personal productivity notes (not for plugin distribution) ────────────────
