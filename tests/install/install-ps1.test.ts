@@ -189,4 +189,119 @@ describe("install.ps1 — plan-010 Phase 5 narrowed by plan-019", () => {
       /KADMON_USER_SETTINGS_PATH|--user-settings/i,
     );
   });
+
+  // Tests 10-11 (plan-041): structural — $NoScaffold param + pass-through
+  it("Test 10 (plan-041): declares -NoScaffold switch in the param block", () => {
+    const content = fs.readFileSync(INSTALL_PS1, "utf8");
+    expect(content).toMatch(/param\s*\(/i);
+    expect(content).toMatch(/\[switch\]\$NoScaffold/i);
+  });
+
+  it("Test 11 (plan-041): passes --no-scaffold to install-apply.ts when -NoScaffold is set", () => {
+    const content = fs.readFileSync(INSTALL_PS1, "utf8");
+    expect(content).toMatch(/--no-scaffold/);
+    expect(content).toMatch(/\$NoScaffold/i);
+  });
+
+  it("Test 12 (plan-041): dry-run description line mentions scaffolding + the opt-out flag", () => {
+    const content = fs.readFileSync(INSTALL_PS1, "utf8");
+    expect(content).toMatch(
+      /\[DRY RUN\] would scaffold docs\/ structure \+ BACKLOG\.md/,
+    );
+  });
+
+  // Test 13 (plan-041): e2e parity — skipped if PowerShell not available
+  it.runIf(powershellAvailable)(
+    "Test 13 (plan-041): default -TargetPath run scaffolds docs/{decisions,plans,research,state}/.gitkeep + BACKLOG.md; -NoScaffold creates none",
+    () => {
+      if (!POWERSHELL_PATH) {
+        throw new Error("runIf guarded incorrectly");
+      }
+
+      // Default run — scaffold created
+      const target = createFakeTarget();
+      const userSettings = createFakeUserSettings();
+      const result = spawnSync(
+        POWERSHELL_PATH,
+        [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          INSTALL_PS1,
+          "-TargetPath",
+          target,
+        ],
+        {
+          cwd: REPO_ROOT,
+          encoding: "utf8",
+          env: { ...process.env, KADMON_USER_SETTINGS_PATH: userSettings },
+          timeout: 120_000,
+        },
+      );
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      for (const dir of ["decisions", "plans", "research", "state"]) {
+        expect(
+          fs.existsSync(path.join(target, "docs", dir, ".gitkeep")),
+        ).toBe(true);
+      }
+      expect(fs.existsSync(path.join(target, "BACKLOG.md"))).toBe(true);
+
+      // -NoScaffold run — nothing scaffolded
+      const target2 = createFakeTarget();
+      const userSettings2 = createFakeUserSettings();
+      const result2 = spawnSync(
+        POWERSHELL_PATH,
+        [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          INSTALL_PS1,
+          "-TargetPath",
+          target2,
+          "-NoScaffold",
+        ],
+        {
+          cwd: REPO_ROOT,
+          encoding: "utf8",
+          env: { ...process.env, KADMON_USER_SETTINGS_PATH: userSettings2 },
+          timeout: 120_000,
+        },
+      );
+      expect(result2.status, `stderr: ${result2.stderr}`).toBe(0);
+      for (const dir of ["decisions", "plans", "research", "state"]) {
+        expect(fs.existsSync(path.join(target2, "docs", dir))).toBe(false);
+      }
+      expect(fs.existsSync(path.join(target2, "BACKLOG.md"))).toBe(false);
+
+      // -DryRun run — scaffolds nothing
+      const target3 = createFakeTarget();
+      const userSettings3 = createFakeUserSettings();
+      const result3 = spawnSync(
+        POWERSHELL_PATH,
+        [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          INSTALL_PS1,
+          "-TargetPath",
+          target3,
+          "-DryRun",
+        ],
+        {
+          cwd: REPO_ROOT,
+          encoding: "utf8",
+          env: { ...process.env, KADMON_USER_SETTINGS_PATH: userSettings3 },
+          timeout: 120_000,
+        },
+      );
+      expect(result3.status, `stderr: ${result3.stderr}`).toBe(0);
+      expect(fs.existsSync(path.join(target3, "docs", "decisions"))).toBe(
+        false,
+      );
+      expect(fs.existsSync(path.join(target3, "BACKLOG.md"))).toBe(false);
+    },
+  );
 });

@@ -7,6 +7,7 @@
 #   .\install.ps1 -TargetPath "C:\path\to\project"
 #   .\install.ps1 -TargetPath "C:\path\to\project" -DryRun
 #   .\install.ps1 -TargetPath "C:\path\to\project" -ForcePermissionsSync
+#   .\install.ps1 -TargetPath "C:\path\to\project" -NoScaffold
 #
 # Env vars:
 #   KADMON_USER_SETTINGS_PATH — override user-scope settings.json (for tests).
@@ -18,7 +19,9 @@ param(
 
     [switch]$DryRun,
 
-    [switch]$ForcePermissionsSync
+    [switch]$ForcePermissionsSync,
+
+    [switch]$NoScaffold
 )
 
 $ErrorActionPreference = "Stop"
@@ -128,9 +131,12 @@ if (-not (Test-Path -Path $InstallApply -PathType Leaf)) {
     exit 3
 }
 
-$applyArgs = @("--target", $TargetPath)
+$applyArgs = @("--target", $TargetAbs)
 if ($ForcePermissionsSync) {
     $applyArgs += "--force-permissions-sync"
+}
+if ($NoScaffold) {
+    $applyArgs += "--no-scaffold"
 }
 # User-settings override via env var (tests use this to avoid touching real ~/.claude)
 if ($env:KADMON_USER_SETTINGS_PATH) {
@@ -139,6 +145,9 @@ if ($env:KADMON_USER_SETTINGS_PATH) {
 
 if ($DryRun) {
     Write-Host "[DRY RUN] would invoke: npx tsx $InstallApply $($applyArgs -join ' ')"
+    if (-not $NoScaffold) {
+        Write-Host "[DRY RUN] would scaffold docs/ structure + BACKLOG.md (skip with -NoScaffold)"
+    }
 } else {
     Push-Location $RepoRoot
     try {

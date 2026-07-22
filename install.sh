@@ -23,6 +23,7 @@ REPO_ROOT="$SCRIPT_DIR"
 
 DRY_RUN=false
 FORCE_PERMISSIONS_SYNC=false
+NO_SCAFFOLD=false
 TARGET=""
 
 while [[ $# -gt 0 ]]; do
@@ -35,16 +36,21 @@ while [[ $# -gt 0 ]]; do
       FORCE_PERMISSIONS_SYNC=true
       shift
       ;;
+    --no-scaffold)
+      NO_SCAFFOLD=true
+      shift
+      ;;
     -h|--help)
       cat <<EOF
 Kadmon Harness install.sh
 
 Usage:
-  install.sh [--dry-run] [--force-permissions-sync] <target-path>
+  install.sh [--dry-run] [--force-permissions-sync] [--no-scaffold] <target-path>
 
 Options:
   --dry-run                   Print planned operations without touching the filesystem.
   --force-permissions-sync    Re-merge permissions.deny even if already present.
+  --no-scaffold               Skip scaffolding docs/ structure + BACKLOG.md (default: ON).
   -h, --help                  Show this help.
 
 Env vars:
@@ -183,9 +189,12 @@ if [[ ! -f "$INSTALL_APPLY" ]]; then
   exit 3
 fi
 
-APPLY_ARGS=(--target "$TARGET")
+APPLY_ARGS=(--target "$TARGET_ABS")
 if [[ "$FORCE_PERMISSIONS_SYNC" == "true" ]]; then
   APPLY_ARGS+=(--force-permissions-sync)
+fi
+if [[ "$NO_SCAFFOLD" == "true" ]]; then
+  APPLY_ARGS+=(--no-scaffold)
 fi
 # User-settings override via env var (tests use this to avoid touching real ~/.claude)
 if [[ -n "${KADMON_USER_SETTINGS_PATH:-}" ]]; then
@@ -194,6 +203,9 @@ fi
 
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "[DRY RUN] would invoke: npx tsx $INSTALL_APPLY ${APPLY_ARGS[*]}"
+  if [[ "$NO_SCAFFOLD" != "true" ]]; then
+    echo "[DRY RUN] would scaffold docs/ structure + BACKLOG.md (skip with --no-scaffold)"
+  fi
 else
   # Run from REPO_ROOT so npx tsx can resolve dependencies relative to harness repo
   ( cd "$REPO_ROOT" && npx tsx "$INSTALL_APPLY" "${APPLY_ARGS[@]}" )

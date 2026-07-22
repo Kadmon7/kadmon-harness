@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { mergeSettingsJson, mergePermissionsAllow, safeAssign, } from "./install-helpers.js";
 import { CANONICAL_DENY_RULES, CANONICAL_ALLOW_RULES } from "./install-manifest.js";
+import { scaffoldProject } from "./install-scaffold.js";
 // ─── Paths ────────────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,11 +35,13 @@ const argSchema = z.object({
     target: z.string().min(1, "--target <path> is required and must be non-empty"),
     userSettings: z.string().optional(),
     forcePermissionsSync: z.boolean().default(false),
+    noScaffold: z.boolean().default(false),
 });
 function parseArgs(argv) {
     let target = "";
     let userSettings;
     let forcePermissionsSync = false;
+    let noScaffold = false;
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === "--target") {
@@ -60,6 +63,9 @@ function parseArgs(argv) {
         else if (arg === "--force-permissions-sync") {
             forcePermissionsSync = true;
         }
+        else if (arg === "--no-scaffold") {
+            noScaffold = true;
+        }
     }
     // Env var fallback for --user-settings (used by install-sh.test.ts via env)
     if (userSettings === undefined) {
@@ -68,7 +74,12 @@ function parseArgs(argv) {
             userSettings = envOverride;
         }
     }
-    return argSchema.parse({ target, userSettings, forcePermissionsSync });
+    return argSchema.parse({
+        target,
+        userSettings,
+        forcePermissionsSync,
+        noScaffold,
+    });
 }
 // ─── File I/O helpers ─────────────────────────────────────────────────────────
 function readJsonOrEmpty(filePath) {
@@ -168,7 +179,11 @@ export function runInstallApply(argv) {
     const projectResult = applyProjectSettings(parsed.target, parsed.forcePermissionsSync);
     const userSettingsPath = parsed.userSettings ?? path.join(os.homedir(), ".claude", "settings.json");
     const userResult = applyUserSettings(userSettingsPath);
-    return { ...projectResult, ...userResult };
+    if (parsed.noScaffold) {
+        return { ...projectResult, ...userResult };
+    }
+    const scaffold = scaffoldProject(parsed.target, REPO_ROOT);
+    return { ...projectResult, ...userResult, scaffold };
 }
 function main() {
     try {

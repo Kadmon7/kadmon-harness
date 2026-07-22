@@ -71,6 +71,36 @@ if (!bashAvailable) {
   );
 }
 
+// ─── Symlink-capability probe (H1 security-review regression fixture) ──────
+// The H1 fixture below needs real symlink creation for the canonical
+// agents/skills/commands links install.sh's Step 4 gates on. Probe once,
+// synchronously, and skip gracefully if unsupported (mirrors detectBash()'s
+// module-scope-sync + it.runIf pattern above).
+function canCreateSymlinks(): boolean {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-symlink-probe-"));
+  try {
+    fs.symlinkSync(path.join(dir, "target"), path.join(dir, "link"), "dir");
+    return true;
+  } catch {
+    return false;
+  } finally {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // ignore cleanup errors
+    }
+  }
+}
+
+const SYMLINKS_SUPPORTED = canCreateSymlinks();
+
+if (!SYMLINKS_SUPPORTED) {
+  console.warn(
+    "[install-sh.test] symlink creation unsupported — the H1 regression " +
+      "test will skip. Expected on Windows without Developer Mode.",
+  );
+}
+
 // ─── Test fixture helpers ────────────────────────────────────────────────────
 
 let tempTargets: string[] = [];
@@ -119,6 +149,72 @@ function createFakeUserSettings(initial?: unknown): string {
     fs.writeFileSync(file, "{}\n");
   }
   return file;
+}
+
+/**
+ * H1 regression fixture (ADR-041 security review, 2026-07-22): builds a
+ * MINIMAL, ISOLATED copy of the harness repo so the "relative --target
+ * re-anchors to the harness repo" differential test can safely reproduce the
+ * bug WITHOUT ever writing into the real Kadmon-Harness checkout this test
+ * suite lives in. A pre-fix run of this fixture's own install.sh really does
+ * scaffold docs/{decisions,plans,research,state} + rewrite .claude/settings.json
+ * into whatever "REPO_ROOT" resolves to (install.sh derives it from its own
+ * script location) — so "REPO_ROOT" for this one test must be a disposable
+ * copy, not the live repo.
+ *
+ * Copies only what install.sh's happy path touches (install.sh itself, the
+ * install-apply.ts dependency chain, the BACKLOG template, plugin.json for
+ * version extraction) plus the three canonical symlinks Step 4 gates on.
+ * node_modules is symlinked (junction — no Developer Mode needed) to the
+ * REAL repo's node_modules so `npx tsx` resolves tsx + zod without a
+ * network-dependent reinstall.
+ */
+function createFakeHarnessRepo(): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kadmon-fake-repo-"));
+  tempTargets.push(dir);
+
+  fs.mkdirSync(path.join(dir, "scripts", "lib"), { recursive: true });
+  fs.mkdirSync(path.join(dir, ".claude", "rules"), { recursive: true });
+  fs.mkdirSync(path.join(dir, ".claude", "agents"), { recursive: true });
+  fs.mkdirSync(path.join(dir, ".claude", "skills"), { recursive: true });
+  fs.mkdirSync(path.join(dir, ".claude", "commands"), { recursive: true });
+  fs.mkdirSync(path.join(dir, ".claude-plugin"), { recursive: true });
+  fs.mkdirSync(path.join(dir, "docs", "onboarding"), { recursive: true });
+
+  for (const f of [
+    "install-apply.ts",
+    "install-scaffold.ts",
+    "install-helpers.ts",
+    "install-manifest.ts",
+  ]) {
+    fs.copyFileSync(
+      path.join(REPO_ROOT, "scripts", "lib", f),
+      path.join(dir, "scripts", "lib", f),
+    );
+  }
+  fs.copyFileSync(
+    path.join(REPO_ROOT, "docs", "onboarding", "BACKLOG.template.md"),
+    path.join(dir, "docs", "onboarding", "BACKLOG.template.md"),
+  );
+  fs.copyFileSync(
+    path.join(REPO_ROOT, ".claude-plugin", "plugin.json"),
+    path.join(dir, ".claude-plugin", "plugin.json"),
+  );
+  fs.copyFileSync(
+    path.join(REPO_ROOT, "install.sh"),
+    path.join(dir, "install.sh"),
+  );
+
+  fs.symlinkSync(".claude/agents", path.join(dir, "agents"), "dir");
+  fs.symlinkSync(".claude/skills", path.join(dir, "skills"), "dir");
+  fs.symlinkSync(".claude/commands", path.join(dir, "commands"), "dir");
+  fs.symlinkSync(
+    path.join(REPO_ROOT, "node_modules"),
+    path.join(dir, "node_modules"),
+    "junction",
+  );
+
+  return dir;
 }
 
 interface InstallResult {
@@ -521,6 +617,82 @@ describe("install.sh — plan-010 Phase 4 narrowed by plan-019", () => {
   );
 
   it.runIf(bashAvailable)(
+    "Test 15 (plan-041): default run scaffolds docs/{decisions,plans,research,state}/.gitkeep + root BACKLOG.md",
+    () => {
+      const target = createFakeTarget();
+      const userSettings = createFakeUserSettings();
+      const result = runInstallSh([target], {
+        KADMON_USER_SETTINGS_PATH: userSettings,
+      });
+
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      for (const dir of ["decisions", "plans", "research", "state"]) {
+        expect(
+          fs.existsSync(path.join(target, "docs", dir, ".gitkeep")),
+        ).toBe(true);
+      }
+      expect(fs.existsSync(path.join(target, "BACKLOG.md"))).toBe(true);
+    },
+  );
+
+  it.runIf(bashAvailable)(
+    "Test 16 (plan-041): --no-scaffold creates none of the docs/ scaffold or BACKLOG.md",
+    () => {
+      const target = createFakeTarget();
+      const userSettings = createFakeUserSettings();
+      const result = runInstallSh(["--no-scaffold", target], {
+        KADMON_USER_SETTINGS_PATH: userSettings,
+      });
+
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      for (const dir of ["decisions", "plans", "research", "state"]) {
+        expect(fs.existsSync(path.join(target, "docs", dir))).toBe(false);
+      }
+      expect(fs.existsSync(path.join(target, "BACKLOG.md"))).toBe(false);
+    },
+  );
+
+  it.runIf(bashAvailable)(
+    "Test 17 (plan-041): --dry-run performs no scaffolding and describes the skipped step",
+    () => {
+      const target = createFakeTarget();
+      const userSettings = createFakeUserSettings();
+      const result = runInstallSh(["--dry-run", target], {
+        KADMON_USER_SETTINGS_PATH: userSettings,
+      });
+
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      expect(fs.existsSync(path.join(target, "docs", "decisions"))).toBe(
+        false,
+      );
+      expect(fs.existsSync(path.join(target, "BACKLOG.md"))).toBe(false);
+      expect(result.stdout).toMatch(
+        /\[DRY RUN\] would scaffold docs\/ structure \+ BACKLOG\.md/,
+      );
+    },
+  );
+
+  it.runIf(bashAvailable)(
+    "Test 18 (plan-041): re-run over a target with a pre-populated BACKLOG.md leaves it byte-identical",
+    () => {
+      const target = createFakeTarget();
+      const sentinel = "# BACKLOG — DO_NOT_TOUCH_THIS\n";
+      fs.writeFileSync(path.join(target, "BACKLOG.md"), sentinel);
+      const userSettings = createFakeUserSettings();
+      const result = runInstallSh([target], {
+        KADMON_USER_SETTINGS_PATH: userSettings,
+      });
+
+      expect(result.status, `stderr: ${result.stderr}`).toBe(0);
+      const content = fs.readFileSync(
+        path.join(target, "BACKLOG.md"),
+        "utf8",
+      );
+      expect(content).toBe(sentinel);
+    },
+  );
+
+  it.runIf(bashAvailable)(
     "Test 11: target path with embedded spaces completes without corruption",
     () => {
       // Simulate Windows user: path under Documents/ or OneDrive/ with spaces
@@ -538,6 +710,51 @@ describe("install.sh — plan-010 Phase 4 narrowed by plan-019", () => {
       // All critical files must exist under the spaced path
       expect(fs.existsSync(path.join(target, ".kadmon-version"))).toBe(true);
       expect(fs.existsSync(path.join(target, ".claude", "rules"))).toBe(true);
+      expect(
+        fs.existsSync(path.join(target, ".claude", "settings.json")),
+      ).toBe(true);
+    },
+  );
+
+  it.runIf(bashAvailable && SYMLINKS_SUPPORTED)(
+    "Test 19 (plan-041 H1 security fix): relative target '.' does not re-anchor to the harness repo",
+    () => {
+      // Reproduces (safely, against an isolated fake repo — see
+      // createFakeHarnessRepo doc comment) `cd /c/Projects/myapp &&
+      // install.sh .`: RED pre-fix because install.sh computes a validated
+      // TARGET_ABS for the "target cannot be the harness repo" guard, then
+      // discards it and forwards the RAW "$TARGET" to install-apply.ts,
+      // which runs with cwd = the harness repo (so npx tsx can resolve
+      // dependencies) — so a relative "." silently re-anchors to the repo
+      // install.sh itself lives in.
+      const fakeRepo = createFakeHarnessRepo();
+      const fakeInstallSh = path.join(fakeRepo, "install.sh");
+
+      const target = createFakeTarget();
+      const userSettings = createFakeUserSettings();
+
+      const result = spawnSync(BASH_PATH!, [fakeInstallSh, "."], {
+        cwd: target, // mimics `cd /c/Projects/myapp && install.sh .`
+        encoding: "utf8",
+        env: { ...process.env, KADMON_USER_SETTINGS_PATH: userSettings },
+        timeout: 60_000,
+      });
+
+      expect(result.status ?? -1, `stderr: ${result.stderr}`).toBe(0);
+
+      // The regression: the fake harness repo itself must NOT gain the
+      // scaffold or a rewritten settings.json — a relative "." target must
+      // never re-anchor to the repo install.sh lives in.
+      expect(fs.existsSync(path.join(fakeRepo, "docs", "state"))).toBe(false);
+      expect(
+        fs.existsSync(path.join(fakeRepo, ".claude", "settings.json")),
+      ).toBe(false);
+
+      // The scaffold + settings must land in the intended target instead.
+      expect(
+        fs.existsSync(path.join(target, "docs", "state", ".gitkeep")),
+      ).toBe(true);
+      expect(fs.existsSync(path.join(target, "BACKLOG.md"))).toBe(true);
       expect(
         fs.existsSync(path.join(target, ".claude", "settings.json")),
       ).toBe(true);

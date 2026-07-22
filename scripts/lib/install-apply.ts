@@ -31,6 +31,7 @@ import {
   type SettingsJsonLike,
 } from "./install-helpers.js";
 import { CANONICAL_DENY_RULES, CANONICAL_ALLOW_RULES } from "./install-manifest.js";
+import { scaffoldProject, type ScaffoldResult } from "./install-scaffold.js";
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ const argSchema = z.object({
   target: z.string().min(1, "--target <path> is required and must be non-empty"),
   userSettings: z.string().optional(),
   forcePermissionsSync: z.boolean().default(false),
+  noScaffold: z.boolean().default(false),
 });
 
 type ParsedArgs = z.infer<typeof argSchema>;
@@ -53,6 +55,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let target = "";
   let userSettings: string | undefined;
   let forcePermissionsSync = false;
+  let noScaffold = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -72,6 +75,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       i++;
     } else if (arg === "--force-permissions-sync") {
       forcePermissionsSync = true;
+    } else if (arg === "--no-scaffold") {
+      noScaffold = true;
     }
   }
 
@@ -83,7 +88,12 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     }
   }
 
-  return argSchema.parse({ target, userSettings, forcePermissionsSync });
+  return argSchema.parse({
+    target,
+    userSettings,
+    forcePermissionsSync,
+    noScaffold,
+  });
 }
 
 // ─── File I/O helpers ─────────────────────────────────────────────────────────
@@ -248,6 +258,7 @@ export interface InstallApplySummary {
   userMarketplaceAdded: boolean;
   userEnabledPluginAdded: boolean;
   userSettingsPath: string;
+  scaffold?: ScaffoldResult;
 }
 
 export function runInstallApply(argv: readonly string[]): InstallApplySummary {
@@ -259,7 +270,13 @@ export function runInstallApply(argv: readonly string[]): InstallApplySummary {
   const userSettingsPath =
     parsed.userSettings ?? path.join(os.homedir(), ".claude", "settings.json");
   const userResult = applyUserSettings(userSettingsPath);
-  return { ...projectResult, ...userResult };
+
+  if (parsed.noScaffold) {
+    return { ...projectResult, ...userResult };
+  }
+
+  const scaffold = scaffoldProject(parsed.target, REPO_ROOT);
+  return { ...projectResult, ...userResult, scaffold };
 }
 
 function main(): void {
