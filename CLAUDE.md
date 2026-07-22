@@ -80,26 +80,8 @@ Kadmon-Harness/
 - `KADMON_DASHBOARD_PORT` — Port for `npm run dashboard:web` (default 4321; Zod-validated 1024-65535, plan-039).
 
 ## Agents (16)
-| Agent | Model |
-|-------|-------|
-| arkitect | opus |
-| konstruct | opus |
-| kody | sonnet |
-| typescript-reviewer | sonnet |
-| orakle | sonnet |
-| spektr | opus |
-| feniks | sonnet |
-| mekanik | sonnet |
-| kurator | sonnet |
-| arkonte | sonnet |
-| python-reviewer | sonnet |
-| almanak | sonnet |
-| doks | opus |
-| kartograf | sonnet |
-| alchemik | opus |
-| skavenger | sonnet |
 
-Full agent catalog (triggers, commands, skills) at `.claude/agents/CATALOG.md` (ADR-035). Routing logic at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD)`. Code review = `/chekpoint`'s job, not `/abra-kdabra`'s.
+Full agent catalog (16 agents with models, triggers, commands, skills) at `.claude/agents/CATALOG.md` (ADR-035) — single source of truth; the per-agent model table lives there and in each agent's frontmatter. Routing logic at `.claude/rules/common/agents.md`. Chain: `arkitect → konstruct → feniks (if TDD)`. Code review = `/chekpoint`'s job, not `/abra-kdabra`'s.
 
 ## Commands (12)
 - **Observe** (2): /nexus, /kompact
